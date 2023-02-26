@@ -1,0 +1,74 @@
+use crate::prelude::*;
+
+pub struct WorldPlugin;
+
+impl Plugin for WorldPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_startup_system(setup_world);
+    }
+}
+
+const SIZE: Vec3 = Vec3 {
+    x: 400.,
+    y: 20.,
+    z: 200.,
+};
+
+#[derive(Component)]
+struct World;
+
+#[derive(Component)]
+struct Ground;
+
+fn setup_world(
+    mut cmds: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    cmds.spawn(SpatialBundle {
+        transform: Transform {
+            translation: Vec3::ZERO,
+            rotation: Quat::from_rotation_z(-0.25),
+            ..default()
+        },
+        ..default()
+    })
+    .insert(World)
+    .with_children(|parent| {
+        parent
+            .spawn((
+                PbrBundle {
+                    mesh: meshes.add(Mesh::from(shape::Box {
+                        min_x: -SIZE.x / 2.,
+                        max_x: SIZE.x / 2.,
+                        min_y: -1.,
+                        max_y: 1.,
+                        min_z: -SIZE.z / 2.,
+                        max_z: SIZE.z / 2.,
+                    })),
+                    material: materials.add(StandardMaterial {
+                        base_color: Color::GRAY,
+                        perceptual_roughness: 0.5,
+                        metallic: 0.5,
+                        reflectance: 0.5,
+                        ..default()
+                    }),
+                    ..default()
+                },
+                Collider::cuboid(SIZE.x / 2., 2., SIZE.z / 2.),
+            ))
+            .insert(Ground);
+        parent.spawn(PointLightBundle {
+            transform: Transform::from_xyz(0., SIZE.x / 4., 0.).looking_at(Vec3::ZERO, Vec3::Y),
+            point_light: PointLight {
+                intensity: 320000.,
+                color: Color::WHITE,
+                shadows_enabled: true,
+                radius: SIZE.x / 20.,
+                range: SIZE.x,
+                ..default()
+            },
+            ..default()
+        });
+    });
+}
