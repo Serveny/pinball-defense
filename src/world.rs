@@ -33,16 +33,16 @@ fn setup_world(
         },
         ..default()
     })
-    .insert(World)
     .with_children(|parent| {
+        let half_ground_height = 2.;
         parent
             .spawn((
                 PbrBundle {
                     mesh: meshes.add(Mesh::from(shape::Box {
                         min_x: -SIZE.x / 2.,
                         max_x: SIZE.x / 2.,
-                        min_y: -1.,
-                        max_y: 1.,
+                        min_y: -half_ground_height,
+                        max_y: half_ground_height,
                         min_z: -SIZE.z / 2.,
                         max_z: SIZE.z / 2.,
                     })),
@@ -55,7 +55,7 @@ fn setup_world(
                     }),
                     ..default()
                 },
-                Collider::cuboid(SIZE.x / 2., 2., SIZE.z / 2.),
+                Collider::cuboid(SIZE.x / 2., half_ground_height, SIZE.z / 2.),
             ))
             .insert(Ground);
         parent.spawn(PointLightBundle {
@@ -70,5 +70,13 @@ fn setup_world(
             },
             ..default()
         });
-    });
+        crate::ball_starter::spawn(
+            parent,
+            Vec3::new(SIZE.x / 2., half_ground_height, -SIZE.z / 2.),
+            &mut meshes,
+            &mut materials,
+        );
+    })
+    .insert(World)
+    .insert(Name::new("Pinball World"));
 }
