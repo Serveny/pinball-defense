@@ -1,7 +1,16 @@
 use crate::prelude::*;
 
+const HALF_SIZE: Vec3 = Vec3 {
+    x: 10.3,
+    y: 5.3,
+    z: 5.3,
+};
+
 #[derive(Component)]
 pub struct BallStarter;
+
+#[derive(Component)]
+pub struct BallStarterPlate;
 
 pub fn spawn(
     cmds: &mut ChildBuilder,
@@ -9,32 +18,43 @@ pub fn spawn(
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
 ) {
-    let half_size = 5.3;
     cmds.spawn(SpatialBundle {
         transform: Transform {
-            translation: pos,
+            translation: (pos
+                + Vec3::new(
+                    pos.x.signum() * -HALF_SIZE.x,
+                    HALF_SIZE.y,
+                    pos.z.signum() * -HALF_SIZE.z,
+                )),
             ..default()
         },
         ..default()
     })
     .with_children(|parent| {
-        parent.spawn((
-            PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::Cube::new(half_size * 2.))),
-                material: materials.add(Color::RED.into()),
-                // Pos inside on x/z-axis and up or down on y-axis
-                transform: Transform::from_xyz(
-                    pos.x.signum() * -half_size,
-                    pos.y.signum() * half_size,
-                    pos.z.signum() * -half_size,
-                ),
-                ..default()
-            },
-            RigidBody::KinematicPositionBased,
-            Collider::cuboid(half_size, half_size, half_size),
-            ColliderDebugColor(Color::GREEN),
-        ));
+        parent
+            .spawn((
+                PbrBundle {
+                    mesh: meshes.add(Mesh::from(shape::Cube::new(HALF_SIZE.y * 2.))),
+                    material: materials.add(Color::RED.into()),
+                    ..default()
+                },
+                RigidBody::KinematicPositionBased,
+                Collider::cuboid(HALF_SIZE.y, HALF_SIZE.y, HALF_SIZE.y),
+                ColliderDebugColor(Color::GREEN),
+            ))
+            .insert(BallStarterPlate);
     })
     .insert(BallStarter)
     .insert(Name::new("Ball Starter"));
+}
+
+pub fn get_ball_spawn_global_pos(q_starter: Query<&GlobalTransform, With<BallStarter>>) -> Vec3 {
+    let mut pos = q_starter
+        .get_single()
+        .expect("No ball starter")
+        .translation();
+    // Ball spawn in the upper half of the starter
+    pos.x += pos.x.signum() * -HALF_SIZE.x * 2.;
+    pos.y += HALF_SIZE.y * 2.;
+    pos
 }
