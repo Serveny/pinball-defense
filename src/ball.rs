@@ -4,26 +4,24 @@ pub struct BallPlugin;
 
 impl Plugin for BallPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(setup_ball)
-            .add_system(ball_reset_system);
+        app.add_startup_system(setup).add_system(ball_reset_system);
     }
 }
 
 #[derive(Component)]
-struct Ball;
+pub struct Ball;
 
-fn setup_ball(
-    mut cmds: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    spawn_ball(&mut cmds, &mut meshes, &mut materials)
+#[derive(Resource, Default)]
+pub struct BallSpawn(pub Vec3);
+
+fn setup(mut cmds: Commands) {
+    cmds.init_resource::<BallSpawn>();
 }
-
-fn spawn_ball(
+pub fn spawn_ball(
     cmds: &mut Commands,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
+    pos: Vec3,
 ) {
     let radius = 5.;
     cmds.spawn((
@@ -39,7 +37,7 @@ fn spawn_ball(
                 reflectance: 1.,
                 ..default()
             }),
-            transform: Transform::from_xyz(-100., 200., 0.),
+            transform: Transform::from_translation(pos),
             ..default()
         },
         RigidBody::Dynamic,
@@ -53,14 +51,15 @@ fn spawn_ball(
 
 fn ball_reset_system(
     mut cmds: Commands,
-    q_ball: Query<(Entity, &Transform), With<Ball>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    q_ball: Query<(Entity, &Transform), With<Ball>>,
+    ball_spawn: Res<BallSpawn>,
 ) {
     for (entity, transform) in q_ball.iter() {
-        if transform.translation.y <= -300. {
+        if transform.translation.y <= -600. {
             cmds.get_entity(entity).unwrap().despawn_recursive();
-            spawn_ball(&mut cmds, &mut meshes, &mut materials);
+            spawn_ball(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
         }
     }
 }

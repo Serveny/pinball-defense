@@ -1,10 +1,19 @@
+use crate::ball::BallSpawn;
+use crate::ball_starter::{get_ball_spawn_global_pos, BallStarter};
 use crate::prelude::*;
 
 pub struct WorldPlugin;
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(setup_world);
+        static POST: &str = "post";
+        app.add_startup_system(setup_world)
+            .add_startup_stage_after(
+                StartupStage::PostStartup,
+                POST,
+                SystemStage::single_threaded(),
+            )
+            .add_startup_system_to_stage(POST, set_ball_spawn);
     }
 }
 
@@ -79,4 +88,10 @@ fn setup_world(
     })
     .insert(World)
     .insert(Name::new("Pinball World"));
+}
+
+fn set_ball_spawn(mut cmds: Commands, q_starter: Query<&GlobalTransform, With<BallStarter>>) {
+    let spawn_pos = get_ball_spawn_global_pos(q_starter);
+    println!("Set ball spawn to {spawn_pos}");
+    cmds.insert_resource(BallSpawn(spawn_pos));
 }

@@ -28,7 +28,7 @@ struct Camera;
 
 fn setup_graphics(mut cmds: Commands) {
     cmds.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(0., 200., 200.).looking_at(Vec3::ZERO, Vec3::Y),
+        transform: Transform::from_xyz(0., 200., 200.),
         ..default()
     })
     .insert(Camera);
