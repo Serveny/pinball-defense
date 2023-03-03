@@ -9,3 +9,4 @@ edition = "2021"
 bevy = "0.9"
 bevy-inspector-egui = "0.17.0"
 bevy_rapier3d = { version = "0.20" }
+bevy_window_title_diagnostics = "0.3"

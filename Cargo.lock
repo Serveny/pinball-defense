@@ -912,6 +912,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_window_title_diagnostics"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ed5a6895fb7aa53292037f625691cd6505c42f31c797622fe029fb95c4e5185d"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "bevy_winit"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2735,6 +2744,7 @@ dependencies = [
  "bevy",
  "bevy-inspector-egui",
  "bevy_rapier3d",
+ "bevy_window_title_diagnostics",
 ]
 
 [[package]]

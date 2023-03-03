@@ -1,21 +1,28 @@
 use ball::BallPlugin;
+use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_window_title_diagnostics::WindowTitleLoggerDiagnosticsPlugin;
 use controls::ControlsPlugin;
+use fps_camera::FirstPersonCameraPlugin;
 use prelude::*;
 use world::WorldPlugin;
 
 mod ball;
 mod ball_starter;
 mod controls;
+mod fps_camera;
 mod prelude;
 mod world;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugin(FrameTimeDiagnosticsPlugin)
+        .add_plugin(WindowTitleLoggerDiagnosticsPlugin::default())
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(WorldInspectorPlugin)
+        .add_plugin(FirstPersonCameraPlugin)
         .add_plugin(WorldPlugin)
         .add_plugin(BallPlugin)
         .add_plugin(ControlsPlugin)
@@ -27,11 +34,6 @@ fn main() {
 struct Camera;
 
 fn setup_graphics(mut cmds: Commands) {
-    cmds.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(0., 200., 200.),
-        ..default()
-    })
-    .insert(Camera);
     cmds.insert_resource(AmbientLight {
         color: Color::WHITE,
         brightness: 0.2,
