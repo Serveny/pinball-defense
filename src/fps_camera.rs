@@ -1,5 +1,6 @@
 use crate::controls::MyGamepad;
 use crate::prelude::*;
+use bevy::core_pipeline::bloom::BloomSettings;
 use bevy::input::mouse::MouseMotion;
 
 pub struct FirstPersonCameraPlugin;
@@ -145,11 +146,17 @@ fn look_and_move_in_direction(
 }
 
 fn setup_camera(mut cmds: Commands) {
-    cmds.spawn(Camera3dBundle {
-        transform: Transform::from_translation(Vec3::new(0.0, 0.0, 3.0))
-            .looking_at(Vec3::ZERO, Vec3::Y),
-        ..Default::default()
-    })
+    cmds.spawn((
+        Camera3dBundle {
+            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 3.0))
+                .looking_at(Vec3::ZERO, Vec3::Y),
+            ..Default::default()
+        },
+        BloomSettings {
+            intensity: 1.,
+            ..default()
+        },
+    ))
     .insert(LookDirection::default());
     cmds.init_resource::<FirstPersonCameraSettings>();
 }
