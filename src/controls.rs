@@ -1,55 +1,49 @@
 use crate::ball::{spawn_ball, Ball, BallSpawn};
+use crate::fps_camera::CameraState;
 use crate::prelude::*;
-use bevy::input::mouse::MouseMotion;
+use bevy::window::CursorGrabMode;
 
 pub struct ControlsPlugin;
 
 impl Plugin for ControlsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(mouse_input)
-            .add_system(gamepad_connections)
-            .add_system(gamepad_input);
+        app.add_system(cursor_grab_system)
+            .add_system(gamepad_connections);
     }
 }
 
-fn mouse_input(
-    buttons: Res<Input<MouseButton>>,
-    mut motion_evr: EventReader<MouseMotion>,
-    mut q_cam: Query<&mut Transform, With<Camera>>,
-    time: Res<Time>,
+fn cursor_grab_system(
+    mut windows: ResMut<Windows>,
+    btn: Res<Input<MouseButton>>,
+    key: Res<Input<KeyCode>>,
+    mut cam_state: ResMut<State<CameraState>>,
 ) {
-    if buttons.pressed(MouseButton::Right) {
-        for ev in motion_evr.iter() {
-            rotate_cam_around_middle(&mut q_cam, ev.delta, time.delta_seconds());
-        }
+    let window = windows.get_primary_mut().unwrap();
+
+    if btn.just_pressed(MouseButton::Left) {
+        // if you want to use the cursor, but not let it leave the window,
+        // use `Confined` mode:
+        window.set_cursor_grab_mode(CursorGrabMode::Confined);
+
+        // for a game that doesn't use the cursor (like a shooter):
+        // use `Locked` mode to keep the cursor in one place
+        window.set_cursor_grab_mode(CursorGrabMode::Locked);
+        // also hide the cursor
+        window.set_cursor_visibility(false);
+        cam_state.set(CameraState::Active).unwrap_or_default();
     }
-}
 
-fn rotate_cam_around_middle(
-    q_cam: &mut Query<&mut Transform, With<Camera>>,
-    delta: Vec2,
-    delta_seconds: f32,
-) {
-    let mut transform = q_cam.single_mut();
-    // Order is important to prevent unintended roll
-    transform.rotate_local(
-        Quat::from_axis_angle(Vec3::Y, (-4. * delta_seconds * delta.x).to_radians())
-            * Quat::from_axis_angle(Vec3::X, (4. * delta_seconds * delta.y).to_radians()),
-    );
-    transform.rotation.z = 0.;
-    println!("{}", transform.rotation.xyz());
-}
-
-fn cam_walk(q_cam: &mut Query<&mut Transform, With<Camera>>, delta: Vec2, delta_seconds: f32) {
-    let mut transform = q_cam.single_mut();
-    transform.translation.x += delta.x * delta_seconds;
-    transform.translation.z += delta.y * delta_seconds;
+    if key.just_pressed(KeyCode::Escape) {
+        window.set_cursor_grab_mode(CursorGrabMode::None);
+        window.set_cursor_visibility(true);
+        cam_state.set(CameraState::Inactive).unwrap_or_default();
+    }
 }
 
 /// Simple resource to store the ID of the connected gamepad.
 /// We need to know which gamepad to use for player input.
 #[derive(Resource)]
-struct MyGamepad(Gamepad);
+pub struct MyGamepad(pub Gamepad);
 
 fn gamepad_connections(
     mut cmds: Commands,
@@ -95,42 +89,6 @@ fn gamepad_connections(
             }
             // other events are irrelevant
             _ => {}
-        }
-    }
-}
-
-fn gamepad_input(
-    axes: Res<Axis<GamepadAxis>>,
-    my_gamepad: Option<Res<MyGamepad>>,
-    mut q_cam: Query<&mut Transform, With<Camera>>,
-    time: Res<Time>,
-) {
-    if let Some(gp) = my_gamepad {
-        // a gamepad is connected, we have the id
-        let gamepad = gp.0;
-
-        // The joysticks are represented using a separate axis for X and Y
-        let axis_rx = GamepadAxis::new(gamepad, GamepadAxisType::RightStickX);
-        let axis_ry = GamepadAxis::new(gamepad, GamepadAxisType::RightStickY);
-
-        // Rotate
-        if let (Some(x), Some(y)) = (axes.get(axis_rx), axes.get(axis_ry)) {
-            rotate_cam_around_middle(
-                &mut q_cam,
-                Vec2::new(x * 20., y * 20.),
-                time.delta_seconds(),
-            );
-        }
-
-        let axis_lx = GamepadAxis::new(gamepad, GamepadAxisType::LeftStickX);
-        let axis_ly = GamepadAxis::new(gamepad, GamepadAxisType::LeftStickY);
-
-        if let (Some(x), Some(y)) = (axes.get(axis_lx), axes.get(axis_ly)) {
-            cam_walk(
-                &mut q_cam,
-                Vec2::new(x * 100., y * 100.),
-                time.delta_seconds(),
-            );
         }
     }
 }

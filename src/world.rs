@@ -1,6 +1,7 @@
 use crate::ball::BallSpawn;
 use crate::ball_starter::{get_ball_spawn_global_pos, BallStarter};
 use crate::prelude::*;
+use std::path::Path;
 
 pub struct WorldPlugin;
 
@@ -33,6 +34,7 @@ fn setup_world(
     mut cmds: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
 ) {
     cmds.spawn(SpatialBundle {
         transform: Transform {
@@ -47,14 +49,15 @@ fn setup_world(
         parent
             .spawn((
                 PbrBundle {
-                    mesh: meshes.add(Mesh::from(shape::Box {
-                        min_x: -SIZE.x / 2.,
-                        max_x: SIZE.x / 2.,
-                        min_y: -half_ground_height,
-                        max_y: half_ground_height,
-                        min_z: -SIZE.z / 2.,
-                        max_z: SIZE.z / 2.,
-                    })),
+                    mesh: asset_server.load(Path::new("models/pinball_world_1.gltf")),
+                    //mesh: meshes.add(Mesh::from(shape::Box {
+                    //min_x: -SIZE.x / 2.,
+                    //max_x: SIZE.x / 2.,
+                    //min_y: -half_ground_height,
+                    //max_y: half_ground_height,
+                    //min_z: -SIZE.z / 2.,
+                    //max_z: SIZE.z / 2.,
+                    //})),
                     material: materials.add(StandardMaterial {
                         base_color: Color::GRAY,
                         perceptual_roughness: 0.5,
