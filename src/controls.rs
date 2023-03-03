@@ -20,7 +20,7 @@ fn cursor_grab_system(
 ) {
     let window = windows.get_primary_mut().unwrap();
 
-    if btn.just_pressed(MouseButton::Left) {
+    if btn.just_pressed(MouseButton::Middle) {
         // if you want to use the cursor, but not let it leave the window,
         // use `Confined` mode:
         window.set_cursor_grab_mode(CursorGrabMode::Confined);

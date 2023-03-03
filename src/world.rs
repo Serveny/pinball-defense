@@ -36,6 +36,19 @@ fn setup_world(
     mut materials: ResMut<Assets<StandardMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
+    // note that we have to include the `Scene0` label
+    let my_gltf = asset_server.load(format!(
+        "{}#scene0",
+        Path::new("models/ape.gltf").to_str().unwrap()
+    ));
+
+    // to position our 3d model, simply use the Transform
+    // in the SceneBundle
+    cmds.spawn(SceneBundle {
+        scene: my_gltf,
+        visibility: Visibility::VISIBLE,
+        ..default()
+    });
     cmds.spawn(SpatialBundle {
         transform: Transform {
             translation: Vec3::ZERO,
@@ -49,7 +62,10 @@ fn setup_world(
         parent
             .spawn((
                 PbrBundle {
-                    mesh: asset_server.load(Path::new("models/pinball_world_1.gltf")),
+                    mesh: asset_server.load(format!(
+                        "{}#meshes/Cube",
+                        Path::new("models/pinball_world_1.gltf").to_str().unwrap()
+                    )),
                     //mesh: meshes.add(Mesh::from(shape::Box {
                     //min_x: -SIZE.x / 2.,
                     //max_x: SIZE.x / 2.,
