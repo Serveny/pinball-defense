@@ -11,8 +11,14 @@ impl Plugin for BallPlugin {
 #[derive(Component)]
 pub struct Ball;
 
-#[derive(Resource, Default)]
+#[derive(Resource)]
 pub struct BallSpawn(pub Vec3);
+
+impl Default for BallSpawn {
+    fn default() -> Self {
+        Self(Vec3::new(0., 900., 0.))
+    }
+}
 
 fn setup(mut cmds: Commands) {
     cmds.init_resource::<BallSpawn>();
@@ -43,6 +49,7 @@ pub fn spawn_ball(
         RigidBody::Dynamic,
         Collider::ball(radius),
         Ccd::enabled(),
+        ColliderMassProperties::Mass(1.),
         ColliderDebugColor(Color::hsl(220.0, 1.0, 0.3)),
         GravityScale(200.),
     ))

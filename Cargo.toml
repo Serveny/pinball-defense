@@ -8,5 +8,6 @@ edition = "2021"
 [dependencies]
 bevy = { version = "0.9.1", features = ["default"] }
 bevy-inspector-egui = "0.17.0"
+bevy_asset_loader = "0.14.1"
 bevy_rapier3d = { version = "0.20" }
 bevy_window_title_diagnostics = "0.3"
