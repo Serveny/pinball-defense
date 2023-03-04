@@ -1,3 +1,4 @@
+use assets::PinballDefenseAssets;
 use ball::BallPlugin;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
@@ -7,12 +8,19 @@ use fps_camera::FirstPersonCameraPlugin;
 use prelude::*;
 use world::WorldPlugin;
 
+mod assets;
 mod ball;
 mod ball_starter;
 mod controls;
 mod fps_camera;
 mod prelude;
 mod world;
+
+#[derive(Clone, Eq, PartialEq, Debug, Hash)]
+pub enum GameState {
+    Loading,
+    Ingame,
+}
 
 fn main() {
     App::new()
@@ -27,6 +35,18 @@ fn main() {
         .add_plugin(BallPlugin)
         .add_plugin(ControlsPlugin)
         .add_startup_system(setup_graphics)
+        .add_state(GameState::Loading)
+        .add_loading_state(
+            LoadingState::new(GameState::Loading)
+                .continue_to_state(GameState::Ingame)
+                .with_collection::<PinballDefenseAssets>(),
+        )
+        .init_collection::<PinballDefenseAssets>()
+        //        .add_loading_state(
+        //LoadingState::new(GameState::Loading)
+        //.continue_to_state(GameState::Ingame)
+        //.with_collection::<PinballDefenseAssets>(),
+        //)
         .run();
 }
 
