@@ -16,7 +16,7 @@ pub struct BallSpawn(pub Vec3);
 
 impl Default for BallSpawn {
     fn default() -> Self {
-        Self(Vec3::new(0., 900., 0.))
+        Self(Vec3::new(0., 10., 0.))
     }
 }
 
@@ -48,8 +48,7 @@ pub fn spawn_ball(
         },
         RigidBody::Dynamic,
         Collider::ball(radius),
-        Ccd::enabled(),
-        ColliderMassProperties::Mass(1.),
+        //Ccd::enabled(),
         ColliderDebugColor(Color::hsl(220.0, 1.0, 0.3)),
         GravityScale(200.),
     ))
