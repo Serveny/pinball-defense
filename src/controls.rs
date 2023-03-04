@@ -25,7 +25,7 @@ fn cursor_grab_system(
 ) {
     let window = windows.get_primary_mut().unwrap();
 
-    if btn.just_pressed(MouseButton::Middle) {
+    if btn.just_pressed(MouseButton::Right) {
         // if you want to use the cursor, but not let it leave the window,
         // use `Confined` mode:
         window.set_cursor_grab_mode(CursorGrabMode::Confined);
@@ -79,7 +79,7 @@ fn gamepad_connections(
                 }
             }
             GamepadEventType::Disconnected => {
-                println!("Lost gamepad connection with ID: {:?}", id);
+                println!("Lost gamepad connection with ID: {id:?}");
 
                 // if it's the one we previously associated with the player,
                 // disassociate it:
