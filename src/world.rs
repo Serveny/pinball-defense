@@ -1,21 +1,14 @@
+use crate::assets::PinballDefenseAssets;
 use crate::ball::BallSpawn;
 use crate::ball_starter::{get_ball_spawn_global_pos, BallStarter};
 use crate::prelude::*;
-use std::path::Path;
-use std::time::Duration;
+use crate::GameState;
 
 pub struct WorldPlugin;
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
-        static POST: &str = "post";
-        app.add_startup_system(setup_world)
-            .add_startup_stage_after(
-                StartupStage::PostStartup,
-                POST,
-                SystemStage::single_threaded(),
-            )
-            .add_startup_system_to_stage(POST, set_ball_spawn);
+        app.add_system_set(SystemSet::on_enter(GameState::Ingame).with_system(setup_world));
     }
 }
 
@@ -35,22 +28,8 @@ fn setup_world(
     mut cmds: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    asset_server: Res<AssetServer>,
+    assets: ResMut<PinballDefenseAssets>,
 ) {
-    // note that we have to include the `Scene0` label
-    let my_gltf = asset_server.load(format!(
-        "{}#Mesh0/Primitive0",
-        Path::new("models/ape.gltf").to_str().unwrap()
-    ));
-
-    // to position our 3d model, simply use the Transform
-    // in the SceneBundle
-    cmds.spawn(SceneBundle {
-        scene: my_gltf,
-        visibility: Visibility::VISIBLE,
-        ..default()
-    })
-    .insert(Name::new("Test Mesh 1"));
     cmds.spawn(SpatialBundle {
         transform: Transform {
             translation: Vec3::ZERO,
@@ -60,28 +39,13 @@ fn setup_world(
         ..default()
     })
     .with_children(|parent| {
-        let half_ground_height = 2.;
-        let world_mesh = asset_server.load(format!(
-            "{}#Mesh0/Primitive0",
-            Path::new("models/pinball_world_1.gltf").to_str().unwrap()
-        ));
+        let mesh = meshes
+            .get(&assets.world_1_mesh)
+            .expect("Failed to find mesh");
         parent
             .spawn((
-                Collider::from_bevy_mesh(
-                    meshes.get(&world_mesh).unwrap(),
-                    &ComputedColliderShape::TriMesh,
-                )
-                .unwrap(),
                 PbrBundle {
-                    mesh: world_mesh,
-                    // mesh: meshes.add(Mesh::from(shape::Box {
-                    //min_x: -SIZE.x / 2.,
-                    //max_x: SIZE.x / 2.,
-                    //min_y: -half_ground_height,
-                    //max_y: half_ground_height,
-                    //min_z: -SIZE.z / 2.,
-                    //max_z: SIZE.z / 2.,
-                    //})),
+                    mesh: assets.world_1_mesh.clone(),
                     material: materials.add(StandardMaterial {
                         base_color: Color::GRAY,
                         perceptual_roughness: 0.5,
@@ -92,6 +56,7 @@ fn setup_world(
                     transform: Transform::from_scale(Vec3::new(1., 1., 1.) * 200.),
                     ..default()
                 },
+                Collider::from_bevy_mesh(mesh, &ComputedColliderShape::TriMesh).unwrap(),
                 // Collider::cuboid(SIZE.x / 2., half_ground_height, SIZE.z / 2.),
             ))
             .insert(Ground);
@@ -109,7 +74,7 @@ fn setup_world(
         });
         crate::ball_starter::spawn(
             parent,
-            Vec3::new(SIZE.x / 2., half_ground_height, -SIZE.z / 2.),
+            Vec3::new(SIZE.x / 2., 20., -SIZE.z / 2.),
             &mut meshes,
             &mut materials,
         );

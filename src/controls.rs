@@ -12,11 +12,16 @@ impl Plugin for ControlsPlugin {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn cursor_grab_system(
+    mut cmds: Commands,
     mut windows: ResMut<Windows>,
     btn: Res<Input<MouseButton>>,
     key: Res<Input<KeyCode>>,
+    ball_spawn: Res<BallSpawn>,
     mut cam_state: ResMut<State<CameraState>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     let window = windows.get_primary_mut().unwrap();
 
@@ -37,6 +42,10 @@ fn cursor_grab_system(
         window.set_cursor_grab_mode(CursorGrabMode::None);
         window.set_cursor_visibility(true);
         cam_state.set(CameraState::Inactive).unwrap_or_default();
+    }
+
+    if key.just_pressed(KeyCode::Space) {
+        spawn_ball(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
     }
 }
 
