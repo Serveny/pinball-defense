@@ -2,6 +2,7 @@ use crate::ball::BallSpawn;
 use crate::ball_starter::{get_ball_spawn_global_pos, BallStarter};
 use crate::prelude::*;
 use std::path::Path;
+use std::time::Duration;
 
 pub struct WorldPlugin;
 
@@ -38,7 +39,7 @@ fn setup_world(
 ) {
     // note that we have to include the `Scene0` label
     let my_gltf = asset_server.load(format!(
-        "{}#scene0",
+        "{}#Mesh0/Primitive0",
         Path::new("models/ape.gltf").to_str().unwrap()
     ));
 
@@ -48,7 +49,8 @@ fn setup_world(
         scene: my_gltf,
         visibility: Visibility::VISIBLE,
         ..default()
-    });
+    })
+    .insert(Name::new("Test Mesh 1"));
     cmds.spawn(SpatialBundle {
         transform: Transform {
             translation: Vec3::ZERO,
@@ -59,14 +61,20 @@ fn setup_world(
     })
     .with_children(|parent| {
         let half_ground_height = 2.;
+        let world_mesh = asset_server.load(format!(
+            "{}#Mesh0/Primitive0",
+            Path::new("models/pinball_world_1.gltf").to_str().unwrap()
+        ));
         parent
             .spawn((
+                Collider::from_bevy_mesh(
+                    meshes.get(&world_mesh).unwrap(),
+                    &ComputedColliderShape::TriMesh,
+                )
+                .unwrap(),
                 PbrBundle {
-                    mesh: asset_server.load(format!(
-                        "{}#meshes/Cube",
-                        Path::new("models/pinball_world_1.gltf").to_str().unwrap()
-                    )),
-                    //mesh: meshes.add(Mesh::from(shape::Box {
+                    mesh: world_mesh,
+                    // mesh: meshes.add(Mesh::from(shape::Box {
                     //min_x: -SIZE.x / 2.,
                     //max_x: SIZE.x / 2.,
                     //min_y: -half_ground_height,
@@ -81,9 +89,10 @@ fn setup_world(
                         reflectance: 0.5,
                         ..default()
                     }),
+                    transform: Transform::from_scale(Vec3::new(1., 1., 1.) * 200.),
                     ..default()
                 },
-                Collider::cuboid(SIZE.x / 2., half_ground_height, SIZE.z / 2.),
+                // Collider::cuboid(SIZE.x / 2., half_ground_height, SIZE.z / 2.),
             ))
             .insert(Ground);
         parent.spawn(PointLightBundle {
