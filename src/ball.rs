@@ -11,14 +11,8 @@ impl Plugin for BallPlugin {
 #[derive(Component)]
 pub struct Ball;
 
-#[derive(Resource)]
+#[derive(Resource, Default)]
 pub struct BallSpawn(pub Vec3);
-
-impl Default for BallSpawn {
-    fn default() -> Self {
-        Self(Vec3::new(0., 10., 0.))
-    }
-}
 
 fn setup(mut cmds: Commands) {
     cmds.init_resource::<BallSpawn>();
@@ -29,7 +23,7 @@ pub fn spawn_ball(
     materials: &mut Assets<StandardMaterial>,
     pos: Vec3,
 ) {
-    let radius = 5.;
+    let radius = 2.5;
     cmds.spawn((
         PbrBundle {
             mesh: meshes.add(Mesh::from(shape::UVSphere {
@@ -52,7 +46,8 @@ pub fn spawn_ball(
         ColliderDebugColor(Color::hsl(220.0, 1.0, 0.3)),
         GravityScale(200.),
     ))
-    .insert(Ball);
+    .insert(Ball)
+    .insert(Name::new("Ball"));
 }
 
 fn ball_reset_system(

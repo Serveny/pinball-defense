@@ -1,4 +1,5 @@
-use crate::ball::{spawn_ball, Ball, BallSpawn};
+use crate::ball::{spawn_ball, BallSpawn};
+use crate::ball_starter::BallStarterState;
 use crate::fps_camera::CameraState;
 use crate::prelude::*;
 use bevy::window::CursorGrabMode;
@@ -22,6 +23,7 @@ fn cursor_grab_system(
     mut cam_state: ResMut<State<CameraState>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut ball_starter_state: ResMut<State<BallStarterState>>,
 ) {
     let window = windows.get_primary_mut().unwrap();
 
@@ -44,8 +46,20 @@ fn cursor_grab_system(
         cam_state.set(CameraState::Inactive).unwrap_or_default();
     }
 
-    if key.just_pressed(KeyCode::Space) {
+    if key.just_pressed(KeyCode::LControl) {
         spawn_ball(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
+    }
+
+    if key.just_pressed(KeyCode::Space) {
+        ball_starter_state
+            .set(BallStarterState::Charge)
+            .unwrap_or_default();
+    }
+
+    if key.just_released(KeyCode::Space) {
+        ball_starter_state
+            .set(BallStarterState::Fire)
+            .unwrap_or_default();
     }
 }
 
@@ -61,9 +75,8 @@ fn gamepad_connections(
     ball_spawn: Res<BallSpawn>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    q_ball: Query<&Ball>,
+    mut ball_starter_state: ResMut<State<BallStarterState>>,
 ) {
-    let mut is_ball_spawned = false;
     for ev in gamepad_evr.iter() {
         let id = ev.gamepad;
         match &ev.event_type {
@@ -89,12 +102,19 @@ fn gamepad_connections(
                     }
                 }
             }
-            GamepadEventType::ButtonChanged(GamepadButtonType::South, z) => {
-                if !is_ball_spawned && *z > 0. && q_ball.is_empty() {
+            GamepadEventType::ButtonChanged(GamepadButtonType::East, z) => {
+                if *z > 0. {
                     println!("South pressed: {z} at {}", ball_spawn.0);
                     spawn_ball(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
-                    is_ball_spawned = true;
                 }
+            }
+            GamepadEventType::ButtonChanged(GamepadButtonType::South, z) => {
+                ball_starter_state
+                    .set(match *z == 0. {
+                        true => BallStarterState::Charge,
+                        false => BallStarterState::Fire,
+                    })
+                    .unwrap_or_default();
             }
             // other events are irrelevant
             _ => {}
