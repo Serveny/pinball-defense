@@ -1,6 +1,5 @@
 use crate::assets::PinballDefenseAssets;
 use crate::ball::BallSpawn;
-use crate::ball_starter::{get_ball_spawn_global_pos, BallStarter};
 use crate::prelude::*;
 use crate::GameState;
 
@@ -26,6 +25,7 @@ struct Ground;
 
 fn setup_world(
     mut cmds: Commands,
+    mut ball_spawn: ResMut<BallSpawn>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     assets: ResMut<PinballDefenseAssets>,
@@ -53,11 +53,10 @@ fn setup_world(
                         reflectance: 0.5,
                         ..default()
                     }),
-                    transform: Transform::from_scale(Vec3::new(1., 1., 1.) * 200.),
+                    transform: Transform::from_scale(Vec3::new(1., 1., 1.) * 100.),
                     ..default()
                 },
                 Collider::from_bevy_mesh(mesh, &ComputedColliderShape::TriMesh).unwrap(),
-                // Collider::cuboid(SIZE.x / 2., half_ground_height, SIZE.z / 2.),
             ))
             .insert(Ground);
         parent.spawn(PointLightBundle {
@@ -74,17 +73,12 @@ fn setup_world(
         });
         crate::ball_starter::spawn(
             parent,
-            Vec3::new(SIZE.x / 2., 20., -SIZE.z / 2.),
+            Vec3::new(117.5, -1.8, -65.7),
             &mut meshes,
             &mut materials,
         );
     })
     .insert(World)
     .insert(Name::new("Pinball World"));
-}
-
-fn set_ball_spawn(mut cmds: Commands, q_starter: Query<&GlobalTransform, With<BallStarter>>) {
-    let spawn_pos = get_ball_spawn_global_pos(q_starter);
-    println!("Set ball spawn to {spawn_pos}");
-    cmds.insert_resource(BallSpawn(spawn_pos));
+    ball_spawn.0 = Vec3::new(96., -26., -60.);
 }

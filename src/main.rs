@@ -1,5 +1,6 @@
 use assets::PinballDefenseAssets;
 use ball::BallPlugin;
+use ball_starter::BallStarterPlugin;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_window_title_diagnostics::WindowTitleLoggerDiagnosticsPlugin;
@@ -33,6 +34,7 @@ fn main() {
         .add_plugin(FirstPersonCameraPlugin)
         .add_plugin(WorldPlugin)
         .add_plugin(BallPlugin)
+        .add_plugin(BallStarterPlugin)
         .add_plugin(ControlsPlugin)
         .add_startup_system(setup_graphics)
         .add_state(GameState::Loading)
