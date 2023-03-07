@@ -17,8 +17,9 @@ mod fps_camera;
 mod prelude;
 mod world;
 
-#[derive(Clone, Eq, PartialEq, Debug, Hash)]
+#[derive(States, Clone, Eq, PartialEq, Debug, Hash, Default)]
 pub enum GameState {
+    #[default]
     Loading,
     Ingame,
 }
@@ -37,7 +38,7 @@ fn main() {
         .add_plugin(BallStarterPlugin)
         .add_plugin(ControlsPlugin)
         .add_startup_system(setup_graphics)
-        .add_state(GameState::Loading)
+        .add_state::<GameState>()
         .add_loading_state(
             LoadingState::new(GameState::Loading)
                 .continue_to_state(GameState::Ingame)
