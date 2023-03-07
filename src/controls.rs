@@ -2,48 +2,40 @@ use crate::ball::{spawn_ball, BallSpawn};
 use crate::ball_starter::BallStarterState;
 use crate::fps_camera::CameraState;
 use crate::prelude::*;
-use bevy::window::CursorGrabMode;
+use bevy::input::gamepad::{GamepadButtonChangedEvent, GamepadConnectionEvent};
+use bevy::window::{CursorGrabMode, PrimaryWindow};
 
 pub struct ControlsPlugin;
 
 impl Plugin for ControlsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(cursor_grab_system)
-            .add_system(gamepad_connections);
+        app.add_system((cursor_grab_system, gamepad_connections));
     }
 }
 
 #[allow(clippy::too_many_arguments)]
 fn cursor_grab_system(
     mut cmds: Commands,
-    mut windows: ResMut<Windows>,
+    mut q_window: Query<&Window, With<PrimaryWindow>>,
     btn: Res<Input<MouseButton>>,
     key: Res<Input<KeyCode>>,
     ball_spawn: Res<BallSpawn>,
-    mut cam_state: ResMut<State<CameraState>>,
+    mut cam_state: ResMut<NextState<CameraState>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut ball_starter_state: ResMut<State<BallStarterState>>,
+    mut ball_starter_state: ResMut<NextState<BallStarterState>>,
 ) {
-    let window = windows.get_primary_mut().unwrap();
-
+    let mut window = q_window.get_single_mut().unwrap_or(|| return);
     if btn.just_pressed(MouseButton::Right) {
-        // if you want to use the cursor, but not let it leave the window,
-        // use `Confined` mode:
-        window.set_cursor_grab_mode(CursorGrabMode::Confined);
-
-        // for a game that doesn't use the cursor (like a shooter):
-        // use `Locked` mode to keep the cursor in one place
-        window.set_cursor_grab_mode(CursorGrabMode::Locked);
-        // also hide the cursor
-        window.set_cursor_visibility(false);
-        cam_state.set(CameraState::Active).unwrap_or_default();
+        window.cursor.grab_mode = CursorGrabMode::Locked;
+        window.cursor.visible = false;
+        cam_state.set(CameraState::Active);
     }
 
     if key.just_pressed(KeyCode::Escape) {
-        window.set_cursor_grab_mode(CursorGrabMode::None);
-        window.set_cursor_visibility(true);
-        cam_state.set(CameraState::Inactive).unwrap_or_default();
+        window.cursor.grab_mode = CursorGrabMode::None;
+        window.cursor.visible = true;
+        cam_state.set(CameraState::Inactive);
     }
 
     if key.just_pressed(KeyCode::LControl) {
@@ -51,15 +43,11 @@ fn cursor_grab_system(
     }
 
     if key.just_pressed(KeyCode::Space) {
-        ball_starter_state
-            .set(BallStarterState::Charge)
-            .unwrap_or_default();
+        ball_starter_state.set(BallStarterState::Charge);
     }
 
     if key.just_released(KeyCode::Space) {
-        ball_starter_state
-            .set(BallStarterState::Fire)
-            .unwrap_or_default();
+        ball_starter_state.set(BallStarterState::Fire);
     }
 }
 
@@ -71,7 +59,7 @@ pub struct MyGamepad(pub Gamepad);
 fn gamepad_connections(
     mut cmds: Commands,
     my_gamepad: Option<Res<MyGamepad>>,
-    mut gamepad_evr: EventReader<GamepadEvent>,
+    mut gamepad_evr: EventReader<GamepadConnectionEvent>,
     ball_spawn: Res<BallSpawn>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -79,19 +67,16 @@ fn gamepad_connections(
 ) {
     for ev in gamepad_evr.iter() {
         let id = ev.gamepad;
-        match &ev.event_type {
-            GamepadEventType::Connected(info) => {
-                println!(
-                    "New gamepad connected with ID: {:?}, name: {}",
-                    id, info.name
-                );
+        match ev.connected() {
+            true => {
+                println!("New gamepad connected with ID: {:?}", id);
 
                 // if we don't have any gamepad yet, use this one
                 if my_gamepad.is_none() {
                     cmds.insert_resource(MyGamepad(id));
                 }
             }
-            GamepadEventType::Disconnected => {
+            false => {
                 println!("Lost gamepad connection with ID: {id:?}");
 
                 // if it's the one we previously associated with the player,
@@ -102,20 +87,30 @@ fn gamepad_connections(
                     }
                 }
             }
-            GamepadEventType::ButtonChanged(GamepadButtonType::East, z) => {
-                if *z > 0. {
-                    println!("South pressed: {z} at {}", ball_spawn.0);
-                    spawn_ball(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
-                }
+        }
+    }
+}
+
+fn gamepad_controls(
+    mut cmds: Commands,
+    my_gamepad: Option<Res<MyGamepad>>,
+    mut evr: EventReader<GamepadButtonChangedEvent>,
+    ball_spawn: Res<BallSpawn>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut ball_starter_state: ResMut<NextState<BallStarterState>>,
+) {
+    for ev in evr.iter() {
+        match ev.button_type {
+            GamepadButtonType::East if *ev.value > 0. => {
+                spawn_ball(&mut cmds, &mut meshes, &mut materials, ball_spawn.0)
             }
-            GamepadEventType::ButtonChanged(GamepadButtonType::South, z) => {
-                ball_starter_state
-                    .set(match *z == 0. {
-                        true => BallStarterState::Charge,
-                        false => BallStarterState::Fire,
-                    })
-                    .unwrap_or_default();
-            }
+
+            GamepadButtonType::South => ball_starter_state.set(match *ev.value == 0. {
+                true => BallStarterState::Charge,
+                false => BallStarterState::Fire,
+            }),
+
             // other events are irrelevant
             _ => {}
         }
