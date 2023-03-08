@@ -56,6 +56,7 @@ fn setup_world(
                     transform: Transform::from_scale(Vec3::new(1., 1., 1.) * 100.),
                     ..default()
                 },
+                ColliderDebugColor(Color::NONE),
                 Collider::from_bevy_mesh(mesh, &ComputedColliderShape::TriMesh).unwrap(),
             ))
             .insert(Ground);
