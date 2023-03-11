@@ -1165,11 +1165,11 @@ checksum = "a96c24da064370917b92c2a84527e6a73b620c50ac5ef8b1af8c04ccf5256a7c"
 
 [[package]]
 name = "bevy_rapier3d"
-version = "0.20.0"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77057d7ecde9cff3ad7f36faa362dd540c25a6316e160550e49915f3a765fc53"
+checksum = "b4bce8074f19467fd55ab172ae6c11fca3ca28f66804590ab10c930bd5e9cd24"
 dependencies = [
- "bevy 0.9.1",
+ "bevy 0.10.0",
  "bitflags",
  "log",
  "nalgebra",
@@ -3314,12 +3314,12 @@ dependencies = [
 
 [[package]]
 name = "nalgebra"
-version = "0.32.1"
+version = "0.32.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6515c882ebfddccaa73ead7320ca28036c4bc84c9bcca3cc0cbba8efe89223a"
+checksum = "d68d47bba83f9e2006d117a9a33af1524e655516b8919caac694427a6fb1e511"
 dependencies = [
  "approx",
- "glam 0.22.0",
+ "glam 0.23.0",
  "matrixmultiply",
  "nalgebra-macros",
  "num-complex",
