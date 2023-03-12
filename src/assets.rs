@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-#[derive(AssetCollection, Resource)]
+#[derive(Resource, AssetCollection)]
 pub struct PinballDefenseAssets {
     #[asset(path = "models/pinball_world_1.gltf#Mesh0/Primitive0")]
     //#[asset(path = "models/ape.gltf#Mesh0/Primitive0")]

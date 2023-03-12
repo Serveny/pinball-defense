@@ -4,11 +4,9 @@ pub struct BallStarterPlugin;
 
 impl Plugin for BallStarterPlugin {
     fn build(&self, app: &mut App) {
-        app.add_state(BallStarterState::Idle)
-            .add_system_set(
-                SystemSet::on_update(BallStarterState::Charge).with_system(charge_system),
-            )
-            .add_system_set(SystemSet::on_update(BallStarterState::Fire).with_system(fire_system));
+        app.add_state::<BallStarterState>()
+            .add_system(charge_system.in_set(OnUpdate(BallStarterState::Charge)))
+            .add_system(fire_system.in_set(OnUpdate(BallStarterState::Fire)));
     }
 }
 const HALF_SIZE: Vec3 = Vec3 {
@@ -27,9 +25,10 @@ pub struct BallStarterPlate;
 pub struct Speed(f32);
 
 // The number is the signum for the direction
-#[derive(PartialEq, Eq, Clone, Copy, Debug, Hash)]
+#[derive(States, PartialEq, Eq, Clone, Copy, Debug, Hash, Default, SystemSet)]
 #[allow(dead_code)]
 pub enum BallStarterState {
+    #[default]
     Idle = 0,
     Charge = -1,
     Fire = 1,
@@ -81,7 +80,7 @@ fn charge_system(
 }
 
 fn fire_system(
-    mut ball_starter_state: ResMut<State<BallStarterState>>,
+    mut ball_starter_state: ResMut<NextState<BallStarterState>>,
     mut q_ball_starter: Query<(&mut Speed, &mut Transform)>,
     time: Res<Time>,
 ) {
@@ -92,9 +91,7 @@ fn fire_system(
         if transform.translation.x <= -HALF_SIZE.x {
             transform.translation.x = -HALF_SIZE.x;
             speed.0 = 1.;
-            ball_starter_state
-                .set(BallStarterState::Idle)
-                .unwrap_or_default();
+            ball_starter_state.set(BallStarterState::Idle);
         }
     });
 }
