@@ -69,7 +69,7 @@ fn gamepad_connections(
         let id = ev.gamepad;
         match ev.connected() {
             true => {
-                println!("New gamepad connected with ID: {:?}", id);
+                println!("New gamepad connected with ID: {id:?}");
 
                 // if we don't have any gamepad yet, use this one
                 if my_gamepad.is_none() {
