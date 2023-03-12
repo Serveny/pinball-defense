@@ -7,7 +7,7 @@ pub struct WorldPlugin;
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(GameState::Ingame).with_system(setup_world));
+        app.add_system(setup_world.in_schedule(OnEnter(GameState::Ingame)));
     }
 }
 

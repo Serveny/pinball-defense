@@ -8,11 +8,9 @@ pub struct FirstPersonCameraPlugin;
 impl Plugin for FirstPersonCameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(setup_camera)
-            .add_state(CameraState::Inactive)
-            .add_system_set(
-                SystemSet::on_update(CameraState::Active)
-                    .with_system(keyboard_mouse_motion_system)
-                    .with_system(gamepad_input),
+            .add_state::<CameraState>()
+            .add_systems(
+                (keyboard_mouse_motion_system, gamepad_input).in_set(OnUpdate(CameraState::Active)),
             );
     }
 }
@@ -39,8 +37,9 @@ pub struct FirstPersonCameraSettings {
     pub stick_sensitivity: f32,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+#[derive(States, Debug, Clone, Eq, PartialEq, Hash, Default)]
 pub enum CameraState {
+    #[default]
     Inactive,
     Active,
 }
