@@ -2,6 +2,7 @@ use crate::ball::{spawn_ball, BallSpawn};
 use crate::ball_starter::BallStarterState;
 use crate::fps_camera::CameraState;
 use crate::prelude::*;
+use crate::GameState;
 use bevy::input::gamepad::{GamepadButtonChangedEvent, GamepadConnectionEvent};
 use bevy::window::{CursorGrabMode, PrimaryWindow};
 
@@ -9,14 +10,17 @@ pub struct ControlsPlugin;
 
 impl Plugin for ControlsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system((cursor_grab_system, gamepad_connections));
+        app.add_systems(
+            (cursor_grab_system, gamepad_connections, gamepad_controls)
+                .in_set(OnUpdate(GameState::Ingame)),
+        );
     }
 }
 
 #[allow(clippy::too_many_arguments)]
 fn cursor_grab_system(
     mut cmds: Commands,
-    mut q_window: Query<&Window, With<PrimaryWindow>>,
+    mut q_window: Query<&mut Window, With<PrimaryWindow>>,
     btn: Res<Input<MouseButton>>,
     key: Res<Input<KeyCode>>,
     ball_spawn: Res<BallSpawn>,
@@ -25,7 +29,7 @@ fn cursor_grab_system(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut ball_starter_state: ResMut<NextState<BallStarterState>>,
 ) {
-    let mut window = q_window.get_single_mut().unwrap_or(|| return);
+    let mut window = q_window.get_single_mut().unwrap();
     if btn.just_pressed(MouseButton::Right) {
         window.cursor.grab_mode = CursorGrabMode::Locked;
         window.cursor.visible = false;
@@ -60,10 +64,6 @@ fn gamepad_connections(
     mut cmds: Commands,
     my_gamepad: Option<Res<MyGamepad>>,
     mut gamepad_evr: EventReader<GamepadConnectionEvent>,
-    ball_spawn: Res<BallSpawn>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut ball_starter_state: ResMut<State<BallStarterState>>,
 ) {
     for ev in gamepad_evr.iter() {
         let id = ev.gamepad;
@@ -93,7 +93,6 @@ fn gamepad_connections(
 
 fn gamepad_controls(
     mut cmds: Commands,
-    my_gamepad: Option<Res<MyGamepad>>,
     mut evr: EventReader<GamepadButtonChangedEvent>,
     ball_spawn: Res<BallSpawn>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -102,11 +101,11 @@ fn gamepad_controls(
 ) {
     for ev in evr.iter() {
         match ev.button_type {
-            GamepadButtonType::East if *ev.value > 0. => {
+            GamepadButtonType::East if ev.value > 0. => {
                 spawn_ball(&mut cmds, &mut meshes, &mut materials, ball_spawn.0)
             }
 
-            GamepadButtonType::South => ball_starter_state.set(match *ev.value == 0. {
+            GamepadButtonType::South => ball_starter_state.set(match ev.value == 0. {
                 true => BallStarterState::Charge,
                 false => BallStarterState::Fire,
             }),

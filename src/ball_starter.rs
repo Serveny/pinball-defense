@@ -5,8 +5,8 @@ pub struct BallStarterPlugin;
 impl Plugin for BallStarterPlugin {
     fn build(&self, app: &mut App) {
         app.add_state::<BallStarterState>()
-            .add_system(charge_system.in_set(BallStarterState::Charge))
-            .add_system(fire_system.in_set(BallStarterState::Fire));
+            .add_system(charge_system.in_set(OnUpdate(BallStarterState::Charge)))
+            .add_system(fire_system.in_set(OnUpdate(BallStarterState::Fire)));
     }
 }
 const HALF_SIZE: Vec3 = Vec3 {
@@ -25,7 +25,7 @@ pub struct BallStarterPlate;
 pub struct Speed(f32);
 
 // The number is the signum for the direction
-#[derive(States, PartialEq, Eq, Clone, Copy, Debug, Hash, Default)]
+#[derive(States, PartialEq, Eq, Clone, Copy, Debug, Hash, Default, SystemSet)]
 #[allow(dead_code)]
 pub enum BallStarterState {
     #[default]
