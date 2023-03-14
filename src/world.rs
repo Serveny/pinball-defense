@@ -28,7 +28,7 @@ fn setup_world(
     mut ball_spawn: ResMut<BallSpawn>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    assets: ResMut<PinballDefenseAssets>,
+    mut assets: ResMut<PinballDefenseAssets>,
 ) {
     cmds.spawn(SpatialBundle {
         transform: Transform {
@@ -39,9 +39,6 @@ fn setup_world(
         ..default()
     })
     .with_children(|parent| {
-        let mesh = meshes
-            .get(&assets.world_1_mesh)
-            .expect("Failed to find mesh");
         parent
             .spawn((
                 PbrBundle {
@@ -58,7 +55,13 @@ fn setup_world(
                 },
                 Ccd::enabled(),
                 ColliderDebugColor(Color::NONE),
-                Collider::from_bevy_mesh(mesh, &ComputedColliderShape::TriMesh).unwrap(),
+                Collider::from_bevy_mesh(
+                    meshes
+                        .get(&assets.world_1_mesh)
+                        .expect("Failed to find mesh"),
+                    &ComputedColliderShape::TriMesh,
+                )
+                .unwrap(),
             ))
             .insert(Ground);
         parent.spawn(PointLightBundle {
@@ -78,6 +81,13 @@ fn setup_world(
             Vec3::new(117.5, -1.8, -65.7),
             &mut meshes,
             &mut materials,
+        );
+        crate::flipper::spawn_flipper(
+            parent,
+            Vec3::new(117.5, -1.8, -65.7),
+            &mut meshes,
+            &mut materials,
+            &mut assets,
         );
     })
     .insert(World)
