@@ -13,6 +13,7 @@ mod assets;
 mod ball;
 mod ball_starter;
 mod controls;
+mod flipper;
 mod fps_camera;
 mod prelude;
 mod world;

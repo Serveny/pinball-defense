@@ -35,15 +35,16 @@ pub enum BallStarterState {
 }
 
 pub fn spawn(
-    cmds: &mut ChildBuilder,
+    parent: &mut ChildBuilder,
     pos: Vec3,
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
 ) {
-    cmds.spawn((SpatialBundle {
-        transform: Transform::from_translation(pos),
-        ..default()
-    },))
+    parent
+        .spawn((SpatialBundle {
+            transform: Transform::from_translation(pos),
+            ..default()
+        },))
         .with_children(|parent| {
             parent
                 .spawn((
