@@ -13,8 +13,9 @@ impl Plugin for FlipperPlugin {
 pub struct Flipper;
 
 pub fn spawn_flipper(
+    name: &str,
+    transform: Transform,
     parent: &mut ChildBuilder,
-    pos: Vec3,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
     assets: &mut PinballDefenseAssets,
@@ -24,21 +25,17 @@ pub fn spawn_flipper(
             PbrBundle {
                 mesh: assets.flipper.clone(),
                 material: materials.add(StandardMaterial {
-                    base_color: Color::GRAY,
+                    base_color: Color::ORANGE,
                     perceptual_roughness: 0.5,
                     metallic: 0.5,
                     reflectance: 0.5,
                     ..default()
                 }),
-                transform: Transform {
-                    translation: pos,
-                    scale: Vec3::new(1., 1., 1.) * 100.,
-                    rotation: Quat::from_rotation_z(0.),
-                },
+                transform,
                 ..default()
             },
             Ccd::enabled(),
-            ColliderDebugColor(Color::NONE),
+            ColliderDebugColor(Color::RED),
             Collider::from_bevy_mesh(
                 meshes.get(&assets.flipper).expect("Failed to find mesh"),
                 &ComputedColliderShape::TriMesh,
@@ -46,7 +43,7 @@ pub fn spawn_flipper(
             .unwrap(),
         ))
         .insert(Flipper)
-        .insert(Name::new("Flipper Left"));
+        .insert(Name::new(String::from(name)));
 }
 
 fn flipper_system() {}
