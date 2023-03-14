@@ -11,3 +11,4 @@ bevy-inspector-egui = "0.18"
 bevy_asset_loader = "0.15"
 bevy_rapier3d = { version = "0.21" }
 bevy_window_title_diagnostics = "0.3"
+derive-new = "0.5"
