@@ -1,5 +1,9 @@
 use crate::assets::PinballDefenseAssets;
 use crate::ball::BallSpawn;
+use crate::ball_starter::BallStarterPlugin;
+use crate::flipper::Flipper;
+use crate::flipper::FlipperPlugin;
+use crate::flipper::FlipperType;
 use crate::prelude::*;
 use crate::GameState;
 
@@ -7,7 +11,9 @@ pub struct WorldPlugin;
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(setup_world.in_schedule(OnEnter(GameState::Ingame)));
+        app.add_plugin(FlipperPlugin)
+            .add_plugin(BallStarterPlugin)
+            .add_system(setup_world.in_schedule(OnEnter(GameState::Ingame)));
     }
 }
 
@@ -83,11 +89,12 @@ fn setup_world(
             &mut materials,
         );
         crate::flipper::spawn_flipper(
-            "Flipper Right",
+            Flipper::new(f32::to_radians(-32. + 180.)..f32::to_radians(32. + 180.)),
+            FlipperType::Left,
             Transform {
-                translation: Vec3::new(80., -1.6, -25.),
+                translation: Vec3::new(80., -1.6, 32.),
                 scale: Vec3::new(1., 1., 1.) * 100.,
-                rotation: Quat::from_rotation_y(f32::to_radians(32.)),
+                rotation: Quat::from_rotation_y(f32::to_radians(-32. + 180.)),
             },
             parent,
             &mut meshes,
@@ -95,11 +102,12 @@ fn setup_world(
             &mut assets,
         );
         crate::flipper::spawn_flipper(
-            "Flipper Left",
+            Flipper::new(f32::to_radians(32.)..f32::to_radians(-32.)),
+            FlipperType::Right,
             Transform {
-                translation: Vec3::new(80., -1.6, 32.),
+                translation: Vec3::new(80., -1.6, -25.),
                 scale: Vec3::new(1., 1., 1.) * 100.,
-                rotation: Quat::from_rotation_y(f32::to_radians(-32. + 180.)),
+                rotation: Quat::from_rotation_y(f32::to_radians(32.)),
             },
             parent,
             &mut meshes,
