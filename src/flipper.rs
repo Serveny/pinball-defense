@@ -1,5 +1,7 @@
 use crate::prelude::*;
 use crate::GameState;
+use derive_new::new;
+use std::ops::Range;
 
 pub struct FlipperPlugin;
 
@@ -9,11 +11,33 @@ impl Plugin for FlipperPlugin {
     }
 }
 
-#[derive(Component)]
-pub struct Flipper;
+#[derive(Component, new)]
+pub struct Flipper {
+    rotation_range: Range<f32>,
+}
+
+#[derive(Component, Debug)]
+pub enum FlipperType {
+    Left,
+    Right,
+}
+
+#[derive(Component, Debug, Default)]
+pub enum FlipperStatus {
+    #[default]
+    Idle,
+    Pushed,
+}
+
+impl std::fmt::Display for FlipperType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Flipper {:?}", self)
+    }
+}
 
 pub fn spawn_flipper(
-    name: &str,
+    flipper: Flipper,
+    flipper_type: FlipperType,
     transform: Transform,
     parent: &mut ChildBuilder,
     meshes: &mut Assets<Mesh>,
@@ -42,8 +66,18 @@ pub fn spawn_flipper(
             )
             .unwrap(),
         ))
-        .insert(Flipper)
-        .insert(Name::new(String::from(name)));
+        .insert(flipper)
+        .insert(Name::new(flipper_type.to_string()))
+        .insert(flipper_type)
+        .insert(FlipperStatus::Idle);
 }
 
-fn flipper_system() {}
+fn flipper_system(mut q_flipper: Query<(&mut Transform, &FlipperStatus, &Flipper)>, time: Res<Time>) {
+    for (mut transform, status, flipper) in q_flipper.iter_mut() {
+        transform.rotation.y = match status {
+            FlipperStatus::Idle => transform.rotation.y + transform.rotation.y + transform.rotation.y + transform.rotation.y + transform.rotation.y + transform.rotation.y + transform.rotation.y + transform.rotation.y + transform.rotation.y + ,
+            FlipperStatus::Pushed => todo!(),
+        }
+        .clamp(flipper.rotation_range)
+    }
+}
