@@ -83,8 +83,25 @@ fn setup_world(
             &mut materials,
         );
         crate::flipper::spawn_flipper(
+            "Flipper Right",
+            Transform {
+                translation: Vec3::new(80., -1.6, -25.),
+                scale: Vec3::new(1., 1., 1.) * 100.,
+                rotation: Quat::from_rotation_y(f32::to_radians(32.)),
+            },
             parent,
-            Vec3::new(117.5, -1.8, -65.7),
+            &mut meshes,
+            &mut materials,
+            &mut assets,
+        );
+        crate::flipper::spawn_flipper(
+            "Flipper Left",
+            Transform {
+                translation: Vec3::new(80., -1.6, 32.),
+                scale: Vec3::new(1., 1., 1.) * 100.,
+                rotation: Quat::from_rotation_y(f32::to_radians(-32. + 180.)),
+            },
+            parent,
             &mut meshes,
             &mut materials,
             &mut assets,
