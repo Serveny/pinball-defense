@@ -1,5 +1,6 @@
 use crate::ball::{spawn_ball, BallSpawn};
 use crate::ball_starter::BallStarterState;
+use crate::flipper::{FlipperStatus, FlipperType};
 use crate::fps_camera::CameraState;
 use crate::prelude::*;
 use crate::GameState;
@@ -28,6 +29,7 @@ fn cursor_grab_system(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut ball_starter_state: ResMut<NextState<BallStarterState>>,
+    mut q_flipper: Query<(&mut FlipperStatus, &FlipperType)>,
 ) {
     let mut window = q_window.get_single_mut().unwrap();
     if btn.just_pressed(MouseButton::Right) {
@@ -52,6 +54,32 @@ fn cursor_grab_system(
 
     if key.just_released(KeyCode::Space) {
         ball_starter_state.set(BallStarterState::Fire);
+    }
+
+    if key.just_pressed(KeyCode::Y) {
+        set_flipper_status(FlipperType::Left, FlipperStatus::Pushed, &mut q_flipper);
+    }
+    if key.just_pressed(KeyCode::C) {
+        set_flipper_status(FlipperType::Right, FlipperStatus::Pushed, &mut q_flipper);
+    }
+    if key.just_released(KeyCode::Y) {
+        set_flipper_status(FlipperType::Left, FlipperStatus::Idle, &mut q_flipper);
+    }
+    if key.just_released(KeyCode::C) {
+        set_flipper_status(FlipperType::Right, FlipperStatus::Idle, &mut q_flipper);
+    }
+}
+
+fn set_flipper_status(
+    flipper_type: FlipperType,
+    status: FlipperStatus,
+    q_flipper: &mut Query<(&mut FlipperStatus, &FlipperType)>,
+) {
+    for (mut f_status, f_type) in q_flipper.iter_mut() {
+        if *f_type == flipper_type {
+            *f_status = status;
+            return;
+        }
     }
 }
 
