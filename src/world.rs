@@ -89,7 +89,7 @@ fn setup_world(
             &mut materials,
         );
         crate::flipper::spawn_flipper(
-            Flipper::new(f32::to_radians(-32. + 180.)..f32::to_radians(32. + 180.)),
+            Flipper::new(-32. + 180., 32. + 180.),
             FlipperType::Left,
             Transform {
                 translation: Vec3::new(80., -1.6, 32.),
@@ -102,7 +102,7 @@ fn setup_world(
             &mut assets,
         );
         crate::flipper::spawn_flipper(
-            Flipper::new(f32::to_radians(32.)..f32::to_radians(-32.)),
+            Flipper::new(-32., 32.),
             FlipperType::Right,
             Transform {
                 translation: Vec3::new(80., -1.6, -25.),
