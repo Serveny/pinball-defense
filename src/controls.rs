@@ -11,10 +11,8 @@ pub struct ControlsPlugin;
 
 impl Plugin for ControlsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            (cursor_grab_system, gamepad_connections, gamepad_controls)
-                .in_set(OnUpdate(GameState::Ingame)),
-        );
+        app.add_systems((cursor_grab_system, gamepad_controls).in_set(OnUpdate(GameState::Ingame)))
+            .add_system(gamepad_connections);
     }
 }
 
