@@ -106,7 +106,7 @@ fn flipper_system(
         new_rotation *=
             Quat::from_rotation_y(f_type.signum() * status.value_degree() * time.delta_seconds());
         let rotation_y = new_rotation.to_axis_angle().1;
-        println!("{rotation_y} ({:?})", flipper.rotation_range);
+        //println!("{rotation_y} ({:?})", flipper.rotation_range);
         transform.rotation = Quat::from_rotation_y(
             rotation_y.clamp(flipper.rotation_range.start, flipper.rotation_range.end),
         );
