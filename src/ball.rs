@@ -44,7 +44,9 @@ pub fn spawn_ball(
         Collider::ball(radius),
         //Ccd::enabled(),
         ColliderDebugColor(Color::hsl(220.0, 1.0, 0.3)),
-        GravityScale(200.),
+        Restitution::coefficient(0.7),
+        GravityScale(50.),
+        Sleeping::disabled(),
     ))
     .insert(Ball)
     .insert(Name::new("Ball"));
