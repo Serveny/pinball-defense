@@ -1,6 +1,5 @@
 use crate::prelude::*;
 use crate::GameState;
-use std::ops::Range;
 
 pub struct FlipperPlugin;
 
@@ -12,14 +11,12 @@ impl Plugin for FlipperPlugin {
 
 #[derive(Component)]
 pub struct Flipper {
-    rotation_range: Range<f32>,
+    curr_angle: f32,
 }
 
 impl Flipper {
-    pub fn new(min_degree: f32, max_degree: f32) -> Self {
-        Self {
-            rotation_range: f32::to_radians(min_degree)..f32::to_radians(max_degree),
-        }
+    pub fn new() -> Self {
+        Self { curr_angle: 0. }
     }
 }
 
@@ -36,20 +33,11 @@ pub enum FlipperStatus {
     Pushed,
 }
 
-impl FlipperStatus {
-    fn value_degree(&self) -> f32 {
-        match self {
-            FlipperStatus::Idle => -10.,
-            FlipperStatus::Pushed => 20.,
-        }
-    }
-}
-
 impl FlipperType {
     fn signum(&self) -> f32 {
         match self {
-            FlipperType::Left => 1.,
-            FlipperType::Right => -1.,
+            FlipperType::Left => -1.,
+            FlipperType::Right => 1.,
         }
     }
 }
@@ -98,17 +86,20 @@ pub fn spawn_flipper(
 }
 
 fn flipper_system(
-    mut q_flipper: Query<(&mut Transform, &FlipperStatus, &Flipper, &FlipperType)>,
+    mut q_flipper: Query<(&mut Transform, &FlipperStatus, &mut Flipper, &FlipperType)>,
     time: Res<Time>,
 ) {
-    for (mut transform, status, flipper, f_type) in q_flipper.iter_mut() {
-        let mut new_rotation = transform.rotation;
-        new_rotation *=
-            Quat::from_rotation_y(f_type.signum() * status.value_degree() * time.delta_seconds());
-        let rotation_y = new_rotation.to_axis_angle().1;
-        //println!("{rotation_y} ({:?})", flipper.rotation_range);
-        transform.rotation = Quat::from_rotation_y(
-            rotation_y.clamp(flipper.rotation_range.start, flipper.rotation_range.end),
-        );
+    let time = time.delta_seconds();
+    for (mut transform, status, mut flipper, f_type) in q_flipper.iter_mut() {
+        let change_angle = match status {
+            FlipperStatus::Idle => 9. * time,
+            FlipperStatus::Pushed => -7. * time,
+        } * f_type.signum();
+        let new_angle = flipper.curr_angle + change_angle;
+        let new_clamped_angle = new_angle.clamp(-0.4, 0.4);
+        let pivot_rotation = Quat::from_rotation_y(new_clamped_angle - flipper.curr_angle);
+        let translation = transform.translation;
+        transform.rotate_around(translation, pivot_rotation);
+        flipper.curr_angle = new_clamped_angle;
     }
 }
