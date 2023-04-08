@@ -92,8 +92,8 @@ fn flipper_system(
     let time = time.delta_seconds();
     for (mut transform, status, mut flipper, f_type) in q_flipper.iter_mut() {
         let change_angle = match status {
-            FlipperStatus::Idle => 9. * time,
-            FlipperStatus::Pushed => -7. * time,
+            FlipperStatus::Idle => 7. * time,
+            FlipperStatus::Pushed => -14. * time,
         } * f_type.signum();
         let new_angle = flipper.curr_angle + change_angle;
         let new_clamped_angle = new_angle.clamp(-0.4, 0.4);
