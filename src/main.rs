@@ -1,5 +1,6 @@
 use assets::PinballDefenseAssets;
 use ball::BallPlugin;
+use ball_camera::BallCameraPlugin;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_window_title_diagnostics::WindowTitleLoggerDiagnosticsPlugin;
@@ -10,6 +11,7 @@ use world::WorldPlugin;
 
 mod assets;
 mod ball;
+mod ball_camera;
 mod ball_starter;
 mod controls;
 mod flipper;
@@ -24,9 +26,18 @@ pub enum GameState {
     Ingame,
 }
 
+#[derive(States, Debug, Clone, Eq, PartialEq, Hash, Default)]
+pub enum CameraState {
+    #[default]
+    None,
+    BallCamera,
+    FpsCamera,
+}
+
 fn main() {
     App::new()
         .add_state::<GameState>()
+        .add_state::<CameraState>()
         .add_loading_state(
             LoadingState::new(GameState::Loading).continue_to_state(GameState::Ingame),
         )
@@ -40,6 +51,7 @@ fn main() {
         .add_plugin(FirstPersonCameraPlugin)
         .add_plugin(WorldPlugin)
         .add_plugin(BallPlugin)
+        .add_plugin(BallCameraPlugin)
         .add_plugin(ControlsPlugin)
         .add_startup_system(setup_graphics)
         .run();

@@ -1,5 +1,6 @@
 use crate::controls::MyGamepad;
 use crate::prelude::*;
+use crate::CameraState;
 use bevy::core_pipeline::bloom::BloomSettings;
 use bevy::input::mouse::MouseMotion;
 
@@ -7,11 +8,9 @@ pub struct FirstPersonCameraPlugin;
 
 impl Plugin for FirstPersonCameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(setup_camera)
-            .add_state::<CameraState>()
-            .add_systems(
-                (keyboard_mouse_motion_system, gamepad_input).in_set(OnUpdate(CameraState::Active)),
-            );
+        app.add_startup_system(setup_camera).add_systems(
+            (keyboard_mouse_motion_system, gamepad_input).in_set(OnUpdate(CameraState::FpsCamera)),
+        );
     }
 }
 
@@ -35,13 +34,6 @@ pub struct FirstPersonCameraSettings {
     pub move_speed: f32,
     pub mouse_sensitivity: f32,
     pub stick_sensitivity: f32,
-}
-
-#[derive(States, Debug, Clone, Eq, PartialEq, Hash, Default)]
-pub enum CameraState {
-    #[default]
-    Inactive,
-    Active,
 }
 
 impl Default for FirstPersonCameraSettings {
