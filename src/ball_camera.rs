@@ -5,7 +5,15 @@ pub struct BallCameraPlugin;
 
 impl Plugin for BallCameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(follow_ball.in_set(OnUpdate(CameraState::BallCamera)));
+        app.add_system(place_cam.in_schedule(OnEnter(CameraState::BallCamera)))
+            .add_system(follow_ball.in_set(OnUpdate(CameraState::BallCamera)));
+    }
+}
+
+fn place_cam(mut q_cam: Query<&mut Transform, (With<Camera>, Without<Ball>)>) {
+    if let Ok(mut cam) = q_cam.get_single_mut() {
+        cam.translation = Vec3::new(240., 240., -28.);
+        cam.look_at(Vec3::ZERO, Vec3::Y);
     }
 }
 
