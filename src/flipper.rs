@@ -71,7 +71,7 @@ pub fn spawn_flipper(
                 transform,
                 ..default()
             },
-            Ccd::enabled(),
+            //Ccd::enabled(),
             ColliderDebugColor(Color::RED),
             Collider::from_bevy_mesh(
                 meshes.get(&assets.flipper).expect("Failed to find mesh"),
