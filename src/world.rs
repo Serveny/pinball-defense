@@ -60,6 +60,7 @@ fn setup_world(
                     ..default()
                 },
                 //Ccd::enabled(),
+                RigidBody::KinematicPositionBased,
                 ColliderDebugColor(Color::NONE),
                 Collider::from_bevy_mesh(
                     meshes
