@@ -1,9 +1,8 @@
 use crate::ball::{spawn_ball, BallSpawn};
 use crate::ball_starter::BallStarterState;
 use crate::flipper::{FlipperStatus, FlipperType};
-use crate::fps_camera::CameraState;
 use crate::prelude::*;
-use crate::GameState;
+use crate::{CameraState, GameState};
 use bevy::input::gamepad::{GamepadButtonChangedEvent, GamepadConnectionEvent};
 use bevy::window::{CursorGrabMode, PrimaryWindow};
 
@@ -33,13 +32,13 @@ fn cursor_grab_system(
     if btn.just_pressed(MouseButton::Right) {
         window.cursor.grab_mode = CursorGrabMode::Locked;
         window.cursor.visible = false;
-        cam_state.set(CameraState::Active);
+        cam_state.set(CameraState::FpsCamera);
     }
 
     if key.just_pressed(KeyCode::Escape) {
         window.cursor.grab_mode = CursorGrabMode::None;
         window.cursor.visible = true;
-        cam_state.set(CameraState::Inactive);
+        cam_state.set(CameraState::BallCamera);
     }
 
     if key.just_pressed(KeyCode::LControl) {
