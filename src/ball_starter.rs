@@ -61,7 +61,7 @@ pub fn spawn(
                     RigidBody::KinematicPositionBased,
                     Collider::cuboid(HALF_SIZE.x / 8., HALF_SIZE.y, HALF_SIZE.z),
                     ColliderDebugColor(Color::GREEN),
-                    Ccd::enabled(),
+                    //Ccd::enabled(),
                 ))
                 .insert(BallStarterPlate)
                 .insert(Speed(1.));

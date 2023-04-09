@@ -59,7 +59,7 @@ fn setup_world(
                     transform: Transform::from_scale(Vec3::new(1., 1., 1.) * 100.),
                     ..default()
                 },
-                Ccd::enabled(),
+                //Ccd::enabled(),
                 ColliderDebugColor(Color::NONE),
                 Collider::from_bevy_mesh(
                     meshes
@@ -92,7 +92,7 @@ fn setup_world(
             Flipper::new(),
             FlipperType::Left,
             Transform {
-                translation: Vec3::new(80., -1.6, 32.),
+                translation: Vec3::new(83., 0., 32.),
                 scale: Vec3::new(1., 1., 1.) * 100.,
                 rotation: Quat::from_rotation_y(f32::to_radians(-12. + 180.)),
             },
@@ -105,7 +105,7 @@ fn setup_world(
             Flipper::new(),
             FlipperType::Right,
             Transform {
-                translation: Vec3::new(80., -1.6, -25.),
+                translation: Vec3::new(83., 0., -25.),
                 scale: Vec3::new(1., 1., 1.) * 100.,
                 rotation: Quat::from_rotation_y(f32::to_radians(12.)),
             },
