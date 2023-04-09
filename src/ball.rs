@@ -27,8 +27,8 @@ pub fn spawn_ball(
     cmds.spawn((
         PbrBundle {
             mesh: meshes.add(Mesh::from(shape::UVSphere {
-                radius,
-                ..default()
+            radius,
+            ..default()
             })),
             material: materials.add(StandardMaterial {
                 base_color: Color::SILVER,
@@ -43,10 +43,15 @@ pub fn spawn_ball(
         RigidBody::Dynamic,
         Collider::ball(radius),
         Ccd::enabled(),
-        ColliderDebugColor(Color::hsl(220.0, 1.0, 0.3)),
-        Restitution::coefficient(0.7),
-        GravityScale(50.),
+        ColliderDebugColor(Color::NONE),
+        //ColliderDebugColor(Color::hsl(220.0, 1.0, 0.3)),
         Sleeping::disabled(),
+        ActiveEvents::COLLISION_EVENTS,
+        GravityScale(50.),
+        Restitution {
+            coefficient: 0.7,
+            combine_rule: CoefficientCombineRule::Multiply,
+        },
     ))
     .insert(Ball)
     .insert(Name::new("Ball"));

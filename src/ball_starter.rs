@@ -54,7 +54,7 @@ pub fn spawn(
                             HALF_SIZE.y * 2.,
                             HALF_SIZE.z * 2.,
                         ))),
-                        material: materials.add(Color::RED.into()),
+                        material: materials.add(Color::ORANGE.into()),
                         transform: Transform::from_translation(Vec3::new(-HALF_SIZE.x, 0., 0.)),
                         ..default()
                     },

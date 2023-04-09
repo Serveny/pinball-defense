@@ -50,7 +50,7 @@ fn setup_world(
                 PbrBundle {
                     mesh: assets.world_1_mesh.clone(),
                     material: materials.add(StandardMaterial {
-                        base_color: Color::GRAY,
+                        base_color: Color::BLUE,
                         perceptual_roughness: 0.5,
                         metallic: 0.5,
                         reflectance: 0.5,
