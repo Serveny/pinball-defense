@@ -2,7 +2,7 @@ use assets::PinballDefenseAssets;
 use ball::BallPlugin;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-// use bevy_window_title_diagnostics::WindowTitleLoggerDiagnosticsPlugin;
+use bevy_window_title_diagnostics::WindowTitleLoggerDiagnosticsPlugin;
 use controls::ControlsPlugin;
 use fps_camera::FirstPersonCameraPlugin;
 use prelude::*;
@@ -33,7 +33,7 @@ fn main() {
         .add_collection_to_loading_state::<_, PinballDefenseAssets>(GameState::Loading)
         .add_plugins(DefaultPlugins)
         .add_plugin(FrameTimeDiagnosticsPlugin)
-        //.add_plugin(WindowTitleLoggerDiagnosticsPlugin::default())
+        .add_plugin(WindowTitleLoggerDiagnosticsPlugin::default())
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(WorldInspectorPlugin::default())
