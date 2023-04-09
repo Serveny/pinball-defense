@@ -71,6 +71,17 @@ fn setup_world(
                 .unwrap(),
             ))
             .insert(Ground);
+        let (x, y, z) = (260., 2., 140.);
+        parent
+            .spawn((
+                SpatialBundle {
+                    transform: Transform::from_translation(Vec3::new(0., 6., 0.)),
+                    ..default()
+                },
+                ColliderDebugColor(Color::ORANGE_RED),
+                Collider::cuboid(x / 2., y / 2., z / 2.),
+            ))
+            .insert(Name::new("Pinball Glass"));
         parent.spawn(PointLightBundle {
             transform: Transform::from_xyz(0., SIZE.x / 4., 0.).looking_at(Vec3::ZERO, Vec3::Y),
             point_light: PointLight {

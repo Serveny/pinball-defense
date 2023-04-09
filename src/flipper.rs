@@ -82,7 +82,6 @@ pub fn spawn_flipper(
                 &ComputedColliderShape::TriMesh,
             )
             .unwrap(),
-            Restitution::coefficient(0.9),
             RigidBody::KinematicPositionBased,
         ))
         .insert(flipper)
