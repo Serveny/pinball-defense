@@ -104,7 +104,7 @@ fn flipper_system(
             }
             FlipperStatus::Pushed => {
                 change_angle *= -time * flipper.acceleration_factor;
-                flipper.acceleration_factor += time * 500.;
+                flipper.acceleration_factor += time * 300.;
             }
         }
         let new_angle = flipper.curr_angle + change_angle;

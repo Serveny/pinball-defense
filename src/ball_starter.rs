@@ -76,7 +76,7 @@ fn charge_system(
 ) {
     q_ball_starter.for_each_mut(|mut transform| {
         transform.translation.x =
-            (transform.translation.x + time.delta_seconds() * 20.).clamp(-HALF_SIZE.x, HALF_SIZE.x)
+            (transform.translation.x + time.delta_seconds() * 8.).clamp(-HALF_SIZE.x, HALF_SIZE.x)
     });
 }
 
@@ -86,7 +86,7 @@ fn fire_system(
     time: Res<Time>,
 ) {
     q_ball_starter.for_each_mut(|(mut speed, mut transform)| {
-        speed.0 += speed.0 * time.delta_seconds() * 60.;
+        speed.0 += speed.0 * time.delta_seconds() * 50.;
         transform.translation.x -= time.delta_seconds() * speed.0;
 
         if transform.translation.x <= -HALF_SIZE.x {
