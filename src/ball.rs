@@ -42,12 +42,12 @@ pub fn spawn_ball(
         },
         RigidBody::Dynamic,
         Collider::ball(radius),
-        Ccd::enabled(),
+        // Ccd::enabled(),
         ColliderDebugColor(Color::NONE),
         //ColliderDebugColor(Color::hsl(220.0, 1.0, 0.3)),
         Sleeping::disabled(),
         ActiveEvents::COLLISION_EVENTS,
-        GravityScale(50.),
+        GravityScale(25.),
     ))
     .insert(Ball)
     .insert(Name::new("Ball"));
@@ -61,7 +61,7 @@ fn ball_reset_system(
     ball_spawn: Res<BallSpawn>,
 ) {
     for (entity, transform) in q_ball.iter() {
-        if transform.translation.y <= -600. {
+        if transform.translation.y <= -100. {
             cmds.get_entity(entity).unwrap().despawn_recursive();
             spawn_ball(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
         }
