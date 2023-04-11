@@ -1,9 +1,7 @@
 use crate::assets::PinballDefenseAssets;
 use crate::ball::BallSpawn;
 use crate::ball_starter::BallStarterPlugin;
-use crate::flipper::Flipper;
 use crate::flipper::FlipperPlugin;
-use crate::flipper::FlipperType;
 use crate::prelude::*;
 use crate::GameState;
 
@@ -37,11 +35,7 @@ fn setup_world(
     mut assets: ResMut<PinballDefenseAssets>,
 ) {
     cmds.spawn(SpatialBundle {
-        transform: Transform {
-            translation: Vec3::ZERO,
-            rotation: Quat::from_rotation_z(-0.25),
-            ..default()
-        },
+        transform: Transform::from_rotation(Quat::from_rotation_z(-0.25)),
         ..default()
     })
     .with_children(|parent| {
@@ -56,7 +50,6 @@ fn setup_world(
                         reflectance: 0.5,
                         ..default()
                     }),
-                    transform: Transform::from_scale(Vec3::new(1., 1., 1.) * 100.),
                     ..default()
                 },
                 //Ccd::enabled(),
@@ -102,26 +95,22 @@ fn setup_world(
             &mut meshes,
             &mut materials,
         );
-        crate::flipper::spawn_flipper(
-            Flipper::new(),
-            FlipperType::Left,
+        crate::flipper::spawn_flipper_left(
             Transform {
-                translation: Vec3::new(83., 0., 32.),
-                scale: Vec3::new(1., 1., 1.) * 100.,
-                rotation: Quat::from_rotation_y(f32::to_radians(-12. + 180.)),
+                translation: Vec3::new(83., -1., 32.),
+                //rotation: Quat::from_rotation_y(f32::to_radians(-12. + 180.)),
+                ..default()
             },
             parent,
             &mut meshes,
             &mut materials,
             &mut assets,
         );
-        crate::flipper::spawn_flipper(
-            Flipper::new(),
-            FlipperType::Right,
+        crate::flipper::spawn_flipper_right(
             Transform {
-                translation: Vec3::new(83., 0., -25.),
-                scale: Vec3::new(1., 1., 1.) * 100.,
-                rotation: Quat::from_rotation_y(f32::to_radians(12.)),
+                translation: Vec3::new(83., -1., -24.6),
+                //rotation: Quat::from_rotation_y(f32::to_radians(12.)),
+                ..default()
             },
             parent,
             &mut meshes,

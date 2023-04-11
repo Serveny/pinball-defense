@@ -42,7 +42,7 @@ pub fn spawn_ball(
         },
         RigidBody::Dynamic,
         Collider::ball(radius),
-        // Ccd::enabled(),
+        Ccd::enabled(),
         ColliderDebugColor(Color::NONE),
         //ColliderDebugColor(Color::hsl(220.0, 1.0, 0.3)),
         Sleeping::disabled(),
