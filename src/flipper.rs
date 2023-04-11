@@ -52,19 +52,51 @@ impl std::fmt::Display for FlipperType {
     }
 }
 
-pub fn spawn_flipper(
-    flipper: Flipper,
-    flipper_type: FlipperType,
+pub fn spawn_flipper_right(
     transform: Transform,
     parent: &mut ChildBuilder,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
     assets: &mut PinballDefenseAssets,
 ) {
+    spawn_flipper(
+        FlipperType::Right,
+        transform,
+        parent,
+        meshes,
+        materials,
+        &assets.flipper_right,
+    );
+}
+
+pub fn spawn_flipper_left(
+    transform: Transform,
+    parent: &mut ChildBuilder,
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+    assets: &mut PinballDefenseAssets,
+) {
+    spawn_flipper(
+        FlipperType::Left,
+        transform,
+        parent,
+        meshes,
+        materials,
+        &assets.flipper_left,
+    );
+}
+fn spawn_flipper(
+    flipper_type: FlipperType,
+    transform: Transform,
+    parent: &mut ChildBuilder,
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+    flipper_mesh: &Handle<Mesh>,
+) {
     parent
         .spawn((
             PbrBundle {
-                mesh: assets.flipper.clone(),
+                mesh: flipper_mesh.clone(),
                 material: materials.add(StandardMaterial {
                     base_color: Color::ORANGE,
                     perceptual_roughness: 0.5,
@@ -78,13 +110,13 @@ pub fn spawn_flipper(
             //Ccd::enabled(),
             ColliderDebugColor(Color::NONE),
             Collider::from_bevy_mesh(
-                meshes.get(&assets.flipper).expect("Failed to find mesh"),
+                meshes.get(flipper_mesh).expect("Failed to find mesh"),
                 &ComputedColliderShape::TriMesh,
             )
             .unwrap(),
             RigidBody::KinematicPositionBased,
         ))
-        .insert(flipper)
+        .insert(Flipper::new())
         .insert(Name::new(flipper_type.to_string()))
         .insert(flipper_type)
         .insert(FlipperStatus::Idle);
