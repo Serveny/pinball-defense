@@ -71,6 +71,8 @@ fn setup_world(
                 .unwrap(),
             ))
             .insert(Ground);
+
+        // Top glass
         let (x, y, z) = (260., 2., 140.);
         parent
             .spawn((
@@ -78,7 +80,7 @@ fn setup_world(
                     transform: Transform::from_translation(Vec3::new(0., 6., 0.)),
                     ..default()
                 },
-                ColliderDebugColor(Color::ORANGE_RED),
+                ColliderDebugColor(Color::NONE),
                 Collider::cuboid(x / 2., y / 2., z / 2.),
             ))
             .insert(Name::new("Pinball Glass"));
