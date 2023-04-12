@@ -108,7 +108,6 @@ fn spawn_flipper(
                 ..default()
             },
             //Ccd::enabled(),
-            ColliderDebugColor(Color::GOLD),
             Collider::from_bevy_mesh(
                 meshes.get(flipper_mesh).expect("Failed to find mesh"),
                 &ComputedColliderShape::TriMesh,

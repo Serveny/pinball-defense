@@ -53,6 +53,14 @@
 	"materials":[
 		{
 			"doubleSided":true,
+			"name":"Fliipper Material",
+			"pbrMetallicRoughness":{
+				"metallicFactor":0,
+				"roughnessFactor":0.5
+			}
+		},
+		{
+			"doubleSided":true,
 			"name":"Material",
 			"pbrMetallicRoughness":{
 				"metallicFactor":0,
@@ -85,7 +93,7 @@
 						"NORMAL":6
 					},
 					"indices":7,
-					"material":0
+					"material":1
 				}
 			]
 		},

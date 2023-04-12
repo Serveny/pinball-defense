@@ -38,7 +38,7 @@ fn cursor_grab_system(
     if key.just_pressed(KeyCode::Escape) {
         window.cursor.grab_mode = CursorGrabMode::None;
         window.cursor.visible = true;
-        cam_state.set(CameraState::BallCamera);
+        cam_state.set(CameraState::None);
     }
 
     if key.just_pressed(KeyCode::LControl) {
