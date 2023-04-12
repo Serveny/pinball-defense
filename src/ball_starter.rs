@@ -10,9 +10,9 @@ impl Plugin for BallStarterPlugin {
     }
 }
 const HALF_SIZE: Vec3 = Vec3 {
-    x: 9.9,
-    y: 2.5,
-    z: 2.5,
+    x: 0.099,
+    y: 0.025,
+    z: 0.025,
 };
 
 #[derive(Component)]
@@ -60,7 +60,7 @@ pub fn spawn(
                     },
                     RigidBody::KinematicPositionBased,
                     Collider::cuboid(HALF_SIZE.x / 8., HALF_SIZE.y, HALF_SIZE.z),
-                    ColliderDebugColor(Color::GREEN),
+                    ColliderDebugColor(Color::GOLD),
                     //Ccd::enabled(),
                 ))
                 .insert(BallStarterPlate)
@@ -76,7 +76,7 @@ fn charge_system(
 ) {
     q_ball_starter.for_each_mut(|mut transform| {
         transform.translation.x =
-            (transform.translation.x + time.delta_seconds() * 8.).clamp(-HALF_SIZE.x, HALF_SIZE.x)
+            (transform.translation.x + time.delta_seconds() * 0.2).clamp(-HALF_SIZE.x, HALF_SIZE.x)
     });
 }
 
@@ -86,7 +86,7 @@ fn fire_system(
     time: Res<Time>,
 ) {
     q_ball_starter.for_each_mut(|(mut speed, mut transform)| {
-        speed.0 += speed.0 * time.delta_seconds() * 50.;
+        speed.0 += speed.0 * time.delta_seconds() * 40.;
         transform.translation.x -= time.delta_seconds() * speed.0;
 
         if transform.translation.x <= -HALF_SIZE.x {

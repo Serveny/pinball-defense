@@ -12,7 +12,7 @@ impl Plugin for BallCameraPlugin {
 
 fn place_cam(mut q_cam: Query<&mut Transform, (With<Camera>, Without<Ball>)>) {
     if let Ok(mut cam) = q_cam.get_single_mut() {
-        cam.translation = Vec3::new(240., 120., -28.);
+        cam.translation = Vec3::new(2.40, 1.20, -0.28);
         cam.look_at(Vec3::ZERO, Vec3::Y);
     }
 }
