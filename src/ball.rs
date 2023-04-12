@@ -23,7 +23,7 @@ pub fn spawn_ball(
     materials: &mut Assets<StandardMaterial>,
     pos: Vec3,
 ) {
-    let radius = 2.5;
+    let radius = 0.025;
     cmds.spawn((
         PbrBundle {
             mesh: meshes.add(Mesh::from(shape::UVSphere {
@@ -42,12 +42,12 @@ pub fn spawn_ball(
         },
         RigidBody::Dynamic,
         Collider::ball(radius),
-        Ccd::enabled(),
-        ColliderDebugColor(Color::NONE),
-        //ColliderDebugColor(Color::hsl(220.0, 1.0, 0.3)),
+        //Ccd::enabled(),
+        ColliderDebugColor(Color::GOLD),
         Sleeping::disabled(),
         ActiveEvents::COLLISION_EVENTS,
-        GravityScale(25.),
+        ColliderMassProperties::Mass(0.0081),
+        Restitution::coefficient(0.7),
     ))
     .insert(Ball)
     .insert(Name::new("Ball"));
@@ -61,7 +61,7 @@ fn ball_reset_system(
     ball_spawn: Res<BallSpawn>,
 ) {
     for (entity, transform) in q_ball.iter() {
-        if transform.translation.y <= -100. {
+        if transform.translation.y <= -1. {
             cmds.get_entity(entity).unwrap().despawn_recursive();
             spawn_ball(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
         }
