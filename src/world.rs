@@ -54,7 +54,7 @@ fn setup_world(
                 },
                 //Ccd::enabled(),
                 RigidBody::KinematicPositionBased,
-                ColliderDebugColor(Color::NONE),
+                ColliderDebugColor(Color::GOLD),
                 Collider::from_bevy_mesh(
                     meshes
                         .get(&assets.world_1_mesh)
@@ -66,21 +66,21 @@ fn setup_world(
             .insert(Ground);
 
         // Top glass
-        let (x, y, z) = (260., 2., 140.);
+        let (x, y, z) = (2.60, 0.02, 1.40);
         parent
             .spawn((
                 SpatialBundle {
-                    transform: Transform::from_translation(Vec3::new(0., 6., 0.)),
+                    transform: Transform::from_translation(Vec3::new(0., 0.06, 0.)),
                     ..default()
                 },
-                ColliderDebugColor(Color::NONE),
+                ColliderDebugColor(Color::GOLD),
                 Collider::cuboid(x / 2., y / 2., z / 2.),
             ))
             .insert(Name::new("Pinball Glass"));
         parent.spawn(PointLightBundle {
             transform: Transform::from_xyz(0., SIZE.x / 4., 0.).looking_at(Vec3::ZERO, Vec3::Y),
             point_light: PointLight {
-                intensity: 320000.,
+                intensity: 32000.,
                 color: Color::WHITE,
                 shadows_enabled: true,
                 radius: SIZE.x / 20.,
@@ -91,13 +91,13 @@ fn setup_world(
         });
         crate::ball_starter::spawn(
             parent,
-            Vec3::new(117.5, -1.8, -65.7),
+            Vec3::new(1.175, -0.018, -0.657),
             &mut meshes,
             &mut materials,
         );
         crate::flipper::spawn_flipper_left(
             Transform {
-                translation: Vec3::new(83., -1., 32.),
+                translation: Vec3::new(0.83, -0.0425, 0.32),
                 //rotation: Quat::from_rotation_y(f32::to_radians(-12. + 180.)),
                 ..default()
             },
@@ -108,7 +108,7 @@ fn setup_world(
         );
         crate::flipper::spawn_flipper_right(
             Transform {
-                translation: Vec3::new(83., -1., -24.6),
+                translation: Vec3::new(0.83, -0.0425, -0.246),
                 //rotation: Quat::from_rotation_y(f32::to_radians(12.)),
                 ..default()
             },
@@ -120,5 +120,5 @@ fn setup_world(
     })
     .insert(World)
     .insert(Name::new("Pinball World"));
-    ball_spawn.0 = Vec3::new(96., -26., -60.);
+    ball_spawn.0 = Vec3::new(0.96, -0.26, -0.6);
 }

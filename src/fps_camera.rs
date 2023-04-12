@@ -39,8 +39,8 @@ pub struct FirstPersonCameraSettings {
 impl Default for FirstPersonCameraSettings {
     fn default() -> Self {
         FirstPersonCameraSettings {
-            move_speed: 100.,
-            mouse_sensitivity: 0.2,
+            move_speed: 1.,
+            mouse_sensitivity: 0.1,
             stick_sensitivity: 1.,
         }
     }
@@ -139,7 +139,7 @@ fn look_and_move_in_direction(
 fn setup_camera(mut cmds: Commands) {
     cmds.spawn((
         Camera3dBundle {
-            transform: Transform::from_translation(Vec3::new(128., -21., -66.))
+            transform: Transform::from_translation(Vec3::new(2.40, 1.20, -0.28))
                 .looking_at(Vec3::ZERO, Vec3::Y),
             ..Default::default()
         },

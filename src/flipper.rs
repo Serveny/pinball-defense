@@ -108,7 +108,7 @@ fn spawn_flipper(
                 ..default()
             },
             //Ccd::enabled(),
-            ColliderDebugColor(Color::NONE),
+            ColliderDebugColor(Color::GOLD),
             Collider::from_bevy_mesh(
                 meshes.get(flipper_mesh).expect("Failed to find mesh"),
                 &ComputedColliderShape::TriMesh,
@@ -136,7 +136,7 @@ fn flipper_system(
             }
             FlipperStatus::Pushed => {
                 change_angle *= -time * flipper.acceleration_factor;
-                flipper.acceleration_factor += time * 300.;
+                flipper.acceleration_factor += time * 400.;
             }
         }
         let new_angle = flipper.curr_angle + change_angle;
