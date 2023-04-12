@@ -35,8 +35,8 @@ pub enum CameraState {
 }
 
 fn main() {
-    App::new()
-        .add_state::<GameState>()
+    let mut app = App::new();
+    app.add_state::<GameState>()
         .add_state::<CameraState>()
         .add_loading_state(
             LoadingState::new(GameState::Loading).continue_to_state(GameState::Ingame),
@@ -46,15 +46,17 @@ fn main() {
         .add_plugin(FrameTimeDiagnosticsPlugin)
         .add_plugin(WindowTitleLoggerDiagnosticsPlugin::default())
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-        //.add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(WorldInspectorPlugin::default())
         .add_plugin(FirstPersonCameraPlugin)
         .add_plugin(WorldPlugin)
         .add_plugin(BallPlugin)
         .add_plugin(BallCameraPlugin)
-        .add_plugin(ControlsPlugin)
-        .add_startup_system(setup_graphics)
-        .run();
+        .add_plugin(ControlsPlugin);
+
+    #[cfg(debug_assertions)]
+    app.add_plugin(RapierDebugRenderPlugin::default());
+
+    app.add_startup_system(setup_graphics).run();
 }
 
 #[derive(Component)]
