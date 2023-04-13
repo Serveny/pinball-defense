@@ -15,12 +15,6 @@ impl Plugin for WorldPlugin {
     }
 }
 
-const SIZE: Vec3 = Vec3 {
-    x: 400.,
-    y: 20.,
-    z: 200.,
-};
-
 #[derive(Component)]
 struct World;
 
@@ -78,13 +72,13 @@ fn setup_world(
             ))
             .insert(Name::new("Pinball Glass"));
         parent.spawn(PointLightBundle {
-            transform: Transform::from_xyz(0., SIZE.x / 4., 0.).looking_at(Vec3::ZERO, Vec3::Y),
+            transform: Transform::from_xyz(1., 1., 0.5).looking_at(Vec3::ZERO, Vec3::Y),
             point_light: PointLight {
-                intensity: 32000.,
+                intensity: 78.,
                 color: Color::WHITE,
                 shadows_enabled: true,
-                radius: SIZE.x / 20.,
-                range: SIZE.x,
+                radius: 0.1,
+                range: 4.,
                 ..default()
             },
             ..default()

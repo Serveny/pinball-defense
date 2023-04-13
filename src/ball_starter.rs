@@ -86,7 +86,7 @@ fn fire_system(
     time: Res<Time>,
 ) {
     q_ball_starter.for_each_mut(|(mut speed, mut transform)| {
-        speed.0 += speed.0 * time.delta_seconds() * 8.;
+        speed.0 += speed.0 * time.delta_seconds() * 16.;
         transform.translation.x -= time.delta_seconds() * speed.0;
 
         if transform.translation.x <= -HALF_SIZE.x {
