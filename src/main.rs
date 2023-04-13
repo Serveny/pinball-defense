@@ -58,9 +58,10 @@ fn main() {
 
 fn add_rapier(app: &mut App) {
     let rapier_cfg = RapierConfiguration {
-        timestep_mode: TimestepMode::Fixed {
-            dt: 1. / 64.,
-            substeps: 4,
+        timestep_mode: TimestepMode::Variable {
+            max_dt: 1. / 128.,
+            time_scale: 1.,
+            substeps: 1,
         },
         ..default()
     };
