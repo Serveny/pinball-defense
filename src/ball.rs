@@ -45,7 +45,6 @@ pub fn spawn_ball(
         //Ccd::enabled(),
         ColliderDebugColor(Color::GOLD),
         Sleeping::disabled(),
-        ActiveEvents::COLLISION_EVENTS,
         ColliderMassProperties::Mass(0.081),
         Restitution::coefficient(0.5),
     ))

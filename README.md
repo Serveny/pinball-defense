@@ -16,6 +16,7 @@ Tower Types:
 
 - slowdown tower: Slows enemies in radius down
 - tesla tower: Damages every enemy in radius constantly
+- machine gun tower: Damages one enemy in radius unit dead
 
 Pinball Part:
 

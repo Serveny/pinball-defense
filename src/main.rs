@@ -7,6 +7,7 @@ use bevy_window_title_diagnostics::WindowTitleLoggerDiagnosticsPlugin;
 use controls::ControlsPlugin;
 use fps_camera::FirstPersonCameraPlugin;
 use prelude::*;
+use tower::TowerPlugin;
 use world::WorldPlugin;
 
 mod assets;
@@ -17,6 +18,7 @@ mod controls;
 mod flipper;
 mod fps_camera;
 mod prelude;
+mod tower;
 mod world;
 
 #[derive(States, PartialEq, Eq, Clone, Copy, Debug, Hash, Default)]
@@ -51,6 +53,7 @@ fn main() {
         .add_plugin(WorldPlugin)
         .add_plugin(BallPlugin)
         .add_plugin(BallCameraPlugin)
+        .add_plugin(TowerPlugin)
         .add_plugin(ControlsPlugin);
     add_rapier(&mut app);
     app.add_startup_system(setup_graphics).run();
@@ -67,6 +70,8 @@ fn add_rapier(app: &mut App) {
     };
     app.insert_resource(rapier_cfg)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default());
+
+    // Only show debug data in debug mode
     #[cfg(debug_assertions)]
     app.add_plugin(RapierDebugRenderPlugin::default());
 }
