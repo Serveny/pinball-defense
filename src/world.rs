@@ -3,6 +3,7 @@ use crate::ball::BallSpawn;
 use crate::ball_starter::BallStarterPlugin;
 use crate::flipper::FlipperPlugin;
 use crate::prelude::*;
+use crate::tower::spawn_tower_base;
 use crate::GameState;
 
 pub struct WorldPlugin;
@@ -111,8 +112,17 @@ fn setup_world(
             &mut materials,
             &mut assets,
         );
+        test_tower(parent, &mut materials, &assets)
     })
     .insert(World)
     .insert(Name::new("Pinball World"));
     ball_spawn.0 = Vec3::new(0.96, -0.26, -0.6);
+}
+
+fn test_tower(
+    parent: &mut ChildBuilder,
+    materials: &mut Assets<StandardMaterial>,
+    assets: &PinballDefenseAssets,
+) {
+    spawn_tower_base(parent, materials, assets, Vec3::new(0., -0.025, 0.));
 }

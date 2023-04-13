@@ -10,4 +10,10 @@ pub struct PinballDefenseAssets {
 
     #[asset(path = "models/pinball_world_1.gltf#Mesh2/Primitive0")]
     pub flipper_left: Handle<Mesh>,
+
+    #[asset(path = "models/pinball_world_1.gltf#Mesh3/Primitive0")]
+    pub tower_base: Handle<Mesh>,
+
+    #[asset(path = "models/pinball_world_1.gltf#Mesh4/Primitive0")]
+    pub tower_top_microwave: Handle<Mesh>,
 }
