@@ -23,7 +23,7 @@ pub fn spawn_ball(
     materials: &mut Assets<StandardMaterial>,
     pos: Vec3,
 ) {
-    let radius = 0.025;
+    let radius = 0.02;
     cmds.spawn((
         PbrBundle {
             mesh: meshes.add(Mesh::from(shape::UVSphere {
