@@ -46,8 +46,8 @@ pub fn spawn_ball(
         ColliderDebugColor(Color::GOLD),
         Sleeping::disabled(),
         ActiveEvents::COLLISION_EVENTS,
-        ColliderMassProperties::Mass(0.0081),
-        Restitution::coefficient(0.7),
+        ColliderMassProperties::Mass(0.081),
+        //Restitution::coefficient(0.7),
     ))
     .insert(Ball)
     .insert(Name::new("Ball"));
