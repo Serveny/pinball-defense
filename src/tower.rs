@@ -1,12 +1,22 @@
+use crate::collision_handler::TowerBaseCollisionStartEvent;
 use crate::prelude::*;
+use crate::GameState;
 
 pub struct TowerPlugin;
 
 impl Plugin for TowerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems((light_on_contact_system, rotate_tower_head_system));
+        app.add_systems(
+            (
+                light_on_contact_system,
+                rotate_tower_head_system,
+                light_off_system,
+            )
+                .in_set(OnUpdate(GameState::Ingame)),
+        );
     }
 }
+
 #[derive(Component)]
 pub struct TowerBase;
 
@@ -49,14 +59,13 @@ pub fn spawn_tower_base(
                 .spawn(PointLightBundle {
                     transform: Transform::from_xyz(0., 0.005, 0.),
                     point_light: PointLight {
-                        intensity: 48.,
+                        intensity: 0.,
                         color: Color::RED,
                         shadows_enabled: true,
                         radius: 0.01,
                         range: 0.5,
                         ..default()
                     },
-                    visibility: Visibility::Hidden,
                     ..default()
                 })
                 .insert(TowerContactLight);
@@ -77,42 +86,32 @@ pub fn spawn_tower_base(
         });
 }
 
-pub fn light_on_contact_system(
-    mut col_events: EventReader<CollisionEvent>,
-    q_tower: Query<&Children, With<TowerBase>>,
-    mut q_light: Query<&mut Visibility, With<TowerContactLight>>,
+const LIGHT_INTENSITY: f32 = 48.;
+
+fn light_on_contact_system(
+    mut evs: EventReader<TowerBaseCollisionStartEvent>,
+    mut q_light: Query<(&mut PointLight, &Parent), With<TowerContactLight>>,
 ) {
-    for col_ev in col_events.iter() {
-        match col_ev {
-            CollisionEvent::Started(tower_base_id, _, _) => {
-                if let Ok(tower) = q_tower.get(*tower_base_id) {
-                    set_light(Visibility::Visible, tower, &mut q_light)
-                }
-            }
-            CollisionEvent::Stopped(tower_base_id, _, _) => {
-                if let Ok(tower) = q_tower.get(*tower_base_id) {
-                    set_light(Visibility::Hidden, tower, &mut q_light)
-                }
+    for ev in evs.iter() {
+        for (mut light, parent) in q_light.iter_mut() {
+            if ev.0 == parent.get() {
+                light.intensity = LIGHT_INTENSITY;
+                break;
             }
         }
     }
 }
 
-fn set_light(
-    visibility: Visibility,
-    children: &Children,
-    q_light: &mut Query<&mut Visibility, With<TowerContactLight>>,
-) {
-    for child in children {
-        if let Ok(mut visi) = q_light.get_mut(*child) {
-            *visi = visibility
-        }
+fn light_off_system(mut q_light: Query<&mut PointLight, With<TowerContactLight>>, time: Res<Time>) {
+    for mut light in q_light.iter_mut() {
+        let time = time.delta_seconds() * 64.;
+        light.intensity = (light.intensity - time).clamp(0., LIGHT_INTENSITY);
     }
 }
 
 fn rotate_tower_head_system(
     time: Res<Time>,
-    mut q_heads: Query<(&mut Transform), With<MicrowaveTowerHead>>,
+    mut q_heads: Query<&mut Transform, With<MicrowaveTowerHead>>,
 ) {
     for mut trans in q_heads.iter_mut() {
         trans.rotate(Quat::from_rotation_y(time.delta_seconds()));
