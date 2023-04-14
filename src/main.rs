@@ -4,6 +4,7 @@ use ball_camera::BallCameraPlugin;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_window_title_diagnostics::WindowTitleLoggerDiagnosticsPlugin;
+use collision_handler::CollisionHandlerPlugin;
 use controls::ControlsPlugin;
 use fps_camera::FirstPersonCameraPlugin;
 use prelude::*;
@@ -14,6 +15,7 @@ mod assets;
 mod ball;
 mod ball_camera;
 mod ball_starter;
+mod collision_handler;
 mod controls;
 mod flipper;
 mod fps_camera;
@@ -54,7 +56,8 @@ fn main() {
         .add_plugin(BallPlugin)
         .add_plugin(BallCameraPlugin)
         .add_plugin(TowerPlugin)
-        .add_plugin(ControlsPlugin);
+        .add_plugin(ControlsPlugin)
+        .add_plugin(CollisionHandlerPlugin);
     add_rapier(&mut app);
     app.add_startup_system(setup_graphics).run();
 }

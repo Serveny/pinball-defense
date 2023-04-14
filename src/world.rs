@@ -48,7 +48,6 @@ fn setup_world(
                     ..default()
                 },
                 //Ccd::enabled(),
-                RigidBody::KinematicPositionBased,
                 ColliderDebugColor(Color::GOLD),
                 Collider::from_bevy_mesh(
                     meshes
@@ -91,22 +90,14 @@ fn setup_world(
             &mut materials,
         );
         crate::flipper::spawn_flipper_left(
-            Transform {
-                translation: Vec3::new(0.83, -0.0425, 0.32),
-                //rotation: Quat::from_rotation_y(f32::to_radians(-12. + 180.)),
-                ..default()
-            },
+            Transform::from_xyz(0.83, -0.043, 0.32),
             parent,
             &mut meshes,
             &mut materials,
             &mut assets,
         );
         crate::flipper::spawn_flipper_right(
-            Transform {
-                translation: Vec3::new(0.83, -0.0425, -0.246),
-                //rotation: Quat::from_rotation_y(f32::to_radians(12.)),
-                ..default()
-            },
+            Transform::from_xyz(0.83, -0.043, -0.246),
             parent,
             &mut meshes,
             &mut materials,
