@@ -37,6 +37,15 @@ pub enum FlipperStatus {
     Pushed,
 }
 
+impl FlipperStatus {
+    pub fn by_value(val: f32) -> FlipperStatus {
+        match val < 0.5 {
+            true => FlipperStatus::Idle,
+            false => FlipperStatus::Pushed,
+        }
+    }
+}
+
 impl FlipperType {
     fn signum(&self) -> f32 {
         match self {

@@ -123,6 +123,7 @@ fn gamepad_controls(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut ball_starter_state: ResMut<NextState<BallStarterState>>,
+    mut q_flipper: Query<(&mut FlipperStatus, &FlipperType)>,
 ) {
     for ev in evr.iter() {
         match ev.button_type {
@@ -131,10 +132,21 @@ fn gamepad_controls(
             }
 
             GamepadButtonType::South => ball_starter_state.set(match ev.value == 0. {
-                true => BallStarterState::Charge,
-                false => BallStarterState::Fire,
+                true => BallStarterState::Fire,
+                false => BallStarterState::Charge,
             }),
 
+            GamepadButtonType::LeftTrigger => set_flipper_status(
+                FlipperType::Left,
+                FlipperStatus::by_value(ev.value),
+                &mut q_flipper,
+            ),
+
+            GamepadButtonType::RightTrigger => set_flipper_status(
+                FlipperType::Right,
+                FlipperStatus::by_value(ev.value),
+                &mut q_flipper,
+            ),
             // other events are irrelevant
             _ => {}
         }
