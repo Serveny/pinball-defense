@@ -24,26 +24,43 @@ pub struct TowerBase;
 pub struct TowerContactLight;
 
 #[derive(Component)]
-pub struct MicrowaveTowerHead;
+pub struct TowerHead;
 
-pub fn spawn_tower_base(
+#[derive(Component)]
+pub struct MachineGunTowerMount;
+
+#[derive(Component)]
+pub struct MachineGunTowerHead;
+
+#[derive(Component)]
+pub struct MachineGunTowerBarrel;
+
+#[derive(Component)]
+pub struct MicrowaveTower;
+
+#[derive(Component)]
+pub struct MachineGunTower;
+
+fn tower_material() -> StandardMaterial {
+    StandardMaterial {
+        base_color: Color::BEIGE,
+        perceptual_roughness: 0.5,
+        metallic: 0.5,
+        reflectance: 0.5,
+        ..default()
+    }
+}
+
+fn spawn_tower_base(
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseAssets,
-    pos: Vec3,
 ) {
     parent
         .spawn((
             PbrBundle {
                 mesh: assets.tower_base.clone(),
-                material: materials.add(StandardMaterial {
-                    base_color: Color::BEIGE,
-                    perceptual_roughness: 0.5,
-                    metallic: 0.5,
-                    reflectance: 0.5,
-                    ..default()
-                }),
-                transform: Transform::from_translation(pos),
+                material: materials.add(tower_material()),
                 ..default()
             },
             //Ccd::enabled(),
@@ -54,6 +71,7 @@ pub fn spawn_tower_base(
             ActiveEvents::COLLISION_EVENTS,
         ))
         .insert(TowerBase)
+        .insert(Name::new("Tower Base"))
         .with_children(|parent| {
             parent
                 .spawn(PointLightBundle {
@@ -69,20 +87,79 @@ pub fn spawn_tower_base(
                     ..default()
                 })
                 .insert(TowerContactLight);
+        });
+}
+
+pub fn spawn_microwave_tower(
+    parent: &mut ChildBuilder,
+    materials: &mut Assets<StandardMaterial>,
+    assets: &PinballDefenseAssets,
+    pos: Vec3,
+) {
+    parent
+        .spawn(SpatialBundle {
+            transform: Transform::from_translation(pos),
+            ..default()
+        })
+        .insert(MicrowaveTower)
+        .insert(Name::new("Microwave Tower"))
+        .with_children(|parent| {
+            spawn_tower_base(parent, materials, assets);
             parent
                 .spawn(PbrBundle {
-                    mesh: assets.tower_top_microwave.clone(),
-                    material: materials.add(StandardMaterial {
-                        base_color: Color::BEIGE,
-                        perceptual_roughness: 0.5,
-                        metallic: 0.5,
-                        reflectance: 0.5,
-                        ..default()
-                    }),
+                    mesh: assets.tower_microwave_top.clone(),
+                    material: materials.add(tower_material()),
                     transform: Transform::from_xyz(0., 0.04, 0.),
                     ..default()
                 })
-                .insert(MicrowaveTowerHead);
+                .insert(TowerHead);
+        });
+}
+
+pub fn spawn_machine_gun_tower(
+    parent: &mut ChildBuilder,
+    materials: &mut Assets<StandardMaterial>,
+    assets: &PinballDefenseAssets,
+    pos: Vec3,
+) {
+    parent
+        .spawn(SpatialBundle {
+            transform: Transform::from_translation(pos),
+            ..default()
+        })
+        .insert(MachineGunTower)
+        .insert(Name::new("Machine Gun Tower"))
+        .with_children(|parent| {
+            spawn_tower_base(parent, materials, assets);
+            parent
+                .spawn(PbrBundle {
+                    mesh: assets.tower_mg_mounting.clone(),
+                    material: materials.add(tower_material()),
+                    transform: Transform::from_xyz(0., 0.023, 0.),
+                    ..default()
+                })
+                .insert(MachineGunTowerMount)
+                .insert(TowerHead)
+                .with_children(|parent| {
+                    parent
+                        .spawn(PbrBundle {
+                            mesh: assets.tower_mg_head.clone(),
+                            material: materials.add(tower_material()),
+                            transform: Transform::from_xyz(0., 0., 0.),
+                            ..default()
+                        })
+                        .insert(MachineGunTowerHead)
+                        .with_children(|parent| {
+                            parent
+                                .spawn(PbrBundle {
+                                    mesh: assets.tower_mg_barrel.clone(),
+                                    material: materials.add(tower_material()),
+                                    transform: Transform::from_xyz(0., 0., 0.),
+                                    ..default()
+                                })
+                                .insert(MachineGunTowerBarrel);
+                        });
+                });
         });
 }
 
@@ -109,10 +186,7 @@ fn light_off_system(mut q_light: Query<&mut PointLight, With<TowerContactLight>>
     }
 }
 
-fn rotate_tower_head_system(
-    time: Res<Time>,
-    mut q_heads: Query<&mut Transform, With<MicrowaveTowerHead>>,
-) {
+fn rotate_tower_head_system(time: Res<Time>, mut q_heads: Query<&mut Transform, With<TowerHead>>) {
     for mut trans in q_heads.iter_mut() {
         trans.rotate(Quat::from_rotation_y(time.delta_seconds()));
     }

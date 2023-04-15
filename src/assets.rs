@@ -15,5 +15,14 @@ pub struct PinballDefenseAssets {
     pub tower_base: Handle<Mesh>,
 
     #[asset(path = "models/pinball_world_1.gltf#Mesh4/Primitive0")]
-    pub tower_top_microwave: Handle<Mesh>,
+    pub tower_microwave_top: Handle<Mesh>,
+
+    #[asset(path = "models/pinball_world_1.gltf#Mesh5/Primitive0")]
+    pub tower_mg_mounting: Handle<Mesh>,
+
+    #[asset(path = "models/pinball_world_1.gltf#Mesh6/Primitive0")]
+    pub tower_mg_head: Handle<Mesh>,
+
+    #[asset(path = "models/pinball_world_1.gltf#Mesh7/Primitive0")]
+    pub tower_mg_barrel: Handle<Mesh>,
 }
