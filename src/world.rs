@@ -3,7 +3,7 @@ use crate::ball::BallSpawn;
 use crate::ball_starter::BallStarterPlugin;
 use crate::flipper::FlipperPlugin;
 use crate::prelude::*;
-use crate::tower::spawn_tower_base;
+use crate::tower::{spawn_machine_gun_tower, spawn_microwave_tower};
 use crate::GameState;
 
 pub struct WorldPlugin;
@@ -115,5 +115,6 @@ fn test_tower(
     materials: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseAssets,
 ) {
-    spawn_tower_base(parent, materials, assets, Vec3::new(0., -0.025, 0.));
+    spawn_microwave_tower(parent, materials, assets, Vec3::new(0., -0.025, -0.1));
+    spawn_machine_gun_tower(parent, materials, assets, Vec3::new(0., -0.025, 0.1))
 }
