@@ -26,4 +26,7 @@ pub struct PinballDefenseAssets {
 
     #[asset(path = "models/towers/tower_machine_gun.gltf#Mesh3/Primitive0")]
     pub tower_mg_barrel: Handle<Mesh>,
+
+    #[asset(path = "models/towers/tower_tesla.gltf#Mesh1/Primitive0")]
+    pub tower_tesla_top: Handle<Mesh>,
 }
