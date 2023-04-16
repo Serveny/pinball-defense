@@ -44,8 +44,8 @@ pub struct MachineGunTower;
 fn tower_material() -> StandardMaterial {
     StandardMaterial {
         base_color: Color::BEIGE,
-        perceptual_roughness: 0.5,
-        metallic: 0.5,
+        perceptual_roughness: 0.4,
+        metallic: 0.6,
         reflectance: 0.5,
         ..default()
     }
@@ -90,7 +90,7 @@ fn spawn_tower_base(
         });
 }
 
-pub fn spawn_microwave_tower(
+pub fn spawn_tower_microwave(
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseAssets,
@@ -116,7 +116,7 @@ pub fn spawn_microwave_tower(
         });
 }
 
-pub fn spawn_machine_gun_tower(
+pub fn spawn_tower_machine_gun(
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseAssets,
@@ -160,6 +160,32 @@ pub fn spawn_machine_gun_tower(
                                 .insert(MachineGunTowerBarrel);
                         });
                 });
+        });
+}
+
+pub fn spawn_tower_tesla(
+    parent: &mut ChildBuilder,
+    materials: &mut Assets<StandardMaterial>,
+    assets: &PinballDefenseAssets,
+    pos: Vec3,
+) {
+    parent
+        .spawn(SpatialBundle {
+            transform: Transform::from_translation(pos),
+            ..default()
+        })
+        .insert(MicrowaveTower)
+        .insert(Name::new("Tesla Tower"))
+        .with_children(|parent| {
+            spawn_tower_base(parent, materials, assets);
+            parent
+                .spawn(PbrBundle {
+                    mesh: assets.tower_tesla_top.clone(),
+                    material: materials.add(tower_material()),
+                    transform: Transform::from_xyz(0., 0.02, 0.),
+                    ..default()
+                })
+                .insert(TowerHead);
         });
 }
 
