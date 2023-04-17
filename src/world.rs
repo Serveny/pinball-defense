@@ -123,13 +123,13 @@ fn spawn_road(
         .spawn(PbrBundle {
             mesh: assets.road_mesh.clone(),
             material: materials.add(StandardMaterial {
-                base_color: Color::ORANGE,
-                perceptual_roughness: 0.5,
-                metallic: 0.5,
-                reflectance: 0.5,
+                base_color: Color::TEAL,
+                perceptual_roughness: 0.8,
+                metallic: 0.,
+                reflectance: 0.8,
                 ..default()
             }),
-            transform: Transform::from_xyz(0., -0.04, 0.),
+            transform: Transform::from_xyz(0., -0.04, -0.008),
             ..default()
         })
         .insert(Name::new("Road Mesh"));
