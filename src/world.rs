@@ -83,27 +83,21 @@ fn setup_world(
             },
             ..default()
         });
-        crate::ball_starter::spawn(
-            parent,
-            Vec3::new(1.175, -0.018, -0.657),
-            &mut meshes,
-            &mut materials,
-        );
-        crate::flipper::spawn_flipper_left(
-            Transform::from_xyz(0.83, -0.043, 0.32),
-            parent,
-            &mut meshes,
-            &mut materials,
-            &mut assets,
-        );
-        crate::flipper::spawn_flipper_right(
-            Transform::from_xyz(0.83, -0.043, -0.246),
-            parent,
-            &mut meshes,
-            &mut materials,
-            &mut assets,
-        );
-        test_tower(parent, &mut materials, &assets)
+
+        // Ball starter
+        let bs_pos = Vec3::new(1.175, -0.018, -0.657);
+        crate::ball_starter::spawn(parent, bs_pos, &mut meshes, &mut materials);
+
+        // Flipper left
+        let fl_pos = Transform::from_xyz(0.83, -0.043, 0.32);
+        crate::flipper::spawn_left(fl_pos, parent, &mut meshes, &mut materials, &mut assets);
+
+        // Flipper right
+        let fr_pos = Transform::from_xyz(0.83, -0.043, -0.246);
+        crate::flipper::spawn_right(fr_pos, parent, &mut meshes, &mut materials, &mut assets);
+
+        test_tower(parent, &mut materials, &assets);
+        spawn_road(parent, &mut materials, &assets);
     })
     .insert(World)
     .insert(Name::new("Pinball World"));
@@ -118,4 +112,25 @@ fn test_tower(
     spawn_tower_microwave(parent, materials, assets, Vec3::new(0., -0.025, -0.2));
     spawn_tower_machine_gun(parent, materials, assets, Vec3::new(0., -0.025, 0.2));
     spawn_tower_tesla(parent, materials, assets, Vec3::new(0., -0.025, 0.));
+}
+
+fn spawn_road(
+    parent: &mut ChildBuilder,
+    materials: &mut Assets<StandardMaterial>,
+    assets: &PinballDefenseAssets,
+) {
+    parent
+        .spawn(PbrBundle {
+            mesh: assets.road_mesh.clone(),
+            material: materials.add(StandardMaterial {
+                base_color: Color::ORANGE,
+                perceptual_roughness: 0.5,
+                metallic: 0.5,
+                reflectance: 0.5,
+                ..default()
+            }),
+            transform: Transform::from_xyz(0., -0.04, 0.),
+            ..default()
+        })
+        .insert(Name::new("Road Mesh"));
 }
