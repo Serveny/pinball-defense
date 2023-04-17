@@ -2,6 +2,7 @@ use assets::PinballDefenseAssets;
 use ball::BallPlugin;
 use ball_camera::BallCameraPlugin;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
+use bevy_debug_grid::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_window_title_diagnostics::WindowTitleLoggerDiagnosticsPlugin;
 use collision_handler::CollisionHandlerPlugin;
@@ -17,6 +18,7 @@ mod ball_camera;
 mod ball_starter;
 mod collision_handler;
 mod controls;
+mod enemy;
 mod flipper;
 mod fps_camera;
 mod prelude;
@@ -47,10 +49,14 @@ fn main() {
             LoadingState::new(GameState::Loading).continue_to_state(GameState::Ingame),
         )
         .add_collection_to_loading_state::<_, PinballDefenseAssets>(GameState::Loading)
-        .add_plugins(DefaultPlugins)
-        .add_plugin(FrameTimeDiagnosticsPlugin)
+        .add_plugins(DefaultPlugins);
+
+    // Only show debug data in debug mode
+    #[cfg(debug_assertions)]
+    add_debug_plugins(&mut app);
+
+    app.add_plugin(FrameTimeDiagnosticsPlugin)
         .add_plugin(WindowTitleLoggerDiagnosticsPlugin::default())
-        .add_plugin(WorldInspectorPlugin::default())
         .add_plugin(FirstPersonCameraPlugin)
         .add_plugin(WorldPlugin)
         .add_plugin(BallPlugin)
@@ -58,6 +64,7 @@ fn main() {
         .add_plugin(TowerPlugin)
         .add_plugin(ControlsPlugin)
         .add_plugin(CollisionHandlerPlugin);
+
     add_rapier(&mut app);
     app.add_startup_system(setup_graphics).run();
 }
@@ -73,10 +80,12 @@ fn add_rapier(app: &mut App) {
     };
     app.insert_resource(rapier_cfg)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default());
+}
 
-    // Only show debug data in debug mode
-    #[cfg(debug_assertions)]
-    app.add_plugin(RapierDebugRenderPlugin::default());
+fn add_debug_plugins(app: &mut App) {
+    app.add_plugin(RapierDebugRenderPlugin::default())
+        .add_plugin(WorldInspectorPlugin::default())
+        .add_plugin(DebugGridPlugin::with_floor_grid());
 }
 
 #[derive(Component)]
