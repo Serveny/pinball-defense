@@ -5,6 +5,12 @@ pub struct PinballDefenseAssets {
     #[asset(path = "models/pinball_plate_1.gltf#Mesh0/Primitive0")]
     pub world_1_mesh: Handle<Mesh>,
 
+    #[asset(path = "models/pinball_plate_1.gltf#Mesh1/Primitive0")]
+    pub road_mesh: Handle<Mesh>,
+
+    #[asset(path = "models/pinball_plate_1.gltf#Animation0/Primitive0")]
+    pub road_path: Handle<AnimationClip>,
+
     #[asset(path = "models/flippers.gltf#Mesh0/Primitive0")]
     pub flipper_right: Handle<Mesh>,
 
