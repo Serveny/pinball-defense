@@ -22,6 +22,7 @@ mod enemy;
 mod flipper;
 mod fps_camera;
 mod prelude;
+mod road;
 mod tower;
 mod world;
 
@@ -76,6 +77,10 @@ fn add_rapier(app: &mut App) {
             time_scale: 1.,
             substeps: 1,
         },
+        //timestep_mode: TimestepMode::Fixed {
+        //dt: 1. / 512.,
+        //substeps: 1,
+        //},
         ..default()
     };
     app.insert_resource(rapier_cfg)

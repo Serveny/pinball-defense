@@ -1,6 +1,7 @@
 use crate::controls::MyGamepad;
 use crate::prelude::*;
 use crate::CameraState;
+use bevy::core_pipeline::bloom::BloomCompositeMode;
 use bevy::core_pipeline::bloom::BloomSettings;
 use bevy::input::mouse::MouseMotion;
 
@@ -145,6 +146,15 @@ fn setup_camera(mut cmds: Commands) {
         },
         BloomSettings {
             intensity: 1.,
+            composite_mode: BloomCompositeMode::EnergyConserving,
+            ..default()
+        },
+        FogSettings {
+            color: Color::ALICE_BLUE,
+            falloff: FogFalloff::Linear {
+                start: 5.,
+                end: 10.,
+            },
             ..default()
         },
     ))
