@@ -2,6 +2,9 @@ use crate::prelude::*;
 
 #[derive(Resource, AssetCollection)]
 pub struct PinballDefenseAssets {
+    #[asset(path = "sky_box.jpg")]
+    pub skybox: Handle<Mesh>,
+
     #[asset(path = "models/pinball_plate_1.gltf#Mesh0/Primitive0")]
     pub world_1_mesh: Handle<Mesh>,
 
