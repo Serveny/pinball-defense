@@ -1,0 +1,25 @@
+{
+	"asset":{
+		"generator":"Khronos glTF Blender I/O v3.5.30",
+		"version":"2.0"
+	},
+	"scene":0,
+	"scenes":[
+		{
+			"name":"Scene",
+			"nodes":[
+				0
+			]
+		}
+	],
+	"nodes":[
+		{
+			"name":"Road Path",
+			"translation":[
+				0,
+				-0.03999999910593033,
+				0
+			]
+		}
+	]
+}
