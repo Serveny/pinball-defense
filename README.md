@@ -26,6 +26,7 @@ Pinball Part:
 - every tower is an object with collision, if one gets hit, bar fills, when bar is filled, tower gets upgrade
 - (random extra field, when hit, then temporary extra like second ball, bigger ball damage-/radius, etc.)
 - If ball hits enemy, it is instant dead
+- Hitting the road with the ball, causes a shockwave along the road, which damages the enemies on the road a little
 
 Base Part:
 
