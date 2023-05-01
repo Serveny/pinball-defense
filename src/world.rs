@@ -3,6 +3,7 @@ use crate::ball::BallSpawn;
 use crate::ball_starter::BallStarterPlugin;
 use crate::flipper::FlipperPlugin;
 use crate::prelude::*;
+use crate::road::{add_road_path, animate_cube, spawn_road};
 use crate::tower::{spawn_tower_machine_gun, spawn_tower_microwave, spawn_tower_tesla};
 use crate::GameState;
 
@@ -12,7 +13,8 @@ impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(FlipperPlugin)
             .add_plugin(BallStarterPlugin)
-            .add_system(setup_world.in_schedule(OnEnter(GameState::Ingame)));
+            .add_system(setup_world.in_schedule(OnEnter(GameState::Ingame)))
+            .add_system(animate_cube.in_set(OnUpdate(GameState::Ingame)));
     }
 }
 
@@ -98,6 +100,7 @@ fn setup_world(
 
         test_tower(parent, &mut materials, &assets);
         spawn_road(parent, &mut materials, &assets);
+        add_road_path(parent, &assets, &mut meshes, &mut materials);
     })
     .insert(World)
     .insert(Name::new("Pinball World"));
@@ -112,25 +115,4 @@ fn test_tower(
     spawn_tower_microwave(parent, materials, assets, Vec3::new(0., -0.025, -0.2));
     spawn_tower_machine_gun(parent, materials, assets, Vec3::new(0., -0.025, 0.2));
     spawn_tower_tesla(parent, materials, assets, Vec3::new(0., -0.025, 0.));
-}
-
-fn spawn_road(
-    parent: &mut ChildBuilder,
-    materials: &mut Assets<StandardMaterial>,
-    assets: &PinballDefenseAssets,
-) {
-    parent
-        .spawn(PbrBundle {
-            mesh: assets.road_mesh.clone(),
-            material: materials.add(StandardMaterial {
-                base_color: Color::TEAL,
-                perceptual_roughness: 0.8,
-                metallic: 0.,
-                reflectance: 0.8,
-                ..default()
-            }),
-            transform: Transform::from_xyz(0., -0.04, -0.008),
-            ..default()
-        })
-        .insert(Name::new("Road Mesh"));
 }
