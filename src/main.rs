@@ -2,7 +2,9 @@ use assets::PinballDefenseAssets;
 use ball::BallPlugin;
 use ball_camera::BallCameraPlugin;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
+#[cfg(debug_assertions)]
 use bevy_debug_grid::*;
+#[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_window_title_diagnostics::WindowTitleLoggerDiagnosticsPlugin;
 use collision_handler::CollisionHandlerPlugin;
@@ -72,11 +74,11 @@ fn main() {
 
 fn add_rapier(app: &mut App) {
     let rapier_cfg = RapierConfiguration {
-        timestep_mode: TimestepMode::Variable {
-            max_dt: 1. / 128.,
-            time_scale: 1.,
-            substeps: 1,
-        },
+        //timestep_mode: TimestepMode::Variable {
+        //max_dt: 1. / 128.,
+        //time_scale: 1.,
+        //substeps: 1,
+        //},
         //timestep_mode: TimestepMode::Fixed {
         //dt: 1. / 512.,
         //substeps: 1,
@@ -87,6 +89,7 @@ fn add_rapier(app: &mut App) {
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default());
 }
 
+#[cfg(debug_assertions)]
 fn add_debug_plugins(app: &mut App) {
     app.add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(WorldInspectorPlugin::default())

@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use bevy::{math::cubic_splines::CubicCurve, utils::Instant};
+use bevy::math::cubic_splines::CubicCurve;
 
 #[derive(Resource)]
 struct RoadAnimations(Vec<Handle<AnimationClip>>);
