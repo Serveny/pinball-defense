@@ -9,8 +9,9 @@ pub struct FirstPersonCameraPlugin;
 
 impl Plugin for FirstPersonCameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(setup_camera).add_systems(
-            (keyboard_mouse_motion_system, gamepad_input).in_set(OnUpdate(CameraState::FpsCamera)),
+        app.add_systems(Startup, setup_camera).add_systems(
+            Update,
+            (keyboard_mouse_motion_system, gamepad_input).run_if(in_state(CameraState::FpsCamera)),
         );
     }
 }

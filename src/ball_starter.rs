@@ -5,8 +5,11 @@ pub struct BallStarterPlugin;
 impl Plugin for BallStarterPlugin {
     fn build(&self, app: &mut App) {
         app.add_state::<BallStarterState>()
-            .add_system(charge_system.in_set(OnUpdate(BallStarterState::Charge)))
-            .add_system(fire_system.in_set(OnUpdate(BallStarterState::Fire)));
+            .add_systems(
+                Update,
+                charge_system.run_if(in_state(BallStarterState::Charge)),
+            )
+            .add_systems(Update, fire_system.run_if(in_state(BallStarterState::Fire)));
     }
 }
 const HALF_SIZE: Vec3 = Vec3 {
