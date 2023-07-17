@@ -7,12 +7,13 @@ pub struct TowerPlugin;
 impl Plugin for TowerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
+            Update,
             (
                 light_on_contact_system,
                 rotate_tower_head_system,
                 light_off_system,
             )
-                .in_set(OnUpdate(GameState::Ingame)),
+                .run_if(in_state(GameState::Ingame)),
         );
     }
 }

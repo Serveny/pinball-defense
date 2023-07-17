@@ -11,10 +11,10 @@ pub struct WorldPlugin;
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugin(FlipperPlugin)
-            .add_plugin(BallStarterPlugin)
-            .add_system(setup_world.in_schedule(OnEnter(GameState::Ingame)))
-            .add_system(animate_cube.in_set(OnUpdate(GameState::Ingame)));
+        app.add_plugins(FlipperPlugin)
+            .add_plugins(BallStarterPlugin)
+            .add_systems(OnEnter(GameState::Ingame), setup_world)
+            .add_systems(Update, animate_cube.run_if(in_state(GameState::Ingame)));
     }
 }
 

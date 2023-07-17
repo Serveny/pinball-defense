@@ -5,8 +5,10 @@ pub struct BallCameraPlugin;
 
 impl Plugin for BallCameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(place_cam.in_schedule(OnEnter(CameraState::BallCamera)))
-            .add_system(follow_ball.in_set(OnUpdate(CameraState::BallCamera)));
+        app.add_systems(
+            Update,
+            follow_ball.run_if(in_state(CameraState::BallCamera)),
+        );
     }
 }
 

@@ -6,10 +6,11 @@ pub struct CollisionHandlerPlugin;
 impl Plugin for CollisionHandlerPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<TowerBaseCollisionStartEvent>()
-            .add_system(collision_system);
+            .add_systems(Update, collision_system);
     }
 }
 
+#[derive(Event)]
 pub struct TowerBaseCollisionStartEvent(pub Entity);
 
 fn collision_system(

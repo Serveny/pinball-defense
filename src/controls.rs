@@ -10,8 +10,11 @@ pub struct ControlsPlugin;
 
 impl Plugin for ControlsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems((cursor_grab_system, gamepad_controls).in_set(OnUpdate(GameState::Ingame)))
-            .add_system(gamepad_connections);
+        app.add_systems(
+            Update,
+            (cursor_grab_system, gamepad_controls).run_if(in_state(GameState::Ingame)),
+        )
+        .add_systems(Update, gamepad_connections);
     }
 }
 
@@ -41,7 +44,7 @@ fn cursor_grab_system(
         cam_state.set(CameraState::None);
     }
 
-    if key.just_pressed(KeyCode::LControl) {
+    if key.just_pressed(KeyCode::ControlLeft) {
         spawn_ball(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
     }
 

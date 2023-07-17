@@ -5,7 +5,7 @@ pub struct FlipperPlugin;
 
 impl Plugin for FlipperPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(flipper_system.in_set(OnUpdate(GameState::Ingame)));
+        app.add_systems(Update, flipper_system.run_if(in_state(GameState::Ingame)));
     }
 }
 
