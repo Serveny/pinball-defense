@@ -2,11 +2,11 @@ use assets::PinballDefenseAssets;
 use ball::BallPlugin;
 use ball_camera::BallCameraPlugin;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
-#[cfg(debug_assertions)]
-use bevy_debug_grid::*;
+//#[cfg(debug_assertions)]
+//use bevy_debug_grid::*;
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use bevy_window_title_diagnostics::WindowTitleLoggerDiagnosticsPlugin;
+//use bevy_window_title_diagnostics::WindowTitleLoggerDiagnosticsPlugin;
 use collision_handler::CollisionHandlerPlugin;
 use controls::ControlsPlugin;
 use fps_camera::FirstPersonCameraPlugin;
@@ -58,18 +58,20 @@ fn main() {
     #[cfg(debug_assertions)]
     add_debug_plugins(&mut app);
 
-    app.add_plugin(FrameTimeDiagnosticsPlugin)
-        .add_plugin(WindowTitleLoggerDiagnosticsPlugin::default())
-        .add_plugin(FirstPersonCameraPlugin)
-        .add_plugin(WorldPlugin)
-        .add_plugin(BallPlugin)
-        .add_plugin(BallCameraPlugin)
-        .add_plugin(TowerPlugin)
-        .add_plugin(ControlsPlugin)
-        .add_plugin(CollisionHandlerPlugin);
+    app.add_plugins((
+        FrameTimeDiagnosticsPlugin,
+        //.add_plugin(WindowTitleLoggerDiagnosticsPlugin::default())
+        FirstPersonCameraPlugin,
+        WorldPlugin,
+        BallPlugin,
+        BallCameraPlugin,
+        TowerPlugin,
+        ControlsPlugin,
+        CollisionHandlerPlugin,
+    ));
 
     add_rapier(&mut app);
-    app.add_startup_system(setup_graphics).run();
+    app.add_systems(Startup, setup_graphics).run();
 }
 
 fn add_rapier(app: &mut App) {
@@ -80,20 +82,20 @@ fn add_rapier(app: &mut App) {
         //substeps: 1,
         //},
         //timestep_mode: TimestepMode::Fixed {
-        //dt: 1. / 512.,
-        //substeps: 1,
+        //dt: 1. / 64.,
+        //substeps: 4,
         //},
         ..default()
     };
     app.insert_resource(rapier_cfg)
-        .add_plugin(RapierPhysicsPlugin::<NoUserData>::default());
+        .add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
 }
 
 #[cfg(debug_assertions)]
 fn add_debug_plugins(app: &mut App) {
-    app.add_plugin(RapierDebugRenderPlugin::default())
-        .add_plugin(WorldInspectorPlugin::default())
-        .add_plugin(DebugGridPlugin::with_floor_grid());
+    app.add_plugins((RapierDebugRenderPlugin::default(), WorldInspectorPlugin::default()))
+        //.add_plugin(DebugGridPlugin::with_floor_grid())
+        ;
 }
 
 #[derive(Component)]
