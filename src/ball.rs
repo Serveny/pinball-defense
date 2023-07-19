@@ -48,6 +48,7 @@ pub fn spawn_ball(
         Sleeping::disabled(),
         ColliderMassProperties::Mass(0.081),
         Restitution::coefficient(0.5),
+        Friction::coefficient(1.),
     ))
     .insert(Ball)
     .insert(Name::new("Ball"));
