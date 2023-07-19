@@ -62,10 +62,15 @@ pub fn spawn(
                         ..default()
                     },
                     RigidBody::KinematicPositionBased,
-                    Collider::cuboid(HALF_SIZE.x / 8., HALF_SIZE.y, HALF_SIZE.z),
                     ColliderDebugColor(Color::GOLD),
                     //Ccd::enabled(),
                 ))
+                // Long cube collider to prevent clipping ball
+                .with_children(|parent| {
+                    parent
+                        .spawn(Collider::cuboid(HALF_SIZE.x, HALF_SIZE.y, HALF_SIZE.z))
+                        .insert(TransformBundle::from(Transform::from_xyz(0.09, 0., 0.)));
+                })
                 .insert(BallStarterPlate)
                 .insert(Speed(1.));
         })
