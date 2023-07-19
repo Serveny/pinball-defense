@@ -26,8 +26,8 @@ impl Flipper {
 
 #[derive(Component, Debug, PartialEq, Eq)]
 pub enum FlipperType {
-    Left,
-    Right,
+    Left = 1,
+    Right = -1,
 }
 
 #[derive(Component, Debug, Default)]
@@ -116,18 +116,23 @@ fn spawn(
                 transform,
                 ..default()
             },
-            //Ccd::enabled(),
-            Collider::from_bevy_mesh(
-                meshes.get(flipper_mesh).expect("Failed to find mesh"),
-                &ComputedColliderShape::TriMesh,
-            )
-            .unwrap(),
             RigidBody::KinematicPositionBased,
-        ))
+        )).with_children(|parent| {
+            let sig = flipper_type.signum();
+            parent
+                .spawn(Collider::cuboid(0.02, 0.03,  0.12))
+                .insert(TransformBundle::from(Transform{
+                    translation: Vec3::new(-0.002, 0.03, sig * 0.115) ,
+                    rotation: Quat::from_rotation_y(sig * 0.075),
+                    ..default() 
+                }));
+        })
         .insert(Flipper::new())
         .insert(Name::new(flipper_type.to_string()))
         .insert(flipper_type)
-        .insert(FlipperStatus::Idle);
+        .insert(FlipperStatus::Idle)
+        // Long cube collider to prevent clipping ball
+        ;
 }
 
 fn flipper_system(
