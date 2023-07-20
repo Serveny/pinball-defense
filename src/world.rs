@@ -92,11 +92,11 @@ fn setup_world(
 
         // Flipper left
         let fl_pos = Transform::from_xyz(0.83, -0.043, 0.32);
-        crate::flipper::spawn_left(fl_pos, parent, &mut meshes, &mut materials, &mut assets);
+        crate::flipper::spawn_left(fl_pos, parent, &mut materials, &mut assets);
 
         // Flipper right
         let fr_pos = Transform::from_xyz(0.83, -0.043, -0.246);
-        crate::flipper::spawn_right(fr_pos, parent, &mut meshes, &mut materials, &mut assets);
+        crate::flipper::spawn_right(fr_pos, parent, &mut materials, &mut assets);
 
         test_tower(parent, &mut materials, &assets);
         spawn_road(parent, &mut materials, &assets);
