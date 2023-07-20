@@ -51,20 +51,27 @@ pub fn spawn_ball(
         Friction::coefficient(1.),
     ))
     .insert(Ball)
-    .insert(Name::new("Ball"));
+    .insert(Name::new("Ball"))
+    .with_children(|parent| {
+        parent.spawn(PointLightBundle {
+            transform: Transform::from_xyz(0., 0., 0.),
+            point_light: PointLight {
+                intensity: 0.01,
+                color: Color::SILVER,
+                shadows_enabled: true,
+                radius: 0.001,
+                range: 0.1,
+                ..default()
+            },
+            ..default()
+        });
+    });
 }
 
-fn ball_reset_system(
-    mut cmds: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    q_ball: Query<(Entity, &Transform), With<Ball>>,
-    ball_spawn: Res<BallSpawn>,
-) {
+fn ball_reset_system(mut cmds: Commands, q_ball: Query<(Entity, &Transform), With<Ball>>) {
     for (entity, transform) in q_ball.iter() {
         if transform.translation.y <= -1. {
             cmds.get_entity(entity).unwrap().despawn_recursive();
-            spawn_ball(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
         }
     }
 }
