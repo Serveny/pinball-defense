@@ -5,13 +5,16 @@ pub struct PinballDefenseAssets {
     #[asset(path = "models/pinball_plate_1.gltf#Mesh0/Primitive0")]
     pub world_1_mesh: Handle<Mesh>,
 
+    #[asset(path = "models/pinball_plate_1.gltf#Mesh1/Primitive0")]
+    pub world_1_collision_mesh: Handle<Mesh>,
+
     #[asset(path = "textures/skybox.png")]
     pub skybox: Handle<Image>,
 
     #[asset(path = "fonts/Quicksand-Regular.ttf")]
     pub font: Handle<Font>,
 
-    #[asset(path = "models/pinball_plate_1.gltf#Mesh1/Primitive0")]
+    #[asset(path = "models/pinball_world_1_road.gltf#Mesh0/Primitive0")]
     pub road_mesh: Handle<Mesh>,
 
     #[asset(path = "models/pinball_plate_1.gltf#Animation0")]

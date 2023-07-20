@@ -53,7 +53,7 @@ fn setup_world(
                 ColliderDebugColor(Color::GOLD),
                 Collider::from_bevy_mesh(
                     meshes
-                        .get(&assets.world_1_mesh)
+                        .get(&assets.world_1_collision_mesh)
                         .expect("Failed to find mesh"),
                     &ComputedColliderShape::TriMesh,
                 )
