@@ -64,7 +64,6 @@ impl std::fmt::Display for FlipperType {
 pub fn spawn_right(
     transform: Transform,
     parent: &mut ChildBuilder,
-    meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
     assets: &mut PinballDefenseAssets,
 ) {
@@ -72,7 +71,6 @@ pub fn spawn_right(
         FlipperType::Right,
         transform,
         parent,
-        meshes,
         materials,
         &assets.flipper_right,
     );
@@ -81,7 +79,6 @@ pub fn spawn_right(
 pub fn spawn_left(
     transform: Transform,
     parent: &mut ChildBuilder,
-    meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
     assets: &mut PinballDefenseAssets,
 ) {
@@ -89,7 +86,6 @@ pub fn spawn_left(
         FlipperType::Left,
         transform,
         parent,
-        meshes,
         materials,
         &assets.flipper_left,
     );
@@ -98,7 +94,6 @@ fn spawn(
     flipper_type: FlipperType,
     transform: Transform,
     parent: &mut ChildBuilder,
-    meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
     flipper_mesh: &Handle<Mesh>,
 ) {

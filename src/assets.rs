@@ -5,7 +5,7 @@ pub struct PinballDefenseAssets {
     #[asset(path = "models/pinball_plate_1.gltf#Mesh0/Primitive0")]
     pub world_1_mesh: Handle<Mesh>,
 
-    #[asset(path = "textures/test_cubemap.png")]
+    #[asset(path = "textures/skybox.png")]
     pub skybox: Handle<Image>,
 
     #[asset(path = "models/pinball_plate_1.gltf#Mesh1/Primitive0")]

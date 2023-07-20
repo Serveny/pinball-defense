@@ -2,17 +2,18 @@ use crate::controls::MyGamepad;
 use crate::prelude::*;
 use crate::CameraState;
 use crate::GameState;
-use bevy::core_pipeline::bloom::BloomCompositeMode;
-use bevy::core_pipeline::bloom::BloomSettings;
 use bevy::core_pipeline::Skybox;
 use bevy::input::mouse::MouseMotion;
-use bevy::render::texture::CompressedImageFormats;
+use bevy::render::render_resource::TextureViewDescriptor;
+use bevy::render::render_resource::TextureViewDimension;
+use std::f32::consts::PI;
 
 pub struct FirstPersonCameraPlugin;
 
 impl Plugin for FirstPersonCameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(GameState::Ingame), setup_camera)
+            //.add_systems(Update, asset_loaded.run_if(in_state(GameState::Ingame)))
             .add_systems(
                 Update,
                 (keyboard_mouse_motion_system, gamepad_input)
@@ -143,7 +144,21 @@ fn look_and_move_in_direction(
     }
 }
 
-fn setup_camera(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
+fn setup_camera(
+    mut cmds: Commands,
+    assets: Res<PinballDefenseAssets>,
+    images: ResMut<Assets<Image>>,
+) {
+    // directional 'sun' light
+    cmds.spawn(DirectionalLightBundle {
+        directional_light: DirectionalLight {
+            illuminance: 32000.0,
+            ..default()
+        },
+        transform: Transform::from_xyz(0.0, 2.0, 0.0)
+            .with_rotation(Quat::from_rotation_x(-PI / 4.)),
+        ..default()
+    });
     cmds.spawn((
         Camera3dBundle {
             transform: Transform::from_translation(Vec3::new(2.40, 1.20, -0.28))
@@ -167,7 +182,14 @@ fn setup_camera(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
     ))
     .insert(LookDirection::default());
     cmds.init_resource::<FirstPersonCameraSettings>();
+    set_skybox(cmds, assets, images)
+}
 
+fn set_skybox(
+    mut cmds: Commands,
+    assets: Res<PinballDefenseAssets>,
+    mut images: ResMut<Assets<Image>>,
+) {
     // ambient light
     // NOTE: The ambient light is used to scale how bright the environment map is so with a bright
     // environment map, use an appropriate color and brightness to match
@@ -175,4 +197,17 @@ fn setup_camera(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
         color: Color::rgb_u8(210, 220, 240),
         brightness: 1.0,
     });
+
+    let image = images.get_mut(&assets.skybox).unwrap();
+    // NOTE: PNGs do not have any metadata that could indicate they contain a cubemap texture,
+    // so they appear as one texture. The following code reconfigures the texture as necessary.
+    if image.texture_descriptor.array_layer_count() == 1 {
+        image.reinterpret_stacked_2d_as_array(
+            image.texture_descriptor.size.height / image.texture_descriptor.size.width,
+        );
+        image.texture_view_descriptor = Some(TextureViewDescriptor {
+            dimension: Some(TextureViewDimension::Cube),
+            ..default()
+        });
+    }
 }
