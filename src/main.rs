@@ -10,6 +10,7 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use collision_handler::CollisionHandlerPlugin;
 use controls::ControlsPlugin;
 use fps_camera::FirstPersonCameraPlugin;
+use loading::LoadingScreenPlugin;
 use prelude::*;
 use std::f32::consts::PI;
 use tower::TowerPlugin;
@@ -24,6 +25,7 @@ mod controls;
 mod enemy;
 mod flipper;
 mod fps_camera;
+mod loading;
 mod prelude;
 mod road;
 mod tower;
@@ -63,6 +65,7 @@ fn main() {
         FrameTimeDiagnosticsPlugin,
         //.add_plugin(WindowTitleLoggerDiagnosticsPlugin::default())
         FirstPersonCameraPlugin,
+        LoadingScreenPlugin,
         WorldPlugin,
         BallPlugin,
         BallCameraPlugin,

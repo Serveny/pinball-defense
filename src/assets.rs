@@ -8,6 +8,9 @@ pub struct PinballDefenseAssets {
     #[asset(path = "textures/skybox.png")]
     pub skybox: Handle<Image>,
 
+    #[asset(path = "fonts/Quicksand-Regular.ttf")]
+    pub font: Handle<Font>,
+
     #[asset(path = "models/pinball_plate_1.gltf#Mesh1/Primitive0")]
     pub road_mesh: Handle<Mesh>,
 
