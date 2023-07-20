@@ -11,6 +11,7 @@ use collision_handler::CollisionHandlerPlugin;
 use controls::ControlsPlugin;
 use fps_camera::FirstPersonCameraPlugin;
 use prelude::*;
+use std::f32::consts::PI;
 use tower::TowerPlugin;
 use world::WorldPlugin;
 
@@ -71,7 +72,7 @@ fn main() {
     ));
 
     add_rapier(&mut app);
-    app.add_systems(Startup, setup_graphics).run();
+    app.add_systems(Startup, setup_ambient_lights).run();
 }
 
 fn add_rapier(app: &mut App) {
@@ -101,9 +102,20 @@ fn add_debug_plugins(app: &mut App) {
 #[derive(Component)]
 struct Camera;
 
-fn setup_graphics(mut cmds: Commands) {
+fn setup_ambient_lights(mut cmds: Commands) {
     cmds.insert_resource(AmbientLight {
         color: Color::WHITE,
         brightness: 0.2,
+    });
+    // directional 'sun' light
+    cmds.spawn(DirectionalLightBundle {
+        directional_light: DirectionalLight {
+            illuminance: 16000.0,
+            shadows_enabled: true,
+            ..default()
+        },
+        transform: Transform::from_xyz(0.0, 2.0, 0.0)
+            .with_rotation(Quat::from_rotation_x(-PI / 4.)),
+        ..default()
     });
 }
