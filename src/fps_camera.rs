@@ -2,11 +2,13 @@ use crate::controls::MyGamepad;
 use crate::prelude::*;
 use crate::CameraState;
 use crate::GameState;
+use bevy::core_pipeline::bloom::BloomCompositeMode;
+use bevy::core_pipeline::bloom::BloomSettings;
+use bevy::core_pipeline::tonemapping::Tonemapping;
 use bevy::core_pipeline::Skybox;
 use bevy::input::mouse::MouseMotion;
 use bevy::render::render_resource::TextureViewDescriptor;
 use bevy::render::render_resource::TextureViewDimension;
-use std::f32::consts::PI;
 
 pub struct FirstPersonCameraPlugin;
 
@@ -149,58 +151,41 @@ fn setup_camera(
     assets: Res<PinballDefenseAssets>,
     images: ResMut<Assets<Image>>,
 ) {
-    // directional 'sun' light
-    cmds.spawn(DirectionalLightBundle {
-        directional_light: DirectionalLight {
-            illuminance: 32000.0,
-            ..default()
-        },
-        transform: Transform::from_xyz(0.0, 2.0, 0.0)
-            .with_rotation(Quat::from_rotation_x(-PI / 4.)),
-        ..default()
-    });
     cmds.spawn((
         Camera3dBundle {
             transform: Transform::from_translation(Vec3::new(2.40, 1.20, -0.28))
                 .looking_at(Vec3::ZERO, Vec3::Y),
-            ..Default::default()
+            camera: Camera {
+                hdr: true,
+                ..default()
+            },
+            tonemapping: Tonemapping::TonyMcMapface,
+            ..default()
         },
-        //BloomSettings {
-        //intensity: 1.,
-        //composite_mode: BloomCompositeMode::EnergyConserving,
-        //..default()
-        //},
-        //FogSettings {
-        //color: Color::ALICE_BLUE,
-        //falloff: FogFalloff::Linear {
-        //start: 5.,
-        //end: 10.,
-        //},
-        //..default()
-        //},
+        BloomSettings {
+            intensity: 0.05,
+            composite_mode: BloomCompositeMode::EnergyConserving,
+            ..default()
+        },
+        FogSettings {
+            color: Color::ALICE_BLUE,
+            falloff: FogFalloff::Linear {
+                start: 5.,
+                end: 10.,
+            },
+            ..default()
+        },
         Skybox(assets.skybox.clone()),
     ))
     .insert(LookDirection::default());
     cmds.init_resource::<FirstPersonCameraSettings>();
-    set_skybox(cmds, assets, images)
+    place_skybox(assets, images)
 }
 
-fn set_skybox(
-    mut cmds: Commands,
-    assets: Res<PinballDefenseAssets>,
-    mut images: ResMut<Assets<Image>>,
-) {
-    // ambient light
-    // NOTE: The ambient light is used to scale how bright the environment map is so with a bright
-    // environment map, use an appropriate color and brightness to match
-    cmds.insert_resource(AmbientLight {
-        color: Color::rgb_u8(210, 220, 240),
-        brightness: 1.0,
-    });
-
+// NOTE: PNGs do not have any metadata that could indicate they contain a cubemap texture,
+// so they appear as one texture. The following code reconfigures the texture as necessary.
+fn place_skybox(assets: Res<PinballDefenseAssets>, mut images: ResMut<Assets<Image>>) {
     let image = images.get_mut(&assets.skybox).unwrap();
-    // NOTE: PNGs do not have any metadata that could indicate they contain a cubemap texture,
-    // so they appear as one texture. The following code reconfigures the texture as necessary.
     if image.texture_descriptor.array_layer_count() == 1 {
         image.reinterpret_stacked_2d_as_array(
             image.texture_descriptor.size.height / image.texture_descriptor.size.width,

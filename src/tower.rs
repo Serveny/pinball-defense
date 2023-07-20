@@ -123,6 +123,40 @@ pub fn spawn_tower_machine_gun(
     assets: &PinballDefenseAssets,
     pos: Vec3,
 ) {
+    let tower_material = materials.add(tower_material());
+    let mg_barrel = |parent: &mut ChildBuilder| {
+        parent
+            .spawn(PbrBundle {
+                mesh: assets.tower_mg_barrel.clone(),
+                material: tower_material.clone(),
+                transform: Transform::from_xyz(0., 0., 0.),
+                ..default()
+            })
+            .insert(MachineGunTowerBarrel);
+    };
+    let mg_head = |parent: &mut ChildBuilder| {
+        parent
+            .spawn(PbrBundle {
+                mesh: assets.tower_mg_head.clone(),
+                material: tower_material.clone(),
+                transform: Transform::from_xyz(0., 0., 0.),
+                ..default()
+            })
+            .insert(MachineGunTowerHead)
+            .with_children(|parent| mg_barrel(parent));
+    };
+    let mg_mounting = |parent: &mut ChildBuilder| {
+        parent
+            .spawn(PbrBundle {
+                mesh: assets.tower_mg_mounting.clone(),
+                material: tower_material.clone(),
+                transform: Transform::from_xyz(0., 0.023, 0.),
+                ..default()
+            })
+            .insert(MachineGunTowerMount)
+            .insert(TowerHead)
+            .with_children(|parent| mg_head(parent));
+    };
     parent
         .spawn(SpatialBundle {
             transform: Transform::from_translation(pos),
@@ -132,35 +166,7 @@ pub fn spawn_tower_machine_gun(
         .insert(Name::new("Machine Gun Tower"))
         .with_children(|parent| {
             spawn_tower_base(parent, materials, assets);
-            parent
-                .spawn(PbrBundle {
-                    mesh: assets.tower_mg_mounting.clone(),
-                    material: materials.add(tower_material()),
-                    transform: Transform::from_xyz(0., 0.023, 0.),
-                    ..default()
-                })
-                .insert(MachineGunTowerMount)
-                .insert(TowerHead)
-                .with_children(|parent| {
-                    parent
-                        .spawn(PbrBundle {
-                            mesh: assets.tower_mg_head.clone(),
-                            material: materials.add(tower_material()),
-                            transform: Transform::from_xyz(0., 0., 0.),
-                            ..default()
-                        })
-                        .insert(MachineGunTowerHead)
-                        .with_children(|parent| {
-                            parent
-                                .spawn(PbrBundle {
-                                    mesh: assets.tower_mg_barrel.clone(),
-                                    material: materials.add(tower_material()),
-                                    transform: Transform::from_xyz(0., 0., 0.),
-                                    ..default()
-                                })
-                                .insert(MachineGunTowerBarrel);
-                        });
-                });
+            mg_mounting(parent);
         });
 }
 
