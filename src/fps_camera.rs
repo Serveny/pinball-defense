@@ -1,18 +1,23 @@
 use crate::controls::MyGamepad;
 use crate::prelude::*;
 use crate::CameraState;
+use crate::GameState;
 use bevy::core_pipeline::bloom::BloomCompositeMode;
 use bevy::core_pipeline::bloom::BloomSettings;
+use bevy::core_pipeline::Skybox;
 use bevy::input::mouse::MouseMotion;
+use bevy::render::texture::CompressedImageFormats;
 
 pub struct FirstPersonCameraPlugin;
 
 impl Plugin for FirstPersonCameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup_camera).add_systems(
-            Update,
-            (keyboard_mouse_motion_system, gamepad_input).run_if(in_state(CameraState::FpsCamera)),
-        );
+        app.add_systems(OnEnter(GameState::Ingame), setup_camera)
+            .add_systems(
+                Update,
+                (keyboard_mouse_motion_system, gamepad_input)
+                    .run_if(in_state(CameraState::FpsCamera)),
+            );
     }
 }
 
@@ -138,27 +143,36 @@ fn look_and_move_in_direction(
     }
 }
 
-fn setup_camera(mut cmds: Commands) {
+fn setup_camera(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
     cmds.spawn((
         Camera3dBundle {
             transform: Transform::from_translation(Vec3::new(2.40, 1.20, -0.28))
                 .looking_at(Vec3::ZERO, Vec3::Y),
             ..Default::default()
         },
-        BloomSettings {
-            intensity: 1.,
-            composite_mode: BloomCompositeMode::EnergyConserving,
-            ..default()
-        },
-        FogSettings {
-            color: Color::ALICE_BLUE,
-            falloff: FogFalloff::Linear {
-                start: 5.,
-                end: 10.,
-            },
-            ..default()
-        },
+        //BloomSettings {
+        //intensity: 1.,
+        //composite_mode: BloomCompositeMode::EnergyConserving,
+        //..default()
+        //},
+        //FogSettings {
+        //color: Color::ALICE_BLUE,
+        //falloff: FogFalloff::Linear {
+        //start: 5.,
+        //end: 10.,
+        //},
+        //..default()
+        //},
+        Skybox(assets.skybox.clone()),
     ))
     .insert(LookDirection::default());
     cmds.init_resource::<FirstPersonCameraSettings>();
+
+    // ambient light
+    // NOTE: The ambient light is used to scale how bright the environment map is so with a bright
+    // environment map, use an appropriate color and brightness to match
+    cmds.insert_resource(AmbientLight {
+        color: Color::rgb_u8(210, 220, 240),
+        brightness: 1.0,
+    });
 }
