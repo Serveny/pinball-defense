@@ -1,3 +1,4 @@
+use crate::ball::{spawn_ball, Ball, BallSpawn};
 use crate::prelude::*;
 
 pub struct BallStarterPlugin;
@@ -5,6 +6,7 @@ pub struct BallStarterPlugin;
 impl Plugin for BallStarterPlugin {
     fn build(&self, app: &mut App) {
         app.add_state::<BallStarterState>()
+            .add_systems(OnEnter(BallStarterState::Charge), spawn_ball_at_charge)
             .add_systems(
                 Update,
                 charge_system.run_if(in_state(BallStarterState::Charge)),
@@ -76,6 +78,18 @@ pub fn spawn(
         })
         .insert(BallStarter)
         .insert(Name::new("Ball Starter"));
+}
+
+fn spawn_ball_at_charge(
+    mut cmds: Commands,
+    ball_spawn: Res<BallSpawn>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    q_ball: Query<&Ball>,
+) {
+    if q_ball.is_empty() {
+        spawn_ball(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
+    }
 }
 
 fn charge_system(
