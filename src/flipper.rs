@@ -115,9 +115,9 @@ fn spawn(
         )).with_children(|parent| {
             let sig = flipper_type.signum();
             parent
-                .spawn(Collider::cuboid(0.02, 0.03,  0.12))
+                .spawn(Collider::cuboid(0.03, 0.03,  0.12))
                 .insert(TransformBundle::from(Transform{
-                    translation: Vec3::new(-0.002, 0.03, sig * 0.115) ,
+                    translation: Vec3::new(0.008, 0.03, sig * 0.115) ,
                     rotation: Quat::from_rotation_y(sig * 0.075),
                     ..default() 
                 }));
