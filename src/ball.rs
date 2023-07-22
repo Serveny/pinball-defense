@@ -58,7 +58,7 @@ pub fn spawn_ball(
             point_light: PointLight {
                 intensity: 0.01,
                 color: Color::SILVER,
-                shadows_enabled: true,
+                shadows_enabled: false,
                 radius: 0.001,
                 range: 0.1,
                 ..default()

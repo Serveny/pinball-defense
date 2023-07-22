@@ -1,5 +1,6 @@
 use crate::collision_handler::TowerBaseCollisionStartEvent;
 use crate::prelude::*;
+use crate::settings::GraphicsSettings;
 use crate::GameState;
 
 pub struct TowerPlugin;
@@ -56,6 +57,7 @@ fn spawn_tower_base(
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseAssets,
+    g_sett: &GraphicsSettings,
 ) {
     parent
         .spawn((
@@ -80,7 +82,7 @@ fn spawn_tower_base(
                     point_light: PointLight {
                         intensity: 0.,
                         color: Color::RED,
-                        shadows_enabled: true,
+                        shadows_enabled: g_sett.is_shadows,
                         radius: 0.01,
                         range: 0.5,
                         ..default()
@@ -95,6 +97,7 @@ pub fn spawn_tower_microwave(
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseAssets,
+    g_sett: &GraphicsSettings,
     pos: Vec3,
 ) {
     parent
@@ -105,7 +108,7 @@ pub fn spawn_tower_microwave(
         .insert(MicrowaveTower)
         .insert(Name::new("Microwave Tower"))
         .with_children(|parent| {
-            spawn_tower_base(parent, materials, assets);
+            spawn_tower_base(parent, materials, assets, g_sett);
             parent
                 .spawn(PbrBundle {
                     mesh: assets.tower_microwave_top.clone(),
@@ -121,6 +124,7 @@ pub fn spawn_tower_machine_gun(
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseAssets,
+    g_sett: &GraphicsSettings,
     pos: Vec3,
 ) {
     let tower_material = materials.add(tower_material());
@@ -165,7 +169,7 @@ pub fn spawn_tower_machine_gun(
         .insert(MachineGunTower)
         .insert(Name::new("Machine Gun Tower"))
         .with_children(|parent| {
-            spawn_tower_base(parent, materials, assets);
+            spawn_tower_base(parent, materials, assets, g_sett);
             mg_mounting(parent);
         });
 }
@@ -174,6 +178,7 @@ pub fn spawn_tower_tesla(
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseAssets,
+    g_sett: &GraphicsSettings,
     pos: Vec3,
 ) {
     parent
@@ -184,7 +189,7 @@ pub fn spawn_tower_tesla(
         .insert(MicrowaveTower)
         .insert(Name::new("Tesla Tower"))
         .with_children(|parent| {
-            spawn_tower_base(parent, materials, assets);
+            spawn_tower_base(parent, materials, assets, g_sett);
             parent
                 .spawn(PbrBundle {
                     mesh: assets.tower_tesla_top.clone(),
