@@ -1,9 +1,8 @@
 use crate::controls::MyGamepad;
 use crate::prelude::*;
+use crate::settings::GraphicsSettings;
 use crate::CameraState;
 use crate::GameState;
-use bevy::core_pipeline::bloom::BloomCompositeMode;
-use bevy::core_pipeline::bloom::BloomSettings;
 use bevy::core_pipeline::tonemapping::Tonemapping;
 use bevy::core_pipeline::Skybox;
 use bevy::input::mouse::MouseMotion;
@@ -150,31 +149,20 @@ fn setup_camera(
     mut cmds: Commands,
     assets: Res<PinballDefenseAssets>,
     images: ResMut<Assets<Image>>,
+    g_setting: Res<GraphicsSettings>,
 ) {
     cmds.spawn((
         Camera3dBundle {
             transform: Transform::from_translation(Vec3::new(2.40, 1.20, -0.28))
                 .looking_at(Vec3::ZERO, Vec3::Y),
             camera: Camera {
-                hdr: true,
+                hdr: g_setting.is_hdr,
                 ..default()
             },
             tonemapping: Tonemapping::TonyMcMapface,
             ..default()
         },
-        BloomSettings {
-            intensity: 0.05,
-            composite_mode: BloomCompositeMode::EnergyConserving,
-            ..default()
-        },
-        FogSettings {
-            color: Color::ALICE_BLUE,
-            falloff: FogFalloff::Linear {
-                start: 5.,
-                end: 10.,
-            },
-            ..default()
-        },
+        g_setting.bloom.clone(),
         Skybox(assets.skybox.clone()),
     ))
     .insert(LookDirection::default());
