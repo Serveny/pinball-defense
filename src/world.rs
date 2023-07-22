@@ -4,6 +4,7 @@ use crate::ball_starter::BallStarterPlugin;
 use crate::flipper::FlipperPlugin;
 use crate::prelude::*;
 use crate::road::{add_road_path, animate_cube, spawn_road};
+use crate::settings::GraphicsSettings;
 use crate::tower::{spawn_tower_machine_gun, spawn_tower_microwave, spawn_tower_tesla};
 use crate::GameState;
 
@@ -30,6 +31,7 @@ fn setup_world(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut assets: ResMut<PinballDefenseAssets>,
+    g_sett: Res<GraphicsSettings>,
 ) {
     cmds.spawn(SpatialBundle {
         transform: Transform::from_rotation(Quat::from_rotation_z(-0.25)),
@@ -61,18 +63,6 @@ fn setup_world(
             ))
             .insert(Ground);
 
-        // Top glass
-        let (x, y, z) = (2.60, 0.02, 1.40);
-        parent
-            .spawn((
-                SpatialBundle {
-                    transform: Transform::from_translation(Vec3::new(0., 0.06, 0.)),
-                    ..default()
-                },
-                ColliderDebugColor(Color::GOLD),
-                Collider::cuboid(x / 2., y / 2., z / 2.),
-            ))
-            .insert(Name::new("Pinball Glass"));
         parent.spawn(PointLightBundle {
             transform: Transform::from_xyz(1., 1., 0.5).looking_at(Vec3::ZERO, Vec3::Y),
             point_light: PointLight {
@@ -98,21 +88,44 @@ fn setup_world(
         let fr_pos = Transform::from_xyz(0.83, -0.043, -0.246);
         crate::flipper::spawn_right(fr_pos, parent, &mut materials, &mut assets);
 
-        test_tower(parent, &mut materials, &assets);
+        test_tower(parent, &mut materials, &assets, &g_sett);
         spawn_road(parent, &mut materials, &assets);
         add_road_path(parent, &assets, &mut meshes, &mut materials);
+        parent
+            .spawn(TransformBundle::default())
+            .insert(Name::new("Colliders"))
+            .with_children(spawn_colliders);
     })
     .insert(World)
     .insert(Name::new("Pinball World"));
     ball_spawn.0 = Vec3::new(0.96, -0.26, -0.6);
 }
 
+fn spawn_colliders(p: &mut ChildBuilder) {
+    let size = Vec3::new(1.30, 0.04, 0.70);
+    spawn_cube_collider("Top Glass", p, size, Vec3::new(0., 0.09, 0.));
+}
+
+fn spawn_cube_collider(name: &'static str, parent: &mut ChildBuilder, size: Vec3, pos: Vec3) {
+    parent
+        .spawn((
+            SpatialBundle {
+                transform: Transform::from_translation(pos),
+                ..default()
+            },
+            ColliderDebugColor(Color::RED),
+            Collider::cuboid(size.x, size.y, size.z),
+        ))
+        .insert(Name::new(name));
+}
+
 fn test_tower(
     parent: &mut ChildBuilder,
-    materials: &mut Assets<StandardMaterial>,
+    mats: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseAssets,
+    g_sett: &GraphicsSettings,
 ) {
-    spawn_tower_microwave(parent, materials, assets, Vec3::new(0., -0.025, -0.2));
-    spawn_tower_machine_gun(parent, materials, assets, Vec3::new(0., -0.025, 0.2));
-    spawn_tower_tesla(parent, materials, assets, Vec3::new(0., -0.025, 0.));
+    spawn_tower_microwave(parent, mats, assets, g_sett, Vec3::new(0., -0.025, -0.2));
+    spawn_tower_machine_gun(parent, mats, assets, g_sett, Vec3::new(0., -0.025, 0.2));
+    spawn_tower_tesla(parent, mats, assets, g_sett, Vec3::new(0., -0.025, 0.));
 }
