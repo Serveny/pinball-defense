@@ -69,7 +69,7 @@ fn spawn_tower_base(
             //Ccd::enabled(),
             RigidBody::KinematicPositionBased,
             ColliderDebugColor(Color::RED),
-            Collider::cylinder(0.025, 0.05),
+            Collider::cylinder(0.025, 0.06),
             Restitution::coefficient(1.),
             ActiveEvents::COLLISION_EVENTS,
         ))
