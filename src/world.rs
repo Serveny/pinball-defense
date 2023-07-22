@@ -109,10 +109,7 @@ fn spawn_colliders(p: &mut ChildBuilder) {
 fn spawn_cube_collider(name: &'static str, parent: &mut ChildBuilder, size: Vec3, pos: Vec3) {
     parent
         .spawn((
-            SpatialBundle {
-                transform: Transform::from_translation(pos),
-                ..default()
-            },
+            TransformBundle::from_transform(Transform::from_translation(pos)),
             ColliderDebugColor(Color::RED),
             Collider::cuboid(size.x, size.y, size.z),
         ))

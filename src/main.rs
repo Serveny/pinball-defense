@@ -6,7 +6,6 @@ use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 //use bevy_debug_grid::*;
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-//use bevy_window_title_diagnostics::WindowTitleLoggerDiagnosticsPlugin;
 use bevy_window_title_diagnostics::WindowTitleLoggerDiagnosticsPlugin;
 use collision_handler::CollisionHandlerPlugin;
 use controls::ControlsPlugin;
