@@ -1098,6 +1098,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_window_title_diagnostics"
+version = "0.5.0"
+source = "git+https://github.com/Serveny/bevy_window_title_diagnostics.git?branch=pullbranch_update_to_bevy_0.11#a79ce8777bd4292071bc4cae0d79d24e80f3b708"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "bevy_winit"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2977,6 +2985,7 @@ dependencies = [
  "bevy-inspector-egui",
  "bevy_asset_loader",
  "bevy_rapier3d",
+ "bevy_window_title_diagnostics",
 ]
 
 [[package]]
