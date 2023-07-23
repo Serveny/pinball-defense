@@ -1,0 +1,6 @@
+- Remove all shadows in low graphics settings ✅
+- Automatic ball respawn, if it falls to bottom ✅
+- Tower foundation
+  - hit collider ✅
+  - status bar ✅
+  - show ingame tower menu, when status bar full
