@@ -82,6 +82,7 @@ pub fn spawn_tower_foundation(
                 transform: Transform::from_translation(pos),
                 ..default()
             },
+            Sensor,
             Collider::cylinder(0.1, 0.06),
             ColliderDebugColor(Color::RED),
             ActiveEvents::COLLISION_EVENTS,
@@ -108,6 +109,21 @@ pub fn spawn_tower_foundation(
                 })
                 .insert(TowerFoundationBottom)
                 .insert(Name::new("Tower Foundation Bottom"));
+            parent
+                .spawn(PbrBundle {
+                    mesh: assets.tower_foundation_progress_bar_frame.clone(),
+                    material: materials.add(StandardMaterial {
+                        base_color: Color::BLACK,
+                        perceptual_roughness: 0.4,
+                        metallic: 0.6,
+                        reflectance: 0.5,
+                        ..default()
+                    }),
+                    transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
+                    ..default()
+                })
+                .insert(Name::new("Tower Foundation Progress Bar Frame"));
+
             parent
                 .spawn(PbrBundle {
                     mesh: assets.tower_foundation_progress_bar.clone(),
