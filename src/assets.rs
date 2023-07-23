@@ -44,4 +44,16 @@ pub struct PinballDefenseAssets {
 
     #[asset(path = "models/towers/tower_tesla.gltf#Mesh1/Primitive0")]
     pub tower_tesla_top: Handle<Mesh>,
+
+    #[asset(path = "models/towers/tower_foundation.gltf#Mesh0/Primitive0")]
+    pub tower_foundation_bottom: Handle<Mesh>,
+
+    #[asset(path = "models/towers/tower_foundation.gltf#Mesh1/Primitive0")]
+    pub tower_foundation_top: Handle<Mesh>,
+
+    #[asset(path = "models/towers/tower_foundation.gltf#Mesh2/Primitive0")]
+    pub tower_foundation_ring: Handle<Mesh>,
+
+    #[asset(path = "models/towers/tower_foundation.gltf#Mesh3/Primitive0")]
+    pub tower_foundation_progress_bar: Handle<Mesh>,
 }
