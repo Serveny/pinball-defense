@@ -121,7 +121,7 @@ fn setup_ambient_lights(mut cmds: Commands, g_sett: Res<GraphicsSettings>) {
     // directional 'sun' light
     cmds.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
-            illuminance: 8000.0,
+            illuminance: 1000.0,
             shadows_enabled: g_sett.is_shadows,
             ..default()
         },
