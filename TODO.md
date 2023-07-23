@@ -3,4 +3,5 @@
 - Tower foundation
   - hit collider ✅
   - status bar ✅
+  - blink light, when status bar is 100% on the tower foundation, which is selected to upgrade
   - show ingame tower menu, when status bar full
