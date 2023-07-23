@@ -1,4 +1,4 @@
-use crate::collision_handler::{TowerBaseCollisionStartEvent, TowerFoundationCollisionStartEvent};
+use crate::collision_handler::{LightOnEvent, TowerFoundationCollisionStartEvent};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::GameState;
@@ -25,7 +25,7 @@ impl Plugin for TowerPlugin {
 pub struct TowerBase;
 
 #[derive(Component)]
-pub struct TowerContactLight;
+pub struct ContactLight;
 
 #[derive(Component)]
 pub struct TowerHead;
@@ -87,6 +87,7 @@ pub fn spawn_tower_foundation(
             ActiveEvents::COLLISION_EVENTS,
         ))
         .insert(TowerFoundation)
+        .insert(LightOnCollision)
         .insert(Name::new("Tower Foundation"))
         .with_children(|parent| {
             parent
@@ -126,6 +127,20 @@ pub fn spawn_tower_foundation(
                 })
                 .insert(TowerFoundationProgressBar::default())
                 .insert(Name::new("Tower Foundation Progress Bar"));
+            parent
+                .spawn(PointLightBundle {
+                    transform: Transform::from_xyz(0., 0.005, 0.),
+                    point_light: PointLight {
+                        intensity: 0.,
+                        color: Color::GREEN,
+                        shadows_enabled: g_sett.is_shadows,
+                        radius: 0.01,
+                        range: 0.5,
+                        ..default()
+                    },
+                    ..default()
+                })
+                .insert(ContactLight);
         });
 }
 
@@ -138,7 +153,7 @@ fn progress_bar_count_up_system(
             if parent.get() == ev.0 {
                 if progress.0 < 1. {
                     progress.0 += 0.1;
-                    if progress.0 == 1. {
+                    if progress.0 >= 1. {
                         // TODO
                         println!("open tower menu");
                     }
@@ -181,6 +196,7 @@ fn spawn_tower_base(
             ActiveEvents::COLLISION_EVENTS,
         ))
         .insert(TowerBase)
+        .insert(LightOnCollision)
         .insert(Name::new("Tower Base"))
         .with_children(|parent| {
             parent
@@ -196,7 +212,7 @@ fn spawn_tower_base(
                     },
                     ..default()
                 })
-                .insert(TowerContactLight);
+                .insert(ContactLight);
         });
 }
 
@@ -308,11 +324,14 @@ pub fn spawn_tower_tesla(
         });
 }
 
+#[derive(Component)]
+pub struct LightOnCollision;
+
 const LIGHT_INTENSITY: f32 = 48.;
 
 fn light_on_contact_system(
-    mut evs: EventReader<TowerBaseCollisionStartEvent>,
-    mut q_light: Query<(&mut PointLight, &Parent), With<TowerContactLight>>,
+    mut evs: EventReader<LightOnEvent>,
+    mut q_light: Query<(&mut PointLight, &Parent), With<ContactLight>>,
 ) {
     for ev in evs.iter() {
         for (mut light, parent) in q_light.iter_mut() {
@@ -324,7 +343,7 @@ fn light_on_contact_system(
     }
 }
 
-fn light_off_system(mut q_light: Query<&mut PointLight, With<TowerContactLight>>, time: Res<Time>) {
+fn light_off_system(mut q_light: Query<&mut PointLight, With<ContactLight>>, time: Res<Time>) {
     for mut light in q_light.iter_mut() {
         let time = time.delta_seconds() * 64.;
         light.intensity = (light.intensity - time).clamp(0., LIGHT_INTENSITY);
