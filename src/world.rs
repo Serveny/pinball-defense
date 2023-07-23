@@ -5,7 +5,9 @@ use crate::flipper::FlipperPlugin;
 use crate::prelude::*;
 use crate::road::{add_road_path, animate_cube, spawn_road};
 use crate::settings::GraphicsSettings;
-use crate::tower::{spawn_tower_machine_gun, spawn_tower_microwave, spawn_tower_tesla};
+use crate::tower::{
+    spawn_tower_foundation, spawn_tower_machine_gun, spawn_tower_microwave, spawn_tower_tesla,
+};
 use crate::GameState;
 
 pub struct WorldPlugin;
@@ -68,7 +70,7 @@ fn setup_world(
             point_light: PointLight {
                 intensity: 78.,
                 color: Color::WHITE,
-                shadows_enabled: true,
+                shadows_enabled: g_sett.is_shadows,
                 radius: 0.1,
                 range: 4.,
                 ..default()
@@ -125,4 +127,5 @@ fn test_tower(
     spawn_tower_microwave(parent, mats, assets, g_sett, Vec3::new(0., -0.025, -0.2));
     spawn_tower_machine_gun(parent, mats, assets, g_sett, Vec3::new(0., -0.025, 0.2));
     spawn_tower_tesla(parent, mats, assets, g_sett, Vec3::new(0., -0.025, 0.));
+    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(0.4, -0.04, 0.))
 }

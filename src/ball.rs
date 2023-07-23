@@ -70,7 +70,8 @@ pub fn spawn_ball(
 
 fn ball_reset_system(mut cmds: Commands, q_ball: Query<(Entity, &Transform), With<Ball>>) {
     for (entity, transform) in q_ball.iter() {
-        if transform.translation.y <= -1. {
+        let lation = transform.translation;
+        if lation.y <= -1. || (lation.x > 1.2 && lation.z > -0.3) {
             cmds.get_entity(entity).unwrap().despawn_recursive();
         }
     }
