@@ -164,6 +164,10 @@ fn setup_camera(
         },
         g_setting.bloom.clone(),
         Skybox(assets.skybox.clone()),
+        EnvironmentMapLight {
+            diffuse_map: assets.skybox.clone(),
+            specular_map: assets.skybox.clone(),
+        },
     ))
     .insert(LookDirection::default());
     cmds.init_resource::<FirstPersonCameraSettings>();

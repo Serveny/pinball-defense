@@ -65,18 +65,18 @@ fn setup_world(
             ))
             .insert(Ground);
 
-        parent.spawn(PointLightBundle {
-            transform: Transform::from_xyz(1., 1., 0.5).looking_at(Vec3::ZERO, Vec3::Y),
-            point_light: PointLight {
-                intensity: 78.,
-                color: Color::WHITE,
-                shadows_enabled: g_sett.is_shadows,
-                radius: 0.1,
-                range: 4.,
-                ..default()
-            },
-            ..default()
-        });
+        //parent.spawn(PointLightBundle {
+        //transform: Transform::from_xyz(1., 1., 0.5).looking_at(Vec3::ZERO, Vec3::Y),
+        //point_light: PointLight {
+        //intensity: 78.,
+        //color: Color::WHITE,
+        //shadows_enabled: g_sett.is_shadows,
+        //radius: 0.1,
+        //range: 4.,
+        //..default()
+        //},
+        //..default()
+        //});
 
         // Ball starter
         let bs_pos = Vec3::new(1.175, -0.018, -0.657);
