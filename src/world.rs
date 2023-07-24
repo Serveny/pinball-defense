@@ -7,6 +7,7 @@ use crate::road::{add_road_path, animate_cube, spawn_road};
 use crate::settings::GraphicsSettings;
 use crate::tower::{
     spawn_tower_foundation, spawn_tower_machine_gun, spawn_tower_microwave, spawn_tower_tesla,
+    TowerType,
 };
 use crate::GameState;
 
@@ -16,18 +17,18 @@ impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(FlipperPlugin)
             .add_plugins(BallStarterPlugin)
-            .add_systems(OnEnter(GameState::Ingame), setup_world)
+            .add_systems(OnEnter(GameState::Ingame), setup_pinball_world)
             .add_systems(Update, animate_cube.run_if(in_state(GameState::Ingame)));
     }
 }
 
 #[derive(Component)]
-struct World;
+pub struct PinballWorld;
 
 #[derive(Component)]
 struct Ground;
 
-fn setup_world(
+fn setup_pinball_world(
     mut cmds: Commands,
     mut ball_spawn: ResMut<BallSpawn>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -39,6 +40,8 @@ fn setup_world(
         transform: Transform::from_rotation(Quat::from_rotation_z(-0.25)),
         ..default()
     })
+    .insert(PinballWorld)
+    .insert(Name::new("Pinball World"))
     .with_children(|parent| {
         parent
             .spawn((
@@ -46,9 +49,9 @@ fn setup_world(
                     mesh: assets.world_1_mesh.clone(),
                     material: materials.add(StandardMaterial {
                         base_color: Color::BLUE,
-                        perceptual_roughness: 0.5,
-                        metallic: 0.5,
-                        reflectance: 0.5,
+                        perceptual_roughness: 0.6,
+                        metallic: 0.2,
+                        reflectance: 0.4,
                         ..default()
                     }),
                     ..default()
@@ -90,16 +93,14 @@ fn setup_world(
         let fr_pos = Transform::from_xyz(0.83, -0.043, -0.246);
         crate::flipper::spawn_right(fr_pos, parent, &mut materials, &mut assets);
 
-        test_tower(parent, &mut materials, &assets, &g_sett);
+        test_tower(parent, &mut materials, &mut meshes, &assets, &g_sett);
         spawn_road(parent, &mut materials, &assets);
         add_road_path(parent, &assets, &mut meshes, &mut materials);
         parent
             .spawn(TransformBundle::default())
             .insert(Name::new("Colliders"))
             .with_children(spawn_colliders);
-    })
-    .insert(World)
-    .insert(Name::new("Pinball World"));
+    });
     ball_spawn.0 = Vec3::new(0.96, -0.26, -0.6);
 }
 
@@ -121,11 +122,110 @@ fn spawn_cube_collider(name: &'static str, parent: &mut ChildBuilder, size: Vec3
 fn test_tower(
     parent: &mut ChildBuilder,
     mats: &mut Assets<StandardMaterial>,
+    meshes: &mut Assets<Mesh>,
     assets: &PinballDefenseAssets,
     g_sett: &GraphicsSettings,
 ) {
     spawn_tower_microwave(parent, mats, assets, g_sett, Vec3::new(0., -0.025, -0.2));
     spawn_tower_machine_gun(parent, mats, assets, g_sett, Vec3::new(0., -0.025, 0.2));
     spawn_tower_tesla(parent, mats, assets, g_sett, Vec3::new(0., -0.025, 0.));
-    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(0.4, -0.04, 0.))
+    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(0.1, -0.04, 0.));
+    spawn_menu(
+        parent,
+        mats,
+        meshes,
+        assets,
+        g_sett,
+        Vec3::new(1.2, 0., 0.05),
+    );
+}
+
+#[derive(Component)]
+struct Menu;
+
+fn spawn_menu(
+    parent: &mut ChildBuilder,
+    mats: &mut Assets<StandardMaterial>,
+    meshes: &mut Assets<Mesh>,
+    assets: &PinballDefenseAssets,
+    g_sett: &GraphicsSettings,
+    pos: Vec3,
+) {
+    parent
+        .spawn(SpatialBundle::from_transform(Transform::from_translation(
+            pos,
+        )))
+        .insert(Menu)
+        .insert(Name::new("Tower Menu"))
+        .with_children(|parent| {
+            spawn_menu_element(
+                TowerType::MachineGun,
+                parent,
+                mats,
+                meshes,
+                assets,
+                g_sett,
+                Transform::from_rotation(Quat::from_rotation_y(-0.2)),
+            );
+            spawn_menu_element(
+                TowerType::Microwave,
+                parent,
+                mats,
+                meshes,
+                assets,
+                g_sett,
+                Transform::from_rotation(Quat::from_rotation_y(0.0)),
+            );
+            spawn_menu_element(
+                TowerType::Tesla,
+                parent,
+                mats,
+                meshes,
+                assets,
+                g_sett,
+                Transform::from_rotation(Quat::from_rotation_y(0.2)),
+            );
+        });
+}
+
+#[derive(Component)]
+pub struct MenuElement;
+
+fn spawn_menu_element(
+    tower_type: TowerType,
+    parent: &mut ChildBuilder,
+    mats: &mut Assets<StandardMaterial>,
+    meshes: &mut Assets<Mesh>,
+    assets: &PinballDefenseAssets,
+    g_sett: &GraphicsSettings,
+    transform: Transform,
+) {
+    parent
+        .spawn((
+            PbrBundle {
+                mesh: assets.menu_element.clone(),
+                material: mats.add(StandardMaterial {
+                    base_color: Color::MIDNIGHT_BLUE,
+                    perceptual_roughness: 0.6,
+                    metallic: 0.2,
+                    reflectance: 0.8,
+                    ..default()
+                }),
+                transform,
+                ..default()
+            },
+            ColliderDebugColor(Color::GOLD),
+            Sensor,
+            ActiveEvents::COLLISION_EVENTS,
+            Collider::from_bevy_mesh(
+                meshes
+                    .get(&assets.menu_element.clone())
+                    .expect("Failed to find mesh"),
+                &ComputedColliderShape::TriMesh,
+            )
+            .unwrap(),
+        ))
+        .insert(MenuElement)
+        .insert(Name::new("Tower Menu element"))
+        .insert(tower_type);
 }
