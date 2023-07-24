@@ -1,13 +1,18 @@
-use crate::collision_handler::{LightOnEvent, TowerFoundationCollisionStartEvent};
+use crate::collision_handler::{BuildTowerEvent, LightOnEvent, TowerFoundationCollisionStartEvent};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
+use crate::world::PinballWorld;
 use crate::GameState;
+use bevy_tweening::lens::{TransformPositionLens, TransformRotationLens};
+use bevy_tweening::{Animator, Delay, EaseFunction, Tween, Tweenable};
+use std::f32::consts::PI;
+use std::time::Duration;
 
 pub struct TowerPlugin;
 
 impl Plugin for TowerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
+        app.add_event::<SpawnTowerEvent>().add_systems(
             Update,
             (
                 light_on_contact_system,
@@ -16,6 +21,8 @@ impl Plugin for TowerPlugin {
                 progress_bar_count_up_system,
                 progress_bar_scale_system,
                 flash_light_system,
+                build_tower_system,
+                spawn_tower_system,
             )
                 .run_if(in_state(GameState::Ingame)),
         );
@@ -46,18 +53,31 @@ pub struct MicrowaveTower;
 #[derive(Component)]
 pub struct MachineGunTower;
 
+#[derive(Component)]
+pub struct TeslaTower;
+
+#[derive(Component, Clone, Copy)]
+pub enum TowerType {
+    MachineGun,
+    Tesla,
+    Microwave,
+}
+
 fn tower_material() -> StandardMaterial {
     StandardMaterial {
         base_color: Color::BEIGE,
-        perceptual_roughness: 0.4,
+        perceptual_roughness: 0.6,
         metallic: 0.6,
-        reflectance: 0.5,
+        reflectance: 0.1,
         ..default()
     }
 }
 
 #[derive(Component)]
 pub struct TowerFoundation;
+
+#[derive(Component)]
+pub struct TowerFoundationLid;
 
 #[derive(Component)]
 struct TowerFoundationTop;
@@ -67,6 +87,9 @@ struct TowerFoundationBottom;
 
 #[derive(Component, Default)]
 struct TowerFoundationProgressBar(f32);
+
+#[derive(Component)]
+struct RelParent(Entity);
 
 pub fn spawn_tower_foundation(
     parent: &mut ChildBuilder,
@@ -79,7 +102,13 @@ pub fn spawn_tower_foundation(
         .spawn((
             PbrBundle {
                 mesh: assets.tower_foundation_ring.clone(),
-                material: materials.add(tower_material()),
+                material: materials.add(StandardMaterial {
+                    base_color: Color::BLACK,
+                    perceptual_roughness: 1.,
+                    metallic: 0.0,
+                    reflectance: 0.0,
+                    ..default()
+                }),
                 transform: Transform::from_translation(pos),
                 ..default()
             },
@@ -92,6 +121,7 @@ pub fn spawn_tower_foundation(
         .insert(LightOnCollision)
         .insert(Name::new("Tower Foundation"))
         .with_children(|parent| {
+            let rel_id = parent.parent_entity();
             parent
                 .spawn(PbrBundle {
                     mesh: assets.tower_foundation_top.clone(),
@@ -100,6 +130,7 @@ pub fn spawn_tower_foundation(
                     ..default()
                 })
                 .insert(TowerFoundationTop)
+                .insert(TowerFoundationLid)
                 .insert(Name::new("Tower Foundation Top"));
             parent
                 .spawn(PbrBundle {
@@ -109,41 +140,46 @@ pub fn spawn_tower_foundation(
                     ..default()
                 })
                 .insert(TowerFoundationBottom)
-                .insert(Name::new("Tower Foundation Bottom"));
-            parent
-                .spawn(PbrBundle {
-                    mesh: assets.tower_foundation_progress_bar_frame.clone(),
-                    material: materials.add(StandardMaterial {
-                        base_color: Color::BLACK,
-                        perceptual_roughness: 0.4,
-                        metallic: 0.6,
-                        reflectance: 0.5,
-                        ..default()
-                    }),
-                    transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
-                    ..default()
-                })
-                .insert(Name::new("Tower Foundation Progress Bar Frame"));
-
-            parent
-                .spawn(PbrBundle {
-                    mesh: assets.tower_foundation_progress_bar.clone(),
-                    material: materials.add(StandardMaterial {
-                        base_color: Color::GREEN,
-                        perceptual_roughness: 0.4,
-                        metallic: 0.6,
-                        reflectance: 0.5,
-                        ..default()
-                    }),
-                    transform: Transform {
-                        translation: Vec3::new(0.003, 0.003, 0.034),
-                        scale: Vec3::new(1., 1., 0.),
-                        ..default()
-                    },
-                    ..default()
-                })
-                .insert(TowerFoundationProgressBar::default())
-                .insert(Name::new("Tower Foundation Progress Bar"));
+                .insert(TowerFoundationLid)
+                .insert(Name::new("Tower Foundation Bottom"))
+                .with_children(|parent| {
+                    parent
+                        .spawn(PbrBundle {
+                            mesh: assets.tower_foundation_progress_bar_frame.clone(),
+                            material: materials.add(StandardMaterial {
+                                base_color: Color::BLACK,
+                                perceptual_roughness: 0.4,
+                                metallic: 0.6,
+                                reflectance: 0.5,
+                                ..default()
+                            }),
+                            transform: Transform::from_translation(Vec3::new(-0.06, 0., 0.)),
+                            ..default()
+                        })
+                        .insert(Name::new("Tower Foundation Progress Bar Frame"))
+                        .with_children(|parent| {
+                            parent
+                                .spawn(PbrBundle {
+                                    mesh: assets.tower_foundation_progress_bar.clone(),
+                                    material: materials.add(StandardMaterial {
+                                        base_color: Color::GREEN,
+                                        perceptual_roughness: 0.4,
+                                        metallic: 0.6,
+                                        reflectance: 0.5,
+                                        ..default()
+                                    }),
+                                    transform: Transform {
+                                        translation: Vec3::new(0.003, 0.003, 0.034),
+                                        scale: Vec3::new(1., 1., 0.),
+                                        ..default()
+                                    },
+                                    ..default()
+                                })
+                                .insert(TowerFoundationProgressBar::default())
+                                .insert(RelParent(rel_id))
+                                .insert(Name::new("Tower Foundation Progress Bar"));
+                        });
+                });
             parent
                 .spawn(PointLightBundle {
                     transform: Transform::from_xyz(0., 0.005, 0.),
@@ -161,35 +197,31 @@ pub fn spawn_tower_foundation(
         });
 }
 
+#[derive(Component)]
+struct SelectedTowerFoundation;
+
 fn progress_bar_count_up_system(
     mut cmds: Commands,
     mut evs: EventReader<TowerFoundationCollisionStartEvent>,
-    mut q_progress: Query<(&Parent, &mut TowerFoundationProgressBar)>,
+    mut q_progress: Query<(&RelParent, &mut TowerFoundationProgressBar)>,
     q_light: Query<(&Parent, Entity), With<ContactLight>>,
+    q_selected: Query<&SelectedTowerFoundation>,
 ) {
     for ev in evs.iter() {
-        for (parent, mut progress) in q_progress.iter_mut() {
-            let parent_id = parent.get();
+        for (rel_parent, mut progress) in q_progress.iter_mut() {
+            let parent_id = rel_parent.0;
             if parent_id == ev.0 {
                 if progress.0 < 1. {
-                    progress.0 += 0.1;
+                    progress.0 += 1.;
                     if progress.0 >= 1. {
                         add_flash_light(&mut cmds, &q_light, parent_id);
+                        set_selected_tower_foundation(&mut cmds, parent_id, &q_selected);
                     }
                 }
                 break;
             }
         }
     }
-}
-
-macro_rules! then {
-    ($a:expr,$c:expr) => {{
-        match $a {
-            true => Some($c),
-            false => None,
-        }
-    }};
 }
 
 fn add_flash_light(
@@ -200,11 +232,21 @@ fn add_flash_light(
     cmds.entity(
         q_light
             .iter()
-            .find_map(|(parent, light_id)| then!(parent.get() == parent_id, light_id))
+            .find_map(|(parent, light_id)| if_true!(parent.get() == parent_id, light_id))
             .expect("Parent should have ContactLight as child"),
     )
     .insert(FlashLight);
     println!("open tower menu");
+}
+
+fn set_selected_tower_foundation(
+    cmds: &mut Commands,
+    parent_id: Entity,
+    q_selected: &Query<&SelectedTowerFoundation>,
+) {
+    if q_selected.is_empty() {
+        cmds.entity(parent_id).insert(SelectedTowerFoundation);
+    }
 }
 
 fn progress_bar_scale_system(
@@ -267,6 +309,20 @@ fn spawn_tower_base(
         });
 }
 
+fn create_tower_spawn_animator(pos: Vec3) -> Tween<Transform> {
+    Tween::new(
+        EaseFunction::ExponentialInOut,
+        std::time::Duration::from_secs(4),
+        TransformPositionLens {
+            start: Vec3::new(pos.x, pos.y - 0.1, pos.z),
+            end: pos,
+        },
+    )
+    //.with_completed(|entity, delay| {
+    //delay.duration().as_secs()
+    //}
+}
+
 pub fn spawn_tower_microwave(
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
@@ -281,6 +337,7 @@ pub fn spawn_tower_microwave(
         })
         .insert(MicrowaveTower)
         .insert(Name::new("Microwave Tower"))
+        .insert(Animator::new(create_tower_spawn_animator(pos)))
         .with_children(|parent| {
             spawn_tower_base(parent, materials, assets, g_sett);
             parent
@@ -342,6 +399,7 @@ pub fn spawn_tower_machine_gun(
         })
         .insert(MachineGunTower)
         .insert(Name::new("Machine Gun Tower"))
+        .insert(Animator::new(create_tower_spawn_animator(pos)))
         .with_children(|parent| {
             spawn_tower_base(parent, materials, assets, g_sett);
             mg_mounting(parent);
@@ -360,8 +418,9 @@ pub fn spawn_tower_tesla(
             transform: Transform::from_translation(pos),
             ..default()
         })
-        .insert(MicrowaveTower)
+        .insert(TeslaTower)
         .insert(Name::new("Tesla Tower"))
+        .insert(Animator::new(create_tower_spawn_animator(pos)))
         .with_children(|parent| {
             spawn_tower_base(parent, materials, assets, g_sett);
             parent
@@ -404,5 +463,75 @@ fn light_off_system(mut q_light: Query<&mut PointLight, With<ContactLight>>, tim
 fn rotate_tower_head_system(time: Res<Time>, mut q_heads: Query<&mut Transform, With<TowerHead>>) {
     for mut trans in q_heads.iter_mut() {
         trans.rotate(Quat::from_rotation_y(time.delta_seconds()));
+    }
+}
+
+#[derive(Event)]
+struct SpawnTowerEvent(TowerType, Vec3);
+
+fn spawn_tower_system(
+    mut cmds: Commands,
+    mut evs: EventReader<SpawnTowerEvent>,
+    mut mats: ResMut<Assets<StandardMaterial>>,
+    assets: Res<PinballDefenseAssets>,
+    q_pb_word: Query<Entity, With<PinballWorld>>,
+    g_sett: Res<GraphicsSettings>,
+) {
+    for ev in evs.iter() {
+        let pos = ev.1;
+        cmds.entity(q_pb_word.single()).with_children(|parent| {
+            match ev.0 {
+                TowerType::MachineGun => {
+                    spawn_tower_machine_gun(parent, &mut mats, &assets, &g_sett, pos)
+                }
+                TowerType::Tesla => spawn_tower_tesla(parent, &mut mats, &assets, &g_sett, pos),
+                TowerType::Microwave => {
+                    spawn_tower_microwave(parent, &mut mats, &assets, &g_sett, pos)
+                }
+            };
+        });
+    }
+}
+
+fn build_tower_system(
+    mut evs: EventReader<BuildTowerEvent>,
+    mut spawn_tower_ev: EventWriter<SpawnTowerEvent>,
+    mut cmds: Commands,
+    q_selected: Query<(Entity, &Transform), With<SelectedTowerFoundation>>,
+    q_lids_bottom: Query<(Entity, &Parent), With<TowerFoundationBottom>>,
+    q_lids_top: Query<(Entity, &Parent), With<TowerFoundationTop>>,
+) {
+    for ev in evs.iter() {
+        if let Ok((selected_id, sel_trans)) = q_selected.get_single() {
+            q_lids_bottom.for_each(|(lid_id, lid_parent)| {
+                set_rotation_animation(&mut cmds, lid_id, lid_parent.get(), selected_id, -1.);
+            });
+            q_lids_top.for_each(|(lid_id, lid_parent)| {
+                set_rotation_animation(&mut cmds, lid_id, lid_parent.get(), selected_id, 1.);
+            });
+            let pos = sel_trans.translation;
+            spawn_tower_ev.send(SpawnTowerEvent(ev.0, Vec3::new(pos.x, -0.025, pos.z)));
+            cmds.entity(selected_id).remove::<SelectedTowerFoundation>();
+        }
+    }
+}
+
+fn set_rotation_animation(
+    cmds: &mut Commands,
+    lid_id: Entity,
+    lid_parent_id: Entity,
+    selected_id: Entity,
+    signum: f32,
+) {
+    if lid_parent_id == selected_id {
+        let tween = Tween::new(
+            EaseFunction::QuadraticIn,
+            std::time::Duration::from_secs(2),
+            TransformRotationLens {
+                start: Quat::from_rotation_z(0.),
+                end: Quat::from_rotation_z(signum * PI / 2.),
+            },
+        );
+        cmds.entity(lid_id).insert(Animator::new(tween));
     }
 }
