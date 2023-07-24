@@ -6,6 +6,7 @@ use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 //use bevy_debug_grid::*;
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_tweening::TweeningPlugin;
 use bevy_window_title_diagnostics::WindowTitleLoggerDiagnosticsPlugin;
 use collision_handler::CollisionHandlerPlugin;
 use controls::ControlsPlugin;
@@ -71,6 +72,7 @@ fn main() {
 
     app.add_plugins((
         FrameTimeDiagnosticsPlugin,
+        TweeningPlugin,
         WindowTitleLoggerDiagnosticsPlugin::default(),
         FirstPersonCameraPlugin,
         LoadingScreenPlugin,
@@ -121,7 +123,7 @@ fn setup_ambient_lights(mut cmds: Commands, g_sett: Res<GraphicsSettings>) {
     // directional 'sun' light
     cmds.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
-            illuminance: 1000.0,
+            illuminance: 16000.0,
             shadows_enabled: g_sett.is_shadows,
             ..default()
         },

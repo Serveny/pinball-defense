@@ -59,4 +59,7 @@ pub struct PinballDefenseAssets {
 
     #[asset(path = "models/towers/tower_foundation.gltf#Mesh4/Primitive0")]
     pub tower_foundation_progress_bar_frame: Handle<Mesh>,
+
+    #[asset(path = "models/pinball_world_menu.gltf#Mesh0/Primitive0")]
+    pub menu_element: Handle<Mesh>,
 }
