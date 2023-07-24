@@ -15,6 +15,7 @@ impl Plugin for TowerPlugin {
                 light_off_system,
                 progress_bar_count_up_system,
                 progress_bar_scale_system,
+                flash_light_system,
             )
                 .run_if(in_state(GameState::Ingame)),
         );
@@ -161,23 +162,49 @@ pub fn spawn_tower_foundation(
 }
 
 fn progress_bar_count_up_system(
+    mut cmds: Commands,
     mut evs: EventReader<TowerFoundationCollisionStartEvent>,
     mut q_progress: Query<(&Parent, &mut TowerFoundationProgressBar)>,
+    q_light: Query<(&Parent, Entity), With<ContactLight>>,
 ) {
     for ev in evs.iter() {
         for (parent, mut progress) in q_progress.iter_mut() {
-            if parent.get() == ev.0 {
+            let parent_id = parent.get();
+            if parent_id == ev.0 {
                 if progress.0 < 1. {
                     progress.0 += 0.1;
                     if progress.0 >= 1. {
-                        // TODO
-                        println!("open tower menu");
+                        add_flash_light(&mut cmds, &q_light, parent_id);
                     }
                 }
                 break;
             }
         }
     }
+}
+
+macro_rules! then {
+    ($a:expr,$c:expr) => {{
+        match $a {
+            true => Some($c),
+            false => None,
+        }
+    }};
+}
+
+fn add_flash_light(
+    cmds: &mut Commands,
+    q_light: &Query<(&Parent, Entity), With<ContactLight>>,
+    parent_id: Entity,
+) {
+    cmds.entity(
+        q_light
+            .iter()
+            .find_map(|(parent, light_id)| then!(parent.get() == parent_id, light_id))
+            .expect("Parent should have ContactLight as child"),
+    )
+    .insert(FlashLight);
+    println!("open tower menu");
 }
 
 fn progress_bar_scale_system(
@@ -191,6 +218,14 @@ fn progress_bar_scale_system(
     }
 }
 
+#[derive(Component)]
+struct FlashLight;
+
+fn flash_light_system(mut q_light: Query<&mut PointLight, With<FlashLight>>, time: Res<Time>) {
+    for mut light in q_light.iter_mut() {
+        light.intensity = ((time.elapsed_seconds() % 8. * 16.).sin() + 1.) * LIGHT_INTENSITY * 0.5;
+    }
+}
 fn spawn_tower_base(
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
