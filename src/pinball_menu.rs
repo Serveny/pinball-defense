@@ -5,7 +5,7 @@ use crate::utils::collision_events::ActivatePinballMenuEvent;
 use crate::world::PinballWorld;
 use crate::GameState;
 use bevy_tweening::{
-    lens::{TransformPositionLens, TransformRotateYLens, TransformRotateZLens},
+    lens::{TransformPositionLens, TransformRotateYLens},
     Animator, Delay, EaseFunction, Sequence, Tween,
 };
 use std::time::Duration;
@@ -51,7 +51,6 @@ pub fn spawn_pinball_menu(
 #[derive(Component)]
 pub struct PinballMenuElement;
 
-#[allow(clippy::too_many_arguments)]
 fn spawn_menu_element(
     tower_type: TowerType,
     parent: &mut ChildBuilder,
