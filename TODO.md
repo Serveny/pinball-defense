@@ -6,4 +6,6 @@
   - blink light, when status bar is 100% on the tower foundation, which is selected to upgrade ✅
   - animation for tower building ✅
   - show ingame tower menu, when status bar full ✅
-  - menu spawn animation
+  - menu spawn animation ✅
+  - menu despawn animation
+  - flash light system replace by tween
