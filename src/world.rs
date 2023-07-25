@@ -5,10 +5,7 @@ use crate::flipper::FlipperPlugin;
 use crate::prelude::*;
 use crate::road::{add_road_path, animate_cube, spawn_road};
 use crate::settings::GraphicsSettings;
-use crate::tower::{
-    spawn_tower_foundation, spawn_tower_machine_gun, spawn_tower_microwave, spawn_tower_tesla,
-    TowerType,
-};
+use crate::tower::foundation::spawn_tower_foundation;
 use crate::GameState;
 
 pub struct WorldPlugin;

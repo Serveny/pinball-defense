@@ -22,3 +22,6 @@ impl Plugin for PinballUtilsPlugin {
             );
     }
 }
+
+#[derive(Component)]
+pub struct RelParent(pub Entity);

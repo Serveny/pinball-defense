@@ -1,8 +1,9 @@
 use crate::ball::PinBall;
-use crate::flipper::{Flipper, FlipperCollider};
+use crate::flipper::FlipperCollider;
 use crate::pinball_menu::PinballMenuElement;
 use crate::prelude::*;
-use crate::tower::{LightOnCollision, TowerBase, TowerFoundation, TowerType};
+use crate::tower::foundation::TowerFoundation;
+use crate::tower::{LightOnCollision, TowerBase, TowerType};
 
 #[derive(Event)]
 pub struct TowerBaseCollisionStartEvent(pub Entity);
@@ -22,7 +23,6 @@ pub struct BuildTowerEvent(pub TowerType);
 #[derive(Event)]
 pub struct ActivatePinballMenuEvent;
 
-#[allow(clippy::too_many_arguments)]
 pub(super) fn collision_system(
     mut col_events: EventReader<CollisionEvent>,
     mut light_on_ev: EventWriter<LightOnEvent>,
