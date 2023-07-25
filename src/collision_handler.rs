@@ -1,6 +1,7 @@
+use crate::ball::PinBall;
+use crate::pinball_menu::PinballMenuElement;
 use crate::prelude::*;
 use crate::tower::{LightOnCollision, TowerBase, TowerFoundation, TowerType};
-use crate::world::MenuElement;
 
 pub struct CollisionHandlerPlugin;
 
@@ -39,21 +40,26 @@ fn collision_system(
     q_light_on_coll: Query<Entity, With<LightOnCollision>>,
     q_tower_base: Query<Entity, With<TowerBase>>,
     q_tower_foundation: Query<Entity, With<TowerFoundation>>,
-    q_menu_elements: Query<(Entity, &TowerType), With<MenuElement>>,
+    q_menu_elements: Query<(Entity, &TowerType), With<PinballMenuElement>>,
+    q_ball: Query<Entity, With<PinBall>>,
 ) {
-    for col_ev in col_events.iter() {
-        if let CollisionEvent::Started(entity, _, _) = col_ev {
-            if let Some((_, tower_type)) = q_menu_elements.iter().find(|(id, _)| id == entity) {
+    for ev in col_events.iter() {
+        if let CollisionEvent::Started(mut entity, entity_2, _) = ev {
+            // Workaround: Elements not always in the same order
+            if q_ball.contains(entity) {
+                entity = *entity_2;
+            }
+            if let Some((_, tower_type)) = q_menu_elements.iter().find(|(id, _)| *id == entity) {
                 build_tower_ev.send(BuildTowerEvent(*tower_type));
                 return;
             }
-            if q_light_on_coll.contains(*entity) {
-                light_on_ev.send(LightOnEvent(*entity));
+            if q_light_on_coll.contains(entity) {
+                light_on_ev.send(LightOnEvent(entity));
             }
-            if q_tower_base.contains(*entity) {
-                tbc_start_ev.send(TowerBaseCollisionStartEvent(*entity));
-            } else if q_tower_foundation.contains(*entity) {
-                tfc_start_ev.send(TowerFoundationCollisionStartEvent(*entity));
+            if q_tower_base.contains(entity) {
+                tbc_start_ev.send(TowerBaseCollisionStartEvent(entity));
+            } else if q_tower_foundation.contains(entity) {
+                tfc_start_ev.send(TowerFoundationCollisionStartEvent(entity));
             }
         }
     }

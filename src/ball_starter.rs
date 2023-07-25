@@ -1,4 +1,4 @@
-use crate::ball::{spawn_ball, Ball, BallSpawn};
+use crate::ball::{spawn_ball, BallSpawn, PinBall};
 use crate::prelude::*;
 
 pub struct BallStarterPlugin;
@@ -85,7 +85,7 @@ fn spawn_ball_at_charge(
     ball_spawn: Res<BallSpawn>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    q_ball: Query<&Ball>,
+    q_ball: Query<&PinBall>,
 ) {
     if q_ball.is_empty() {
         spawn_ball(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
