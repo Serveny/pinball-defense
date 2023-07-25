@@ -93,7 +93,7 @@ fn setup_pinball_world(
         let fr_pos = Transform::from_xyz(0.83, -0.043, -0.246);
         crate::flipper::spawn_right(fr_pos, parent, &mut materials, &mut assets);
 
-        test_tower(parent, &mut materials, &mut meshes, &assets, &g_sett);
+        spawn_foundations(parent, &mut materials, &assets, &g_sett);
         spawn_road(parent, &mut materials, &assets);
         add_road_path(parent, &assets, &mut meshes, &mut materials);
         parent
@@ -119,17 +119,22 @@ fn spawn_cube_collider(name: &'static str, parent: &mut ChildBuilder, size: Vec3
         .insert(Name::new(name));
 }
 
-fn test_tower(
+fn spawn_foundations(
     parent: &mut ChildBuilder,
     mats: &mut Assets<StandardMaterial>,
-    meshes: &mut Assets<Mesh>,
     assets: &PinballDefenseAssets,
     g_sett: &GraphicsSettings,
 ) {
     //spawn_tower_microwave(parent, mats, assets, g_sett, Vec3::new(0., -0.025, -0.2));
     //spawn_tower_machine_gun(parent, mats, assets, g_sett, Vec3::new(0., -0.025, 0.2));
     //spawn_tower_tesla(parent, mats, assets, g_sett, Vec3::new(0., -0.025, 0.));
-    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(0.1, -0.04, 0.));
+    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(-0.89, -0.04, 0.48));
+    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(-0.89, -0.04, 0.2));
+    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(-0.69, -0.04, -0.2));
+    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(-0.5, -0.04, 0.01));
+    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(-0.3, -0.04, 0.5));
+    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(-0.1, -0.04, -0.02));
+    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(0.1, -0.04, 0.5));
     //spawn_pinball_menu(
     //    parent,
     //mats,

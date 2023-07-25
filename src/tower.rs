@@ -1,11 +1,14 @@
-use crate::collision_handler::{BuildTowerEvent, LightOnEvent, TowerFoundationCollisionStartEvent};
 use crate::pinball_menu::{PinballMenu, SpawnPinballMenuEvent};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
+use crate::utils::collision_events::{
+    BuildTowerEvent, LightOnEvent, TowerFoundationCollisionStartEvent,
+};
+use crate::utils::tween_completed_events::DESPAWN_ENTITY_AND_MENU_EVENT_ID;
 use crate::world::PinballWorld;
 use crate::GameState;
 use bevy_tweening::lens::{TransformPositionLens, TransformRotationLens};
-use bevy_tweening::{Animator, Delay, EaseFunction, Sequence, Tween, TweenCompleted};
+use bevy_tweening::{Animator, Delay, EaseFunction, Sequence, Tween};
 use std::f32::consts::PI;
 use std::time::Duration;
 
@@ -24,7 +27,6 @@ impl Plugin for TowerPlugin {
                 flash_light_system,
                 build_tower_system,
                 spawn_tower_system,
-                tween_completed_system,
             )
                 .run_if(in_state(GameState::Ingame)),
         );
@@ -330,10 +332,6 @@ fn tower_start_pos(pos: Vec3) -> Vec3 {
     Vec3::new(pos.x, pos.y - 0.1, pos.z)
 }
 
-fn spatial_from_pos(pos: Vec3) -> SpatialBundle {
-    SpatialBundle::from_transform(Transform::from_translation(pos))
-}
-
 pub fn spawn_tower_microwave(
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
@@ -517,6 +515,7 @@ fn build_tower_system(
             spawn_tower_ev.send(SpawnTowerEvent(ev.0, Vec3::new(pos.x, -0.025, pos.z)));
             cmds.entity(selected_id)
                 .remove::<SelectedTowerFoundation>()
+                .remove::<FlashLight>()
                 .remove::<Collider>();
             cmds.entity(q_pbm.single()).despawn_recursive();
         }
@@ -543,8 +542,6 @@ fn set_lid_open_animation(
     }
 }
 
-const DESPAWN_ENTITY_AND_MENU_EVENT_ID: u64 = 187;
-
 fn set_foundation_despawn_animation(cmds: &mut Commands, foundation_id: Entity, pos: Vec3) {
     let delay = Delay::new(Duration::from_secs(3));
     let tween = Tween::new(
@@ -559,12 +556,4 @@ fn set_foundation_despawn_animation(cmds: &mut Commands, foundation_id: Entity, 
 
     let sequence = delay.then(tween);
     cmds.entity(foundation_id).insert(Animator::new(sequence));
-}
-
-fn tween_completed_system(mut evr: EventReader<TweenCompleted>, mut cmds: Commands) {
-    for ev in evr.iter() {
-        if ev.user_data == DESPAWN_ENTITY_AND_MENU_EVENT_ID {
-            cmds.entity(ev.entity).despawn_recursive();
-        }
-    }
 }

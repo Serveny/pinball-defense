@@ -4,6 +4,10 @@ pub use bevy_asset_loader::prelude::*;
 pub use bevy_rapier3d::prelude::*;
 pub(crate) use macros::*;
 
+pub fn spatial_from_pos(pos: Vec3) -> SpatialBundle {
+    SpatialBundle::from_transform(Transform::from_translation(pos))
+}
+
 // Shorthand oneliner for if true give back c
 mod macros {
 
