@@ -99,6 +99,27 @@ fn spawn_pinball_menu_system(
     }
 }
 
+pub fn despawn_animation(angle: f32) -> Sequence<Transform> {
+    let rotate = Tween::new(
+        EaseFunction::QuadraticIn,
+        Duration::from_secs_f32(0.25),
+        TransformRotateYLens {
+            start: angle,
+            end: 0.,
+        },
+    );
+    let slide_down = Tween::new(
+        EaseFunction::QuadraticIn,
+        Duration::from_secs_f32(0.25),
+        TransformPositionLens {
+            start: Vec3::default(),
+            end: elem_start_pos(),
+        },
+    );
+
+    rotate.then(slide_down)
+}
+
 fn spawn_animation(angle: f32, delay_secs: f32) -> Sequence<Transform> {
     let wait = Delay::new(Duration::from_secs_f32(delay_secs));
     let slide_up = Tween::new(

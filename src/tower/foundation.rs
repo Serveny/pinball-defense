@@ -1,14 +1,14 @@
 use super::{
     add_flash_light, tower_material, ContactLight, FlashLight, LightOnCollision, SpawnTowerEvent,
 };
-use crate::pinball_menu::{PinballMenu, SpawnPinballMenuEvent};
+use crate::pinball_menu::{PinballMenu, PinballMenuElement, SpawnPinballMenuEvent};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::collision_events::BuildTowerEvent;
 use crate::utils::RelParent;
 use crate::utils::{
     collision_events::TowerFoundationCollisionStartEvent,
-    tween_completed_events::DESPAWN_ENTITY_AND_MENU_EVENT_ID,
+    tween_completed_events::DESPAWN_ENTITY_EVENT_ID,
 };
 use bevy_tweening::{
     lens::{TransformPositionLens, TransformRotationLens},
@@ -170,7 +170,7 @@ fn set_foundation_despawn_animation(cmds: &mut Commands, foundation_id: Entity, 
             end: Vec3::new(pos.x, pos.y - 0.1, pos.z),
         },
     )
-    .with_completed_event(DESPAWN_ENTITY_AND_MENU_EVENT_ID);
+    .with_completed_event(DESPAWN_ENTITY_EVENT_ID);
 
     let sequence = delay.then(tween);
     cmds.entity(foundation_id).insert(Animator::new(sequence));
@@ -248,24 +248,40 @@ pub(super) fn build_tower_system(
     q_lids_bottom: Query<(Entity, &Parent), With<TowerFoundationBottom>>,
     q_lids_top: Query<(Entity, &Parent), With<TowerFoundationTop>>,
     q_pbm: Query<Entity, With<PinballMenu>>,
+    q_pbme: Query<(Entity, &Transform), With<PinballMenuElement>>,
     mut q_light: Query<(Entity, &Parent, &mut PointLight), With<ContactLight>>,
 ) {
     for ev in evs.iter() {
         if let Ok((selected_id, sel_trans)) = q_selected.get_single() {
+            // Open lids
             q_lids_bottom.for_each(|(lid_id, lid_parent)| {
                 set_lid_open_animation(&mut cmds, lid_id, lid_parent.get(), selected_id, -1.);
             });
             q_lids_top.for_each(|(lid_id, lid_parent)| {
                 set_lid_open_animation(&mut cmds, lid_id, lid_parent.get(), selected_id, 1.);
             });
-            set_foundation_despawn_animation(&mut cmds, selected_id, sel_trans.translation);
-            let pos = sel_trans.translation;
-            spawn_tower_ev.send(SpawnTowerEvent(ev.0, Vec3::new(pos.x, -0.025, pos.z)));
+
+            // Despawn foundation
             cmds.entity(selected_id)
                 .remove::<SelectedTowerFoundation>()
                 .remove::<Collider>();
+            set_foundation_despawn_animation(&mut cmds, selected_id, sel_trans.translation);
+
+            // Spawn new tower
+            let pos = sel_trans.translation;
+            spawn_tower_ev.send(SpawnTowerEvent(ev.0, Vec3::new(pos.x, -0.025, pos.z)));
+
+            // Despawn menu
+            q_pbme.for_each(|(entity, trans)| {
+                cmds.entity(entity)
+                    .insert(Animator::new(crate::pinball_menu::despawn_animation(
+                        trans.rotation.y,
+                    )));
+            });
             disable_light(&mut cmds, &mut q_light, selected_id);
-            cmds.entity(q_pbm.single()).despawn_recursive();
+            let delay: Delay<Transform> =
+                Delay::new(Duration::from_secs(2)).with_completed_event(DESPAWN_ENTITY_EVENT_ID);
+            cmds.entity(q_pbm.single()).insert(Animator::new(delay));
         }
     }
 }
