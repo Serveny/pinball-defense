@@ -8,7 +8,6 @@ use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_tweening::TweeningPlugin;
 use bevy_window_title_diagnostics::WindowTitleLoggerDiagnosticsPlugin;
-use collision_handler::CollisionHandlerPlugin;
 use controls::ControlsPlugin;
 use fps_camera::FirstPersonCameraPlugin;
 use loading::LoadingScreenPlugin;
@@ -17,13 +16,13 @@ use prelude::*;
 use settings::GraphicsSettings;
 use std::f32::consts::PI;
 use tower::TowerPlugin;
+use utils::PinballUtilsPlugin;
 use world::WorldPlugin;
 
 mod assets;
 mod ball;
 mod ball_camera;
 mod ball_starter;
-mod collision_handler;
 mod controls;
 mod enemy;
 mod flipper;
@@ -34,6 +33,7 @@ mod prelude;
 mod road;
 mod settings;
 mod tower;
+mod utils;
 mod world;
 
 #[derive(States, PartialEq, Eq, Clone, Copy, Debug, Hash, Default)]
@@ -83,8 +83,8 @@ fn main() {
         BallCameraPlugin,
         TowerPlugin,
         ControlsPlugin,
-        CollisionHandlerPlugin,
         PinballMenuPlugin,
+        PinballUtilsPlugin,
     ));
 
     add_rapier(&mut app);
