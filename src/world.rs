@@ -126,106 +126,16 @@ fn test_tower(
     assets: &PinballDefenseAssets,
     g_sett: &GraphicsSettings,
 ) {
-    spawn_tower_microwave(parent, mats, assets, g_sett, Vec3::new(0., -0.025, -0.2));
-    spawn_tower_machine_gun(parent, mats, assets, g_sett, Vec3::new(0., -0.025, 0.2));
-    spawn_tower_tesla(parent, mats, assets, g_sett, Vec3::new(0., -0.025, 0.));
+    //spawn_tower_microwave(parent, mats, assets, g_sett, Vec3::new(0., -0.025, -0.2));
+    //spawn_tower_machine_gun(parent, mats, assets, g_sett, Vec3::new(0., -0.025, 0.2));
+    //spawn_tower_tesla(parent, mats, assets, g_sett, Vec3::new(0., -0.025, 0.));
     spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(0.1, -0.04, 0.));
-    spawn_menu(
-        parent,
-        mats,
-        meshes,
-        assets,
-        g_sett,
-        Vec3::new(1.2, 0., 0.05),
-    );
-}
-
-#[derive(Component)]
-struct Menu;
-
-fn spawn_menu(
-    parent: &mut ChildBuilder,
-    mats: &mut Assets<StandardMaterial>,
-    meshes: &mut Assets<Mesh>,
-    assets: &PinballDefenseAssets,
-    g_sett: &GraphicsSettings,
-    pos: Vec3,
-) {
-    parent
-        .spawn(SpatialBundle::from_transform(Transform::from_translation(
-            pos,
-        )))
-        .insert(Menu)
-        .insert(Name::new("Tower Menu"))
-        .with_children(|parent| {
-            spawn_menu_element(
-                TowerType::MachineGun,
-                parent,
-                mats,
-                meshes,
-                assets,
-                g_sett,
-                Transform::from_rotation(Quat::from_rotation_y(-0.2)),
-            );
-            spawn_menu_element(
-                TowerType::Microwave,
-                parent,
-                mats,
-                meshes,
-                assets,
-                g_sett,
-                Transform::from_rotation(Quat::from_rotation_y(0.0)),
-            );
-            spawn_menu_element(
-                TowerType::Tesla,
-                parent,
-                mats,
-                meshes,
-                assets,
-                g_sett,
-                Transform::from_rotation(Quat::from_rotation_y(0.2)),
-            );
-        });
-}
-
-#[derive(Component)]
-pub struct MenuElement;
-
-fn spawn_menu_element(
-    tower_type: TowerType,
-    parent: &mut ChildBuilder,
-    mats: &mut Assets<StandardMaterial>,
-    meshes: &mut Assets<Mesh>,
-    assets: &PinballDefenseAssets,
-    g_sett: &GraphicsSettings,
-    transform: Transform,
-) {
-    parent
-        .spawn((
-            PbrBundle {
-                mesh: assets.menu_element.clone(),
-                material: mats.add(StandardMaterial {
-                    base_color: Color::MIDNIGHT_BLUE,
-                    perceptual_roughness: 0.6,
-                    metallic: 0.2,
-                    reflectance: 0.8,
-                    ..default()
-                }),
-                transform,
-                ..default()
-            },
-            ColliderDebugColor(Color::GOLD),
-            Sensor,
-            ActiveEvents::COLLISION_EVENTS,
-            Collider::from_bevy_mesh(
-                meshes
-                    .get(&assets.menu_element.clone())
-                    .expect("Failed to find mesh"),
-                &ComputedColliderShape::TriMesh,
-            )
-            .unwrap(),
-        ))
-        .insert(MenuElement)
-        .insert(Name::new("Tower Menu element"))
-        .insert(tower_type);
+    //spawn_pinball_menu(
+    //    parent,
+    //mats,
+    //meshes,
+    //assets,
+    //g_sett,
+    //Vec3::new(1.2, 0., 0.05),
+    //);
 }
