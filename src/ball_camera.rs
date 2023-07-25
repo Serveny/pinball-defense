@@ -1,4 +1,4 @@
-use crate::ball::Ball;
+use crate::ball::PinBall;
 use crate::prelude::*;
 use crate::CameraState;
 pub struct BallCameraPlugin;
@@ -20,8 +20,8 @@ impl Plugin for BallCameraPlugin {
 //}
 
 fn follow_ball(
-    mut q_cam: Query<&mut Transform, (With<Camera>, Without<Ball>)>,
-    q_ball: Query<&Transform, With<Ball>>,
+    mut q_cam: Query<&mut Transform, (With<Camera>, Without<PinBall>)>,
+    q_ball: Query<&Transform, With<PinBall>>,
 ) {
     for ball_trans in q_ball.iter() {
         if let Ok(mut cam) = q_cam.get_single_mut() {

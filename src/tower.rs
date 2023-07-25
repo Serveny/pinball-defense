@@ -1,10 +1,11 @@
 use crate::collision_handler::{BuildTowerEvent, LightOnEvent, TowerFoundationCollisionStartEvent};
+use crate::pinball_menu::{PinballMenu, SpawnPinballMenuEvent};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::world::PinballWorld;
 use crate::GameState;
 use bevy_tweening::lens::{TransformPositionLens, TransformRotationLens};
-use bevy_tweening::{Animator, Delay, EaseFunction, Tween, Tweenable};
+use bevy_tweening::{Animator, Delay, EaseFunction, Sequence, Tween, TweenCompleted};
 use std::f32::consts::PI;
 use std::time::Duration;
 
@@ -15,7 +16,7 @@ impl Plugin for TowerPlugin {
         app.add_event::<SpawnTowerEvent>().add_systems(
             Update,
             (
-                light_on_contact_system,
+                light_on_collision_system,
                 rotate_tower_head_system,
                 light_off_system,
                 progress_bar_count_up_system,
@@ -23,6 +24,7 @@ impl Plugin for TowerPlugin {
                 flash_light_system,
                 build_tower_system,
                 spawn_tower_system,
+                tween_completed_system,
             )
                 .run_if(in_state(GameState::Ingame)),
         );
@@ -113,8 +115,8 @@ pub fn spawn_tower_foundation(
                 ..default()
             },
             Sensor,
-            Collider::cylinder(0.1, 0.06),
-            ColliderDebugColor(Color::RED),
+            Collider::cylinder(0.1, 0.07),
+            ColliderDebugColor(Color::GREEN),
             ActiveEvents::COLLISION_EVENTS,
         ))
         .insert(TowerFoundation)
@@ -203,6 +205,7 @@ struct SelectedTowerFoundation;
 fn progress_bar_count_up_system(
     mut cmds: Commands,
     mut evs: EventReader<TowerFoundationCollisionStartEvent>,
+    mut ev_spm: EventWriter<SpawnPinballMenuEvent>,
     mut q_progress: Query<(&RelParent, &mut TowerFoundationProgressBar)>,
     q_light: Query<(&Parent, Entity), With<ContactLight>>,
     q_selected: Query<&SelectedTowerFoundation>,
@@ -212,10 +215,11 @@ fn progress_bar_count_up_system(
             let parent_id = rel_parent.0;
             if parent_id == ev.0 {
                 if progress.0 < 1. {
-                    progress.0 += 1.;
+                    progress.0 += 0.5;
                     if progress.0 >= 1. {
                         add_flash_light(&mut cmds, &q_light, parent_id);
                         set_selected_tower_foundation(&mut cmds, parent_id, &q_selected);
+                        ev_spm.send(SpawnPinballMenuEvent);
                     }
                 }
                 break;
@@ -284,7 +288,7 @@ fn spawn_tower_base(
             //Ccd::enabled(),
             RigidBody::KinematicPositionBased,
             ColliderDebugColor(Color::RED),
-            Collider::cylinder(0.025, 0.06),
+            Collider::cylinder(0.05, 0.06),
             Restitution::coefficient(1.),
             ActiveEvents::COLLISION_EVENTS,
         ))
@@ -309,18 +313,25 @@ fn spawn_tower_base(
         });
 }
 
-fn create_tower_spawn_animator(pos: Vec3) -> Tween<Transform> {
-    Tween::new(
+fn create_tower_spawn_animator(pos: Vec3) -> Sequence<Transform> {
+    let delay = Delay::new(Duration::from_secs(1));
+    let tween = Tween::new(
         EaseFunction::ExponentialInOut,
         std::time::Duration::from_secs(4),
         TransformPositionLens {
-            start: Vec3::new(pos.x, pos.y - 0.1, pos.z),
+            start: tower_start_pos(pos),
             end: pos,
         },
-    )
-    //.with_completed(|entity, delay| {
-    //delay.duration().as_secs()
-    //}
+    );
+    delay.then(tween)
+}
+
+fn tower_start_pos(pos: Vec3) -> Vec3 {
+    Vec3::new(pos.x, pos.y - 0.1, pos.z)
+}
+
+fn spatial_from_pos(pos: Vec3) -> SpatialBundle {
+    SpatialBundle::from_transform(Transform::from_translation(pos))
 }
 
 pub fn spawn_tower_microwave(
@@ -331,10 +342,7 @@ pub fn spawn_tower_microwave(
     pos: Vec3,
 ) {
     parent
-        .spawn(SpatialBundle {
-            transform: Transform::from_translation(pos),
-            ..default()
-        })
+        .spawn(spatial_from_pos(tower_start_pos(pos)))
         .insert(MicrowaveTower)
         .insert(Name::new("Microwave Tower"))
         .insert(Animator::new(create_tower_spawn_animator(pos)))
@@ -393,10 +401,7 @@ pub fn spawn_tower_machine_gun(
             .with_children(|parent| mg_head(parent));
     };
     parent
-        .spawn(SpatialBundle {
-            transform: Transform::from_translation(pos),
-            ..default()
-        })
+        .spawn(spatial_from_pos(tower_start_pos(pos)))
         .insert(MachineGunTower)
         .insert(Name::new("Machine Gun Tower"))
         .insert(Animator::new(create_tower_spawn_animator(pos)))
@@ -414,10 +419,7 @@ pub fn spawn_tower_tesla(
     pos: Vec3,
 ) {
     parent
-        .spawn(SpatialBundle {
-            transform: Transform::from_translation(pos),
-            ..default()
-        })
+        .spawn(spatial_from_pos(tower_start_pos(pos)))
         .insert(TeslaTower)
         .insert(Name::new("Tesla Tower"))
         .insert(Animator::new(create_tower_spawn_animator(pos)))
@@ -439,7 +441,7 @@ pub struct LightOnCollision;
 
 const LIGHT_INTENSITY: f32 = 48.;
 
-fn light_on_contact_system(
+fn light_on_collision_system(
     mut evs: EventReader<LightOnEvent>,
     mut q_light: Query<(&mut PointLight, &Parent), With<ContactLight>>,
 ) {
@@ -478,8 +480,8 @@ fn spawn_tower_system(
     g_sett: Res<GraphicsSettings>,
 ) {
     for ev in evs.iter() {
-        let pos = ev.1;
         cmds.entity(q_pb_word.single()).with_children(|parent| {
+            let pos = ev.1;
             match ev.0 {
                 TowerType::MachineGun => {
                     spawn_tower_machine_gun(parent, &mut mats, &assets, &g_sett, pos)
@@ -500,23 +502,28 @@ fn build_tower_system(
     q_selected: Query<(Entity, &Transform), With<SelectedTowerFoundation>>,
     q_lids_bottom: Query<(Entity, &Parent), With<TowerFoundationBottom>>,
     q_lids_top: Query<(Entity, &Parent), With<TowerFoundationTop>>,
+    q_pbm: Query<Entity, With<PinballMenu>>,
 ) {
     for ev in evs.iter() {
         if let Ok((selected_id, sel_trans)) = q_selected.get_single() {
             q_lids_bottom.for_each(|(lid_id, lid_parent)| {
-                set_rotation_animation(&mut cmds, lid_id, lid_parent.get(), selected_id, -1.);
+                set_lid_open_animation(&mut cmds, lid_id, lid_parent.get(), selected_id, -1.);
             });
             q_lids_top.for_each(|(lid_id, lid_parent)| {
-                set_rotation_animation(&mut cmds, lid_id, lid_parent.get(), selected_id, 1.);
+                set_lid_open_animation(&mut cmds, lid_id, lid_parent.get(), selected_id, 1.);
             });
+            set_foundation_despawn_animation(&mut cmds, selected_id, sel_trans.translation);
             let pos = sel_trans.translation;
             spawn_tower_ev.send(SpawnTowerEvent(ev.0, Vec3::new(pos.x, -0.025, pos.z)));
-            cmds.entity(selected_id).remove::<SelectedTowerFoundation>();
+            cmds.entity(selected_id)
+                .remove::<SelectedTowerFoundation>()
+                .remove::<Collider>();
+            cmds.entity(q_pbm.single()).despawn_recursive();
         }
     }
 }
 
-fn set_rotation_animation(
+fn set_lid_open_animation(
     cmds: &mut Commands,
     lid_id: Entity,
     lid_parent_id: Entity,
@@ -533,5 +540,31 @@ fn set_rotation_animation(
             },
         );
         cmds.entity(lid_id).insert(Animator::new(tween));
+    }
+}
+
+const DESPAWN_ENTITY_AND_MENU_EVENT_ID: u64 = 187;
+
+fn set_foundation_despawn_animation(cmds: &mut Commands, foundation_id: Entity, pos: Vec3) {
+    let delay = Delay::new(Duration::from_secs(3));
+    let tween = Tween::new(
+        EaseFunction::QuadraticIn,
+        std::time::Duration::from_secs(2),
+        TransformPositionLens {
+            start: pos,
+            end: Vec3::new(pos.x, pos.y - 0.1, pos.z),
+        },
+    )
+    .with_completed_event(DESPAWN_ENTITY_AND_MENU_EVENT_ID);
+
+    let sequence = delay.then(tween);
+    cmds.entity(foundation_id).insert(Animator::new(sequence));
+}
+
+fn tween_completed_system(mut evr: EventReader<TweenCompleted>, mut cmds: Commands) {
+    for ev in evr.iter() {
+        if ev.user_data == DESPAWN_ENTITY_AND_MENU_EVENT_ID {
+            cmds.entity(ev.entity).despawn_recursive();
+        }
     }
 }

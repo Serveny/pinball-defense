@@ -10,7 +10,7 @@ impl Plugin for BallPlugin {
 }
 
 #[derive(Component)]
-pub struct Ball;
+pub struct PinBall;
 
 #[derive(Resource, Default)]
 pub struct BallSpawn(pub Vec3);
@@ -43,14 +43,13 @@ pub fn spawn_ball(
         },
         RigidBody::Dynamic,
         Collider::ball(radius),
-        //Ccd::enabled(),
         ColliderDebugColor(Color::GOLD),
         Sleeping::disabled(),
         ColliderMassProperties::Mass(0.081),
         Restitution::coefficient(0.5),
         Friction::coefficient(1.),
     ))
-    .insert(Ball)
+    .insert(PinBall)
     .insert(Name::new("Ball"))
     .with_children(|parent| {
         parent.spawn(PointLightBundle {
@@ -68,10 +67,11 @@ pub fn spawn_ball(
     });
 }
 
-fn ball_reset_system(mut cmds: Commands, q_ball: Query<(Entity, &Transform), With<Ball>>) {
+fn ball_reset_system(mut cmds: Commands, q_ball: Query<(Entity, &Transform), With<PinBall>>) {
     for (entity, transform) in q_ball.iter() {
-        let lation = transform.translation;
-        if lation.y <= -1. || (lation.x > 1.2 && lation.z > -0.3) {
+        let trans = transform.translation;
+        if trans.y <= -1. || trans.y >= 0.4 || (trans.x > 1.2 && trans.z > -0.3) {
+            println!("🤔 Despawn ball 🤔");
             cmds.get_entity(entity).unwrap().despawn_recursive();
         }
     }

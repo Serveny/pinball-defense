@@ -12,6 +12,7 @@ use collision_handler::CollisionHandlerPlugin;
 use controls::ControlsPlugin;
 use fps_camera::FirstPersonCameraPlugin;
 use loading::LoadingScreenPlugin;
+use pinball_menu::PinballMenuPlugin;
 use prelude::*;
 use settings::GraphicsSettings;
 use std::f32::consts::PI;
@@ -28,6 +29,7 @@ mod enemy;
 mod flipper;
 mod fps_camera;
 mod loading;
+mod pinball_menu;
 mod prelude;
 mod road;
 mod settings;
@@ -82,6 +84,7 @@ fn main() {
         TowerPlugin,
         ControlsPlugin,
         CollisionHandlerPlugin,
+        PinballMenuPlugin,
     ));
 
     add_rapier(&mut app);
