@@ -9,5 +9,5 @@
   - menu spawn animation ✅
   - menu despawn animation ✅
   - loading screen ✅
-  - design enemy
   - enemy path following
+  - design enemy

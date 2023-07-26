@@ -14,7 +14,7 @@ impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(FlipperPlugin)
             .add_plugins(BallStarterPlugin)
-            .add_systems(OnEnter(GameState::Ingame), setup_pinball_world)
+            .add_systems(OnEnter(GameState::Ingame), spawn_pinball_world)
             .add_systems(Update, animate_cube.run_if(in_state(GameState::Ingame)));
     }
 }
@@ -25,7 +25,7 @@ pub struct PinballWorld;
 #[derive(Component)]
 struct Ground;
 
-fn setup_pinball_world(
+fn spawn_pinball_world(
     mut cmds: Commands,
     mut ball_spawn: ResMut<BallSpawn>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -64,19 +64,6 @@ fn setup_pinball_world(
                 .unwrap(),
             ))
             .insert(Ground);
-
-        //parent.spawn(PointLightBundle {
-        //transform: Transform::from_xyz(1., 1., 0.5).looking_at(Vec3::ZERO, Vec3::Y),
-        //point_light: PointLight {
-        //intensity: 78.,
-        //color: Color::WHITE,
-        //shadows_enabled: g_sett.is_shadows,
-        //radius: 0.1,
-        //range: 4.,
-        //..default()
-        //},
-        //..default()
-        //});
 
         // Ball starter
         let bs_pos = Vec3::new(1.175, -0.018, -0.657);
@@ -122,22 +109,27 @@ fn spawn_foundations(
     assets: &PinballDefenseAssets,
     g_sett: &GraphicsSettings,
 ) {
-    //spawn_tower_microwave(parent, mats, assets, g_sett, Vec3::new(0., -0.025, -0.2));
-    //spawn_tower_machine_gun(parent, mats, assets, g_sett, Vec3::new(0., -0.025, 0.2));
-    //spawn_tower_tesla(parent, mats, assets, g_sett, Vec3::new(0., -0.025, 0.));
     spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(-0.89, -0.04, 0.48));
     spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(-0.89, -0.04, 0.2));
     spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(-0.69, -0.04, -0.2));
-    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(-0.5, -0.04, 0.01));
+    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(-0.5, -0.04, -0.01));
     spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(-0.3, -0.04, 0.5));
     spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(-0.1, -0.04, -0.02));
     spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(0.1, -0.04, 0.5));
-    //spawn_pinball_menu(
-    //    parent,
-    //mats,
-    //meshes,
-    //assets,
-    //g_sett,
-    //Vec3::new(1.2, 0., 0.05),
-    //);
+    spawn_tower_foundation(
+        parent,
+        mats,
+        assets,
+        g_sett,
+        Vec3::new(-0.904, -0.04, -0.01),
+    );
+    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(0.01, -0.04, -0.41));
+    spawn_tower_foundation(
+        parent,
+        mats,
+        assets,
+        g_sett,
+        Vec3::new(-0.275, -0.04, -0.41),
+    );
+    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(-0.55, -0.04, 0.41));
 }
