@@ -189,7 +189,7 @@ pub(super) fn progress_bar_count_up_system(
             let parent_id = rel_parent.0;
             if parent_id == ev.0 {
                 if progress.0 < 1. {
-                    progress.0 += 0.5;
+                    progress.0 += 0.1;
                     if progress.0 >= 1. {
                         cmds.entity(parent_id).insert(ReadyToBuild);
                     }
