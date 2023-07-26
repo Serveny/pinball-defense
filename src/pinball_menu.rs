@@ -1,9 +1,10 @@
 use crate::prelude::*;
-use crate::settings::GraphicsSettings;
 use crate::tower::TowerType;
 use crate::utils::collision_events::ActivatePinballMenuEvent;
+use crate::utils::tween_completed_events::ACTIVATE_PINBALL_MENU_EVENT_ID;
 use crate::world::PinballWorld;
 use crate::GameState;
+use crate::{settings::GraphicsSettings, tower::foundation::SelectedTowerFoundation};
 use bevy_tweening::{
     lens::{TransformPositionLens, TransformRotateYLens},
     Animator, Delay, EaseFunction, Sequence, Tween,
@@ -14,20 +15,15 @@ pub struct PinballMenuPlugin;
 
 impl Plugin for PinballMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SpawnPinballMenuEvent>()
-            .add_event::<ActivatePinballMenuEvent>()
-            .add_systems(
-                Update,
-                (spawn_pinball_menu_system, activate_system).run_if(in_state(GameState::Ingame)),
-            );
+        app.add_event::<ActivatePinballMenuEvent>().add_systems(
+            Update,
+            (spawn_pinball_menu_system, activate_system).run_if(in_state(GameState::Ingame)),
+        );
     }
 }
 
 #[derive(Component)]
 pub struct PinballMenu;
-
-#[derive(Event)]
-pub struct SpawnPinballMenuEvent;
 
 pub fn spawn_pinball_menu(
     parent: &mut ChildBuilder,
@@ -40,6 +36,7 @@ pub fn spawn_pinball_menu(
     parent
         .spawn(spatial_from_pos(pos))
         .insert(PinballMenu)
+        .insert(PinballMenuStatus::Disabled)
         .insert(Name::new("Tower Menu"))
         .with_children(|p| {
             spawn_menu_element(MachineGun, p, mats, assets, g_sett, -0.3, 0.1);
@@ -86,13 +83,13 @@ fn elem_start_pos() -> Vec3 {
 fn spawn_pinball_menu_system(
     mut cmds: Commands,
     mut mats: ResMut<Assets<StandardMaterial>>,
-    evr: EventReader<SpawnPinballMenuEvent>,
     assets: Res<PinballDefenseAssets>,
     q_pbw: Query<Entity, With<PinballWorld>>,
     q_pb_menu: Query<&PinballMenu>,
     g_sett: Res<GraphicsSettings>,
+    q_selected: Query<&SelectedTowerFoundation>,
 ) {
-    if !evr.is_empty() && q_pb_menu.is_empty() {
+    if !q_selected.is_empty() && q_pb_menu.is_empty() {
         cmds.entity(q_pbw.single()).with_children(|p| {
             spawn_pinball_menu(p, &mut mats, &assets, &g_sett, Vec3::new(1.2, 0.02, 0.05));
         });
@@ -101,8 +98,8 @@ fn spawn_pinball_menu_system(
 
 pub fn despawn_animation(angle: f32) -> Sequence<Transform> {
     let rotate = Tween::new(
-        EaseFunction::QuadraticIn,
-        Duration::from_secs_f32(0.25),
+        EaseFunction::QuadraticOut,
+        Duration::from_secs_f32(1.),
         TransformRotateYLens {
             start: angle,
             end: 0.,
@@ -110,7 +107,7 @@ pub fn despawn_animation(angle: f32) -> Sequence<Transform> {
     );
     let slide_down = Tween::new(
         EaseFunction::QuadraticIn,
-        Duration::from_secs_f32(0.25),
+        Duration::from_secs_f32(0.5),
         TransformPositionLens {
             start: Vec3::default(),
             end: elem_start_pos(),
@@ -139,7 +136,14 @@ fn spawn_animation(angle: f32, delay_secs: f32) -> Sequence<Transform> {
         },
     );
 
-    wait.then(slide_up).then(rotate)
+    wait.then(slide_up)
+        .then(rotate.with_completed_event(ACTIVATE_PINBALL_MENU_EVENT_ID))
+}
+#[derive(Component, PartialEq, Eq)]
+pub enum PinballMenuStatus {
+    Disabled,
+    Ready,
+    Activated,
 }
 
 fn activate_system(
@@ -147,24 +151,42 @@ fn activate_system(
     evr: EventReader<ActivatePinballMenuEvent>,
     meshes: Res<Assets<Mesh>>,
     q_pbm_el: Query<Entity, With<PinballMenuElement>>,
+    mut q_pb_menu: Query<&mut PinballMenuStatus, With<PinballMenu>>,
     assets: Res<PinballDefenseAssets>,
 ) {
     if !evr.is_empty() {
-        //println!("😆 Activate Event");
-        for entity in q_pbm_el.iter() {
-            //println!("🔥Collider added");
-            cmds.entity(entity).insert((
-                ColliderDebugColor(Color::GREEN),
-                Sensor,
-                ActiveEvents::COLLISION_EVENTS,
-                Collider::from_bevy_mesh(
-                    meshes
-                        .get(&assets.menu_element.clone())
-                        .expect("Failed to find mesh"),
-                    &ComputedColliderShape::TriMesh,
-                )
-                .unwrap(),
-            ));
+        if let Ok(mut status) = q_pb_menu.get_single_mut() {
+            if *status == PinballMenuStatus::Ready {
+                *status = PinballMenuStatus::Activated;
+                //println!("😆 Activate Event");
+                for entity in q_pbm_el.iter() {
+                    //println!("🔥Collider added");
+                    cmds.entity(entity)
+                        .insert((
+                            ColliderDebugColor(Color::GREEN),
+                            Sensor,
+                            ActiveEvents::COLLISION_EVENTS,
+                            Collider::from_bevy_mesh(
+                                meshes
+                                    .get(&assets.menu_element.clone())
+                                    .expect("Failed to find mesh"),
+                                &ComputedColliderShape::TriMesh,
+                            )
+                            .unwrap(),
+                        ))
+                        .with_children(|parent| {
+                            parent.spawn(PointLightBundle {
+                                point_light: PointLight {
+                                    color: Color::GREEN,
+                                    intensity: 0.2,
+                                    ..default()
+                                },
+                                transform: Transform::from_translation(Vec3::new(-0.8, 0., 0.)),
+                                ..default()
+                            });
+                        });
+                }
+            }
         }
     }
 }

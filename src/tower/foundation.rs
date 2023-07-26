@@ -1,7 +1,7 @@
 use super::{
     add_flash_light, tower_material, ContactLight, FlashLight, LightOnCollision, SpawnTowerEvent,
 };
-use crate::pinball_menu::{PinballMenu, PinballMenuElement, SpawnPinballMenuEvent};
+use crate::pinball_menu::{PinballMenu, PinballMenuElement};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::collision_events::BuildTowerEvent;
@@ -202,7 +202,6 @@ pub(super) fn progress_bar_count_up_system(
 
 pub(super) fn set_next_selected_system(
     mut cmds: Commands,
-    mut ev_spm: EventWriter<SpawnPinballMenuEvent>,
     q_ready: Query<Entity, With<ReadyToBuild>>,
     q_selected: Query<&SelectedTowerFoundation>,
     q_light: Query<(&Parent, Entity), With<ContactLight>>,
@@ -211,7 +210,6 @@ pub(super) fn set_next_selected_system(
         if let Some(entity_id) = q_ready.iter().next() {
             add_flash_light(&mut cmds, &q_light, entity_id);
             set_selected_tower_foundation(&mut cmds, entity_id, &q_selected);
-            ev_spm.send(SpawnPinballMenuEvent);
         }
     }
 }
@@ -239,7 +237,6 @@ pub(super) fn progress_bar_scale_system(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
 pub(super) fn build_tower_system(
     mut evs: EventReader<BuildTowerEvent>,
     mut spawn_tower_ev: EventWriter<SpawnTowerEvent>,
@@ -274,6 +271,7 @@ pub(super) fn build_tower_system(
             // Despawn menu
             q_pbme.for_each(|(entity, trans)| {
                 cmds.entity(entity)
+                    .remove::<Collider>()
                     .insert(Animator::new(crate::pinball_menu::despawn_animation(
                         trans.rotation.y,
                     )));
