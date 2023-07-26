@@ -7,5 +7,7 @@
   - animation for tower building ✅
   - show ingame tower menu, when status bar full ✅
   - menu spawn animation ✅
-  - menu despawn animation
-  - flash light system replace by tween
+  - menu despawn animation ✅
+  - loading screen ✅
+  - design enemy
+  - enemy path following
