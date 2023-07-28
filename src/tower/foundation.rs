@@ -31,7 +31,7 @@ pub struct TowerFoundationBottom;
 #[derive(Component, Default)]
 pub struct TowerFoundationProgressBar(f32);
 
-pub fn spawn_tower_foundation(
+pub fn spawn_foundation(
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseAssets,
