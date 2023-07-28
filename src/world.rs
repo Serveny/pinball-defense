@@ -5,7 +5,7 @@ use crate::flipper::FlipperPlugin;
 use crate::prelude::*;
 use crate::road::{add_road_path, animate_cube, spawn_road};
 use crate::settings::GraphicsSettings;
-use crate::tower::foundation::spawn_tower_foundation;
+use crate::tower::foundation::spawn_foundation;
 use crate::GameState;
 
 pub struct WorldPlugin;
@@ -104,32 +104,20 @@ fn spawn_cube_collider(name: &'static str, parent: &mut ChildBuilder, size: Vec3
 }
 
 fn spawn_foundations(
-    parent: &mut ChildBuilder,
+    p: &mut ChildBuilder,
     mats: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseAssets,
     g_sett: &GraphicsSettings,
 ) {
-    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(-0.89, -0.04, 0.48));
-    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(-0.89, -0.04, 0.2));
-    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(-0.69, -0.04, -0.2));
-    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(-0.5, -0.04, -0.01));
-    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(-0.3, -0.04, 0.5));
-    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(-0.1, -0.04, -0.02));
-    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(0.1, -0.04, 0.5));
-    spawn_tower_foundation(
-        parent,
-        mats,
-        assets,
-        g_sett,
-        Vec3::new(-0.904, -0.04, -0.01),
-    );
-    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(0.01, -0.04, -0.41));
-    spawn_tower_foundation(
-        parent,
-        mats,
-        assets,
-        g_sett,
-        Vec3::new(-0.275, -0.04, -0.41),
-    );
-    spawn_tower_foundation(parent, mats, assets, g_sett, Vec3::new(-0.55, -0.04, 0.41));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.89, -0.04, 0.48));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.89, -0.04, 0.2));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.69, -0.04, -0.2));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.5, -0.04, -0.01));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.3, -0.04, 0.5));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.1, -0.04, -0.02));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(0.1, -0.04, 0.5));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.904, -0.04, -0.01));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(0.01, -0.04, -0.41));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.275, -0.04, -0.41));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.5, -0.04, 0.25));
 }

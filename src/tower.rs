@@ -86,7 +86,7 @@ struct FlashLight;
 
 fn flash_light_system(mut q_light: Query<&mut PointLight, With<FlashLight>>, time: Res<Time>) {
     for mut light in q_light.iter_mut() {
-        light.intensity = ((time.elapsed_seconds() % 8. * 16.).sin() + 1.) * LIGHT_INTENSITY * 0.5;
+        light.intensity = ((time.elapsed_seconds() * 16.).sin() + 1.) * LIGHT_INTENSITY * 0.5;
     }
 }
 fn spawn_tower_base(

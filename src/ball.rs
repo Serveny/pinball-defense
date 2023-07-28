@@ -1,11 +1,13 @@
+use crate::pinball_menu::PinballMenuStatus;
 use crate::prelude::*;
 
 pub struct BallPlugin;
 
 impl Plugin for BallPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup)
-            .add_systems(Update, ball_reset_system);
+        app.add_event::<OnBallDespawn>()
+            .add_systems(Startup, setup)
+            .add_systems(Update, (ball_reset_system, on_ball_despawn_system));
     }
 }
 
@@ -67,12 +69,31 @@ pub fn spawn_ball(
     });
 }
 
-fn ball_reset_system(mut cmds: Commands, q_ball: Query<(Entity, &Transform), With<PinBall>>) {
+#[derive(Event)]
+pub struct OnBallDespawn;
+
+fn ball_reset_system(
+    mut cmds: Commands,
+    mut evw: EventWriter<OnBallDespawn>,
+    q_ball: Query<(Entity, &Transform), With<PinBall>>,
+) {
     for (entity, transform) in q_ball.iter() {
         let trans = transform.translation;
         if trans.y <= -1. || trans.y >= 0.4 || (trans.x > 1.2 && trans.z > -0.3) {
             println!("🤔 Despawn ball 🤔");
             cmds.get_entity(entity).unwrap().despawn_recursive();
+            evw.send(OnBallDespawn);
+        }
+    }
+}
+
+fn on_ball_despawn_system(
+    mut evr: EventReader<OnBallDespawn>,
+    mut q_pbm: Query<&mut PinballMenuStatus>,
+) {
+    if evr.iter().next().is_some() {
+        if let Ok(mut status) = q_pbm.get_single_mut() {
+            *status = PinballMenuStatus::Ready;
         }
     }
 }

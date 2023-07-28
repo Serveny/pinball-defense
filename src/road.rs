@@ -201,17 +201,19 @@ pub fn spawn_road(
         })
         .insert(Name::new("Road Mesh"));
 }
+
 pub fn add_road_path(
     parent: &mut ChildBuilder,
     assets: &PinballDefenseAssets,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
+    //animations: &mut Assets<AnimationClip>,
 ) {
     // Make a CubicCurve
     let bezier = Bezier::new(ROAD_PATH).to_curve();
     // Create the animation player, and set it to repeat
-    let mut player = AnimationPlayer::default();
-    player.play(assets.road_path.clone()).repeat();
+    //let mut player = AnimationPlayer::default();
+    //player.play(animations.add(ROAD_PATH.into())).repeat();
     let curve = Curve(bezier);
 
     parent.spawn((
