@@ -204,7 +204,6 @@ pub fn spawn_road(
 
 pub fn add_road_path(
     parent: &mut ChildBuilder,
-    assets: &PinballDefenseAssets,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
     //animations: &mut Assets<AnimationClip>,

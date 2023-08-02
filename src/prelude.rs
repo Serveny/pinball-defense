@@ -19,6 +19,5 @@ mod macros {
             }
         }};
     }
-
     pub(crate) use if_true;
 }

@@ -79,7 +79,7 @@ fn spawn_pinball_world(
 
         spawn_foundations(parent, &mut materials, &assets, &g_sett);
         spawn_road(parent, &mut materials, &assets);
-        add_road_path(parent, &assets, &mut meshes, &mut materials);
+        add_road_path(parent, &mut meshes, &mut materials);
         parent
             .spawn(TransformBundle::default())
             .insert(Name::new("Colliders"))

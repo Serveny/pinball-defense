@@ -1,4 +1,4 @@
-use crate::pinball_menu::PinballMenuStatus;
+use crate::pinball_menu::PinballMenuEvent;
 use crate::prelude::*;
 
 pub struct BallPlugin;
@@ -80,7 +80,7 @@ fn ball_reset_system(
     for (entity, transform) in q_ball.iter() {
         let trans = transform.translation;
         if trans.y <= -1. || trans.y >= 0.4 || (trans.x > 1.2 && trans.z > -0.3) {
-            println!("🤔 Despawn ball 🤔");
+            println!("🎱 Despawn ball");
             cmds.get_entity(entity).unwrap().despawn_recursive();
             evw.send(OnBallDespawn);
         }
@@ -89,11 +89,9 @@ fn ball_reset_system(
 
 fn on_ball_despawn_system(
     mut evr: EventReader<OnBallDespawn>,
-    mut q_pbm: Query<&mut PinballMenuStatus>,
+    mut pm_status_ev: EventWriter<PinballMenuEvent>,
 ) {
     if evr.iter().next().is_some() {
-        if let Ok(mut status) = q_pbm.get_single_mut() {
-            *status = PinballMenuStatus::Ready;
-        }
+        pm_status_ev.send(PinballMenuEvent::Deactivate);
     }
 }

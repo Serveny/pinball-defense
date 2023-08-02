@@ -15,7 +15,6 @@ impl Plugin for PinballUtilsPlugin {
             .add_event::<TowerMenuElementCollisionStartEvent>()
             .add_event::<LightOnEvent>()
             .add_event::<BuildTowerEvent>()
-            .add_event::<ActivatePinballMenuEvent>()
             .add_systems(
                 Update,
                 (collision_system, tween_completed_system).run_if(in_state(GameState::Ingame)),

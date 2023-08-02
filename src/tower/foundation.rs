@@ -1,7 +1,7 @@
 use super::{
     add_flash_light, tower_material, ContactLight, FlashLight, LightOnCollision, SpawnTowerEvent,
 };
-use crate::pinball_menu::{PinballMenu, PinballMenuElement};
+use crate::pinball_menu::PinballMenuEvent;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::collision_events::BuildTowerEvent;
@@ -189,7 +189,7 @@ pub(super) fn progress_bar_count_up_system(
             let parent_id = rel_parent.0;
             if parent_id == ev.0 {
                 if progress.0 < 1. {
-                    progress.0 += 0.1;
+                    progress.0 += 0.5;
                     if progress.0 >= 1. {
                         cmds.entity(parent_id).insert(ReadyToBuild);
                     }
@@ -244,9 +244,8 @@ pub(super) fn build_tower_system(
     q_selected: Query<(Entity, &Transform), With<SelectedTowerFoundation>>,
     q_lids_bottom: Query<(Entity, &Parent), With<TowerFoundationBottom>>,
     q_lids_top: Query<(Entity, &Parent), With<TowerFoundationTop>>,
-    q_pbm: Query<Entity, With<PinballMenu>>,
-    q_pbme: Query<(Entity, &Transform), With<PinballMenuElement>>,
     mut q_light: Query<(Entity, &Parent, &mut PointLight), With<ContactLight>>,
+    mut pb_menu_ev: EventWriter<PinballMenuEvent>,
 ) {
     for ev in evs.iter() {
         if let Ok((selected_id, sel_trans)) = q_selected.get_single() {
@@ -269,17 +268,10 @@ pub(super) fn build_tower_system(
             spawn_tower_ev.send(SpawnTowerEvent(ev.0, Vec3::new(pos.x, -0.025, pos.z)));
 
             // Despawn menu
-            q_pbme.for_each(|(entity, trans)| {
-                cmds.entity(entity)
-                    .remove::<Collider>()
-                    .insert(Animator::new(crate::pinball_menu::despawn_animation(
-                        trans.rotation.y,
-                    )));
-            });
+            pb_menu_ev.send(PinballMenuEvent::Disable);
+
+            // Disable selected tower light
             disable_light(&mut cmds, &mut q_light, selected_id);
-            let delay: Delay<Transform> =
-                Delay::new(Duration::from_secs(2)).with_completed_event(DESPAWN_ENTITY_EVENT_ID);
-            cmds.entity(q_pbm.single()).insert(Animator::new(delay));
         }
     }
 }
