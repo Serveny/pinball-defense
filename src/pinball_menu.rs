@@ -35,7 +35,7 @@ pub enum PinballMenuEvent {
 }
 
 #[derive(Component, Debug, Clone, Copy, Default)]
-pub enum MenuStatus {
+enum MenuStatus {
     #[default]
     Disabled,
     Ready,
@@ -182,7 +182,7 @@ fn spawn_menu(
 
 // Only pub for collision events
 #[derive(Component)]
-pub(crate) struct PinballMenuElement;
+struct PinballMenuElement;
 
 #[derive(Component)]
 struct PinballMenuElementLight;
