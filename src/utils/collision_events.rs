@@ -1,6 +1,6 @@
 use crate::ball::PinBall;
 use crate::flipper::FlipperCollider;
-use crate::pinball_menu::{PinballMenuElement, PinballMenuEvent};
+use crate::pinball_menu::PinballMenuEvent;
 use crate::prelude::*;
 use crate::tower::foundation::TowerFoundation;
 use crate::tower::{LightOnCollision, TowerBase, TowerType};
@@ -30,7 +30,7 @@ pub(super) fn collision_system(
     q_light_on_coll: Query<Entity, With<LightOnCollision>>,
     q_tower_base: Query<Entity, With<TowerBase>>,
     q_tower_foundation: Query<Entity, With<TowerFoundation>>,
-    q_menu_elements: Query<(Entity, &TowerType), With<PinballMenuElement>>,
+    q_menu_elements: Query<(Entity, &TowerType), Without<TowerBase>>,
     q_ball: Query<Entity, With<PinBall>>,
     q_flipper_collider: Query<Entity, With<FlipperCollider>>,
 ) {
