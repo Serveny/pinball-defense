@@ -23,7 +23,7 @@ pub(super) fn spawn_tower_base(
             //Ccd::enabled(),
             RigidBody::KinematicPositionBased,
             ColliderDebugColor(Color::RED),
-            Collider::cylinder(0.05, 0.06),
+            Collider::cylinder(0.14, 0.06),
             Restitution {
                 coefficient: 2.6,
                 combine_rule: CoefficientCombineRule::Multiply,
