@@ -217,7 +217,7 @@ pub(super) fn build_tower_system(
     }
 }
 
-pub(super) fn foundation_progress_system(
+pub(super) fn on_collision_system(
     mut cmds: Commands,
     mut evs: EventReader<TowerFoundationCollisionStartEvent>,
     mut q_progress: Query<(&RelParent, &mut ProgressBar)>,

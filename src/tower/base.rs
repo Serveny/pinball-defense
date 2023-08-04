@@ -24,7 +24,10 @@ pub(super) fn spawn_tower_base(
             RigidBody::KinematicPositionBased,
             ColliderDebugColor(Color::RED),
             Collider::cylinder(0.05, 0.06),
-            Restitution::coefficient(1.),
+            Restitution {
+                coefficient: 2.6,
+                combine_rule: CoefficientCombineRule::Multiply,
+            },
             ActiveEvents::COLLISION_EVENTS,
             TowerBase,
             LightOnCollision,

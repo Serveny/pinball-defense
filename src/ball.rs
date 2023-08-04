@@ -1,5 +1,6 @@
 use crate::pinball_menu::PinballMenuEvent;
 use crate::prelude::*;
+use crate::GameState;
 
 pub struct BallPlugin;
 
@@ -7,7 +8,11 @@ impl Plugin for BallPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<OnBallDespawn>()
             .add_systems(Startup, setup)
-            .add_systems(Update, (ball_reset_system, on_ball_despawn_system));
+            .add_systems(
+                Update,
+                (ball_reset_system, on_ball_despawn_system, max_speed_system)
+                    .run_if(in_state(GameState::Ingame)),
+            );
     }
 }
 
@@ -50,6 +55,7 @@ pub fn spawn_ball(
         ColliderMassProperties::Mass(0.081),
         Restitution::coefficient(0.5),
         Friction::coefficient(1.),
+        Velocity::default(),
     ))
     .insert(PinBall)
     .insert(Name::new("Ball"))
@@ -93,5 +99,23 @@ fn on_ball_despawn_system(
 ) {
     if evr.iter().next().is_some() {
         pm_status_ev.send(PinballMenuEvent::Deactivate);
+    }
+}
+
+// Prevent clipping of ball through objects
+const MAX_SQUARED_SPEED: f32 = 40.;
+
+fn max_speed_system(mut q_ball: Query<&mut Velocity, With<PinBall>>) {
+    for mut velocity in q_ball.iter_mut() {
+        limit_velocity(&mut velocity);
+    }
+}
+
+pub fn limit_velocity(velocity: &mut Velocity) {
+    let length = velocity.linvel.length_squared();
+    if length > MAX_SQUARED_SPEED {
+        println!("🥨{}", velocity.linvel.length_squared());
+        velocity.linvel *= MAX_SQUARED_SPEED / length;
+        println!("✅{}", velocity.linvel.length_squared());
     }
 }

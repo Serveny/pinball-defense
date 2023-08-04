@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use crate::utils::collision_events::ContactLightOnEvent;
 
 #[derive(Component)]
 pub struct ContactLight;
@@ -26,6 +27,15 @@ pub(super) fn flash_light_system(
 ) {
     for mut light in q_light.iter_mut() {
         light.intensity = ((time.elapsed_seconds() * 16.).sin() + 1.) * LIGHT_INTENSITY * 0.5;
+    }
+}
+
+pub(super) fn contact_light_on_system(
+    mut evs: EventReader<ContactLightOnEvent>,
+    mut q_light: Query<(&mut PointLight, &Parent), With<ContactLight>>,
+) {
+    for ev in evs.iter() {
+        light_on_by_parent(ev.0, &mut q_light);
     }
 }
 

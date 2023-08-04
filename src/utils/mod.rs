@@ -13,7 +13,7 @@ impl Plugin for PinballUtilsPlugin {
         app.add_event::<TowerBaseCollisionStartEvent>()
             .add_event::<TowerFoundationCollisionStartEvent>()
             .add_event::<TowerMenuElementCollisionStartEvent>()
-            .add_event::<LightOnEvent>()
+            .add_event::<ContactLightOnEvent>()
             .add_event::<BuildTowerEvent>()
             .add_systems(
                 Update,
