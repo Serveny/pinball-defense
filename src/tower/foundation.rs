@@ -1,6 +1,6 @@
-use super::{
-    add_flash_light, tower_material, ContactLight, FlashLight, LightOnCollision, SpawnTowerEvent,
-};
+use super::light::{add_flash_light, disable_light, ContactLight, LightOnCollision};
+use super::progress_bar::{progress_count_up, spawn_progress_bar, ProgressBar};
+use super::{tower_material, SpawnTowerEvent};
 use crate::pinball_menu::PinballMenuEvent;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
@@ -28,9 +28,6 @@ pub struct TowerFoundationTop;
 #[derive(Component)]
 pub struct TowerFoundationBottom;
 
-#[derive(Component, Default)]
-pub struct TowerFoundationProgressBar(f32);
-
 pub fn spawn_foundation(
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
@@ -56,72 +53,47 @@ pub fn spawn_foundation(
             Collider::cylinder(0.1, 0.07),
             ColliderDebugColor(Color::GREEN),
             ActiveEvents::COLLISION_EVENTS,
+            TowerFoundation,
+            LightOnCollision,
+            Name::new("Tower Foundation"),
         ))
-        .insert(TowerFoundation)
-        .insert(LightOnCollision)
-        .insert(Name::new("Tower Foundation"))
         .with_children(|parent| {
             let rel_id = parent.parent_entity();
-            parent
-                .spawn(PbrBundle {
+            parent.spawn((
+                PbrBundle {
                     mesh: assets.tower_foundation_top.clone(),
                     material: materials.add(tower_material()),
                     transform: Transform::from_translation(Vec3::new(-0.06, 0., 0.)),
                     ..default()
-                })
-                .insert(TowerFoundationTop)
-                .insert(TowerFoundationLid)
-                .insert(Name::new("Tower Foundation Top"));
+                },
+                TowerFoundationTop,
+                TowerFoundationLid,
+                Name::new("Tower Foundation Top"),
+            ));
             parent
-                .spawn(PbrBundle {
-                    mesh: assets.tower_foundation_bottom.clone(),
-                    material: materials.add(tower_material()),
-                    transform: Transform::from_translation(Vec3::new(0.06, 0., 0.)),
-                    ..default()
-                })
-                .insert(TowerFoundationBottom)
-                .insert(TowerFoundationLid)
-                .insert(Name::new("Tower Foundation Bottom"))
+                .spawn((
+                    PbrBundle {
+                        mesh: assets.tower_foundation_bottom.clone(),
+                        material: materials.add(tower_material()),
+                        transform: Transform::from_translation(Vec3::new(0.06, 0., 0.)),
+                        ..default()
+                    },
+                    TowerFoundationBottom,
+                    TowerFoundationLid,
+                    Name::new("Tower Foundation Bottom"),
+                ))
                 .with_children(|parent| {
-                    parent
-                        .spawn(PbrBundle {
-                            mesh: assets.tower_foundation_progress_bar_frame.clone(),
-                            material: materials.add(StandardMaterial {
-                                base_color: Color::BLACK,
-                                perceptual_roughness: 0.4,
-                                metallic: 0.6,
-                                reflectance: 0.5,
-                                ..default()
-                            }),
-                            transform: Transform::from_translation(Vec3::new(-0.06, 0., 0.)),
-                            ..default()
-                        })
-                        .insert(Name::new("Tower Foundation Progress Bar Frame"))
-                        .with_children(|parent| {
-                            parent
-                                .spawn(PbrBundle {
-                                    mesh: assets.tower_foundation_progress_bar.clone(),
-                                    material: materials.add(StandardMaterial {
-                                        base_color: Color::GREEN,
-                                        perceptual_roughness: 0.4,
-                                        metallic: 0.6,
-                                        reflectance: 0.5,
-                                        ..default()
-                                    }),
-                                    transform: Transform {
-                                        translation: Vec3::new(0.003, 0.003, 0.034),
-                                        scale: Vec3::new(1., 1., 0.),
-                                        ..default()
-                                    },
-                                    ..default()
-                                })
-                                .insert(TowerFoundationProgressBar::default())
-                                .insert(RelParent(rel_id))
-                                .insert(Name::new("Tower Foundation Progress Bar"));
-                        });
+                    spawn_progress_bar(
+                        parent,
+                        assets,
+                        materials,
+                        rel_id,
+                        Transform::from_translation(Vec3::new(-0.06, 0., 0.)),
+                        Color::GREEN,
+                    )
                 });
-            parent
-                .spawn(PointLightBundle {
+            parent.spawn((
+                PointLightBundle {
                     transform: Transform::from_xyz(0., 0.005, 0.),
                     point_light: PointLight {
                         intensity: 0.,
@@ -132,8 +104,9 @@ pub fn spawn_foundation(
                         ..default()
                     },
                     ..default()
-                })
-                .insert(ContactLight);
+                },
+                ContactLight,
+            ));
         });
 }
 
@@ -179,27 +152,6 @@ fn set_foundation_despawn_animation(cmds: &mut Commands, foundation_id: Entity, 
 #[derive(Component)]
 pub(super) struct ReadyToBuild;
 
-pub(super) fn progress_bar_count_up_system(
-    mut cmds: Commands,
-    mut evs: EventReader<TowerFoundationCollisionStartEvent>,
-    mut q_progress: Query<(&RelParent, &mut TowerFoundationProgressBar)>,
-) {
-    for ev in evs.iter() {
-        for (rel_parent, mut progress) in q_progress.iter_mut() {
-            let parent_id = rel_parent.0;
-            if parent_id == ev.0 {
-                if progress.0 < 1. {
-                    progress.0 += 0.5;
-                    if progress.0 >= 1. {
-                        cmds.entity(parent_id).insert(ReadyToBuild);
-                    }
-                }
-                break;
-            }
-        }
-    }
-}
-
 pub(super) fn set_next_selected_system(
     mut cmds: Commands,
     q_ready: Query<Entity, With<ReadyToBuild>>,
@@ -223,17 +175,6 @@ fn set_selected_tower_foundation(
         cmds.entity(parent_id)
             .insert(SelectedTowerFoundation)
             .remove::<ReadyToBuild>();
-    }
-}
-
-pub(super) fn progress_bar_scale_system(
-    mut q_progress: Query<(&mut Transform, &TowerFoundationProgressBar)>,
-    time: Res<Time>,
-) {
-    for (mut trans, progress) in q_progress.iter_mut() {
-        if trans.scale.z < progress.0 {
-            trans.scale.z += time.delta_seconds() * 0.5;
-        }
     }
 }
 
@@ -276,15 +217,14 @@ pub(super) fn build_tower_system(
     }
 }
 
-fn disable_light(
-    cmds: &mut Commands,
-    q_light: &mut Query<(Entity, &Parent, &mut PointLight), With<ContactLight>>,
-    parent_id: Entity,
+pub(super) fn foundation_progress_system(
+    mut cmds: Commands,
+    mut evs: EventReader<TowerFoundationCollisionStartEvent>,
+    mut q_progress: Query<(&RelParent, &mut ProgressBar)>,
 ) {
-    let (entity, _, mut pl) = q_light
-        .iter_mut()
-        .find(|(_, p, _)| p.get() == parent_id)
-        .expect("Here should be the selected parend 🫢");
-    pl.intensity = 0.;
-    cmds.entity(entity).remove::<FlashLight>();
+    for ev in evs.iter() {
+        if progress_count_up(ev.0, 0.5, &mut q_progress) >= 1. {
+            cmds.entity(ev.0).insert(ReadyToBuild);
+        }
+    }
 }
