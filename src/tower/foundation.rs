@@ -213,6 +213,9 @@ pub(super) fn build_tower_system(
 
             // Disable selected tower light
             disable_light(&mut cmds, &mut q_light, selected_id);
+
+            // Break to prevent bug, where two towers are built at the same place
+            break;
         }
     }
 }
