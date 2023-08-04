@@ -17,14 +17,14 @@ pub struct TowerFoundationCollisionStartEvent(pub Entity);
 pub struct TowerMenuElementCollisionStartEvent(pub Entity);
 
 #[derive(Event)]
-pub struct LightOnEvent(pub Entity);
+pub struct ContactLightOnEvent(pub Entity);
 
 #[derive(Event)]
 pub struct BuildTowerEvent(pub TowerType);
 
 pub(super) fn collision_system(
     mut col_events: EventReader<CollisionEvent>,
-    mut light_on_ev: EventWriter<LightOnEvent>,
+    mut light_on_ev: EventWriter<ContactLightOnEvent>,
     mut tbc_start_ev: EventWriter<TowerBaseCollisionStartEvent>,
     mut tfc_start_ev: EventWriter<TowerFoundationCollisionStartEvent>,
     mut build_tower_ev: EventWriter<BuildTowerEvent>,
@@ -33,7 +33,7 @@ pub(super) fn collision_system(
     q_tower_base: Query<Entity, With<TowerBase>>,
     q_tower_foundation: Query<Entity, With<TowerFoundation>>,
     q_menu_elements: Query<(Entity, &TowerType), Without<TowerBase>>,
-    q_ball: Query<Entity, With<PinBall>>,
+    q_ball: Query<With<PinBall>>,
     q_flipper_collider: Query<Entity, With<FlipperCollider>>,
 ) {
     for ev in col_events.iter() {
@@ -52,7 +52,7 @@ pub(super) fn collision_system(
                 return;
             }
             if q_light_on_coll.contains(entity) {
-                light_on_ev.send(LightOnEvent(entity));
+                light_on_ev.send(ContactLightOnEvent(entity));
             }
             if q_tower_base.contains(entity) {
                 tbc_start_ev.send(TowerBaseCollisionStartEvent(entity));

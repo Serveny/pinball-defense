@@ -91,7 +91,7 @@ pub fn spawn_left(
     );
 }
 
-#[derive(Component)] 
+#[derive(Component)]
 pub struct FlipperCollider;
 
 fn spawn(
@@ -101,6 +101,7 @@ fn spawn(
     materials: &mut Assets<StandardMaterial>,
     flipper_mesh: &Handle<Mesh>,
 ) {
+    let sig = flipper_type.signum();
     parent
         .spawn((
             PbrBundle {
@@ -115,24 +116,28 @@ fn spawn(
                 transform,
                 ..default()
             },
-            RigidBody::KinematicPositionBased,
-        )).with_children(|parent| {
-            let sig = flipper_type.signum();
-            parent
-                .spawn((Collider::cuboid(0.03, 0.03,  0.12), ActiveEvents::COLLISION_EVENTS))
-                .insert(FlipperCollider)
-                .insert(TransformBundle::from(Transform{
-                    translation: Vec3::new(0.008, 0.03, sig * 0.115) ,
+            Flipper::new(),
+            Name::new(flipper_type.to_string()),
+            FlipperStatus::Idle,
+            flipper_type,
+        ))
+        .with_children(|parent| {
+            parent.spawn((
+                TransformBundle::from(Transform {
+                    translation: Vec3::new(0.008, 0.03, sig * 0.115),
                     rotation: Quat::from_rotation_y(sig * 0.075),
-                    ..default() 
-                }));
-        })
-        .insert(Flipper::new())
-        .insert(Name::new(flipper_type.to_string()))
-        .insert(flipper_type)
-        .insert(FlipperStatus::Idle)
-        // Long cube collider to prevent clipping ball
-        ;
+                    ..default()
+                }),
+                RigidBody::KinematicPositionBased,
+                Collider::cuboid(0.03, 0.03, 0.12),
+                ActiveEvents::COLLISION_EVENTS,
+                Restitution {
+                    coefficient: 0.1,
+                    combine_rule: CoefficientCombineRule::Multiply,
+                },
+                FlipperCollider,
+            ));
+        });
 }
 
 fn flipper_system(

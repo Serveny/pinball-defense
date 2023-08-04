@@ -1,12 +1,12 @@
-use self::foundation::{build_tower_system, foundation_progress_system, set_next_selected_system};
-use self::light::{flash_light_system, light_off_system, light_on_by_parent, ContactLight};
+use self::foundation::{build_tower_system, set_next_selected_system};
+use self::light::{contact_light_on_system, flash_light_system, light_off_system};
 use self::machine_gun::spawn_tower_machine_gun;
 use self::microwave::spawn_tower_microwave;
 use self::progress_bar::{progress_bar_scale_system, progress_count_up, ProgressBar};
 use self::tesla::spawn_tower_tesla;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
-use crate::utils::collision_events::LightOnEvent;
+use crate::utils::collision_events::TowerBaseCollisionStartEvent;
 use crate::utils::RelParent;
 use crate::world::PinballWorld;
 use crate::GameState;
@@ -32,12 +32,13 @@ impl Plugin for TowerPlugin {
                 tower_on_collision_system,
                 rotate_tower_head_system,
                 light_off_system,
-                foundation_progress_system,
+                foundation::on_collision_system,
                 progress_bar_scale_system,
                 flash_light_system,
                 build_tower_system,
                 spawn_tower_system,
                 set_next_selected_system,
+                contact_light_on_system,
             )
                 .run_if(in_state(GameState::Ingame)),
         );
@@ -83,12 +84,10 @@ fn tower_start_pos(pos: Vec3) -> Vec3 {
 
 fn tower_on_collision_system(
     mut cmds: Commands,
-    mut evs: EventReader<LightOnEvent>,
-    mut q_light: Query<(&mut PointLight, &Parent), With<ContactLight>>,
+    mut evs: EventReader<TowerBaseCollisionStartEvent>,
     mut q_progress: Query<(&RelParent, &mut ProgressBar)>,
 ) {
     for ev in evs.iter() {
-        light_on_by_parent(ev.0, &mut q_light);
         tower_pogress(ev.0, &mut cmds, &mut q_progress);
     }
 }
