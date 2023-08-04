@@ -1,13 +1,17 @@
-use self::foundation::{
-    build_tower_system, progress_bar_count_up_system, progress_bar_scale_system,
-    set_next_selected_system,
+use self::foundation::{build_tower_system, foundation_progress_system, set_next_selected_system};
+use self::light::{
+    flash_light_system, light_off_system, light_on_by_parent, ContactLight, LightOnCollision,
 };
 use self::machine_gun::spawn_tower_machine_gun;
 use self::microwave::spawn_tower_microwave;
+use self::progress_bar::{
+    progress_bar_scale_system, progress_count_up, spawn_progress_bar, ProgressBar,
+};
 use self::tesla::spawn_tower_tesla;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::collision_events::LightOnEvent;
+use crate::utils::RelParent;
 use crate::world::PinballWorld;
 use crate::GameState;
 use bevy_tweening::lens::TransformPositionLens;
@@ -15,8 +19,10 @@ use bevy_tweening::{Delay, EaseFunction, Sequence, Tween};
 use std::time::Duration;
 
 pub mod foundation;
+pub mod light;
 mod machine_gun;
 mod microwave;
+mod progress_bar;
 mod tesla;
 
 pub struct TowerPlugin;
@@ -26,10 +32,10 @@ impl Plugin for TowerPlugin {
         app.add_event::<SpawnTowerEvent>().add_systems(
             Update,
             (
-                light_on_collision_system,
+                tower_on_collision_system,
                 rotate_tower_head_system,
                 light_off_system,
-                progress_bar_count_up_system,
+                foundation_progress_system,
                 progress_bar_scale_system,
                 flash_light_system,
                 build_tower_system,
@@ -43,9 +49,6 @@ impl Plugin for TowerPlugin {
 
 #[derive(Component)]
 pub struct TowerBase;
-
-#[derive(Component)]
-pub struct ContactLight;
 
 #[derive(Component)]
 pub struct TowerHead;
@@ -67,28 +70,6 @@ fn tower_material() -> StandardMaterial {
     }
 }
 
-fn add_flash_light(
-    cmds: &mut Commands,
-    q_light: &Query<(&Parent, Entity), With<ContactLight>>,
-    parent_id: Entity,
-) {
-    cmds.entity(
-        q_light
-            .iter()
-            .find_map(|(parent, light_id)| if_true!(parent.get() == parent_id, light_id))
-            .expect("Parent should have ContactLight as child"),
-    )
-    .insert(FlashLight);
-}
-
-#[derive(Component)]
-struct FlashLight;
-
-fn flash_light_system(mut q_light: Query<&mut PointLight, With<FlashLight>>, time: Res<Time>) {
-    for mut light in q_light.iter_mut() {
-        light.intensity = ((time.elapsed_seconds() * 16.).sin() + 1.) * LIGHT_INTENSITY * 0.5;
-    }
-}
 fn spawn_tower_base(
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
@@ -108,13 +89,13 @@ fn spawn_tower_base(
             Collider::cylinder(0.05, 0.06),
             Restitution::coefficient(1.),
             ActiveEvents::COLLISION_EVENTS,
+            TowerBase,
+            LightOnCollision,
+            Name::new("Tower Base"),
         ))
-        .insert(TowerBase)
-        .insert(LightOnCollision)
-        .insert(Name::new("Tower Base"))
         .with_children(|parent| {
-            parent
-                .spawn(PointLightBundle {
+            parent.spawn((
+                PointLightBundle {
                     transform: Transform::from_xyz(0., 0.005, 0.),
                     point_light: PointLight {
                         intensity: 0.,
@@ -125,8 +106,22 @@ fn spawn_tower_base(
                         ..default()
                     },
                     ..default()
-                })
-                .insert(ContactLight);
+                },
+                ContactLight,
+            ));
+
+            spawn_progress_bar(
+                parent,
+                assets,
+                materials,
+                parent.parent_entity(),
+                Transform {
+                    translation: Vec3::new(0.034, -0.007, 0.),
+                    scale: Vec3::new(0.5, 1., 0.5),
+                    ..default()
+                },
+                Color::RED,
+            );
         });
 }
 
@@ -147,29 +142,15 @@ fn tower_start_pos(pos: Vec3) -> Vec3 {
     Vec3::new(pos.x, pos.y - 0.1, pos.z)
 }
 
-#[derive(Component)]
-pub struct LightOnCollision;
-
-const LIGHT_INTENSITY: f32 = 48.;
-
-fn light_on_collision_system(
+fn tower_on_collision_system(
+    mut cmds: Commands,
     mut evs: EventReader<LightOnEvent>,
     mut q_light: Query<(&mut PointLight, &Parent), With<ContactLight>>,
+    mut q_progress: Query<(&RelParent, &mut ProgressBar)>,
 ) {
     for ev in evs.iter() {
-        for (mut light, parent) in q_light.iter_mut() {
-            if ev.0 == parent.get() {
-                light.intensity = LIGHT_INTENSITY;
-                break;
-            }
-        }
-    }
-}
-
-fn light_off_system(mut q_light: Query<&mut PointLight, With<ContactLight>>, time: Res<Time>) {
-    for mut light in q_light.iter_mut() {
-        let time = time.delta_seconds() * 64.;
-        light.intensity = (light.intensity - time).clamp(0., LIGHT_INTENSITY);
+        light_on_by_parent(ev.0, &mut q_light);
+        tower_pogress(ev.0, &mut cmds, &mut q_progress);
     }
 }
 
@@ -203,5 +184,15 @@ fn spawn_tower_system(
                 }
             };
         });
+    }
+}
+
+fn tower_pogress(
+    parent_id: Entity,
+    cmds: &mut Commands,
+    q_progress: &mut Query<(&RelParent, &mut ProgressBar)>,
+) {
+    if progress_count_up(parent_id, 0.05, q_progress) >= 1. {
+        //cmds.entity(parent_id).insert(ReadyToBuild);
     }
 }
