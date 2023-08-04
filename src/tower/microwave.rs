@@ -1,6 +1,5 @@
-use super::{
-    create_tower_spawn_animator, spawn_tower_base, tower_material, tower_start_pos, TowerHead,
-};
+use super::base::spawn_tower_base;
+use super::{create_tower_spawn_animator, tower_material, tower_start_pos, TowerHead};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy_tweening::Animator;
