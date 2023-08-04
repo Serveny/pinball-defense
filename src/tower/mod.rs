@@ -1,12 +1,8 @@
 use self::foundation::{build_tower_system, foundation_progress_system, set_next_selected_system};
-use self::light::{
-    flash_light_system, light_off_system, light_on_by_parent, ContactLight, LightOnCollision,
-};
+use self::light::{flash_light_system, light_off_system, light_on_by_parent, ContactLight};
 use self::machine_gun::spawn_tower_machine_gun;
 use self::microwave::spawn_tower_microwave;
-use self::progress_bar::{
-    progress_bar_scale_system, progress_count_up, spawn_progress_bar, ProgressBar,
-};
+use self::progress_bar::{progress_bar_scale_system, progress_count_up, ProgressBar};
 use self::tesla::spawn_tower_tesla;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
@@ -18,6 +14,7 @@ use bevy_tweening::lens::TransformPositionLens;
 use bevy_tweening::{Delay, EaseFunction, Sequence, Tween};
 use std::time::Duration;
 
+pub mod base;
 pub mod foundation;
 pub mod light;
 mod machine_gun;
@@ -48,9 +45,6 @@ impl Plugin for TowerPlugin {
 }
 
 #[derive(Component)]
-pub struct TowerBase;
-
-#[derive(Component)]
 pub struct TowerHead;
 
 #[derive(Component, Clone, Copy)]
@@ -68,61 +62,6 @@ fn tower_material() -> StandardMaterial {
         reflectance: 0.1,
         ..default()
     }
-}
-
-fn spawn_tower_base(
-    parent: &mut ChildBuilder,
-    materials: &mut Assets<StandardMaterial>,
-    assets: &PinballDefenseAssets,
-    g_sett: &GraphicsSettings,
-) {
-    parent
-        .spawn((
-            PbrBundle {
-                mesh: assets.tower_base.clone(),
-                material: materials.add(tower_material()),
-                ..default()
-            },
-            //Ccd::enabled(),
-            RigidBody::KinematicPositionBased,
-            ColliderDebugColor(Color::RED),
-            Collider::cylinder(0.05, 0.06),
-            Restitution::coefficient(1.),
-            ActiveEvents::COLLISION_EVENTS,
-            TowerBase,
-            LightOnCollision,
-            Name::new("Tower Base"),
-        ))
-        .with_children(|parent| {
-            parent.spawn((
-                PointLightBundle {
-                    transform: Transform::from_xyz(0., 0.005, 0.),
-                    point_light: PointLight {
-                        intensity: 0.,
-                        color: Color::RED,
-                        shadows_enabled: g_sett.is_shadows,
-                        radius: 0.01,
-                        range: 0.5,
-                        ..default()
-                    },
-                    ..default()
-                },
-                ContactLight,
-            ));
-
-            spawn_progress_bar(
-                parent,
-                assets,
-                materials,
-                parent.parent_entity(),
-                Transform {
-                    translation: Vec3::new(0.034, -0.007, 0.),
-                    scale: Vec3::new(0.5, 1., 0.5),
-                    ..default()
-                },
-                Color::RED,
-            );
-        });
 }
 
 fn create_tower_spawn_animator(pos: Vec3) -> Sequence<Transform> {

@@ -2,9 +2,10 @@ use crate::ball::PinBall;
 use crate::flipper::FlipperCollider;
 use crate::pinball_menu::PinballMenuEvent;
 use crate::prelude::*;
+use crate::tower::base::TowerBase;
 use crate::tower::foundation::TowerFoundation;
 use crate::tower::light::LightOnCollision;
-use crate::tower::{TowerBase, TowerType};
+use crate::tower::TowerType;
 
 #[derive(Event)]
 pub struct TowerBaseCollisionStartEvent(pub Entity);

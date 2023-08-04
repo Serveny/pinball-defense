@@ -90,7 +90,7 @@ fn spawn_pinball_menu_system(
 ) {
     if !q_selected.is_empty() && q_pb_menu.is_empty() {
         cmds.entity(q_pbw.single()).with_children(|p| {
-            let pos = Vec3::new(1.2, 0.02, 0.05);
+            let pos = Vec3::new(1.2, 0., 0.05);
             spawn_menu(p, &mut mats, &assets, &g_sett, pos);
         });
     }
