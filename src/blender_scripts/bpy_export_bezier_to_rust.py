@@ -1,28 +1,24 @@
-# Export curve to rust/bevy bezier
 import bpy
 
-myCurve = bpy.data.curves[0]  # here your curve
-spline = myCurve.splines[0]  # maybe you need a loop if more than 1 spline
+
+def bezier_to_four_points(bezier_points):
+    if len(bezier_points) < 4:
+        raise ValueError("A Bezier curve requires at least 4 control points.")
+
+    p0 = bezier_points[0].co
+    p3 = bezier_points[-1].co
+
+    p1 = (bezier_points[0].handle_right + bezier_points[1].handle_left) / 2.0
+    p2 = (bezier_points[-2].handle_right + bezier_points[-1].handle_left) / 2.0
+
+    return [p0, p1, p2, p3]
 
 
-def vecToStr(vec) -> str:
-    pass
+# For now, just grab the first curve object
+curve = next(filter(lambda obj: obj.type == "CURVE", bpy.data.objects.values()))
+bezier_points_list = curve.data.splines[0].bezier_points
 
+# Konvertiere die Bezier-Kurve zu einer Liste mit vier Punkten
+converted_points = bezier_to_four_points(bezier_points_list)
 
-print("\n======================")
-print("""
-// Control points for bezier
-let points = [
-""")
-
-for point in spline.bezier_points:
-    print("    [")
-    for vec in (point.co, point.handle_left, point.handle_right):
-        print(f"        Vec3::new({vec.x:.02f}, {vec.y:.02f}, {vec.z:.02f}),")
-    print("    ],")
-print("""];
-
-// Make a CubicCurve
-let bezier = Bezier::new(points).to_curve();
-""")
-
+print(converted_points)
