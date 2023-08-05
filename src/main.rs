@@ -9,6 +9,7 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_tweening::TweeningPlugin;
 use bevy_window_title_diagnostics::WindowTitleLoggerDiagnosticsPlugin;
 use controls::ControlsPlugin;
+use enemy::EnemyPlugin;
 use fps_camera::FirstPersonCameraPlugin;
 use loading::LoadingScreenPlugin;
 use pinball_menu::PinballMenuPlugin;
@@ -85,6 +86,7 @@ fn main() {
         ControlsPlugin,
         PinballMenuPlugin,
         PinballUtilsPlugin,
+        EnemyPlugin,
     ));
 
     add_rapier(&mut app);
