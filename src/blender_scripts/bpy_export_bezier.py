@@ -7,23 +7,25 @@ file = open(currPath, "w")
 file.write("use bevy::prelude::Vec3;\n\n")
 
 
-def convert_quadratic_to_cubic_bezier(p0, p1, p2):
-    # Berechne die neuen Kontrollpunkte für die kubische Bezier-Kurve
-    cp0 = p0
-    cp1 = Vector(
-        ((2 * p0[0] + p1[0]) / 3, (2 * p0[1] + p1[1]) / 3, (2 * p0[2] + p1[2]) / 3)
-    )
-    cp2 = Vector(
-        ((2 * p1[0] + p2[0]) / 3, (2 * p1[1] + p2[1]) / 3, (2 * p1[2] + p2[2]) / 3)
-    )
-    cp3 = p2
+def m(f1: float, f2: float) -> float:
+    return (2 * f1 + f2) / 3
 
-    # Gib die Kontrollpunkte der kubischen Bezier-Kurve zurück
-    return [p0, p1, p1, p2]
+
+def middle(p0: Vector, p1: Vector) -> Vector:
+    x = m(p0[0], p1[0])
+    y = m(p0[1], p1[1])
+    z = m(p0[2], p1[2])
+    return Vector(x, y, z)
+
+
+def convert_quadratic_to_cubic_bezier(
+    p0: Vector, p1: Vector, p2: Vector
+) -> list[Vector]:
+    return [p0, middle(p0, p1), middle(p1, p2), p2]
 
 
 def write_bezier_points(matrix, points):
-    file.write(f"pub const ROAD_PATH: [[Vec3; 4]; {len(points)}] = [\n")
+    file.write(f"pub(crate)const ROAD_PATH: [[Vec3; 4]; {len(points)}] = [\n")
 
     for bezier_point in points.values():
         handle_left = matrix @ bezier_point.handle_left
