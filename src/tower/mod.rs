@@ -2,12 +2,9 @@ use self::foundation::{build_tower_system, set_next_selected_system};
 use self::light::{contact_light_on_system, flash_light_system, light_off_system};
 use self::machine_gun::spawn_tower_machine_gun;
 use self::microwave::spawn_tower_microwave;
-use self::progress_bar::{progress_bar_scale_system, progress_count_up, ProgressBar};
 use self::tesla::spawn_tower_tesla;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
-use crate::utils::collision_events::TowerBaseCollisionStartEvent;
-use crate::utils::RelParent;
 use crate::world::PinballWorld;
 use crate::GameState;
 use bevy_tweening::lens::TransformPositionLens;
@@ -19,7 +16,6 @@ pub mod foundation;
 pub mod light;
 mod machine_gun;
 mod microwave;
-mod progress_bar;
 mod tesla;
 
 pub struct TowerPlugin;
@@ -29,11 +25,8 @@ impl Plugin for TowerPlugin {
         app.add_event::<SpawnTowerEvent>().add_systems(
             Update,
             (
-                tower_on_collision_system,
                 rotate_tower_head_system,
                 light_off_system,
-                foundation::on_collision_system,
-                progress_bar_scale_system,
                 flash_light_system,
                 build_tower_system,
                 spawn_tower_system,
@@ -48,7 +41,7 @@ impl Plugin for TowerPlugin {
 #[derive(Component)]
 pub struct TowerHead;
 
-#[derive(Component, Clone, Copy)]
+#[derive(Component, Clone, Copy, Debug)]
 pub enum TowerType {
     MachineGun,
     Tesla,
@@ -82,16 +75,6 @@ fn tower_start_pos(pos: Vec3) -> Vec3 {
     Vec3::new(pos.x, pos.y - 0.1, pos.z)
 }
 
-fn tower_on_collision_system(
-    mut cmds: Commands,
-    mut evs: EventReader<TowerBaseCollisionStartEvent>,
-    mut q_progress: Query<(&RelParent, &mut ProgressBar)>,
-) {
-    for ev in evs.iter() {
-        tower_pogress(ev.0, &mut cmds, &mut q_progress);
-    }
-}
-
 fn rotate_tower_head_system(time: Res<Time>, mut q_heads: Query<&mut Transform, With<TowerHead>>) {
     for mut trans in q_heads.iter_mut() {
         trans.rotate(Quat::from_rotation_y(time.delta_seconds()));
@@ -122,15 +105,5 @@ fn spawn_tower_system(
                 }
             };
         });
-    }
-}
-
-fn tower_pogress(
-    parent_id: Entity,
-    cmds: &mut Commands,
-    q_progress: &mut Query<(&RelParent, &mut ProgressBar)>,
-) {
-    if progress_count_up(parent_id, 0.05, q_progress) >= 1. {
-        //cmds.entity(parent_id).insert(ReadyToBuild);
     }
 }

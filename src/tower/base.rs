@@ -1,5 +1,4 @@
 use super::light::{ContactLight, LightOnCollision};
-use super::progress_bar::spawn_progress_bar;
 use super::tower_material;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
@@ -23,9 +22,9 @@ pub(super) fn spawn_tower_base(
             //Ccd::enabled(),
             RigidBody::KinematicPositionBased,
             ColliderDebugColor(Color::RED),
-            Collider::cylinder(0.14, 0.06),
+            Collider::cylinder(0.12, 0.06),
             Restitution {
-                coefficient: 2.6,
+                coefficient: 2.,
                 combine_rule: CoefficientCombineRule::Multiply,
             },
             ActiveEvents::COLLISION_EVENTS,
@@ -50,7 +49,7 @@ pub(super) fn spawn_tower_base(
                 ContactLight,
             ));
 
-            spawn_progress_bar(
+            crate::progress_bar::spawn(
                 parent,
                 assets,
                 materials,

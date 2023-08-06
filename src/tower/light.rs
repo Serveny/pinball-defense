@@ -1,5 +1,5 @@
+use crate::events::collision::ContactLightOnEvent;
 use crate::prelude::*;
-use crate::utils::collision_events::ContactLightOnEvent;
 
 #[derive(Component)]
 pub struct ContactLight;

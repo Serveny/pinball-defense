@@ -1,5 +1,5 @@
+use crate::events::tween_completed::ROAD_POINT_REACHED_EVENT_ID;
 use crate::prelude::*;
-use crate::utils::tween_completed_events::ROAD_POINT_REACHED_EVENT_ID;
 use crate::{road::path_points::ROAD_POINTS, GameState};
 use bevy_tweening::{lens::TransformPositionLens, Animator, EaseMethod, Tween};
 use std::time::Duration;
@@ -83,6 +83,8 @@ pub fn set_next_road_point_system(
                     ROAD_POINTS[enemy.i_next_road_point + 1],
                 ));
                 enemy.i_next_road_point += 1;
+
+                #[cfg(feature = "logging")]
                 println!(
                     "🍆 Next road point: {}",
                     ROAD_POINTS[enemy.i_next_road_point]

@@ -43,3 +43,8 @@ Game goal:
 
 - player win if every resource from drill hole is farmed
 - monsters win if there is no of your buildings in base left
+
+Beginning phase:
+
+- Very easy enemy waves, because it must take long to build a new tower
+- Only defending by hitting an enemy with the ball

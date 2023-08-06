@@ -1,10 +1,9 @@
 use crate::assets::PinballDefenseAssets;
 use crate::ball::BallSpawn;
 use crate::ball_starter::BallStarterPlugin;
-use crate::enemy::spawn_enemy;
 use crate::flipper::FlipperPlugin;
 use crate::prelude::*;
-use crate::road::{add_road_path, animate_cube, spawn_road};
+use crate::road::spawn_road;
 use crate::settings::GraphicsSettings;
 use crate::tower::foundation::spawn_foundation;
 use crate::GameState;
@@ -15,8 +14,7 @@ impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(FlipperPlugin)
             .add_plugins(BallStarterPlugin)
-            .add_systems(OnEnter(GameState::Ingame), spawn_pinball_world)
-            .add_systems(Update, animate_cube.run_if(in_state(GameState::Ingame)));
+            .add_systems(OnEnter(GameState::Ingame), spawn_pinball_world);
     }
 }
 
@@ -79,9 +77,7 @@ fn spawn_pinball_world(
         crate::flipper::spawn_right(fr_pos, parent, &mut materials, &mut assets);
 
         spawn_foundations(parent, &mut materials, &assets, &g_sett);
-        add_road_path(parent, &mut meshes, &mut materials);
         spawn_road(parent, &mut materials, &assets);
-        spawn_enemy(parent, &mut meshes, &mut materials);
         parent
             .spawn(TransformBundle::default())
             .insert(Name::new("Colliders"))

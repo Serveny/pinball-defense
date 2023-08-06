@@ -8,9 +8,9 @@ pub fn spatial_from_pos(pos: Vec3) -> SpatialBundle {
     SpatialBundle::from_transform(Transform::from_translation(pos))
 }
 
-// Shorthand oneliner for if true give back c
 mod macros {
 
+    // Shorthand oneliner for if true give back c
     macro_rules! if_true {
         ($a:expr,$c:expr) => {{
             match $a {
@@ -19,5 +19,15 @@ mod macros {
             }
         }};
     }
+
+    // My own little logging feature
+    macro_rules! log {
+        ($($arg:tt)*) => {{
+            #[cfg(feature = "log")]
+            println!($($arg)*)
+        }};
+    }
+
     pub(crate) use if_true;
+    pub(crate) use log;
 }

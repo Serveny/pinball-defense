@@ -9,24 +9,17 @@ use bevy::window::{CursorGrabMode, PrimaryWindow};
 #[allow(clippy::too_many_arguments)]
 pub(super) fn key_system(
     mut cmds: Commands,
-    mut q_window: Query<&mut Window, With<PrimaryWindow>>,
-    btn: Res<Input<MouseButton>>,
     key: Res<Input<KeyCode>>,
     ball_spawn: Res<BallSpawn>,
+    mut q_window: Query<&mut Window, With<PrimaryWindow>>,
     mut cam_state: ResMut<NextState<CameraState>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut ball_starter_state: ResMut<NextState<BallStarterState>>,
     mut q_flipper: Query<(&mut FlipperStatus, &FlipperType)>,
 ) {
-    let mut window = q_window.get_single_mut().unwrap();
-    if btn.just_pressed(MouseButton::Right) {
-        window.cursor.grab_mode = CursorGrabMode::Locked;
-        window.cursor.visible = false;
-        cam_state.set(CameraState::FpsCamera);
-    }
-
     if key.just_pressed(KeyCode::Escape) {
+        let mut window = q_window.get_single_mut().unwrap();
         window.cursor.grab_mode = CursorGrabMode::None;
         window.cursor.visible = true;
         cam_state.set(CameraState::None);
@@ -55,5 +48,18 @@ pub(super) fn key_system(
     }
     if key.just_released(KeyCode::C) {
         set_flipper_status(FlipperType::Right, FlipperStatus::Idle, &mut q_flipper);
+    }
+}
+
+pub(super) fn mouse_btn_system(
+    btn: Res<Input<MouseButton>>,
+    mut cam_state: ResMut<NextState<CameraState>>,
+    mut q_window: Query<&mut Window, With<PrimaryWindow>>,
+) {
+    if btn.just_pressed(MouseButton::Right) {
+        let mut window = q_window.get_single_mut().unwrap();
+        window.cursor.grab_mode = CursorGrabMode::Locked;
+        window.cursor.visible = false;
+        cam_state.set(CameraState::FpsCamera);
     }
 }

@@ -1,11 +1,10 @@
+use crate::events::tween_completed::ACTIVATE_PINBALL_MENU_EVENT_ID;
 use crate::prelude::*;
+use crate::tower::foundation::SelectedTowerFoundation;
 use crate::tower::TowerType;
-use crate::utils::tween_completed_events::{
-    ACTIVATE_PINBALL_MENU_EVENT_ID, DESPAWN_ENTITY_EVENT_ID,
-};
 use crate::world::PinballWorld;
 use crate::GameState;
-use crate::{settings::GraphicsSettings, tower::foundation::SelectedTowerFoundation};
+use crate::{events::tween_completed::DESPAWN_ENTITY_EVENT_ID, settings::GraphicsSettings};
 use bevy_tweening::{
     lens::{TransformPositionLens, TransformRotateYLens},
     Animator, Delay, EaseFunction, Sequence, Tween,
@@ -25,9 +24,8 @@ impl Plugin for PinballMenuPlugin {
     }
 }
 
-#[derive(Event, Debug, Clone, Copy, Default)]
+#[derive(Event, Debug, Clone, Copy)]
 pub enum PinballMenuEvent {
-    #[default]
     Disable,
     SetReady,
     Activate,
@@ -85,10 +83,11 @@ fn spawn_pinball_menu_system(
     assets: Res<PinballDefenseAssets>,
     q_pbw: Query<Entity, With<PinballWorld>>,
     q_pb_menu: Query<&PinballMenu>,
-    q_selected: Query<&SelectedTowerFoundation>,
     g_sett: Res<GraphicsSettings>,
+    q_selected: Query<Entity, With<SelectedTowerFoundation>>,
 ) {
     if !q_selected.is_empty() && q_pb_menu.is_empty() {
+        log!("🐢 Spawn tower menu for: {:?}", q_selected);
         cmds.entity(q_pbw.single()).with_children(|p| {
             let pos = Vec3::new(1.2, 0., 0.05);
             spawn_menu(p, &mut mats, &assets, &g_sett, pos);
@@ -180,7 +179,7 @@ fn spawn_menu(
         });
 }
 
-// Only pub for collision events
+// Only pub(crate)for collision events
 #[derive(Component)]
 struct PinballMenuElement;
 

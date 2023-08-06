@@ -104,18 +104,25 @@ fn on_ball_despawn_system(
 
 // Prevent clipping of ball through objects
 const MAX_SQUARED_SPEED: f32 = 40.;
+const MAX_SQUARED_ANGLE_SPEED: f32 = 20_000.;
 
 fn max_speed_system(mut q_ball: Query<&mut Velocity, With<PinBall>>) {
-    for mut velocity in q_ball.iter_mut() {
-        limit_velocity(&mut velocity);
-    }
+    q_ball.for_each_mut(limit_velocity);
 }
 
-pub fn limit_velocity(velocity: &mut Velocity) {
+pub fn limit_velocity(mut velocity: Mut<Velocity>) {
     let length = velocity.linvel.length_squared();
     if length > MAX_SQUARED_SPEED {
-        println!("🥨{}", velocity.linvel.length_squared());
         velocity.linvel *= MAX_SQUARED_SPEED / length;
-        println!("✅{}", velocity.linvel.length_squared());
+
+        log!("🥨 Limit velocity from {} to {}", length, velocity.linvel);
+
+        // If we reduce speed, maybe we should reduce turn speed too, idk
+        let length = velocity.angvel.length_squared();
+        if length > MAX_SQUARED_ANGLE_SPEED {
+            velocity.angvel *= MAX_SQUARED_ANGLE_SPEED / length;
+
+            log!("💫 Limit turn speed from {} to {}", length, velocity.angvel);
+        }
     }
 }

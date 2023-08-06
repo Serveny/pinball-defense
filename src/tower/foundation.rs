@@ -1,15 +1,10 @@
 use super::light::{add_flash_light, disable_light, ContactLight, LightOnCollision};
-use super::progress_bar::{progress_count_up, spawn_progress_bar, ProgressBar};
 use super::{tower_material, SpawnTowerEvent};
+use crate::events::collision::BuildTowerEvent;
+use crate::events::tween_completed::DESPAWN_ENTITY_EVENT_ID;
 use crate::pinball_menu::PinballMenuEvent;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
-use crate::utils::collision_events::BuildTowerEvent;
-use crate::utils::RelParent;
-use crate::utils::{
-    collision_events::TowerFoundationCollisionStartEvent,
-    tween_completed_events::DESPAWN_ENTITY_EVENT_ID,
-};
 use bevy_tweening::{
     lens::{TransformPositionLens, TransformRotationLens},
     Animator, Delay, EaseFunction, Tween,
@@ -83,7 +78,7 @@ pub fn spawn_foundation(
                     Name::new("Tower Foundation Bottom"),
                 ))
                 .with_children(|parent| {
-                    spawn_progress_bar(
+                    crate::progress_bar::spawn(
                         parent,
                         assets,
                         materials,
@@ -109,9 +104,6 @@ pub fn spawn_foundation(
             ));
         });
 }
-
-#[derive(Component)]
-pub struct SelectedTowerFoundation;
 
 fn set_lid_open_animation(
     cmds: &mut Commands,
@@ -150,46 +142,46 @@ fn set_foundation_despawn_animation(cmds: &mut Commands, foundation_id: Entity, 
 }
 
 #[derive(Component)]
-pub(super) struct ReadyToBuild;
+pub struct ReadyToBuild;
 
 pub(super) fn set_next_selected_system(
     mut cmds: Commands,
+    q_selected: Query<With<SelectedTowerFoundation>>,
     q_ready: Query<Entity, With<ReadyToBuild>>,
-    q_selected: Query<&SelectedTowerFoundation>,
     q_light: Query<(&Parent, Entity), With<ContactLight>>,
 ) {
     if q_selected.is_empty() {
         if let Some(entity_id) = q_ready.iter().next() {
             add_flash_light(&mut cmds, &q_light, entity_id);
-            set_selected_tower_foundation(&mut cmds, entity_id, &q_selected);
+            set_selected_tower_foundation(&mut cmds, entity_id);
         }
     }
 }
 
-fn set_selected_tower_foundation(
-    cmds: &mut Commands,
-    parent_id: Entity,
-    q_selected: &Query<&SelectedTowerFoundation>,
-) {
-    if q_selected.is_empty() {
-        cmds.entity(parent_id)
-            .insert(SelectedTowerFoundation)
-            .remove::<ReadyToBuild>();
-    }
+#[derive(Component)]
+pub struct SelectedTowerFoundation;
+
+fn set_selected_tower_foundation(cmds: &mut Commands, parent_id: Entity) {
+    cmds.entity(parent_id)
+        .remove::<ReadyToBuild>()
+        .insert(SelectedTowerFoundation);
 }
 
 pub(super) fn build_tower_system(
     mut evs: EventReader<BuildTowerEvent>,
     mut spawn_tower_ev: EventWriter<SpawnTowerEvent>,
     mut cmds: Commands,
+    mut q_light: Query<(Entity, &Parent, &mut PointLight), With<ContactLight>>,
+    mut pb_menu_ev: EventWriter<PinballMenuEvent>,
     q_selected: Query<(Entity, &Transform), With<SelectedTowerFoundation>>,
     q_lids_bottom: Query<(Entity, &Parent), With<TowerFoundationBottom>>,
     q_lids_top: Query<(Entity, &Parent), With<TowerFoundationTop>>,
-    mut q_light: Query<(Entity, &Parent, &mut PointLight), With<ContactLight>>,
-    mut pb_menu_ev: EventWriter<PinballMenuEvent>,
 ) {
     for ev in evs.iter() {
         if let Ok((selected_id, sel_trans)) = q_selected.get_single() {
+            let tower_type = ev.0;
+            log!("🗼Build {:?} on {:?}", tower_type, selected_id);
+
             // Open lids
             q_lids_bottom.for_each(|(lid_id, lid_parent)| {
                 set_lid_open_animation(&mut cmds, lid_id, lid_parent.get(), selected_id, -1.);
@@ -206,7 +198,7 @@ pub(super) fn build_tower_system(
 
             // Spawn new tower
             let pos = sel_trans.translation;
-            spawn_tower_ev.send(SpawnTowerEvent(ev.0, Vec3::new(pos.x, -0.025, pos.z)));
+            spawn_tower_ev.send(SpawnTowerEvent(tower_type, Vec3::new(pos.x, -0.025, pos.z)));
 
             // Despawn menu
             pb_menu_ev.send(PinballMenuEvent::Disable);
@@ -216,18 +208,6 @@ pub(super) fn build_tower_system(
 
             // Break to prevent bug, where two towers are built at the same place
             break;
-        }
-    }
-}
-
-pub(super) fn on_collision_system(
-    mut cmds: Commands,
-    mut evs: EventReader<TowerFoundationCollisionStartEvent>,
-    mut q_progress: Query<(&RelParent, &mut ProgressBar)>,
-) {
-    for ev in evs.iter() {
-        if progress_count_up(ev.0, 0.5, &mut q_progress) >= 1. {
-            cmds.entity(ev.0).insert(ReadyToBuild);
         }
     }
 }
