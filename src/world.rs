@@ -4,7 +4,7 @@ use crate::ball_starter::BallStarterPlugin;
 use crate::enemy::spawn_enemy;
 use crate::flipper::FlipperPlugin;
 use crate::prelude::*;
-use crate::road::{animate_cube, spawn_road};
+use crate::road::{add_road_path, animate_cube, spawn_road};
 use crate::settings::GraphicsSettings;
 use crate::tower::foundation::spawn_foundation;
 use crate::GameState;
@@ -79,6 +79,7 @@ fn spawn_pinball_world(
         crate::flipper::spawn_right(fr_pos, parent, &mut materials, &mut assets);
 
         spawn_foundations(parent, &mut materials, &assets, &g_sett);
+        add_road_path(parent, &mut meshes, &mut materials);
         spawn_road(parent, &mut materials, &assets);
         spawn_enemy(parent, &mut meshes, &mut materials);
         parent
