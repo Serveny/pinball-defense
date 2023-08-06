@@ -14,6 +14,9 @@ opt-level = 3
 # [profile.release]
 # codegen-units = 1
 
+[features]
+log = []
+
 [dependencies]
 bevy = "0.11"
 bevy-inspector-egui = "0.19"

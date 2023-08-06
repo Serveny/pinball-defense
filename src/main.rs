@@ -9,15 +9,15 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_tweening::TweeningPlugin;
 use bevy_window_title_diagnostics::WindowTitleLoggerDiagnosticsPlugin;
 use controls::ControlsPlugin;
-use enemy::EnemyPlugin;
+use events::PinballEventsPlugin;
 use fps_camera::FirstPersonCameraPlugin;
 use loading::LoadingScreenPlugin;
 use pinball_menu::PinballMenuPlugin;
 use prelude::*;
+use progress_bar::ProgressBarPlugin;
 use settings::GraphicsSettings;
 use std::f32::consts::PI;
 use tower::TowerPlugin;
-use utils::PinballUtilsPlugin;
 use world::WorldPlugin;
 
 mod assets;
@@ -26,11 +26,13 @@ mod ball_camera;
 mod ball_starter;
 mod controls;
 mod enemy;
+mod events;
 mod flipper;
 mod fps_camera;
 mod loading;
 mod pinball_menu;
 mod prelude;
+mod progress_bar;
 mod road;
 mod settings;
 mod tower;
@@ -85,8 +87,9 @@ fn main() {
         TowerPlugin,
         ControlsPlugin,
         PinballMenuPlugin,
-        PinballUtilsPlugin,
-        EnemyPlugin,
+        PinballEventsPlugin,
+        ProgressBarPlugin,
+        //EnemyPlugin,
     ));
 
     add_rapier(&mut app);

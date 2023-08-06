@@ -1,10 +1,24 @@
 use crate::prelude::*;
 use crate::utils::RelParent;
+use crate::GameState;
+
+pub struct ProgressBarPlugin;
+
+impl Plugin for ProgressBarPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_event::<ProgressBarCountUpEvent>()
+            .add_event::<ProgressBarFullEvent>()
+            .add_systems(
+                Update,
+                (count_up_system, scale_system).run_if(in_state(GameState::Ingame)),
+            );
+    }
+}
 
 #[derive(Component, Default)]
-pub(super) struct ProgressBar(pub f32);
+pub struct ProgressBar(pub f32);
 
-pub fn spawn_progress_bar(
+pub fn spawn(
     parent: &mut ChildBuilder,
     assets: &PinballDefenseAssets,
     materials: &mut Assets<StandardMaterial>,
@@ -53,23 +67,33 @@ pub fn spawn_progress_bar(
         });
 }
 
-// Returns new value
-pub(super) fn progress_count_up(
-    parent_id: Entity,
-    progress_to_add: f32,
-    q_progress: &mut Query<(&RelParent, &mut ProgressBar)>,
-) -> f32 {
-    if let Some((_, mut progress)) = q_progress.iter_mut().find(|(p, _)| p.0 == parent_id) {
-        progress.0 = (progress.0 + progress_to_add).clamp(0., 1.);
-        return progress.0;
+#[derive(Event)]
+pub struct ProgressBarCountUpEvent(pub Entity, pub f32);
+
+#[derive(Event)]
+pub struct ProgressBarFullEvent(pub Entity);
+
+fn count_up_system(
+    mut evr: EventReader<ProgressBarCountUpEvent>,
+    mut q_progress: Query<(&RelParent, &mut ProgressBar)>,
+    mut evw: EventWriter<ProgressBarFullEvent>,
+) {
+    for ev in evr.iter() {
+        let (rel_id, to_add) = (ev.0, ev.1);
+        if let Some((_, mut progress)) = q_progress.iter_mut().find(|(p, _)| p.0 == rel_id) {
+            log!("Progress: {}", progress.0);
+            if progress.0 < 1. {
+                progress.0 += to_add;
+                if progress.0 >= 1. {
+                    evw.send(ProgressBarFullEvent(rel_id));
+                }
+            }
+        }
     }
-    0.
 }
 
-pub(super) fn progress_bar_scale_system(
-    mut q_progress: Query<(&mut Transform, &ProgressBar)>,
-    time: Res<Time>,
-) {
+// Makes progress visible
+fn scale_system(mut q_progress: Query<(&mut Transform, &ProgressBar)>, time: Res<Time>) {
     for (mut trans, progress) in q_progress.iter_mut() {
         if trans.scale.z < progress.0 {
             trans.scale.z += time.delta_seconds() * 0.5;
