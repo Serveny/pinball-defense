@@ -1,4 +1,4 @@
-use crate::controls::MyGamepad;
+use crate::controls::gamepad::MyGamepad;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::CameraState;

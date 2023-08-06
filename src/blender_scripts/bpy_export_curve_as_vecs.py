@@ -94,7 +94,7 @@ equidistant_points = bezier_curve_to_equidistant_points(bezier_points_list, num_
 # Write rust code to file
 with open(file_name, "w") as file:
     file.write("use bevy::prelude::Vec3;\n\n")
-    file.write(f"pub const ROAD_PATH: [Vec3; {num_points}] = [\n")
+    file.write(f"pub const ROAD_POINTS: [Vec3; {num_points}] = [\n")
 
     for vec in equidistant_points:
         file.write("    Vec3::new(%.3f, %.3f, %.3f),\n" % (vec.x, vec.z, vec.y))
