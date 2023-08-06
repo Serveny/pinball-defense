@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use crate::utils::tween_completed_events::ROAD_POINT_REACHED_EVENT_ID;
-use crate::{road::path_points::ROAD_PATH, GameState};
+use crate::{road::path_points::ROAD_POINTS, GameState};
 use bevy_tweening::{lens::TransformPositionLens, Animator, EaseMethod, Tween};
 use std::time::Duration;
 
@@ -48,7 +48,7 @@ pub fn spawn_enemy(
         },
         Enemy::new(1),
         Name::new("Enemy"),
-        to_pos_animation(ROAD_PATH[0], ROAD_PATH[1]),
+        to_pos_animation(ROAD_POINTS[0], ROAD_POINTS[1]),
     ));
 }
 
@@ -77,13 +77,16 @@ pub fn set_next_road_point_system(
     for ev in evr.iter() {
         let entity = ev.0;
         if let Ok(mut enemy) = q_enemy.get_mut(entity) {
-            if enemy.i_next_road_point < ROAD_PATH.len() - 1 {
+            if enemy.i_next_road_point < ROAD_POINTS.len() - 1 {
                 cmds.entity(entity).insert(to_pos_animation(
-                    ROAD_PATH[enemy.i_next_road_point],
-                    ROAD_PATH[enemy.i_next_road_point + 1],
+                    ROAD_POINTS[enemy.i_next_road_point],
+                    ROAD_POINTS[enemy.i_next_road_point + 1],
                 ));
                 enemy.i_next_road_point += 1;
-                println!("🍆 Next road point: {}", ROAD_PATH[enemy.i_next_road_point]);
+                println!(
+                    "🍆 Next road point: {}",
+                    ROAD_POINTS[enemy.i_next_road_point]
+                );
             }
         }
     }

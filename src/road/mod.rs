@@ -1,6 +1,8 @@
+use self::path::ROAD_PATH;
 use crate::prelude::*;
 use bevy::math::cubic_splines::CubicCurve;
 
+mod path;
 pub mod path_points;
 
 #[derive(Resource)]
@@ -33,32 +35,32 @@ pub fn spawn_road(
         .insert(Name::new("Road Mesh"));
 }
 
-//pub fn add_road_path(
-//parent: &mut ChildBuilder,
-//meshes: &mut Assets<Mesh>,
-//materials: &mut Assets<StandardMaterial>,
-////animations: &mut Assets<AnimationClip>,
-//) {
-//// Make a CubicCurve
-//let bezier = Bezier::new(ROAD_PATH).to_curve();
-//// Create the animation player, and set it to repeat
-////let mut player = AnimationPlayer::default();
-////player.play(animations.add(ROAD_PATH.into())).repeat();
-//let curve = Curve(bezier);
+pub fn add_road_path(
+    parent: &mut ChildBuilder,
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+    //animations: &mut Assets<AnimationClip>,
+) {
+    // Make a CubicCurve
+    let bezier = Bezier::new(ROAD_PATH).to_curve();
+    // Create the animation player, and set it to repeat
+    //let mut player = AnimationPlayer::default();
+    //player.play(animations.add(ROAD_PATH.into())).repeat();
+    let curve = Curve(bezier);
 
-//parent.spawn((
-//PbrBundle {
-//mesh: meshes.add(shape::Cube::new(0.1).into()),
-//material: materials.add(Color::ORANGE.into()),
-//transform: Transform::from_translation(ROAD_PATH[0][0]),
-//..default()
-//},
-//curve,
-//));
-//}
+    parent.spawn((
+        PbrBundle {
+            mesh: meshes.add(shape::Cube::new(0.1).into()),
+            material: materials.add(Color::ORANGE.into()),
+            transform: Transform::from_translation(ROAD_PATH[0][0]),
+            ..default()
+        },
+        curve,
+    ));
+}
 
 pub fn animate_cube(time: Res<Time>, mut query: Query<(&mut Transform, &Curve)>) {
-    let t = time.elapsed_seconds() * 2.;
+    let t = time.elapsed_seconds();
 
     for (mut transform, cubic_curve) in &mut query {
         // Draw the curve

@@ -1,6 +1,6 @@
 use bevy::prelude::Vec3;
 
-pub const ROAD_PATH: [Vec3; 200] = [
+pub const ROAD_POINTS: [Vec3; 200] = [
     Vec3::new(-1.300, 0.000, -0.500),
     Vec3::new(-1.619, 0.000, -0.664),
     Vec3::new(-1.332, 0.000, -0.685),
