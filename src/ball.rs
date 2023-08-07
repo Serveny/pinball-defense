@@ -86,7 +86,7 @@ fn ball_reset_system(
     for (entity, transform) in q_ball.iter() {
         let trans = transform.translation;
         if trans.y <= -1. || trans.y >= 0.4 || (trans.x > 1.2 && trans.z > -0.3) {
-            println!("🎱 Despawn ball");
+            log!("🎱 Despawn ball");
             cmds.get_entity(entity).unwrap().despawn_recursive();
             evw.send(OnBallDespawn);
         }
