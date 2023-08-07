@@ -1,7 +1,6 @@
 use crate::assets::PinballDefenseAssets;
 use crate::ball::BallSpawn;
 use crate::ball_starter::BallStarterPlugin;
-use crate::enemy::spawn_enemy;
 use crate::flipper::FlipperPlugin;
 use crate::prelude::*;
 use crate::road::spawn_road;
@@ -79,7 +78,7 @@ fn spawn_pinball_world(
 
         spawn_foundations(parent, &mut materials, &assets, &g_sett);
         spawn_road(parent, &mut materials, &assets, &mut meshes);
-        spawn_enemy(parent, &assets, &mut meshes, &mut materials, &g_sett);
+        //spawn_enemy(parent, &assets, &mut meshes, &mut materials, &g_sett);
         parent
             .spawn(TransformBundle::default())
             .insert(Name::new("Colliders"))
