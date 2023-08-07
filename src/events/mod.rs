@@ -3,7 +3,7 @@ use self::{
         collision_system, BuildTowerEvent, ContactLightOnEvent, PinballEnemyHitEvent,
         TowerMenuElementCollisionStartEvent,
     },
-    progress_bar::on_progress_bar_full_system,
+    progress_bar::{on_progress_bar_empty_system, on_progress_bar_full_system},
     tween_completed::tween_completed_system,
 };
 use crate::prelude::*;
@@ -27,6 +27,7 @@ impl Plugin for PinballEventsPlugin {
                     collision_system,
                     tween_completed_system,
                     on_progress_bar_full_system,
+                    on_progress_bar_empty_system,
                 )
                     .run_if(in_state(GameState::Ingame)),
             );

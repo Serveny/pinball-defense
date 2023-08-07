@@ -33,6 +33,7 @@ mod flipper;
 mod fps_camera;
 mod loading;
 mod pinball_menu;
+mod player_life;
 mod prelude;
 mod progress_bar;
 mod road;

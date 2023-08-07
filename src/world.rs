@@ -2,6 +2,7 @@ use crate::assets::PinballDefenseAssets;
 use crate::ball::BallSpawn;
 use crate::ball_starter::BallStarterPlugin;
 use crate::flipper::FlipperPlugin;
+use crate::player_life::spawn_life_bar;
 use crate::prelude::*;
 use crate::road::spawn_road;
 use crate::settings::GraphicsSettings;
@@ -78,6 +79,13 @@ fn spawn_pinball_world(
 
         spawn_foundations(parent, &mut materials, &assets, &g_sett);
         spawn_road(parent, &mut materials, &assets, &mut meshes);
+
+        let lb_pos = Transform {
+            translation: Vec3::new(1.15, -0.05, 0.035),
+            scale: Vec3::new(4., 4., 4.),
+            ..default()
+        };
+        spawn_life_bar(parent, &assets, &mut materials, lb_pos);
         //spawn_enemy(parent, &assets, &mut meshes, &mut materials, &g_sett);
         parent
             .spawn(TransformBundle::default())
