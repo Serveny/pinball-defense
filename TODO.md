@@ -5,13 +5,14 @@
   - status bar ✅
   - blink light, when status bar is 100% on the tower foundation, which is selected to upgrade ✅
   - animation for tower building ✅
-  - show ingame tower menu, when status bar full ✅
-  - menu spawn animation ✅
-  - menu despawn animation ✅
-  - loading screen ✅
-  - enemy path following ✅
-  - despawn enemy at path end ✅
-  - collision with pinball and enemy ✅
-  - enemy constant walk speed ✅
-  - life system: progress bar get smaller when enemy reaches end
-  - design enemy
+- show ingame tower menu, when status bar full ✅
+- menu spawn animation ✅
+- menu despawn animation ✅
+- loading screen ✅
+- enemy path following ✅
+- despawn enemy at path end ✅
+- collision with pinball and enemy ✅
+- enemy constant walk speed ✅
+- wave system: every wave one enemy more ✅
+- life system: progress bar get smaller when enemy reaches end
+- design enemy

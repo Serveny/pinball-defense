@@ -19,6 +19,7 @@ use progress_bar::ProgressBarPlugin;
 use settings::GraphicsSettings;
 use std::f32::consts::PI;
 use tower::TowerPlugin;
+use wave::WavePlugin;
 use world::WorldPlugin;
 
 mod assets;
@@ -38,6 +39,7 @@ mod road;
 mod settings;
 mod tower;
 mod utils;
+mod wave;
 mod world;
 
 #[derive(States, PartialEq, Eq, Clone, Copy, Debug, Hash, Default)]
@@ -60,6 +62,7 @@ fn main() {
 
     app.add_state::<GameState>()
         .add_state::<CameraState>()
+        .init_resource::<IngameTime>()
         .add_loading_state(
             LoadingState::new(GameState::Loading).continue_to_state(GameState::Ingame),
         )
@@ -91,10 +94,16 @@ fn main() {
         PinballEventsPlugin,
         ProgressBarPlugin,
         EnemyPlugin,
+        WavePlugin,
     ));
 
     add_rapier(&mut app);
-    app.add_systems(Startup, setup_ambient_lights).run();
+    app.add_systems(Startup, setup_ambient_lights)
+        .add_systems(
+            Update,
+            tick_ingame_timer_system.run_if(in_state(GameState::Ingame)),
+        )
+        .run();
 }
 
 fn add_rapier(app: &mut App) {
@@ -112,6 +121,13 @@ fn add_rapier(app: &mut App) {
     };
     app.insert_resource(rapier_cfg)
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
+}
+
+#[derive(Resource, Deref, DerefMut, Default)]
+pub struct IngameTime(f32);
+
+fn tick_ingame_timer_system(mut ig_time: ResMut<IngameTime>, time: Res<Time>) {
+    **ig_time += time.delta_seconds();
 }
 
 #[cfg(debug_assertions)]

@@ -4,6 +4,7 @@ use crate::prelude::*;
 use crate::road::points::ROAD_DISTS;
 use crate::settings::GraphicsSettings;
 use crate::tower::light::{ContactLight, LightOnCollision};
+use crate::world::PinballWorld;
 use crate::{road::points::ROAD_POINTS, GameState};
 use bevy_tweening::{lens::TransformPositionLens, Animator, EaseMethod, Tween};
 use std::time::Duration;
@@ -12,10 +13,17 @@ pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<RoadPointReachedEvent>().add_systems(
-            Update,
-            (set_next_road_point_system, pinball_hit_system).run_if(in_state(GameState::Ingame)),
-        );
+        app.add_event::<RoadPointReachedEvent>()
+            .add_event::<SpawnEnemyEvent>()
+            .add_systems(
+                Update,
+                (
+                    set_next_road_point_system,
+                    pinball_hit_system,
+                    spawn_enemy_system,
+                )
+                    .run_if(in_state(GameState::Ingame)),
+            );
     }
 }
 
@@ -30,7 +38,26 @@ impl Enemy {
     }
 }
 
-pub fn spawn_enemy(
+#[derive(Event)]
+pub struct SpawnEnemyEvent;
+
+fn spawn_enemy_system(
+    mut cmds: Commands,
+    mut evr: EventReader<SpawnEnemyEvent>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut mats: ResMut<Assets<StandardMaterial>>,
+    q_pqw: Query<Entity, With<PinballWorld>>,
+    assets: Res<PinballDefenseAssets>,
+    g_sett: Res<GraphicsSettings>,
+) {
+    for _ in evr.iter() {
+        cmds.entity(q_pqw.single()).with_children(|parent| {
+            spawn_enemy(parent, &assets, &mut meshes, &mut mats, &g_sett);
+        });
+    }
+}
+
+fn spawn_enemy(
     parent: &mut ChildBuilder,
     assets: &PinballDefenseAssets,
     meshes: &mut Assets<Mesh>,
@@ -41,7 +68,7 @@ pub fn spawn_enemy(
         .spawn((
             PbrBundle {
                 mesh: meshes.add(Mesh::from(shape::UVSphere {
-                    radius: 0.05,
+                    radius: 0.04,
                     ..default()
                 })),
                 material: materials.add(StandardMaterial {
@@ -56,7 +83,7 @@ pub fn spawn_enemy(
             Sensor,
             RigidBody::KinematicPositionBased,
             ColliderDebugColor(Color::RED),
-            Collider::ball(0.06),
+            Collider::ball(0.04),
             Restitution {
                 coefficient: 2.,
                 combine_rule: CoefficientCombineRule::Multiply,
@@ -110,7 +137,7 @@ fn to_pos_animation(start: Vec3, end: Vec3, secs: f32) -> Animator<Transform> {
     )
 }
 
-const WALK_SPEED: f32 = 0.4;
+const WALK_SPEED: f32 = 0.2;
 
 fn calc_walk_time(i: usize) -> f32 {
     ROAD_DISTS[i] / WALK_SPEED
@@ -119,7 +146,7 @@ fn calc_walk_time(i: usize) -> f32 {
 #[derive(Event)]
 pub struct RoadPointReachedEvent(pub Entity);
 
-pub fn set_next_road_point_system(
+fn set_next_road_point_system(
     mut cmds: Commands,
     mut evr: EventReader<RoadPointReachedEvent>,
     mut q_enemy: Query<(Entity, &mut Enemy)>,
@@ -134,11 +161,6 @@ pub fn set_next_road_point_system(
                     calc_walk_time(enemy.i_next_road_point),
                 ));
                 enemy.i_next_road_point += 1;
-
-                log!(
-                    "🍆 Next road point: {}",
-                    ROAD_POINTS[enemy.i_next_road_point]
-                );
             } else {
                 cmds.entity(entity).despawn_recursive();
             }
