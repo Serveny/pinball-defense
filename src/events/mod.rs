@@ -1,6 +1,7 @@
 use self::{
     collision::{
-        collision_system, BuildTowerEvent, ContactLightOnEvent, TowerMenuElementCollisionStartEvent,
+        collision_system, BuildTowerEvent, ContactLightOnEvent, PinballEnemyHitEvent,
+        TowerMenuElementCollisionStartEvent,
     },
     progress_bar::on_progress_bar_full_system,
     tween_completed::tween_completed_system,
@@ -19,6 +20,7 @@ impl Plugin for PinballEventsPlugin {
         app.add_event::<TowerMenuElementCollisionStartEvent>()
             .add_event::<ContactLightOnEvent>()
             .add_event::<BuildTowerEvent>()
+            .add_event::<PinballEnemyHitEvent>()
             .add_systems(
                 Update,
                 (
