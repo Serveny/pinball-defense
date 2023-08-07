@@ -1,6 +1,6 @@
 use crate::events::tween_completed::ROAD_POINT_REACHED_EVENT_ID;
 use crate::prelude::*;
-use crate::{road::path_points::ROAD_POINTS, GameState};
+use crate::{road::points::ROAD_POINTS, GameState};
 use bevy_tweening::{lens::TransformPositionLens, Animator, EaseMethod, Tween};
 use std::time::Duration;
 
@@ -56,11 +56,8 @@ fn to_pos_animation(start: Vec3, end: Vec3) -> Animator<Transform> {
     Animator::new(
         Tween::new(
             EaseMethod::Linear,
-            Duration::from_secs_f32(0.05),
-            TransformPositionLens {
-                start: start / 10.,
-                end: end / 10.,
-            },
+            Duration::from_secs_f32(0.5),
+            TransformPositionLens { start, end },
         )
         .with_completed_event(ROAD_POINT_REACHED_EVENT_ID),
     )
@@ -84,8 +81,7 @@ pub fn set_next_road_point_system(
                 ));
                 enemy.i_next_road_point += 1;
 
-                #[cfg(feature = "logging")]
-                println!(
+                log!(
                     "🍆 Next road point: {}",
                     ROAD_POINTS[enemy.i_next_road_point]
                 );
