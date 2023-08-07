@@ -124,12 +124,12 @@ fn spawn(
         .with_children(|parent| {
             parent.spawn((
                 TransformBundle::from(Transform {
-                    translation: Vec3::new(0.008, 0.03, sig * 0.115),
+                    translation: Vec3::new(0.008, 0.035, sig * 0.115),
                     rotation: Quat::from_rotation_y(sig * 0.075),
                     ..default()
                 }),
                 RigidBody::KinematicPositionBased,
-                Collider::cuboid(0.03, 0.03, 0.12),
+                Collider::cuboid(0.03, 0.035, 0.12),
                 ActiveEvents::COLLISION_EVENTS,
                 Restitution {
                     coefficient: 0.1,

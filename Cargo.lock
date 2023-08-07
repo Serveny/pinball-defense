@@ -1110,7 +1110,8 @@ dependencies = [
 [[package]]
 name = "bevy_window_title_diagnostics"
 version = "0.5.0"
-source = "git+https://github.com/Serveny/bevy_window_title_diagnostics.git?branch=pullbranch_update_to_bevy_0.11#a79ce8777bd4292071bc4cae0d79d24e80f3b708"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a64687f2ecd6e804408fe651bca3566777b6fe221b4e606edda42533cf91ce25"
 dependencies = [
  "bevy",
 ]
