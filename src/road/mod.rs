@@ -1,4 +1,3 @@
-use self::points::ROAD_POINTS;
 use crate::prelude::*;
 use bevy::math::cubic_splines::CubicCurve;
 
@@ -34,24 +33,31 @@ pub fn spawn_road(
         },
         Name::new("Road Mesh"),
     ));
-    for pos in ROAD_POINTS {
-        parent.spawn(PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::UVSphere {
-                radius: 0.005,
-                ..default()
-            })),
-            material: materials.add(StandardMaterial {
-                base_color: Color::GREEN,
-                perceptual_roughness: 0.8,
-                metallic: 0.,
-                reflectance: 0.8,
-                ..default()
-            }),
-            transform: Transform::from_translation(pos),
-            ..default()
-        });
-    }
 }
+
+//fn spawn_road_milestones(
+//parent: &mut ChildBuilder,
+//materials: &mut Assets<StandardMaterial>,
+//meshes: &mut Assets<Mesh>,
+//) {
+//for pos in ROAD_POINTS {
+//parent.spawn(PbrBundle {
+//mesh: meshes.add(Mesh::from(shape::UVSphere {
+//radius: 0.005,
+//..default()
+//})),
+//material: materials.add(StandardMaterial {
+//base_color: Color::GREEN,
+//perceptual_roughness: 0.8,
+//metallic: 0.,
+//reflectance: 0.8,
+//..default()
+//}),
+//transform: Transform::from_translation(pos),
+//..default()
+//});
+//}
+//}
 
 //pub fn add_road_path(
 //parent: &mut ChildBuilder,

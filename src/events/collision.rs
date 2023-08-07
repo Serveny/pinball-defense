@@ -1,4 +1,5 @@
 use crate::ball::PinBall;
+use crate::enemy::Enemy;
 use crate::flipper::FlipperCollider;
 use crate::pinball_menu::PinballMenuEvent;
 use crate::prelude::*;
@@ -18,18 +19,23 @@ pub struct ContactLightOnEvent(pub Entity);
 #[derive(Event)]
 pub struct BuildTowerEvent(pub TowerType);
 
+#[derive(Event)]
+pub struct PinballEnemyHitEvent(pub Entity);
+
 pub(super) fn collision_system(
     mut col_events: EventReader<CollisionEvent>,
     mut light_on_ev: EventWriter<ContactLightOnEvent>,
     mut build_tower_ev: EventWriter<BuildTowerEvent>,
     mut pb_menu_ev: EventWriter<PinballMenuEvent>,
     mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
+    mut enemy_hit_ev: EventWriter<PinballEnemyHitEvent>,
     q_light_on_coll: Query<Entity, With<LightOnCollision>>,
     q_tower_base: Query<Entity, With<TowerBase>>,
     q_tower_foundation: Query<Entity, With<TowerFoundation>>,
     q_menu_els: Query<(Entity, &TowerType), Without<TowerBase>>,
     q_ball: Query<With<PinBall>>,
     q_flipper_collider: Query<Entity, With<FlipperCollider>>,
+    q_enemy: Query<With<Enemy>>,
 ) {
     for ev in col_events.iter() {
         if let CollisionEvent::Started(mut entity, entity_2, flag) = ev {
@@ -47,14 +53,16 @@ pub(super) fn collision_system(
             // Only Sensors
             if *flag == CollisionEventFlags::SENSOR {
                 if q_tower_foundation.contains(entity) {
-                    prog_bar_ev.send(ProgressBarCountUpEvent(entity, 0.5));
+                    prog_bar_ev.send(ProgressBarCountUpEvent(entity, 0.025));
                     return;
                 }
                 if let Some((_, tower_type)) = q_menu_els.iter().find(|(id, _)| *id == entity) {
                     build_tower_ev.send(BuildTowerEvent(*tower_type));
                     return;
                 }
-                return;
+                if q_enemy.contains(entity) {
+                    enemy_hit_ev.send(PinballEnemyHitEvent(entity));
+                }
             }
 
             // Only Colliders

@@ -20,7 +20,7 @@ fn despawn_layout(mut cmds: Commands, q_layout: Query<Entity, With<LoadingLayout
 }
 
 fn spawn_layout(mut cmds: Commands) {
-    println!("Loading Sceen 🤤");
+    log!("Loading Sceen 🤤");
     cmds.spawn((Camera2dBundle::default(), LoadingLayout));
     cmds.spawn((
         NodeBundle {
