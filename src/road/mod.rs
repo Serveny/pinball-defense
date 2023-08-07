@@ -1,3 +1,4 @@
+use self::points::ROAD_POINTS;
 use crate::prelude::*;
 use bevy::math::cubic_splines::CubicCurve;
 
