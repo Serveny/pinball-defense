@@ -60,6 +60,7 @@ pub(super) fn spawn_tower_base(
                     ..default()
                 },
                 Color::RED,
+                0.,
             );
         });
 }

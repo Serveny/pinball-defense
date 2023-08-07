@@ -55,7 +55,7 @@ pub struct PinballDefenseAssets {
     pub tower_foundation_ring: Handle<Mesh>,
 
     #[asset(path = "models/towers/tower_foundation.gltf#Mesh3/Primitive0")]
-    pub tower_foundation_progress_bar: Handle<Mesh>,
+    pub progress_bar: Handle<Mesh>,
 
     #[asset(path = "models/towers/tower_foundation.gltf#Mesh4/Primitive0")]
     pub tower_foundation_progress_bar_frame: Handle<Mesh>,
