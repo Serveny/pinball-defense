@@ -85,6 +85,7 @@ pub fn spawn_foundation(
                         rel_id,
                         Transform::from_translation(Vec3::new(-0.06, 0., 0.)),
                         Color::GREEN,
+                        0.,
                     )
                 });
             parent.spawn((
