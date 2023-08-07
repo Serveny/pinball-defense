@@ -1,6 +1,7 @@
 use crate::events::collision::PinballEnemyHitEvent;
 use crate::events::tween_completed::ROAD_POINT_REACHED_EVENT_ID;
 use crate::prelude::*;
+use crate::road::points::ROAD_DISTS;
 use crate::settings::GraphicsSettings;
 use crate::tower::light::{ContactLight, LightOnCollision};
 use crate::{road::points::ROAD_POINTS, GameState};
@@ -64,7 +65,7 @@ pub fn spawn_enemy(
             LightOnCollision,
             Enemy::new(1),
             Name::new("Enemy"),
-            to_pos_animation(ROAD_POINTS[0], ROAD_POINTS[1]),
+            to_pos_animation(ROAD_POINTS[0], ROAD_POINTS[1], calc_walk_time(0)),
         ))
         .with_children(|parent| {
             parent.spawn((
@@ -98,15 +99,21 @@ pub fn spawn_enemy(
         });
 }
 
-fn to_pos_animation(start: Vec3, end: Vec3) -> Animator<Transform> {
+fn to_pos_animation(start: Vec3, end: Vec3, secs: f32) -> Animator<Transform> {
     Animator::new(
         Tween::new(
             EaseMethod::Linear,
-            Duration::from_secs_f32(0.5),
+            Duration::from_secs_f32(secs),
             TransformPositionLens { start, end },
         )
         .with_completed_event(ROAD_POINT_REACHED_EVENT_ID),
     )
+}
+
+const WALK_SPEED: f32 = 0.4;
+
+fn calc_walk_time(i: usize) -> f32 {
+    ROAD_DISTS[i] / WALK_SPEED
 }
 
 #[derive(Event)]
@@ -124,6 +131,7 @@ pub fn set_next_road_point_system(
                 cmds.entity(entity).insert(to_pos_animation(
                     ROAD_POINTS[enemy.i_next_road_point],
                     ROAD_POINTS[enemy.i_next_road_point + 1],
+                    calc_walk_time(enemy.i_next_road_point),
                 ));
                 enemy.i_next_road_point += 1;
 
