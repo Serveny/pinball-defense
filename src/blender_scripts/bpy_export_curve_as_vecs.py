@@ -1,5 +1,6 @@
 import bpy
 from mathutils.geometry import interpolate_bezier
+from mathutils import Vector
 import os
 from pathlib import Path
 
@@ -10,7 +11,7 @@ dir_name = Path(__file__).parent.parent
 file_name = os.path.join(dir_name, "../../src/road/points.rs")
 
 
-def get_points(spline, clean=True):
+def get_points(spline, clean=True) -> list[Vector]:
     knots = spline.bezier_points
 
     if len(knots) < 2:
@@ -59,5 +60,12 @@ with open(file_name, "w") as file:
 
     for vec in points:
         file.write("    Vec3::new(%.3f, %.3f, %.3f),\n" % (vec.x, vec.z, -vec.y))
+
+    file.write("];\n")
+
+    file.write(f"pub const ROAD_DISTS: [f32; {(len(points) - 1)}] = [\n")
+
+    for i in range(len(points) - 1):
+        file.write(f"{    (points[i] - points[i+1]).length:.3f},\n"),
 
     file.write("];")
