@@ -1,102 +1,63 @@
 import bpy
-from mathutils import Vector
+from mathutils.geometry import interpolate_bezier
 import os
+from pathlib import Path
 
 # Settings
-num_points = 200
-file_name = os.path.splitext(bpy.data.filepath)[0] + ".curve.rs"
+# file_name = os.path.splitext(bpy.data.filepath)[0] + ".curve.rs"
+
+dir_name = Path(__file__).parent.parent
+file_name = os.path.join(dir_name, "../../src/road/points.rs")
 
 
-# Code
-def bezier_curve_to_equidistant_points(bezier_points_list, num_points):
-    if num_points < 2:
-        raise ValueError("The number of points must be at least 2.")
+def get_points(spline, clean=True):
+    knots = spline.bezier_points
 
-    points = []
+    if len(knots) < 2:
+        return
 
-    # Berechne die Gesamtlänge der Bezier-Kurve
-    total_length = 0.0
-    for i in range(len(bezier_points_list) - 1):
-        total_length += (bezier_points_list[i].co - bezier_points_list[i + 1].co).length
+    # verts per segment
+    r = spline.resolution_u + 1
 
-    segment_length = total_length / (num_points - 1)
+    # segments in spline
+    segments = len(knots)
 
-    # Initialisiere den aktuellen Punkt und die Bogenlänge
-    current_point = bezier_points_list[0].co
-    current_length = 0.0
+    if not spline.use_cyclic_u:
+        segments -= 1
 
-    points.append(current_point)
+    master_point_list = []
+    for i in range(segments):
+        inext = (i + 1) % len(knots)
 
-    # Iteriere über die restlichen Punkte und füge sie hinzu
-    for i in range(1, num_points):
-        target_length = i * segment_length
+        knot1 = knots[i].co
+        handle1 = knots[i].handle_right
+        handle2 = knots[inext].handle_left
+        knot2 = knots[inext].co
 
-        # Suche den nächsten Punkt auf der Kurve, der den äquidistanten Abstand erreicht
-        while current_length < target_length:
-            current_index = 0
-            next_index = 1
-            next_point = bezier_points_list[next_index].co
-            next_length = current_length + (current_point - next_point).length
+        bezier = knot1, handle1, handle2, knot2, r
+        points = interpolate_bezier(*bezier)
+        master_point_list.extend(points)
 
-            # Beachte die Handles für die Bogenlänge
-            while next_length < target_length:
-                current_index = next_index
-                current_point = next_point
-                current_length = next_length
+    # some clean up to remove consecutive doubles, this could be smarter...
+    if clean:
+        old = master_point_list
+        good = [v for i, v in enumerate(old[:-1]) if not old[i] == old[i + 1]]
+        good.append(old[-1])
+        return good
 
-                next_index += 1
-                if next_index >= len(bezier_points_list):
-                    break
-
-                next_point = bezier_points_list[next_index].co
-                next_length = current_length + (current_point - next_point).length
-
-            if next_index < len(bezier_points_list):
-                # Interpoliere den Punkt auf der Kurve mit Handles
-                remaining_length = target_length - current_length
-                t = remaining_length / (next_length - current_length)
-
-                current_handle_right = bezier_points_list[
-                    current_index - 1
-                ].handle_right
-                next_handle_left = bezier_points_list[next_index].handle_left
-
-                # Berechne die Position mit Handles
-                p0 = current_point
-                p1 = current_point + current_handle_right
-                p2 = next_point + next_handle_left
-                p3 = next_point
-
-                t2 = t * t
-                t3 = t2 * t
-                mt = 1 - t
-                mt2 = mt * mt
-                mt3 = mt2 * mt
-
-                x = mt3 * p0[0] + 3 * mt2 * t * p1[0] + 3 * mt * t2 * p2[0] + t3 * p3[0]
-                y = mt3 * p0[1] + 3 * mt2 * t * p1[1] + 3 * mt * t2 * p2[1] + t3 * p3[1]
-                z = mt3 * p0[2] + 3 * mt2 * t * p1[2] + 3 * mt * t2 * p2[2] + t3 * p3[2]
-
-                points.append(Vector((x, y, z)))
-                current_point = Vector((x, y, z))
-                current_length = target_length
-
-    return points
+    return master_point_list
 
 
-# For now, just grab the first curve object
-curve = next(filter(lambda obj: obj.type == "CURVE", bpy.data.objects.values()))
-bezier_points_list = curve.data.splines[0].bezier_points
+spline = bpy.data.curves[0].splines[0]
 
-
-equidistant_points = bezier_curve_to_equidistant_points(bezier_points_list, num_points)
+points = get_points(spline)[::4]
 
 # Write rust code to file
 with open(file_name, "w") as file:
     file.write("use bevy::prelude::Vec3;\n\n")
-    file.write(f"pub(crate)const ROAD_POINTS: [Vec3; {num_points}] = [\n")
+    file.write(f"pub const ROAD_POINTS: [Vec3; {len(points)}] = [\n")
 
-    for vec in equidistant_points:
-        file.write("    Vec3::new(%.3f, %.3f, %.3f),\n" % (vec.x, vec.z, vec.y))
+    for vec in points:
+        file.write("    Vec3::new(%.3f, %.3f, %.3f),\n" % (vec.x, vec.z, -vec.y))
 
     file.write("];")
