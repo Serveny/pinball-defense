@@ -9,5 +9,9 @@
   - menu spawn animation ✅
   - menu despawn animation ✅
   - loading screen ✅
-  - enemy path following
+  - enemy path following ✅
+  - despawn enemy at path end ✅
+  - collision with pinball and enemy ✅
+  - enemy constant walk speed
+  - life system: progress bar get smaller when enemy reaches end
   - design enemy
