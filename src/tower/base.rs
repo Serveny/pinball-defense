@@ -1,4 +1,4 @@
-use super::light::{ContactLight, LightOnCollision};
+use super::light::{spawn_contact_light, ContactLight, LightOnCollision};
 use super::tower_material;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
@@ -33,21 +33,7 @@ pub(super) fn spawn_tower_base(
             Name::new("Tower Base"),
         ))
         .with_children(|parent| {
-            parent.spawn((
-                PointLightBundle {
-                    transform: Transform::from_xyz(0., 0.005, 0.),
-                    point_light: PointLight {
-                        intensity: 0.,
-                        color: Color::RED,
-                        shadows_enabled: g_sett.is_shadows,
-                        radius: 0.01,
-                        range: 0.5,
-                        ..default()
-                    },
-                    ..default()
-                },
-                ContactLight,
-            ));
+            spawn_contact_light(parent, g_sett);
 
             crate::progress_bar::spawn(
                 parent,
