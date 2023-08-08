@@ -4,8 +4,7 @@ use crate::player_life::LifeBar;
 use crate::prelude::*;
 use crate::progress_bar::ProgressBarCountUpEvent;
 use crate::road::points::ROAD_DISTS;
-use crate::settings::GraphicsSettings;
-use crate::tower::light::{ContactLight, LightOnCollision};
+use crate::tower::light::LightOnCollision;
 use crate::{road::points::ROAD_POINTS, GameState};
 use bevy_tweening::{lens::TransformPositionLens, Animator, EaseMethod, Tween};
 use std::time::Duration;
@@ -50,22 +49,18 @@ fn spawn_enemy_system(
     mut meshes: ResMut<Assets<Mesh>>,
     mut mats: ResMut<Assets<StandardMaterial>>,
     q_pqw: QueryWorld,
-    assets: Res<PinballDefenseAssets>,
-    g_sett: Res<GraphicsSettings>,
 ) {
     for _ in evr.iter() {
         cmds.entity(q_pqw.single()).with_children(|parent| {
-            spawn_enemy(parent, &assets, &mut meshes, &mut mats, &g_sett);
+            spawn_enemy(parent, &mut meshes, &mut mats);
         });
     }
 }
 
 fn spawn_enemy(
     parent: &mut ChildBuilder,
-    assets: &PinballDefenseAssets,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
-    g_sett: &GraphicsSettings,
 ) {
     parent.spawn((
         PbrBundle {
@@ -97,37 +92,6 @@ fn spawn_enemy(
         Name::new("Enemy"),
         to_pos_animation(ROAD_POINTS[0], ROAD_POINTS[1], calc_walk_time(0)),
     ));
-    //.with_children(|parent| {
-    //parent.spawn((
-    //PointLightBundle {
-    //transform: Transform::from_xyz(0., 0.005, 0.),
-    //point_light: PointLight {
-    //intensity: 0.,
-    //color: Color::RED,
-    //shadows_enabled: g_sett.is_shadows,
-    //radius: 0.01,
-    //range: 0.5,
-    //..default()
-    //},
-    //..default()
-    //},
-    //ContactLight,
-    //));
-
-    //crate::progress_bar::spawn(
-    //parent,
-    //assets,
-    //materials,
-    //parent.parent_entity(),
-    //Transform {
-    //translation: Vec3::new(0.034, -0.007, 0.),
-    //scale: Vec3::new(0.5, 1., 0.5),
-    //..default()
-    //},
-    //Color::ORANGE,
-    //0.,
-    //);
-    //});
 }
 
 fn to_pos_animation(start: Vec3, end: Vec3, secs: f32) -> Animator<Transform> {
