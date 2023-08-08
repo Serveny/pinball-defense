@@ -16,7 +16,6 @@ pub fn spawn_road(
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseAssets,
-    meshes: &mut Assets<Mesh>,
 ) {
     parent.spawn((
         PbrBundle {

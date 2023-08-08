@@ -1,4 +1,4 @@
-use super::light::{spawn_contact_light, ContactLight, LightOnCollision};
+use super::light::{spawn_contact_light, LightOnCollision};
 use super::tower_material;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
