@@ -53,7 +53,7 @@ pub(super) fn collision_system(
             // Only Sensors
             if *flag == CollisionEventFlags::SENSOR {
                 if q_tower_foundation.contains(entity) {
-                    prog_bar_ev.send(ProgressBarCountUpEvent(entity, 0.025));
+                    prog_bar_ev.send(ProgressBarCountUpEvent(entity, 0.25));
                     return;
                 }
                 if let Some((_, tower_type)) = q_menu_els.iter().find(|(id, _)| *id == entity) {

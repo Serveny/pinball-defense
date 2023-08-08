@@ -49,7 +49,7 @@ pub fn spawn_life_bar(
         });
 }
 
-const RECOVERY_TIMEOUT_SEC: f32 = 5.;
+const RECOVERY_TIMEOUT_SEC: f32 = 6.;
 
 fn recovery_system(
     time: Res<Time>,
@@ -65,7 +65,7 @@ fn recovery_system(
             }
             // If no damage and life is not full, check if you can recover
             else if bar.0 < 1. && ig_time.0 >= last_damage.time + RECOVERY_TIMEOUT_SEC {
-                bar.0 += time.delta_seconds() * 0.1;
+                bar.0 += time.delta_seconds() * 0.01;
             }
 
             last_damage.value = bar.0;
