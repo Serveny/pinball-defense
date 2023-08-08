@@ -5,13 +5,13 @@ use crate::settings::GraphicsSettings;
 #[derive(Component)]
 pub struct ContactLight;
 
-pub fn spawn_contact_light(parent: &mut ChildBuilder, g_sett: &GraphicsSettings) {
+pub fn spawn_contact_light(parent: &mut ChildBuilder, g_sett: &GraphicsSettings, color: Color) {
     parent.spawn((
         PointLightBundle {
             transform: Transform::from_xyz(0., 0.005, 0.),
             point_light: PointLight {
                 intensity: 0.,
-                color: Color::GREEN,
+                color,
                 shadows_enabled: g_sett.is_shadows,
                 radius: 0.01,
                 range: 0.5,
