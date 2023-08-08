@@ -124,9 +124,9 @@ fn add_rapier(app: &mut App) {
         //time_scale: 1.,
         //substeps: 1,
         //},
-        // timestep_mode: TimestepMode::Fixed {
+        //timestep_mode: TimestepMode::Fixed {
         //dt: 1. / 64.,
-        //substeps: 2,
+        //substeps: 4,
         //},
         ..default()
     };

@@ -17,6 +17,6 @@
 - life system: progress bar get smaller when enemy reaches end ✅
 - life system: recovery of life over time ✅
 - performance: make lights invisible if not needed ✅
-- walk system without tweening
+- walk system without tweening ✅
 - optimize walk path
 - design enemy
