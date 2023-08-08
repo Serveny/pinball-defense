@@ -57,7 +57,7 @@ pub fn spawn_foundation(
         ))
         .with_children(|parent| {
             let rel_id = parent.parent_entity();
-            spawn_contact_light(parent, g_sett);
+            spawn_contact_light(parent, g_sett, Color::GREEN);
             parent.spawn((
                 PbrBundle {
                     mesh: assets.tower_foundation_top.clone(),

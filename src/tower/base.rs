@@ -33,7 +33,7 @@ pub(super) fn spawn_tower_base(
             Name::new("Tower Base"),
         ))
         .with_children(|parent| {
-            spawn_contact_light(parent, g_sett);
+            spawn_contact_light(parent, g_sett, Color::RED);
 
             crate::progress_bar::spawn(
                 parent,

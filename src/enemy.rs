@@ -1,27 +1,24 @@
 use crate::events::collision::PinballEnemyHitEvent;
-use crate::events::tween_completed::ROAD_POINT_REACHED_EVENT_ID;
 use crate::player_life::LifeBar;
 use crate::prelude::*;
 use crate::progress_bar::ProgressBarCountUpEvent;
 use crate::road::points::ROAD_DISTS;
 use crate::tower::light::LightOnCollision;
 use crate::{road::points::ROAD_POINTS, GameState};
-use bevy_tweening::{lens::TransformPositionLens, Animator, EaseMethod, Tween};
 use std::time::Duration;
 
 pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<RoadPointReachedEvent>()
+        app.add_event::<SpawnEnemyEvent>()
             .add_event::<RoadEndReachedEvent>()
-            .add_event::<SpawnEnemyEvent>()
             .add_systems(
                 Update,
                 (
-                    set_next_road_point_system,
                     pinball_hit_system,
                     spawn_enemy_system,
+                    walk_system,
                     on_road_end_reached_system,
                 )
                     .run_if(in_state(GameState::Ingame)),
@@ -29,14 +26,70 @@ impl Plugin for EnemyPlugin {
     }
 }
 
+struct Step {
+    pub i_road_point: usize,
+    pub direction: Vec3,
+    pub distance_to_walk: f32,
+    pub distance_walked: f32,
+}
+
+impl Step {
+    pub fn new(i_point: usize) -> Self {
+        let dir = get_direction_to(i_point);
+        Self {
+            i_road_point: i_point,
+            distance_to_walk: ROAD_DISTS[i_point - 1],
+            distance_walked: 0.,
+            direction: dir.normalize(),
+        }
+    }
+
+    pub fn next(&self) -> Self {
+        Self::new(self.i_road_point + 1)
+    }
+    pub fn walk(&mut self, current_pos: Vec3, distance: f32) -> Vec3 {
+        self.distance_walked += distance;
+        current_pos + self.direction * distance
+    }
+
+    pub fn start_pos(&self) -> Vec3 {
+        ROAD_POINTS[self.i_road_point - 1]
+    }
+
+    pub fn is_reached_point(&self) -> bool {
+        self.distance_walked >= self.distance_to_walk
+    }
+
+    pub fn is_reached_road_end(&self) -> bool {
+        self.i_road_point == ROAD_POINTS.len() - 1 && self.is_reached_point()
+    }
+}
+
 #[derive(Component)]
 pub struct Enemy {
-    pub i_next_road_point: usize,
+    step: Step,
+    speed: f32,
 }
 
 impl Enemy {
-    pub fn new(i_next_road_point: usize) -> Self {
-        Self { i_next_road_point }
+    pub fn new() -> Self {
+        Self {
+            step: Step::new(1),
+            speed: WALK_SPEED,
+        }
+    }
+
+    pub fn walk(&mut self, current_pos: Vec3, dur: Duration) -> Option<Vec3> {
+        let distance = dur.as_secs_f32() * self.speed;
+        let mut new_pos = self.step.walk(current_pos, distance);
+        if self.step.is_reached_point() {
+            if self.step.is_reached_road_end() {
+                return None;
+            }
+            self.step = self.step.next();
+            new_pos = self.step.start_pos();
+        }
+        Some(new_pos)
     }
 }
 
@@ -88,54 +141,15 @@ fn spawn_enemy(
         },
         ActiveEvents::COLLISION_EVENTS,
         LightOnCollision,
-        Enemy::new(1),
+        Enemy::new(),
         Name::new("Enemy"),
-        to_pos_animation(ROAD_POINTS[0], ROAD_POINTS[1], calc_walk_time(0)),
     ));
-}
-
-fn to_pos_animation(start: Vec3, end: Vec3, secs: f32) -> Animator<Transform> {
-    Animator::new(
-        Tween::new(
-            EaseMethod::Linear,
-            Duration::from_secs_f32(secs),
-            TransformPositionLens { start, end },
-        )
-        .with_completed_event(ROAD_POINT_REACHED_EVENT_ID),
-    )
 }
 
 const WALK_SPEED: f32 = 0.2;
 
-fn calc_walk_time(i: usize) -> f32 {
-    ROAD_DISTS[i] / WALK_SPEED
-}
-
-#[derive(Event)]
-pub struct RoadPointReachedEvent(pub Entity);
-
-fn set_next_road_point_system(
-    mut cmds: Commands,
-    mut evr: EventReader<RoadPointReachedEvent>,
-    mut road_end_ev: EventWriter<RoadEndReachedEvent>,
-    mut q_enemy: Query<(Entity, &mut Enemy)>,
-) {
-    for ev in evr.iter() {
-        let entity = ev.0;
-        if let Ok((entity, mut enemy)) = q_enemy.get_mut(entity) {
-            if enemy.i_next_road_point < ROAD_POINTS.len() - 1 {
-                cmds.entity(entity).insert(to_pos_animation(
-                    ROAD_POINTS[enemy.i_next_road_point],
-                    ROAD_POINTS[enemy.i_next_road_point + 1],
-                    calc_walk_time(enemy.i_next_road_point),
-                ));
-                enemy.i_next_road_point += 1;
-            } else {
-                cmds.entity(entity).despawn_recursive();
-                road_end_ev.send(RoadEndReachedEvent);
-            }
-        }
-    }
+fn get_direction_to(i: usize) -> Vec3 {
+    ROAD_POINTS[i] - ROAD_POINTS[i - 1]
 }
 
 fn pinball_hit_system(mut cmds: Commands, mut evr: EventReader<PinballEnemyHitEvent>) {
@@ -145,16 +159,31 @@ fn pinball_hit_system(mut cmds: Commands, mut evr: EventReader<PinballEnemyHitEv
     }
 }
 
+fn walk_system(
+    mut q_enemy: Query<(Entity, &mut Transform, &mut Enemy)>,
+    mut end_reached_ev: EventWriter<RoadEndReachedEvent>,
+    time: Res<Time>,
+) {
+    for (enemy_id, mut trans, mut enemy) in q_enemy.iter_mut() {
+        match enemy.walk(trans.translation, time.delta()) {
+            Some(pos) => trans.translation = pos,
+            None => end_reached_ev.send(RoadEndReachedEvent(enemy_id)),
+        };
+    }
+}
+
 #[derive(Event)]
-pub struct RoadEndReachedEvent;
+pub struct RoadEndReachedEvent(Entity);
 
 fn on_road_end_reached_system(
+    mut cmds: Commands,
     mut evr: EventReader<RoadEndReachedEvent>,
     mut progress_ev: EventWriter<ProgressBarCountUpEvent>,
     q_life_bar: Query<Entity, With<LifeBar>>,
 ) {
-    for _ in evr.iter() {
+    for ev in evr.iter() {
         log!("🔚 Enemy reached road end");
+        cmds.entity(ev.0).despawn_recursive();
         progress_ev.send(ProgressBarCountUpEvent(q_life_bar.single(), -0.1));
     }
 }
