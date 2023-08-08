@@ -1,4 +1,4 @@
 use crate::prelude::*;
 
-#[derive(Component)]
+#[derive(Component, Deref, DerefMut)]
 pub struct RelParent(pub Entity);
