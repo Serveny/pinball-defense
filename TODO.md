@@ -16,6 +16,7 @@
 - wave system: every wave one enemy more ✅
 - life system: progress bar get smaller when enemy reaches end ✅
 - life system: recovery of life over time ✅
+- performance: make lights invisible if not needed ✅
 - walk system without tweening
-- performance: make lights invisible if not needed
+- optimize walk path
 - design enemy

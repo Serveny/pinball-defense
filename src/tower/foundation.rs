@@ -1,4 +1,7 @@
-use super::light::{add_flash_light, disable_light, ContactLight, LightOnCollision};
+use super::light::{
+    add_flash_light, disable_flash_light, spawn_contact_light, ContactLight, FlashLight,
+    LightOnCollision,
+};
 use super::{tower_material, SpawnTowerEvent};
 use crate::events::collision::BuildTowerEvent;
 use crate::events::tween_completed::DESPAWN_ENTITY_EVENT_ID;
@@ -54,6 +57,7 @@ pub fn spawn_foundation(
         ))
         .with_children(|parent| {
             let rel_id = parent.parent_entity();
+            spawn_contact_light(parent, g_sett);
             parent.spawn((
                 PbrBundle {
                     mesh: assets.tower_foundation_top.clone(),
@@ -86,23 +90,8 @@ pub fn spawn_foundation(
                         Transform::from_translation(Vec3::new(-0.06, 0., 0.)),
                         Color::GREEN,
                         0.,
-                    )
+                    );
                 });
-            parent.spawn((
-                PointLightBundle {
-                    transform: Transform::from_xyz(0., 0.005, 0.),
-                    point_light: PointLight {
-                        intensity: 0.,
-                        color: Color::GREEN,
-                        shadows_enabled: g_sett.is_shadows,
-                        radius: 0.01,
-                        range: 0.5,
-                        ..default()
-                    },
-                    ..default()
-                },
-                ContactLight,
-            ));
         });
 }
 
@@ -172,7 +161,7 @@ pub(super) fn build_tower_system(
     mut evs: EventReader<BuildTowerEvent>,
     mut spawn_tower_ev: EventWriter<SpawnTowerEvent>,
     mut cmds: Commands,
-    mut q_light: Query<(Entity, &Parent, &mut PointLight), With<ContactLight>>,
+    mut q_light: Query<(Entity, &Parent, &mut Visibility), With<FlashLight>>,
     mut pb_menu_ev: EventWriter<PinballMenuEvent>,
     q_selected: Query<(Entity, &Transform), With<SelectedTowerFoundation>>,
     q_lids_bottom: Query<(Entity, &Parent), With<TowerFoundationBottom>>,
@@ -205,7 +194,7 @@ pub(super) fn build_tower_system(
             pb_menu_ev.send(PinballMenuEvent::Disable);
 
             // Disable selected tower light
-            disable_light(&mut cmds, &mut q_light, selected_id);
+            disable_flash_light(&mut cmds, &mut q_light, selected_id);
 
             // Break to prevent bug, where two towers are built at the same place
             break;
