@@ -15,6 +15,7 @@
 - enemy constant walk speed ✅
 - wave system: every wave one enemy more ✅
 - life system: progress bar get smaller when enemy reaches end ✅
+- life system: recovery of life over time ✅
 - walk system without tweening
 - performance: make lights invisible if not needed
 - design enemy

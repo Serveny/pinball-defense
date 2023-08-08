@@ -1,7 +1,7 @@
 use assets::PinballDefenseAssets;
 use ball::BallPlugin;
 use ball_camera::BallCameraPlugin;
-use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
+use bevy::{app::PluginGroupBuilder, diagnostic::FrameTimeDiagnosticsPlugin};
 //#[cfg(debug_assertions)]
 //use bevy_debug_grid::*;
 #[cfg(debug_assertions)]
@@ -14,6 +14,7 @@ use events::PinballEventsPlugin;
 use fps_camera::FirstPersonCameraPlugin;
 use loading::LoadingScreenPlugin;
 use pinball_menu::PinballMenuPlugin;
+use player_life::PlayerLifePlugin;
 use prelude::*;
 use progress_bar::ProgressBarPlugin;
 use settings::GraphicsSettings;
@@ -84,18 +85,7 @@ fn main() {
         FrameTimeDiagnosticsPlugin,
         TweeningPlugin,
         WindowTitleLoggerDiagnosticsPlugin::default(),
-        FirstPersonCameraPlugin,
-        LoadingScreenPlugin,
-        WorldPlugin,
-        BallPlugin,
-        BallCameraPlugin,
-        TowerPlugin,
-        ControlsPlugin,
-        PinballMenuPlugin,
-        PinballEventsPlugin,
-        ProgressBarPlugin,
-        EnemyPlugin,
-        WavePlugin,
+        PinballDefensePlugins,
     ));
 
     add_rapier(&mut app);
@@ -105,6 +95,26 @@ fn main() {
             tick_ingame_timer_system.run_if(in_state(GameState::Ingame)),
         )
         .run();
+}
+
+struct PinballDefensePlugins;
+impl PluginGroup for PinballDefensePlugins {
+    fn build(self) -> bevy::app::PluginGroupBuilder {
+        PluginGroupBuilder::start::<Self>()
+            .add(LoadingScreenPlugin)
+            .add(FirstPersonCameraPlugin)
+            .add(WorldPlugin)
+            .add(BallPlugin)
+            .add(BallCameraPlugin)
+            .add(TowerPlugin)
+            .add(ControlsPlugin)
+            .add(PinballMenuPlugin)
+            .add(PinballEventsPlugin)
+            .add(ProgressBarPlugin)
+            .add(EnemyPlugin)
+            .add(WavePlugin)
+            .add(PlayerLifePlugin)
+    }
 }
 
 fn add_rapier(app: &mut App) {

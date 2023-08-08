@@ -16,7 +16,7 @@ impl Plugin for ProgressBarPlugin {
     }
 }
 
-#[derive(Component, Default)]
+#[derive(Component, Default, Deref, DerefMut)]
 pub struct ProgressBar(pub f32);
 
 pub fn spawn(
