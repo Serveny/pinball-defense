@@ -1,6 +1,7 @@
 import bpy
 from mathutils.geometry import interpolate_bezier
 from mathutils import Vector
+from math import degrees
 import os
 from pathlib import Path
 
@@ -9,6 +10,8 @@ from pathlib import Path
 
 dir_name = Path(__file__).parent.parent
 file_name = os.path.join(dir_name, "../../src/road/points.rs")
+
+print("\n-------------------------------------\n")
 
 
 def get_points(spline, clean=True) -> list[Vector]:
@@ -49,9 +52,27 @@ def get_points(spline, clean=True) -> list[Vector]:
     return master_point_list
 
 
-spline = bpy.data.curves[0].splines[0]
+def only_relevant_points(points: list[Vector]) -> list[Vector]:
+    new_points = [points[0]]
+    is_curve = False
+    for i in range(len(points) - 2):
+        p1, p2, p3 = points[i], points[i + 1], points[i + 2]
+        d1, d2 = p2 - p1, p3 - p2
+        deg = degrees(d1.angle(d2)) % 180
+        if deg > 4:
+            if is_curve and d1.length < 0.06 and i % 2 == 1:
+                continue
+            new_points.append(p2)
+            is_curve = True
+        else:
+            is_curve = False
+    new_points.append(points[-1])
 
-points = get_points(spline)[::4]
+    return new_points
+
+
+spline = bpy.data.curves[0].splines[0]
+points = only_relevant_points(get_points(spline))
 
 # Write rust code to file
 with open(file_name, "w") as file:

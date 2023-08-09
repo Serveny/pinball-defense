@@ -160,6 +160,7 @@ fn pinball_hit_system(mut cmds: Commands, mut evr: EventReader<PinballEnemyHitEv
 }
 
 fn walk_system(
+    mut cmds: Commands,
     mut q_enemy: Query<(Entity, &mut Transform, &mut Enemy)>,
     mut end_reached_ev: EventWriter<RoadEndReachedEvent>,
     time: Res<Time>,
@@ -167,23 +168,25 @@ fn walk_system(
     for (enemy_id, mut trans, mut enemy) in q_enemy.iter_mut() {
         match enemy.walk(trans.translation, time.delta()) {
             Some(pos) => trans.translation = pos,
-            None => end_reached_ev.send(RoadEndReachedEvent(enemy_id)),
+            None => {
+                // Reminder: If you need infos about the enemy, overgive only infos, not enemy id
+                cmds.entity(enemy_id).despawn_recursive();
+                end_reached_ev.send(RoadEndReachedEvent);
+            }
         };
     }
 }
 
 #[derive(Event)]
-pub struct RoadEndReachedEvent(Entity);
+struct RoadEndReachedEvent;
 
 fn on_road_end_reached_system(
-    mut cmds: Commands,
     mut evr: EventReader<RoadEndReachedEvent>,
     mut progress_ev: EventWriter<ProgressBarCountUpEvent>,
     q_life_bar: Query<Entity, With<LifeBar>>,
 ) {
-    for ev in evr.iter() {
+    for _ in evr.iter() {
         log!("🔚 Enemy reached road end");
-        cmds.entity(ev.0).despawn_recursive();
         progress_ev.send(ProgressBarCountUpEvent(q_life_bar.single(), -0.1));
     }
 }
