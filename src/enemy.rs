@@ -101,49 +101,67 @@ fn spawn_enemy_system(
     mut evr: EventReader<SpawnEnemyEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut mats: ResMut<Assets<StandardMaterial>>,
+    assets: Res<PinballDefenseAssets>,
     q_pqw: QueryWorld,
 ) {
     for _ in evr.iter() {
         cmds.entity(q_pqw.single()).with_children(|parent| {
-            spawn_enemy(parent, &mut meshes, &mut mats);
+            spawn_enemy(parent, &assets, &mut meshes, &mut mats);
         });
     }
 }
 
 fn spawn_enemy(
     parent: &mut ChildBuilder,
+    assets: &PinballDefenseAssets,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
 ) {
-    parent.spawn((
-        PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::UVSphere {
-                radius: 0.03,
+    parent
+        .spawn((
+            PbrBundle {
+                mesh: meshes.add(Mesh::from(shape::UVSphere {
+                    radius: 0.03,
+                    ..default()
+                })),
+                material: materials.add(StandardMaterial {
+                    base_color: Color::RED,
+                    perceptual_roughness: 0.,
+                    metallic: 1.,
+                    reflectance: 1.,
+                    ..default()
+                }),
+                transform: Transform::from_translation(ROAD_POINTS[0]),
                 ..default()
-            })),
-            material: materials.add(StandardMaterial {
-                base_color: Color::RED,
-                perceptual_roughness: 0.,
-                metallic: 1.,
-                reflectance: 1.,
-                ..default()
-            }),
-            transform: Transform::from_translation(ROAD_POINTS[0]),
-            ..default()
-        },
-        Sensor,
-        RigidBody::KinematicPositionBased,
-        ColliderDebugColor(Color::RED),
-        Collider::ball(0.03),
-        Restitution {
-            coefficient: 2.,
-            combine_rule: CoefficientCombineRule::Multiply,
-        },
-        ActiveEvents::COLLISION_EVENTS,
-        LightOnCollision,
-        Enemy::new(),
-        Name::new("Enemy"),
-    ));
+            },
+            Sensor,
+            RigidBody::KinematicPositionBased,
+            ColliderDebugColor(Color::RED),
+            Collider::ball(0.03),
+            Restitution {
+                coefficient: 2.,
+                combine_rule: CoefficientCombineRule::Multiply,
+            },
+            ActiveEvents::COLLISION_EVENTS,
+            LightOnCollision,
+            Enemy::new(),
+            Name::new("Enemy"),
+        ))
+        .with_children(|parent| {
+            crate::progress_bar::spawn(
+                parent,
+                assets,
+                materials,
+                parent.parent_entity(),
+                Transform {
+                    translation: Vec3::new(0., 0.04, 0.),
+                    rotation: Quat::from_rotation_z(f32::to_radians(90.)),
+                    scale: Vec3::new(0.5, 1., 0.5),
+                },
+                Color::ORANGE_RED,
+                1.,
+            )
+        });
 }
 
 const WALK_SPEED: f32 = 0.2;

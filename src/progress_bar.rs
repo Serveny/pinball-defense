@@ -57,7 +57,7 @@ pub fn spawn(
                     }),
                     transform: Transform {
                         translation: Vec3::new(0.003, 0.003, 0.034),
-                        scale: Vec3::new(1., 1., 0.),
+                        scale: Vec3::new(1., 1., init_val),
                         ..default()
                     },
                     ..default()

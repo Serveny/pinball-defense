@@ -47,7 +47,7 @@ fn wave_system(
     if now >= **next_enemy_spawn {
         if **enemies_count == 0 {
             **wave_no += 1;
-            **next_enemy_spawn = now + TIME_BETWEEN_WAVES;
+            **next_enemy_spawn = (now + TIME_BETWEEN_WAVES).round();
             log!("🏄‍♂️ Wave end. Wait until {}", **next_enemy_spawn);
             **enemies_count = **wave_no;
         } else {
