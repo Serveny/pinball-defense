@@ -1,7 +1,6 @@
 use super::base::spawn_tower_base;
 use super::target::{AimFirstEnemy, SightRadius};
 use super::{create_tower_spawn_animator, tower_material, tower_start_pos, Tower, TowerHead};
-use crate::damage::DamageList;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy_tweening::Animator;

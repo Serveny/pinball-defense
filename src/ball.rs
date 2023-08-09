@@ -1,6 +1,4 @@
-use crate::events::collision::collider_only_interact_with_ball;
 use crate::events::collision::BALL;
-use crate::events::collision::ENEMY;
 use crate::events::collision::INTERACT_WITH_BALL;
 use crate::events::collision::INTERACT_WITH_ENEMY;
 use crate::pinball_menu::PinballMenuEvent;
