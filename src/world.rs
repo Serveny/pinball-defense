@@ -9,6 +9,8 @@ use crate::settings::GraphicsSettings;
 use crate::tower::foundation::spawn_foundation;
 use crate::GameState;
 
+pub type QueryWorld<'w, 's> = Query<'w, 's, Entity, With<PinballWorld>>;
+
 pub struct WorldPlugin;
 
 impl Plugin for WorldPlugin {
@@ -78,7 +80,7 @@ fn spawn_pinball_world(
         crate::flipper::spawn_right(fr_pos, parent, &mut materials, &mut assets);
 
         spawn_foundations(parent, &mut materials, &assets, &g_sett);
-        spawn_road(parent, &mut materials, &mut meshes, &assets);
+        spawn_road(parent, &mut materials, &assets);
 
         let lb_pos = Transform {
             translation: Vec3::new(1.15, -0.05, 0.035),
