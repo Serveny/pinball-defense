@@ -19,4 +19,5 @@
 - performance: make lights invisible if not needed ✅
 - walk system without tweening ✅
 - optimize walk path
+- towers logic
 - design enemy
