@@ -1,4 +1,5 @@
 use crate::ball::{spawn_ball, BallSpawn, PinBall};
+use crate::events::collision::collider_only_interact_with_ball;
 use crate::prelude::*;
 
 pub struct BallStarterPlugin;
@@ -63,15 +64,17 @@ pub fn spawn(
                         transform: Transform::from_translation(Vec3::new(-HALF_SIZE.x, 0., 0.)),
                         ..default()
                     },
-                    RigidBody::KinematicPositionBased,
-                    ColliderDebugColor(Color::GOLD),
                     //Ccd::enabled(),
                 ))
                 // Long cube collider to prevent clipping ball
                 .with_children(|parent| {
-                    parent
-                        .spawn(Collider::cuboid(HALF_SIZE.x, HALF_SIZE.y, HALF_SIZE.z))
-                        .insert(TransformBundle::from(Transform::from_xyz(0.09, 0., 0.)));
+                    parent.spawn((
+                        TransformBundle::from(Transform::from_xyz(0.09, 0., 0.)),
+                        Collider::cuboid(HALF_SIZE.x, HALF_SIZE.y, HALF_SIZE.z),
+                        RigidBody::KinematicPositionBased,
+                        ColliderDebugColor(Color::GOLD),
+                        collider_only_interact_with_ball(),
+                    ));
                 })
                 .insert(BallStarterPlate)
                 .insert(Speed(1.));

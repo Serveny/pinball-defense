@@ -1,6 +1,7 @@
 use crate::assets::PinballDefenseAssets;
 use crate::ball::BallSpawn;
 use crate::ball_starter::BallStarterPlugin;
+use crate::events::collision::collider_only_interact_with_ball;
 use crate::flipper::FlipperPlugin;
 use crate::player_life::spawn_life_bar;
 use crate::prelude::*;
@@ -56,7 +57,6 @@ fn spawn_pinball_world(
                     ..default()
                 },
                 //Ccd::enabled(),
-                ColliderDebugColor(Color::GOLD),
                 Collider::from_bevy_mesh(
                     meshes
                         .get(&assets.world_1_collision_mesh)
@@ -64,6 +64,8 @@ fn spawn_pinball_world(
                     &ComputedColliderShape::TriMesh,
                 )
                 .unwrap(),
+                ColliderDebugColor(Color::GOLD),
+                collider_only_interact_with_ball(),
             ))
             .insert(Ground);
 

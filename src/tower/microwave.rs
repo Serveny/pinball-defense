@@ -16,6 +16,7 @@ pub fn spawn_tower_microwave(
     g_sett: &GraphicsSettings,
     pos: Vec3,
 ) {
+    let sight_radius = 0.2;
     parent
         .spawn((
             spatial_from_pos(tower_start_pos(pos)),
@@ -23,12 +24,11 @@ pub fn spawn_tower_microwave(
             MicrowaveTower,
             AimFirstEnemy,
             SightRadius(0.1),
-            DamageList::default(),
             Name::new("Microwave Tower"),
             Animator::new(create_tower_spawn_animator(pos)),
         ))
         .with_children(|parent| {
-            spawn_tower_base(parent, materials, assets, g_sett);
+            spawn_tower_base(parent, materials, assets, g_sett, sight_radius);
             parent.spawn((
                 PbrBundle {
                     mesh: assets.tower_microwave_top.clone(),
