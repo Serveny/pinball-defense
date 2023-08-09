@@ -20,6 +20,7 @@
 - walk system without tweening ✅
 - optimize walk path ✅
 - enemy life bar ✅
+- refactor with multiple event reader
 - towers logic
   - target system
   - shoot/damage system

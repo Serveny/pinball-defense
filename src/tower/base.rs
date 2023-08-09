@@ -23,7 +23,6 @@ pub(super) fn spawn_tower_base(
                 material: materials.add(tower_material()),
                 ..default()
             },
-            //Ccd::enabled(),
             RigidBody::KinematicPositionBased,
             Restitution {
                 coefficient: 2.,
@@ -59,15 +58,18 @@ pub(super) fn spawn_tower_base(
 }
 
 #[derive(Component)]
-struct TowerSightSensor;
+pub struct TowerSightSensor;
 
 fn spawn_tower_sight_sensor(parent: &mut ChildBuilder, radius: f32) {
     parent.spawn((
-        TransformBundle::default(),
+        PbrBundle { ..default() },
+        Sensor,
         RigidBody::KinematicPositionBased,
         ColliderDebugColor(Color::ORANGE),
         Collider::cylinder(0.1, radius),
         ActiveEvents::COLLISION_EVENTS,
+        ActiveCollisionTypes::KINEMATIC_KINEMATIC,
         collider_only_interact_with_enemy(),
+        TowerSightSensor,
     ));
 }
