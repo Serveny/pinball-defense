@@ -1,3 +1,4 @@
+use crate::events::collision::collider_only_interact_with_ball;
 use crate::events::tween_completed::ACTIVATE_PINBALL_MENU_EVENT_ID;
 use crate::prelude::*;
 use crate::tower::foundation::SelectedTowerFoundation;
@@ -135,6 +136,7 @@ fn activate_menu(
                     &ComputedColliderShape::TriMesh,
                 )
                 .unwrap(),
+                collider_only_interact_with_ball(),
             ))
             .remove::<ColliderDisabled>();
     });

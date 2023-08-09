@@ -3,7 +3,7 @@ use super::light::{
     LightOnCollision,
 };
 use super::{tower_material, SpawnTowerEvent};
-use crate::events::collision::BuildTowerEvent;
+use crate::events::collision::{collider_only_interact_with_ball, BuildTowerEvent};
 use crate::events::tween_completed::DESPAWN_ENTITY_EVENT_ID;
 use crate::pinball_menu::PinballMenuEvent;
 use crate::prelude::*;
@@ -50,6 +50,7 @@ pub fn spawn_foundation(
             Sensor,
             Collider::cylinder(0.1, 0.07),
             ColliderDebugColor(Color::GREEN),
+            collider_only_interact_with_ball(),
             ActiveEvents::COLLISION_EVENTS,
             TowerFoundation,
             LightOnCollision,

@@ -1,3 +1,8 @@
+use crate::events::collision::collider_only_interact_with_ball;
+use crate::events::collision::BALL;
+use crate::events::collision::ENEMY;
+use crate::events::collision::INTERACT_WITH_BALL;
+use crate::events::collision::INTERACT_WITH_ENEMY;
 use crate::pinball_menu::PinballMenuEvent;
 use crate::prelude::*;
 use crate::GameState;
@@ -51,6 +56,7 @@ pub fn spawn_ball(
         RigidBody::Dynamic,
         Collider::ball(radius),
         ColliderDebugColor(Color::GOLD),
+        CollisionGroups::new(BALL.union(INTERACT_WITH_ENEMY), INTERACT_WITH_BALL),
         Sleeping::disabled(),
         ColliderMassProperties::Mass(0.081),
         Restitution::coefficient(0.5),

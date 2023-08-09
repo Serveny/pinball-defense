@@ -1,5 +1,8 @@
 use super::light::{spawn_contact_light, LightOnCollision};
 use super::tower_material;
+use crate::events::collision::{
+    collider_only_interact_with_ball, collider_only_interact_with_enemy,
+};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 
@@ -11,6 +14,7 @@ pub(super) fn spawn_tower_base(
     materials: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseAssets,
     g_sett: &GraphicsSettings,
+    sight_radius: f32,
 ) {
     parent
         .spawn((
@@ -21,13 +25,14 @@ pub(super) fn spawn_tower_base(
             },
             //Ccd::enabled(),
             RigidBody::KinematicPositionBased,
-            ColliderDebugColor(Color::RED),
-            Collider::cylinder(0.12, 0.06),
             Restitution {
                 coefficient: 2.,
                 combine_rule: CoefficientCombineRule::Multiply,
             },
             ActiveEvents::COLLISION_EVENTS,
+            ColliderDebugColor(Color::RED),
+            Collider::cylinder(0.12, 0.06),
+            collider_only_interact_with_ball(),
             TowerBase,
             LightOnCollision,
             Name::new("Tower Base"),
@@ -49,4 +54,20 @@ pub(super) fn spawn_tower_base(
                 0.,
             );
         });
+
+    spawn_tower_sight_sensor(parent, sight_radius);
+}
+
+#[derive(Component)]
+struct TowerSightSensor;
+
+fn spawn_tower_sight_sensor(parent: &mut ChildBuilder, radius: f32) {
+    parent.spawn((
+        TransformBundle::default(),
+        RigidBody::KinematicPositionBased,
+        ColliderDebugColor(Color::ORANGE),
+        Collider::cylinder(0.1, radius),
+        ActiveEvents::COLLISION_EVENTS,
+        collider_only_interact_with_enemy(),
+    ));
 }
