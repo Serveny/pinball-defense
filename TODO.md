@@ -18,6 +18,11 @@
 - life system: recovery of life over time ✅
 - performance: make lights invisible if not needed ✅
 - walk system without tweening ✅
-- optimize walk path
+- optimize walk path ✅
+- enemy life bar ✅
 - towers logic
+  - target system
+  - shoot/damage system
+  - special effects
+  - upgrade system
 - design enemy
