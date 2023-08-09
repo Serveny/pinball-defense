@@ -1,3 +1,4 @@
+use crate::events::collision::collider_only_interact_with_ball;
 use crate::prelude::*;
 use crate::GameState;
 
@@ -135,6 +136,7 @@ fn spawn(
                     coefficient: 0.1,
                     combine_rule: CoefficientCombineRule::Multiply,
                 },
+                collider_only_interact_with_ball(),
                 FlipperCollider,
             ));
         });

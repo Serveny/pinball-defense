@@ -27,51 +27,56 @@ pub fn spawn_tower_machine_gun(
 ) {
     let tower_material = materials.add(tower_material());
     let mg_barrel = |parent: &mut ChildBuilder| {
-        parent
-            .spawn(PbrBundle {
+        parent.spawn((
+            PbrBundle {
                 mesh: assets.tower_mg_barrel.clone(),
                 material: tower_material.clone(),
                 transform: Transform::from_xyz(0., 0., 0.),
                 ..default()
-            })
-            .insert(MachineGunTowerBarrel);
+            },
+            MachineGunTowerBarrel,
+        ));
     };
     let mg_head = |parent: &mut ChildBuilder| {
         parent
-            .spawn(PbrBundle {
-                mesh: assets.tower_mg_head.clone(),
-                material: tower_material.clone(),
-                transform: Transform::from_xyz(0., 0., 0.),
-                ..default()
-            })
-            .insert(MachineGunTowerHead)
-            .with_children(|parent| mg_barrel(parent));
+            .spawn((
+                PbrBundle {
+                    mesh: assets.tower_mg_head.clone(),
+                    material: tower_material.clone(),
+                    transform: Transform::from_xyz(0., 0., 0.),
+                    ..default()
+                },
+                MachineGunTowerHead,
+            ))
+            .with_children(mg_barrel);
     };
     let mg_mounting = |parent: &mut ChildBuilder| {
         parent
-            .spawn(PbrBundle {
-                mesh: assets.tower_mg_mounting.clone(),
-                material: tower_material.clone(),
-                transform: Transform::from_xyz(0., 0.023, 0.),
-                ..default()
-            })
-            .insert(MachineGunTowerMount)
-            .insert(TowerHead)
-            .with_children(|parent| mg_head(parent));
+            .spawn((
+                PbrBundle {
+                    mesh: assets.tower_mg_mounting.clone(),
+                    material: tower_material.clone(),
+                    transform: Transform::from_xyz(0., 0.023, 0.),
+                    ..default()
+                },
+                MachineGunTowerMount,
+                TowerHead,
+            ))
+            .with_children(mg_head);
     };
+    let sight_radius = 0.1;
     parent
         .spawn((
             spatial_from_pos(tower_start_pos(pos)),
             MachineGunTower,
             Tower,
             AimFirstEnemy,
-            DamageList::default(),
-            SightRadius(0.1),
+            SightRadius(sight_radius),
             Name::new("Machine Gun Tower"),
             Animator::new(create_tower_spawn_animator(pos)),
         ))
         .with_children(|parent| {
-            spawn_tower_base(parent, materials, assets, g_sett);
+            spawn_tower_base(parent, materials, assets, g_sett, sight_radius);
             mg_mounting(parent);
         });
 }

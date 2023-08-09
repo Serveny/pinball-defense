@@ -22,6 +22,21 @@ pub struct BuildTowerEvent(pub TowerType);
 #[derive(Event)]
 pub struct PinballEnemyHitEvent(pub Entity);
 
+// Collision Groups
+pub const BALL: Group = Group::GROUP_1;
+
+pub const INTERACT_WITH_BALL: Group = Group::GROUP_2;
+
+pub fn collider_only_interact_with_ball() -> CollisionGroups {
+    CollisionGroups::new(INTERACT_WITH_BALL, BALL)
+}
+
+pub const ENEMY: Group = Group::GROUP_3;
+pub const INTERACT_WITH_ENEMY: Group = Group::GROUP_4;
+
+pub fn collider_only_interact_with_enemy() -> CollisionGroups {
+    CollisionGroups::new(INTERACT_WITH_ENEMY, ENEMY)
+}
 pub(super) fn collision_system(
     mut col_events: EventReader<CollisionEvent>,
     mut light_on_ev: EventWriter<ContactLightOnEvent>,
@@ -42,6 +57,9 @@ pub(super) fn collision_system(
             // Workaround: Elements not always in the same order
             if q_ball.contains(entity) {
                 entity = *entity_2;
+            }
+            if !q_ball.contains(entity) {
+                log!("🥂 Non ball collides: {:?} - Flag: {:?}", entity, flag);
             }
             //log!("⛷️ Ball collided with: {:?} - Flag: {:?}", entity, flag);
 

@@ -1,5 +1,7 @@
 use self::walk::{road_end_reached_system, walk_system, RoadEndReachedEvent, Step, WALK_SPEED};
-use crate::events::collision::PinballEnemyHitEvent;
+use crate::events::collision::{
+    PinballEnemyHitEvent, ENEMY, INTERACT_WITH_BALL, INTERACT_WITH_ENEMY,
+};
 use crate::prelude::*;
 use crate::tower::light::LightOnCollision;
 use crate::world::QueryWorld;
@@ -98,8 +100,9 @@ fn spawn_enemy(
             },
             Sensor,
             RigidBody::KinematicPositionBased,
-            ColliderDebugColor(Color::RED),
             Collider::ball(0.03),
+            ColliderDebugColor(Color::RED),
+            CollisionGroups::new(ENEMY.union(INTERACT_WITH_BALL), INTERACT_WITH_ENEMY),
             Restitution {
                 coefficient: 2.,
                 combine_rule: CoefficientCombineRule::Multiply,
