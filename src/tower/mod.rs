@@ -2,10 +2,12 @@ use self::foundation::{build_tower_system, set_next_selected_system};
 use self::light::{contact_light_on_system, flash_light_system, light_off_system};
 use self::machine_gun::spawn_tower_machine_gun;
 use self::microwave::spawn_tower_microwave;
+use self::target::aim_first_enemy_system;
 use self::tesla::spawn_tower_tesla;
+use crate::damage::DamageList;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
-use crate::world::PinballWorld;
+use crate::world::QueryWorld;
 use crate::GameState;
 use bevy_tweening::lens::TransformPositionLens;
 use bevy_tweening::{Delay, EaseFunction, Sequence, Tween};
@@ -16,6 +18,7 @@ pub mod foundation;
 pub mod light;
 mod machine_gun;
 mod microwave;
+mod target;
 mod tesla;
 
 pub struct TowerPlugin;
@@ -32,11 +35,14 @@ impl Plugin for TowerPlugin {
                 spawn_tower_system,
                 set_next_selected_system,
                 contact_light_on_system,
+                aim_first_enemy_system,
             )
                 .run_if(in_state(GameState::Ingame)),
         );
     }
 }
+#[derive(Component)]
+pub struct Tower;
 
 #[derive(Component)]
 pub struct TowerHead;
@@ -75,9 +81,18 @@ fn tower_start_pos(pos: Vec3) -> Vec3 {
     Vec3::new(pos.x, pos.y - 0.1, pos.z)
 }
 
-fn rotate_tower_head_system(time: Res<Time>, mut q_heads: Query<&mut Transform, With<TowerHead>>) {
-    for mut trans in q_heads.iter_mut() {
-        trans.rotate(Quat::from_rotation_y(time.delta_seconds()));
+fn rotate_tower_head_system(
+    //time: Res<Time>,
+    mut q_heads: Query<(&Parent, &mut Transform), With<TowerHead>>,
+    q_dmg: Query<&DamageList>,
+) {
+    for (parent, mut trans) in q_heads.iter_mut() {
+        if let Ok(dmg_list) = q_dmg.get(parent.get()) {
+            if let Some(dmg) = dmg_list.0.first() {
+                trans.look_at(dmg.pos, Vec3::Y);
+            }
+        }
+        //trans.rotate(Quat::from_rotation_y(time.delta_seconds()));
     }
 }
 
@@ -89,11 +104,11 @@ fn spawn_tower_system(
     mut evs: EventReader<SpawnTowerEvent>,
     mut mats: ResMut<Assets<StandardMaterial>>,
     assets: Res<PinballDefenseAssets>,
-    q_pb_word: Query<Entity, With<PinballWorld>>,
+    q_pbw: QueryWorld,
     g_sett: Res<GraphicsSettings>,
 ) {
     for ev in evs.iter() {
-        cmds.entity(q_pb_word.single()).with_children(|parent| {
+        cmds.entity(q_pbw.single()).with_children(|parent| {
             let pos = ev.1;
             match ev.0 {
                 TowerType::MachineGun => {

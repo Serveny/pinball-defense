@@ -1,7 +1,8 @@
 use crate::prelude::*;
-use crate::utils::RelParent;
+use crate::utils::RelEntity;
 use crate::GameState;
 
+pub type QueryProgressBar<'w, 's, 'a> = Query<'w, 's, (&'a RelEntity, &'a mut ProgressBar)>;
 pub struct ProgressBarPlugin;
 
 impl Plugin for ProgressBarPlugin {
@@ -63,7 +64,7 @@ pub fn spawn(
                     ..default()
                 },
                 ProgressBar(init_val),
-                RelParent(rel_id),
+                RelEntity(rel_id),
                 Name::new("Progress Bar"),
             ));
         });
@@ -80,7 +81,7 @@ pub struct ProgressBarEmptyEvent(pub Entity);
 
 fn count_up_system(
     mut evr: EventReader<ProgressBarCountUpEvent>,
-    mut q_progress: Query<(&RelParent, &mut ProgressBar)>,
+    mut q_progress: QueryProgressBar,
     mut full_ev: EventWriter<ProgressBarFullEvent>,
     mut empty_ev: EventWriter<ProgressBarEmptyEvent>,
 ) {

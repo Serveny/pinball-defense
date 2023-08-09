@@ -2,7 +2,7 @@ use crate::events::tween_completed::ACTIVATE_PINBALL_MENU_EVENT_ID;
 use crate::prelude::*;
 use crate::tower::foundation::SelectedTowerFoundation;
 use crate::tower::TowerType;
-use crate::world::PinballWorld;
+use crate::world::QueryWorld;
 use crate::GameState;
 use crate::{events::tween_completed::DESPAWN_ENTITY_EVENT_ID, settings::GraphicsSettings};
 use bevy_tweening::{
@@ -81,7 +81,7 @@ fn spawn_pinball_menu_system(
     mut cmds: Commands,
     mut mats: ResMut<Assets<StandardMaterial>>,
     assets: Res<PinballDefenseAssets>,
-    q_pbw: Query<Entity, With<PinballWorld>>,
+    q_pbw: QueryWorld,
     q_pb_menu: Query<&PinballMenu>,
     g_sett: Res<GraphicsSettings>,
     q_selected: Query<Entity, With<SelectedTowerFoundation>>,

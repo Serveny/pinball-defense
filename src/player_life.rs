@@ -1,6 +1,5 @@
 use crate::prelude::*;
-use crate::progress_bar::ProgressBar;
-use crate::utils::RelParent;
+use crate::progress_bar::QueryProgressBar;
 use crate::{GameState, IngameTime};
 
 pub struct PlayerLifePlugin;
@@ -55,7 +54,7 @@ fn recovery_system(
     time: Res<Time>,
     ig_time: Res<IngameTime>,
     mut q_life_bar: Query<(Entity, &mut LastDamage)>,
-    mut q_prog_bar: Query<(&RelParent, &mut ProgressBar)>,
+    mut q_prog_bar: QueryProgressBar,
 ) {
     for (id, mut last_damage) in q_life_bar.iter_mut() {
         if let Some((_, mut bar)) = q_prog_bar.iter_mut().find(|(rel_id, _)| ***rel_id == id) {
