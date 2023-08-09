@@ -1,5 +1,7 @@
 use super::base::spawn_tower_base;
-use super::{create_tower_spawn_animator, tower_material, tower_start_pos, TowerHead};
+use super::target::{AimFirstEnemy, SightRadius};
+use super::{create_tower_spawn_animator, tower_material, tower_start_pos, Tower, TowerHead};
+use crate::damage::DamageList;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy_tweening::Animator;
@@ -58,10 +60,16 @@ pub fn spawn_tower_machine_gun(
             .with_children(|parent| mg_head(parent));
     };
     parent
-        .spawn(spatial_from_pos(tower_start_pos(pos)))
-        .insert(MachineGunTower)
-        .insert(Name::new("Machine Gun Tower"))
-        .insert(Animator::new(create_tower_spawn_animator(pos)))
+        .spawn((
+            spatial_from_pos(tower_start_pos(pos)),
+            MachineGunTower,
+            Tower,
+            AimFirstEnemy,
+            DamageList::default(),
+            SightRadius(0.1),
+            Name::new("Machine Gun Tower"),
+            Animator::new(create_tower_spawn_animator(pos)),
+        ))
         .with_children(|parent| {
             spawn_tower_base(parent, materials, assets, g_sett);
             mg_mounting(parent);

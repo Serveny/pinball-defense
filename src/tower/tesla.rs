@@ -1,5 +1,7 @@
 use super::base::spawn_tower_base;
-use super::{create_tower_spawn_animator, tower_material, tower_start_pos, TowerHead};
+use super::target::{AimFirstEnemy, SightRadius};
+use super::{create_tower_spawn_animator, tower_material, tower_start_pos, Tower, TowerHead};
+use crate::damage::DamageList;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy_tweening::Animator;
@@ -15,19 +17,26 @@ pub fn spawn_tower_tesla(
     pos: Vec3,
 ) {
     parent
-        .spawn(spatial_from_pos(tower_start_pos(pos)))
-        .insert(TeslaTower)
-        .insert(Name::new("Tesla Tower"))
-        .insert(Animator::new(create_tower_spawn_animator(pos)))
+        .spawn((
+            spatial_from_pos(tower_start_pos(pos)),
+            Tower,
+            TeslaTower,
+            AimFirstEnemy,
+            DamageList::default(),
+            SightRadius(0.1),
+            Name::new("Tesla Tower"),
+            Animator::new(create_tower_spawn_animator(pos)),
+        ))
         .with_children(|parent| {
             spawn_tower_base(parent, materials, assets, g_sett);
-            parent
-                .spawn(PbrBundle {
+            parent.spawn((
+                PbrBundle {
                     mesh: assets.tower_tesla_top.clone(),
                     material: materials.add(tower_material()),
                     transform: Transform::from_xyz(0., 0.02, 0.),
                     ..default()
-                })
-                .insert(TowerHead);
+                },
+                TowerHead,
+            ));
         });
 }

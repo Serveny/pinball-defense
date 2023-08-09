@@ -16,7 +16,7 @@ pub struct Curve(CubicCurve<Vec3>);
 pub fn spawn_road(
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
-    meshes: &mut Assets<Mesh>,
+    //meshes: &mut Assets<Mesh>,
     assets: &PinballDefenseAssets,
 ) {
     parent.spawn((
@@ -34,9 +34,10 @@ pub fn spawn_road(
         },
         Name::new("Road Mesh"),
     ));
-    spawn_road_milestones(parent, materials, meshes);
+    //spawn_road_milestones(parent, materials, meshes);
 }
 
+#[allow(dead_code)]
 fn spawn_road_milestones(
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
