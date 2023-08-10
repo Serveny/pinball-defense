@@ -16,7 +16,7 @@ impl Plugin for FlipperPlugin {
 }
 
 #[derive(Component)]
-pub struct Flipper {
+struct Flipper {
     curr_angle: f32,
     acceleration_factor: f32,
 }

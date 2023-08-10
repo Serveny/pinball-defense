@@ -39,7 +39,7 @@ impl Default for LookDirection {
 }
 
 #[derive(Resource)]
-pub struct FirstPersonCameraSettings {
+struct FirstPersonCameraSettings {
     pub move_speed: f32,
     pub mouse_sensitivity: f32,
     pub stick_sensitivity: f32,

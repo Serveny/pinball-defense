@@ -10,7 +10,7 @@ use crate::settings::GraphicsSettings;
 use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
 
 #[derive(Component)]
-pub struct TowerBase;
+pub(super) struct TowerBase;
 
 pub(super) fn spawn_tower_base(
     parent: &mut ChildBuilder,

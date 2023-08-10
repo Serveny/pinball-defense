@@ -3,9 +3,13 @@ use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 
 #[derive(Component)]
-pub struct ContactLight;
+pub(super) struct ContactLight;
 
-pub fn spawn_contact_light(parent: &mut ChildBuilder, g_sett: &GraphicsSettings, color: Color) {
+pub(super) fn spawn_contact_light(
+    parent: &mut ChildBuilder,
+    g_sett: &GraphicsSettings,
+    color: Color,
+) {
     parent.spawn((
         PointLightBundle {
             transform: Transform::from_xyz(0., 0.005, 0.),
@@ -63,7 +67,7 @@ pub(super) fn contact_light_on_system(
 }
 
 #[derive(Component)]
-pub struct LightOnCollision;
+pub(super) struct LightOnCollision;
 
 const LIGHT_INTENSITY: f32 = 48.;
 

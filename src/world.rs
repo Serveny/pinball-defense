@@ -1,5 +1,4 @@
 use crate::assets::PinballDefenseAssets;
-use crate::ball::BallSpawn;
 use crate::ball_starter::BallStarterPlugin;
 use crate::events::collision::collider_only_interact_with_ball;
 use crate::flipper::FlipperPlugin;
@@ -30,7 +29,6 @@ struct Ground;
 
 fn spawn_pinball_world(
     mut cmds: Commands,
-    mut ball_spawn: ResMut<BallSpawn>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut assets: ResMut<PinballDefenseAssets>,
@@ -96,7 +94,6 @@ fn spawn_pinball_world(
             .insert(Name::new("Colliders"))
             .with_children(spawn_colliders);
     });
-    ball_spawn.0 = Vec3::new(0.96, -0.26, -0.6);
 }
 
 fn spawn_colliders(p: &mut ChildBuilder) {
