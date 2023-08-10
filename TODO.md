@@ -21,7 +21,6 @@
 - optimize walk path ✅
 - enemy life bar ✅
 - refactor with multiple event reader ✅
-- progress bar with u8 instead of f32
 - towers logic
   - target system
   - shoot/damage system
