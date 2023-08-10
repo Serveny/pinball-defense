@@ -20,10 +20,13 @@
 - walk system without tweening ✅
 - optimize walk path ✅
 - enemy life bar ✅
-- refactor with multiple event reader
+- refactor with multiple event reader ✅
+- progress bar with u8 instead of f32
 - towers logic
   - target system
   - shoot/damage system
   - special effects
   - upgrade system
 - design enemy
+- settings menu
+- camera option

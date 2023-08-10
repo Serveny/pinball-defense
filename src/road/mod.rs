@@ -13,10 +13,11 @@ struct RoadPath(Vec<Vec3>);
 #[derive(Component)]
 pub struct Curve(CubicCurve<Vec3>);
 
+#[allow(unused_variables)]
 pub fn spawn_road(
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
-    //meshes: &mut Assets<Mesh>,
+    meshes: &mut Assets<Mesh>,
     assets: &PinballDefenseAssets,
 ) {
     parent.spawn((
@@ -29,7 +30,7 @@ pub fn spawn_road(
                 reflectance: 0.8,
                 ..default()
             }),
-            transform: Transform::from_xyz(0., -0.04, -0.008),
+            transform: Transform::from_xyz(0., -0.04, 0.),
             ..default()
         },
         Name::new("Road Mesh"),
@@ -69,7 +70,7 @@ fn spawn_road_milestones(
 ////animations: &mut Assets<AnimationClip>,
 //) {
 //// Make a CubicCurve
-//let bezier = Bezier::new(ROAD_PATH).to_curve();
+//let bezier = Bezier::new(ROAD_POINTS).to_curve();
 //// Create the animation player, and set it to repeat
 ////let mut player = AnimationPlayer::default();
 ////player.play(animations.add(ROAD_PATH.into())).repeat();
@@ -79,7 +80,7 @@ fn spawn_road_milestones(
 //PbrBundle {
 //mesh: meshes.add(shape::Cube::new(0.1).into()),
 //material: materials.add(Color::ORANGE.into()),
-//transform: Transform::from_translation(ROAD_PATH[0][0]),
+//transform: Transform::from_translation(ROAD_POINTS[0]),
 //..default()
 //},
 //curve,

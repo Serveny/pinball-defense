@@ -4,16 +4,23 @@ use crate::events::collision::INTERACT_WITH_ENEMY;
 use crate::pinball_menu::PinballMenuEvent;
 use crate::prelude::*;
 use crate::GameState;
+use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
 
 pub struct BallPlugin;
 
 impl Plugin for BallPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<OnBallDespawn>()
+            .add_event::<CollisionWithBallEvent>()
             .add_systems(Startup, setup)
             .add_systems(
                 Update,
-                (ball_reset_system, on_ball_despawn_system, max_speed_system)
+                (
+                    ball_reset_system,
+                    on_ball_despawn_system,
+                    max_speed_system,
+                    collision_with_ball_system,
+                )
                     .run_if(in_state(GameState::Ingame)),
             );
     }
@@ -60,9 +67,9 @@ pub fn spawn_ball(
         Restitution::coefficient(0.5),
         Friction::coefficient(1.),
         Velocity::default(),
+        PinBall,
+        Name::new("Ball"),
     ))
-    .insert(PinBall)
-    .insert(Name::new("Ball"))
     .with_children(|parent| {
         parent.spawn(PointLightBundle {
             transform: Transform::from_xyz(0., 0., 0.),
@@ -129,4 +136,42 @@ pub fn limit_velocity(mut velocity: Mut<Velocity>) {
             log!("💫 Limit turn speed from {} to {}", length, velocity.angvel);
         }
     }
+}
+
+#[derive(Event)]
+pub struct CollisionWithBallEvent(pub Entity, pub CollisionEventFlags);
+
+impl CollisionWithBallEvent {
+    pub fn new(ev: (Entity, CollisionEventFlags)) -> Self {
+        Self(ev.0, ev.1)
+    }
+}
+
+fn collision_with_ball_system(
+    coll_ev: EventReader<CollisionEvent>,
+    mut coll_with_ball_ev: EventWriter<CollisionWithBallEvent>,
+    q_ball: Query<With<PinBall>>,
+) {
+    for ev in ball_collision_start_only(coll_ev, q_ball) {
+        coll_with_ball_ev.send(CollisionWithBallEvent::new(ev));
+    }
+}
+
+fn ball_collision_start_only(
+    mut coll_ev: EventReader<CollisionEvent>,
+    q_ball: Query<With<PinBall>>,
+) -> Vec<(Entity, CollisionEventFlags)> {
+    coll_ev
+        .iter()
+        .filter_map(|ev| match ev {
+            CollisionEvent::Started(id_1, id_2, flag) => match q_ball.contains(*id_1) {
+                true => Some((*id_2, *flag)),
+                false => match q_ball.contains(*id_2) {
+                    true => Some((*id_1, *flag)),
+                    false => None,
+                },
+            },
+            CollisionEvent::Stopped(_, _, _) => None,
+        })
+        .collect()
 }

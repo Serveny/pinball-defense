@@ -63,7 +63,7 @@ pub fn spawn_tower_machine_gun(
             ))
             .with_children(mg_head);
     };
-    let sight_radius = 0.1;
+    let sight_radius = 0.15;
     parent
         .spawn((
             spatial_from_pos(tower_start_pos(pos)),

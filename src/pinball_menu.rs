@@ -1,11 +1,13 @@
+use crate::ball::CollisionWithBallEvent;
 use crate::events::collision::collider_only_interact_with_ball;
 use crate::events::tween_completed::ACTIVATE_PINBALL_MENU_EVENT_ID;
 use crate::prelude::*;
-use crate::tower::foundation::SelectedTowerFoundation;
-use crate::tower::TowerType;
+use crate::tower::foundation::{DespawnFoundationEvent, QuerySelected, SelectedTowerFoundation};
+use crate::tower::{SpawnTowerEvent, TowerType};
 use crate::world::QueryWorld;
 use crate::GameState;
 use crate::{events::tween_completed::DESPAWN_ENTITY_EVENT_ID, settings::GraphicsSettings};
+use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
 use bevy_tweening::{
     lens::{TransformPositionLens, TransformRotateYLens},
     Animator, Delay, EaseFunction, Sequence, Tween,
@@ -20,7 +22,8 @@ impl Plugin for PinballMenuPlugin {
             .add_state::<PinballMenuStatus>()
             .add_systems(
                 Update,
-                (menu_event_system, spawn_pinball_menu_system).run_if(in_state(GameState::Ingame)),
+                (menu_event_system, spawn_pinball_menu_system, execute_system)
+                    .run_if(in_state(GameState::Ingame)),
             );
     }
 }
@@ -283,4 +286,35 @@ fn spawn_animation(angle: f32, delay_secs: f32) -> Sequence<Transform> {
 
     wait.then(slide_up)
         .then(rotate.with_completed_event(ACTIVATE_PINBALL_MENU_EVENT_ID))
+}
+
+fn execute_system(
+    mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
+    mut despawn_foundation_ev: EventWriter<DespawnFoundationEvent>,
+    mut pb_menu_ev: EventWriter<PinballMenuEvent>,
+    mut spawn_tower_ev: EventWriter<SpawnTowerEvent>,
+    q_menu_els: Query<(Entity, &TowerType), With<PinballMenuElement>>,
+    q_selected: QuerySelected,
+) {
+    for CollisionWithBallEvent(id, flag) in ball_coll_ev.iter() {
+        if *flag == CollisionEventFlags::SENSOR {
+            if let Some((_, tower_type)) = q_menu_els.iter().find(|(el_id, _)| *el_id == *id) {
+                if let Ok((_, sel_trans)) = q_selected.get_single() {
+                    despawn_foundation_ev.send(DespawnFoundationEvent);
+
+                    // Despawn menu
+                    pb_menu_ev.send(PinballMenuEvent::Disable);
+
+                    // Spawn new tower
+                    let pos = sel_trans.translation;
+                    spawn_tower_ev.send(SpawnTowerEvent(
+                        *tower_type,
+                        Vec3::new(pos.x, -0.025, pos.z),
+                    ));
+
+                    return;
+                }
+            }
+        }
+    }
 }

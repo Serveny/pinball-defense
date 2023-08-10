@@ -82,7 +82,7 @@ fn spawn_pinball_world(
         crate::flipper::spawn_right(fr_pos, parent, &mut materials, &mut assets);
 
         spawn_foundations(parent, &mut materials, &assets, &g_sett);
-        spawn_road(parent, &mut materials, &assets);
+        spawn_road(parent, &mut materials, &mut meshes, &assets);
 
         let lb_pos = Transform {
             translation: Vec3::new(1.15, -0.05, 0.035),

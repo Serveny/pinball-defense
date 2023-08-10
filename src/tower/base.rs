@@ -1,10 +1,13 @@
 use super::light::{spawn_contact_light, LightOnCollision};
 use super::tower_material;
+use crate::ball::CollisionWithBallEvent;
 use crate::events::collision::{
     collider_only_interact_with_ball, collider_only_interact_with_enemy,
 };
 use crate::prelude::*;
+use crate::progress_bar::ProgressBarCountUpEvent;
 use crate::settings::GraphicsSettings;
+use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
 
 #[derive(Component)]
 pub struct TowerBase;
@@ -66,10 +69,64 @@ fn spawn_tower_sight_sensor(parent: &mut ChildBuilder, radius: f32) {
         Sensor,
         RigidBody::KinematicPositionBased,
         ColliderDebugColor(Color::ORANGE),
-        Collider::cylinder(0.1, radius),
+        Collider::cylinder(0.06, radius),
         ActiveEvents::COLLISION_EVENTS,
         ActiveCollisionTypes::KINEMATIC_KINEMATIC,
         collider_only_interact_with_enemy(),
         TowerSightSensor,
     ));
+}
+
+pub(super) fn progress_system(
+    mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
+    mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
+    q_tower_base: Query<Entity, With<TowerBase>>,
+) {
+    for CollisionWithBallEvent(id, flag) in ball_coll_ev.iter() {
+        if *flag != CollisionEventFlags::SENSOR && q_tower_base.contains(*id) {
+            prog_bar_ev.send(ProgressBarCountUpEvent(*id, 0.05));
+        }
+    }
+}
+
+pub(super) fn enemy_sight_system(
+    mut col_events: EventReader<CollisionEvent>,
+    q_tower_sight: Query<With<TowerSightSensor>>,
+) {
+    for ev in col_events.iter() {
+        match ev {
+            CollisionEvent::Started(entity, entity_2, flag) => {
+                log!(
+                    "😊 Collision detected: {:?} - {:?} | Flag: {:?}",
+                    entity,
+                    entity_2,
+                    flag
+                );
+
+                if *flag == CollisionEventFlags::SENSOR {
+                    let (entity, entity_2) = (*entity, *entity_2);
+                    if q_tower_sight.contains(entity) {
+                        log!("Tower sight 1");
+                        continue;
+                    }
+                    if q_tower_sight.contains(entity_2) {
+                        log!("Tower sight 1");
+                        continue;
+                    }
+                }
+            }
+            CollisionEvent::Stopped(entity, entity_2, flag) => {
+                if *flag == CollisionEventFlags::SENSOR {
+                    let (entity, entity_2) = (*entity, *entity_2);
+                    if q_tower_sight.contains(entity) {
+                        continue;
+                    }
+
+                    if q_tower_sight.contains(entity_2) {
+                        continue;
+                    }
+                }
+            }
+        }
+    }
 }
