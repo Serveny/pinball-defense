@@ -15,7 +15,7 @@ pub fn spawn_tower_microwave(
     g_sett: &GraphicsSettings,
     pos: Vec3,
 ) {
-    let sight_radius = 0.2;
+    let sight_radius = 0.15;
     parent
         .spawn((
             spatial_from_pos(tower_start_pos(pos)),

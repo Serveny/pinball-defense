@@ -1,11 +1,11 @@
 use self::walk::{road_end_reached_system, walk_system, RoadEndReachedEvent, Step, WALK_SPEED};
-use crate::events::collision::{
-    PinballEnemyHitEvent, ENEMY, INTERACT_WITH_BALL, INTERACT_WITH_ENEMY,
-};
+use crate::ball::CollisionWithBallEvent;
+use crate::events::collision::{ENEMY, INTERACT_WITH_BALL, INTERACT_WITH_ENEMY};
 use crate::prelude::*;
 use crate::tower::light::LightOnCollision;
 use crate::world::QueryWorld;
 use crate::{road::points::ROAD_POINTS, GameState};
+use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
 use std::time::Duration;
 
 mod walk;
@@ -129,9 +129,15 @@ fn spawn_enemy(
         });
 }
 
-fn pinball_hit_system(mut cmds: Commands, mut evr: EventReader<PinballEnemyHitEvent>) {
-    for ev in evr.iter() {
-        log!("😵 Pinball hits enemy {:?}", ev.0);
-        cmds.entity(ev.0).despawn_recursive();
+fn pinball_hit_system(
+    mut cmds: Commands,
+    mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
+    q_enemy: Query<With<Enemy>>,
+) {
+    for CollisionWithBallEvent(id, flag) in ball_coll_ev.iter() {
+        if *flag == CollisionEventFlags::SENSOR && q_enemy.contains(*id) {
+            log!("😵 Pinball hits enemy {:?}", *id);
+            cmds.entity(*id).despawn_recursive();
+        }
     }
 }

@@ -2,17 +2,22 @@ use super::light::{
     add_flash_light, disable_flash_light, spawn_contact_light, ContactLight, FlashLight,
     LightOnCollision,
 };
-use super::{tower_material, SpawnTowerEvent};
-use crate::events::collision::{collider_only_interact_with_ball, BuildTowerEvent};
+use super::tower_material;
+use crate::ball::CollisionWithBallEvent;
+use crate::events::collision::collider_only_interact_with_ball;
 use crate::events::tween_completed::DESPAWN_ENTITY_EVENT_ID;
-use crate::pinball_menu::PinballMenuEvent;
 use crate::prelude::*;
+use crate::progress_bar::{ProgressBarCountUpEvent, ProgressBarFullEvent};
 use crate::settings::GraphicsSettings;
+use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
 use bevy_tweening::{
     lens::{TransformPositionLens, TransformRotationLens},
     Animator, Delay, EaseFunction, Tween,
 };
 use std::{f32::consts::PI, time::Duration};
+
+pub type QuerySelected<'w, 's, 'a> =
+    Query<'w, 's, (Entity, &'a Transform), With<SelectedTowerFoundation>>;
 
 #[derive(Component)]
 pub struct TowerFoundation;
@@ -158,20 +163,20 @@ fn set_selected_tower_foundation(cmds: &mut Commands, parent_id: Entity) {
         .insert(SelectedTowerFoundation);
 }
 
-pub(super) fn build_tower_system(
-    mut evs: EventReader<BuildTowerEvent>,
-    mut spawn_tower_ev: EventWriter<SpawnTowerEvent>,
+#[derive(Event)]
+pub struct DespawnFoundationEvent;
+
+pub(super) fn despawn_system(
+    evs: EventReader<DespawnFoundationEvent>,
     mut cmds: Commands,
     mut q_light: Query<(Entity, &Parent, &mut Visibility), With<FlashLight>>,
-    mut pb_menu_ev: EventWriter<PinballMenuEvent>,
     q_selected: Query<(Entity, &Transform), With<SelectedTowerFoundation>>,
     q_lids_bottom: Query<(Entity, &Parent), With<TowerFoundationBottom>>,
     q_lids_top: Query<(Entity, &Parent), With<TowerFoundationTop>>,
 ) {
-    for ev in evs.iter() {
+    if !evs.is_empty() {
         if let Ok((selected_id, sel_trans)) = q_selected.get_single() {
-            let tower_type = ev.0;
-            log!("🗼Build {:?} on {:?}", tower_type, selected_id);
+            log!("🥲 Despawn foundation {:?}", selected_id);
 
             // Open lids
             q_lids_bottom.for_each(|(lid_id, lid_parent)| {
@@ -187,18 +192,32 @@ pub(super) fn build_tower_system(
                 .remove::<Collider>();
             set_foundation_despawn_animation(&mut cmds, selected_id, sel_trans.translation);
 
-            // Spawn new tower
-            let pos = sel_trans.translation;
-            spawn_tower_ev.send(SpawnTowerEvent(tower_type, Vec3::new(pos.x, -0.025, pos.z)));
-
-            // Despawn menu
-            pb_menu_ev.send(PinballMenuEvent::Disable);
-
             // Disable selected tower light
             disable_flash_light(&mut cmds, &mut q_light, selected_id);
+        }
+    }
+}
 
-            // Break to prevent bug, where two towers are built at the same place
-            break;
+pub(super) fn progress_system(
+    mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
+    mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
+    q_tower_foundation: Query<Entity, With<TowerFoundation>>,
+) {
+    for CollisionWithBallEvent(id, flag) in ball_coll_ev.iter() {
+        if *flag == CollisionEventFlags::SENSOR && q_tower_foundation.contains(*id) {
+            prog_bar_ev.send(ProgressBarCountUpEvent(*id, 1.));
+        }
+    }
+}
+
+pub(super) fn set_ready_to_build_system(
+    mut cmds: Commands,
+    mut evr: EventReader<ProgressBarFullEvent>,
+    q_foundation: Query<With<TowerFoundation>>,
+) {
+    for ev in evr.iter() {
+        if q_foundation.contains(ev.0) {
+            cmds.entity(ev.0).insert(ReadyToBuild);
         }
     }
 }

@@ -1,4 +1,4 @@
-use self::foundation::{build_tower_system, set_next_selected_system};
+use self::foundation::{set_next_selected_system, DespawnFoundationEvent};
 use self::light::{contact_light_on_system, flash_light_system, light_off_system};
 use self::machine_gun::spawn_tower_machine_gun;
 use self::microwave::spawn_tower_microwave;
@@ -25,20 +25,26 @@ pub struct TowerPlugin;
 
 impl Plugin for TowerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SpawnTowerEvent>().add_systems(
-            Update,
-            (
-                rotate_tower_head_system,
-                light_off_system,
-                flash_light_system,
-                build_tower_system,
-                spawn_tower_system,
-                set_next_selected_system,
-                contact_light_on_system,
-                aim_first_enemy_system,
-            )
-                .run_if(in_state(GameState::Ingame)),
-        );
+        app.add_event::<SpawnTowerEvent>()
+            .add_event::<DespawnFoundationEvent>()
+            .add_systems(
+                Update,
+                (
+                    rotate_tower_head_system,
+                    light_off_system,
+                    flash_light_system,
+                    spawn_tower_system,
+                    set_next_selected_system,
+                    contact_light_on_system,
+                    aim_first_enemy_system,
+                    foundation::set_ready_to_build_system,
+                    foundation::despawn_system,
+                    foundation::progress_system,
+                    base::progress_system,
+                    base::enemy_sight_system,
+                )
+                    .run_if(in_state(GameState::Ingame)),
+            );
     }
 }
 #[derive(Component)]
@@ -97,7 +103,7 @@ fn rotate_tower_head_system(
 }
 
 #[derive(Event)]
-struct SpawnTowerEvent(TowerType, Vec3);
+pub struct SpawnTowerEvent(pub TowerType, pub Vec3);
 
 fn spawn_tower_system(
     mut cmds: Commands,

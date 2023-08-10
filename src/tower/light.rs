@@ -1,4 +1,4 @@
-use crate::events::collision::ContactLightOnEvent;
+use crate::ball::CollisionWithBallEvent;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 
@@ -51,11 +51,14 @@ pub(super) fn flash_light_system(
 }
 
 pub(super) fn contact_light_on_system(
-    mut evs: EventReader<ContactLightOnEvent>,
+    mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
     mut q_light: QueryContactLight,
+    q_light_on_coll: Query<Entity, With<LightOnCollision>>,
 ) {
-    for ev in evs.iter() {
-        light_on_by_parent(ev.0, &mut q_light);
+    for CollisionWithBallEvent(id, _) in ball_coll_ev.iter() {
+        if q_light_on_coll.contains(*id) {
+            light_on_by_parent(*id, &mut q_light);
+        }
     }
 }
 
