@@ -62,6 +62,7 @@ fn spawn_pinball_world(
                     &ComputedColliderShape::TriMesh,
                 )
                 .unwrap(),
+                Friction::new(0.2),
                 ColliderDebugColor(Color::GOLD),
                 collider_only_interact_with_ball(),
             ))

@@ -1,5 +1,6 @@
+use super::animations::RotateToTarget;
 use super::base::spawn_tower_base;
-use super::target::{AimFirstEnemy, SightRadius};
+use super::target::{AimFirstEnemy, SightRadius, TargetPos};
 use super::{create_tower_spawn_animator, tower_material, tower_start_pos, Tower, TowerHead};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
@@ -59,6 +60,9 @@ pub fn spawn_tower_machine_gun(
                     ..default()
                 },
                 MachineGunTowerMount,
+                AimFirstEnemy(None),
+                TargetPos(None),
+                RotateToTarget,
                 TowerHead,
             ))
             .with_children(mg_head);
@@ -69,7 +73,6 @@ pub fn spawn_tower_machine_gun(
             spatial_from_pos(tower_start_pos(pos)),
             MachineGunTower,
             Tower,
-            AimFirstEnemy,
             SightRadius(sight_radius),
             Name::new("Machine Gun Tower"),
             Animator::new(create_tower_spawn_animator(pos)),
