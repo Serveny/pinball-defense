@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::progress_bar::QueryProgressBar;
+use crate::progress_bar::{ProgressBarEmptyEvent, QueryProgressBar};
 use crate::{GameState, IngameTime};
 
 pub struct PlayerLifePlugin;
@@ -8,7 +8,7 @@ impl Plugin for PlayerLifePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (recovery_system).run_if(in_state(GameState::Ingame)),
+            (recovery_system, game_over_system).run_if(in_state(GameState::Ingame)),
         );
     }
 }
@@ -68,6 +68,15 @@ fn recovery_system(
             }
 
             last_damage.value = bar.0;
+        }
+    }
+}
+
+fn game_over_system(mut evr: EventReader<ProgressBarEmptyEvent>, q_life_bar: Query<With<LifeBar>>) {
+    for ev in evr.iter() {
+        let rel_id = ev.0;
+        if q_life_bar.contains(rel_id) {
+            println!("Game Over");
         }
     }
 }
