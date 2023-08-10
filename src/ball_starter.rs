@@ -1,4 +1,4 @@
-use crate::ball::{spawn_ball, BallSpawn, PinBall};
+use crate::ball::{self, PinBall};
 use crate::events::collision::collider_only_interact_with_ball;
 use crate::prelude::*;
 
@@ -7,13 +7,37 @@ pub struct BallStarterPlugin;
 impl Plugin for BallStarterPlugin {
     fn build(&self, app: &mut App) {
         app.add_state::<BallStarterState>()
+            .add_event::<SpawnBallEvent>()
+            .add_systems(Startup, setup)
             .add_systems(OnEnter(BallStarterState::Charge), spawn_ball_at_charge)
             .add_systems(
                 Update,
-                charge_system.run_if(in_state(BallStarterState::Charge)),
+                (charge_system, spawn_ball_system).run_if(in_state(BallStarterState::Charge)),
             )
             .add_systems(Update, fire_system.run_if(in_state(BallStarterState::Fire)));
     }
+}
+
+#[derive(Event)]
+pub struct SpawnBallEvent;
+
+fn spawn_ball_system(
+    spawn_ball_ev: EventReader<SpawnBallEvent>,
+    mut cmds: Commands,
+    ball_spawn: Res<BallSpawn>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    if !spawn_ball_ev.is_empty() {
+        ball::spawn(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
+    }
+}
+
+#[derive(Resource, Default)]
+struct BallSpawn(pub Vec3);
+
+fn setup(mut cmds: Commands) {
+    cmds.insert_resource(BallSpawn(Vec3::new(0.96, -0.26, -0.6)));
 }
 const HALF_SIZE: Vec3 = Vec3 {
     x: 0.099,
@@ -22,17 +46,16 @@ const HALF_SIZE: Vec3 = Vec3 {
 };
 
 #[derive(Component)]
-pub struct BallStarter;
+struct BallStarter;
 
 #[derive(Component)]
-pub struct BallStarterPlate;
+struct BallStarterPlate;
 
 #[derive(Component)]
-pub struct Speed(f32);
+struct Speed(f32);
 
 // The number is the signum for the direction
 #[derive(States, PartialEq, Eq, Clone, Copy, Debug, Hash, Default, SystemSet)]
-#[allow(dead_code)]
 pub enum BallStarterState {
     #[default]
     Idle = 0,
@@ -88,10 +111,10 @@ fn spawn_ball_at_charge(
     ball_spawn: Res<BallSpawn>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    q_ball: Query<&PinBall>,
+    q_ball: Query<With<PinBall>>,
 ) {
     if q_ball.is_empty() {
-        spawn_ball(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
+        ball::spawn(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
     }
 }
 

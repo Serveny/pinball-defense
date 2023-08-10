@@ -1,8 +1,7 @@
 use super::set_flipper_status;
-use crate::ball::spawn_ball;
+use crate::ball_starter::SpawnBallEvent;
 use crate::prelude::*;
 use crate::{
-    ball::BallSpawn,
     ball_starter::BallStarterState,
     flipper::{FlipperStatus, FlipperType},
 };
@@ -45,18 +44,15 @@ pub(super) fn gamepad_connections(
 }
 
 pub(super) fn gamepad_controls(
-    mut cmds: Commands,
     mut evr: EventReader<GamepadButtonChangedEvent>,
-    ball_spawn: Res<BallSpawn>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut spawn_ball_ev: EventWriter<SpawnBallEvent>,
     mut ball_starter_state: ResMut<NextState<BallStarterState>>,
     mut q_flipper: Query<(&mut FlipperStatus, &FlipperType)>,
 ) {
     for ev in evr.iter() {
         match ev.button_type {
             GamepadButtonType::East if ev.value > 0. => {
-                spawn_ball(&mut cmds, &mut meshes, &mut materials, ball_spawn.0)
+                spawn_ball_ev.send(SpawnBallEvent);
             }
 
             GamepadButtonType::South => ball_starter_state.set(match ev.value == 0. {

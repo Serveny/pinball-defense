@@ -1,6 +1,5 @@
 use super::set_flipper_status;
-use crate::ball::{spawn_ball, BallSpawn};
-use crate::ball_starter::BallStarterState;
+use crate::ball_starter::{BallStarterState, SpawnBallEvent};
 use crate::flipper::{FlipperStatus, FlipperType};
 use crate::prelude::*;
 use crate::CameraState;
@@ -8,13 +7,10 @@ use bevy::window::{CursorGrabMode, PrimaryWindow};
 
 #[allow(clippy::too_many_arguments)]
 pub(super) fn key_system(
-    mut cmds: Commands,
     key: Res<Input<KeyCode>>,
-    ball_spawn: Res<BallSpawn>,
+    mut spawn_ball_ev: EventWriter<SpawnBallEvent>,
     mut q_window: Query<&mut Window, With<PrimaryWindow>>,
     mut cam_state: ResMut<NextState<CameraState>>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
     mut ball_starter_state: ResMut<NextState<BallStarterState>>,
     mut q_flipper: Query<(&mut FlipperStatus, &FlipperType)>,
 ) {
@@ -26,7 +22,7 @@ pub(super) fn key_system(
     }
 
     if key.just_pressed(KeyCode::ControlLeft) {
-        spawn_ball(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
+        spawn_ball_ev.send(SpawnBallEvent);
     }
 
     if key.just_pressed(KeyCode::Space) {

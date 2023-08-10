@@ -20,16 +20,16 @@ pub type QuerySelected<'w, 's, 'a> =
     Query<'w, 's, (Entity, &'a Transform), With<SelectedTowerFoundation>>;
 
 #[derive(Component)]
-pub struct TowerFoundation;
+pub(super) struct TowerFoundation;
 
 #[derive(Component)]
-pub struct TowerFoundationLid;
+pub(super) struct TowerFoundationLid;
 
 #[derive(Component)]
-pub struct TowerFoundationTop;
+pub(super) struct TowerFoundationTop;
 
 #[derive(Component)]
-pub struct TowerFoundationBottom;
+pub(super) struct TowerFoundationBottom;
 
 pub fn spawn_foundation(
     parent: &mut ChildBuilder,
@@ -138,7 +138,7 @@ fn set_foundation_despawn_animation(cmds: &mut Commands, foundation_id: Entity, 
 }
 
 #[derive(Component)]
-pub struct ReadyToBuild;
+pub(super) struct ReadyToBuild;
 
 pub(super) fn set_next_selected_system(
     mut cmds: Commands,

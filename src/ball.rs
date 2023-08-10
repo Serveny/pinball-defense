@@ -10,9 +10,8 @@ pub struct BallPlugin;
 
 impl Plugin for BallPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<OnBallDespawn>()
+        app.add_event::<OnBallDespawnEvent>()
             .add_event::<CollisionWithBallEvent>()
-            .add_systems(Startup, setup)
             .add_systems(
                 Update,
                 (
@@ -29,13 +28,7 @@ impl Plugin for BallPlugin {
 #[derive(Component)]
 pub struct PinBall;
 
-#[derive(Resource, Default)]
-pub struct BallSpawn(pub Vec3);
-
-fn setup(mut cmds: Commands) {
-    cmds.init_resource::<BallSpawn>();
-}
-pub fn spawn_ball(
+pub fn spawn(
     cmds: &mut Commands,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
@@ -87,11 +80,11 @@ pub fn spawn_ball(
 }
 
 #[derive(Event)]
-pub struct OnBallDespawn;
+pub struct OnBallDespawnEvent;
 
 fn ball_reset_system(
     mut cmds: Commands,
-    mut evw: EventWriter<OnBallDespawn>,
+    mut evw: EventWriter<OnBallDespawnEvent>,
     q_ball: Query<(Entity, &Transform), With<PinBall>>,
 ) {
     for (entity, transform) in q_ball.iter() {
@@ -99,13 +92,13 @@ fn ball_reset_system(
         if trans.y <= -1. || trans.y >= 0.4 || (trans.x > 1.2 && trans.z > -0.3) {
             log!("🎱 Despawn ball");
             cmds.get_entity(entity).unwrap().despawn_recursive();
-            evw.send(OnBallDespawn);
+            evw.send(OnBallDespawnEvent);
         }
     }
 }
 
 fn on_ball_despawn_system(
-    mut evr: EventReader<OnBallDespawn>,
+    mut evr: EventReader<OnBallDespawnEvent>,
     mut pm_status_ev: EventWriter<PinballMenuEvent>,
 ) {
     if evr.iter().next().is_some() {

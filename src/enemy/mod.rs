@@ -1,13 +1,14 @@
-use self::walk::{road_end_reached_system, walk_system, RoadEndReachedEvent, Step, WALK_SPEED};
+use self::step::Step;
+use self::walk::{road_end_reached_system, walk_system, RoadEndReachedEvent, WALK_SPEED};
 use crate::ball::CollisionWithBallEvent;
 use crate::events::collision::{ENEMY, INTERACT_WITH_BALL, INTERACT_WITH_ENEMY};
 use crate::prelude::*;
-use crate::tower::light::LightOnCollision;
 use crate::world::QueryWorld;
 use crate::{road::points::ROAD_POINTS, GameState};
 use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
 use std::time::Duration;
 
+mod step;
 mod walk;
 
 pub struct EnemyPlugin;
@@ -108,7 +109,6 @@ fn spawn_enemy(
                 combine_rule: CoefficientCombineRule::Multiply,
             },
             ActiveEvents::COLLISION_EVENTS,
-            LightOnCollision,
             Enemy::new(),
             Name::new("Enemy"),
         ))
