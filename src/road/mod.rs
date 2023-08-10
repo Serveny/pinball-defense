@@ -1,6 +1,5 @@
 use self::points::ROAD_POINTS;
 use crate::prelude::*;
-use bevy::math::cubic_splines::CubicCurve;
 
 pub mod points;
 
@@ -9,9 +8,6 @@ struct RoadAnimations(Vec<Handle<AnimationClip>>);
 
 #[derive(Resource)]
 struct RoadPath(Vec<Vec3>);
-
-#[derive(Component)]
-pub struct Curve(CubicCurve<Vec3>);
 
 #[allow(unused_variables)]
 pub fn spawn_road(
@@ -62,37 +58,3 @@ fn spawn_road_milestones(
         });
     }
 }
-
-//pub fn add_road_path(
-//parent: &mut ChildBuilder,
-//meshes: &mut Assets<Mesh>,
-//materials: &mut Assets<StandardMaterial>,
-////animations: &mut Assets<AnimationClip>,
-//) {
-//// Make a CubicCurve
-//let bezier = Bezier::new(ROAD_POINTS).to_curve();
-//// Create the animation player, and set it to repeat
-////let mut player = AnimationPlayer::default();
-////player.play(animations.add(ROAD_PATH.into())).repeat();
-//let curve = Curve(bezier);
-
-//parent.spawn((
-//PbrBundle {
-//mesh: meshes.add(shape::Cube::new(0.1).into()),
-//material: materials.add(Color::ORANGE.into()),
-//transform: Transform::from_translation(ROAD_POINTS[0]),
-//..default()
-//},
-//curve,
-//));
-//}
-
-//pub fn animate_cube(time: Res<Time>, mut query: Query<(&mut Transform, &Curve)>) {
-//let t = time.elapsed_seconds();
-
-//for (mut transform, cubic_curve) in &mut query {
-//// Draw the curve
-//// and 1 is the last point
-//transform.translation = cubic_curve.0.position(t);
-//}
-//}

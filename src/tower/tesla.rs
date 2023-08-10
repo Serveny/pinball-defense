@@ -6,9 +6,9 @@ use crate::settings::GraphicsSettings;
 use bevy_tweening::Animator;
 
 #[derive(Component)]
-pub struct TeslaTower;
+pub(super) struct TeslaTower;
 
-pub fn spawn_tower_tesla(
+pub(super) fn spawn_tower_tesla(
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseAssets,
