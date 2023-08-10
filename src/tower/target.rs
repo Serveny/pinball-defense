@@ -1,33 +1,90 @@
-use crate::damage::{DamageList, RadiusDamage};
+use super::base::TowerSightSensor;
 use crate::enemy::Enemy;
 use crate::prelude::*;
-use crate::utils::enemy_pos_in_radius;
+use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
+
+#[derive(Component)]
+pub(super) struct TargetPos(pub Option<Vec3>);
 
 #[derive(Component)]
 pub(super) struct SightRadius(pub f32);
 
 #[derive(Component)]
-pub(super) struct AimFirstEnemy;
+pub(super) struct AimFirstEnemy(pub Option<Entity>);
 
 pub(super) fn aim_first_enemy_system(
-    mut q_afe: Query<(&mut DamageList, &Transform, &SightRadius), With<AimFirstEnemy>>,
+    mut q_afe: Query<(&mut TargetPos, &AimFirstEnemy)>,
     q_enemy: Query<&Transform, With<Enemy>>,
 ) {
-    for (mut dmg_list, trans, sight_radius) in q_afe.iter_mut() {
-        if let Some(enemy_pos) =
-            enemy_pos_in_radius(trans.translation, sight_radius.0, &q_enemy).first()
-        {
-            if let Some(dmg) = dmg_list.0.first_mut() {
-                dmg.pos = *enemy_pos;
-                log!("👾 New damage pos at {}", dmg.pos);
-            } else {
-                let dmg = RadiusDamage::new(*enemy_pos, 0.01, 0.2, None);
-                log!("🦀 New first enemy at {}", dmg.pos);
-                dmg_list.0.push(dmg);
+    for (mut target_pos, aim_enemy) in q_afe.iter_mut() {
+        if let Some(enemy_id) = aim_enemy.0 {
+            target_pos.0 = q_enemy.get(enemy_id).ok().map(|item| item.translation);
+            //log!("Set target pos to {:?}", target_pos.0);
+        }
+    }
+}
+
+pub(super) fn enemy_sight_system(
+    mut col_events: EventReader<CollisionEvent>,
+    mut q_afe: Query<(&mut AimFirstEnemy, &Parent)>,
+    q_tower_sight: Query<&Parent, With<TowerSightSensor>>,
+) {
+    for ev in col_events.iter() {
+        match ev {
+            CollisionEvent::Started(id_1, id_2, flag) => {
+                if *flag == CollisionEventFlags::SENSOR {
+                    set_aim_target(*id_1, *id_2, &mut q_afe, &q_tower_sight);
+                }
             }
-        } else if !dmg_list.0.is_empty() {
-            log!("👾 Remove damage from tower at {}", trans.translation);
-            dmg_list.0.remove(0);
+            CollisionEvent::Stopped(id_1, id_2, flag) => {
+                if *flag == CollisionEventFlags::SENSOR {
+                    unset_aim_target(*id_1, *id_2, &mut q_afe, &q_tower_sight);
+                }
+            }
+        }
+    }
+}
+
+fn set_aim_target(
+    id_1: Entity,
+    id_2: Entity,
+    q_afe: &mut Query<(&mut AimFirstEnemy, &Parent)>,
+    q_tower_sight: &Query<&Parent, With<TowerSightSensor>>,
+) {
+    for (id_1, id_2) in [(id_1, id_2), (id_2, id_1)] {
+        if let Ok(ts_parent) = q_tower_sight.get(id_1) {
+            if let Some((mut afe, _)) = q_afe
+                .iter_mut()
+                .find(|(_, parent)| parent.get() == ts_parent.get())
+            {
+                if afe.0.is_none() {
+                    log!("😠 Set aim target {:?} to {:?}", id_1, id_2);
+                    afe.0 = Some(id_2);
+                }
+                return;
+            }
+        }
+    }
+}
+
+fn unset_aim_target(
+    id_1: Entity,
+    id_2: Entity,
+    q_afe: &mut Query<(&mut AimFirstEnemy, &Parent)>,
+    q_tower_sight: &Query<&Parent, With<TowerSightSensor>>,
+) {
+    for id in [id_1, id_2] {
+        if let Ok(ts_parent) = q_tower_sight.get(id) {
+            if let Some((mut afe, _)) = q_afe
+                .iter_mut()
+                .find(|(_, parent)| parent.get() == ts_parent.get())
+            {
+                if afe.0.is_some() {
+                    afe.0 = None;
+                    log!("😊 Unset aim target {:?}", afe.0);
+                    return;
+                }
+            }
         }
     }
 }

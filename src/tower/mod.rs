@@ -13,6 +13,7 @@ use bevy_tweening::lens::TransformPositionLens;
 use bevy_tweening::{Delay, EaseFunction, Sequence, Tween};
 use std::time::Duration;
 
+mod animations;
 pub mod base;
 pub mod foundation;
 pub mod light;
@@ -30,7 +31,7 @@ impl Plugin for TowerPlugin {
             .add_systems(
                 Update,
                 (
-                    rotate_tower_head_system,
+                    rotate_to_pos_system,
                     light_off_system,
                     flash_light_system,
                     spawn_tower_system,
@@ -41,7 +42,9 @@ impl Plugin for TowerPlugin {
                     foundation::despawn_system,
                     foundation::progress_system,
                     base::progress_system,
-                    base::enemy_sight_system,
+                    animations::rotate_always_system,
+                    animations::rotate_to_target_system,
+                    target::enemy_sight_system,
                 )
                     .run_if(in_state(GameState::Ingame)),
             );
@@ -87,8 +90,7 @@ fn tower_start_pos(pos: Vec3) -> Vec3 {
     Vec3::new(pos.x, pos.y - 0.1, pos.z)
 }
 
-fn rotate_tower_head_system(
-    //time: Res<Time>,
+fn rotate_to_pos_system(
     mut q_heads: Query<(&Parent, &mut Transform), With<TowerHead>>,
     q_dmg: Query<&DamageList>,
 ) {
@@ -98,7 +100,6 @@ fn rotate_tower_head_system(
                 trans.look_at(dmg.pos, Vec3::Y);
             }
         }
-        //trans.rotate(Quat::from_rotation_y(time.delta_seconds()));
     }
 }
 
