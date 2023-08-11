@@ -9,7 +9,6 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_tweening::TweeningPlugin;
 use bevy_window_title_diagnostics::WindowTitleLoggerDiagnosticsPlugin;
 use controls::ControlsPlugin;
-use damage::DamagePlugin;
 use enemy::EnemyPlugin;
 use events::PinballEventsPlugin;
 use fps_camera::FirstPersonCameraPlugin;
@@ -29,7 +28,6 @@ mod ball;
 mod ball_camera;
 mod ball_starter;
 mod controls;
-mod damage;
 mod enemy;
 mod events;
 mod flipper;
@@ -116,7 +114,7 @@ impl PluginGroup for PinballDefensePlugins {
             .add(EnemyPlugin)
             .add(WavePlugin)
             .add(PlayerLifePlugin)
-            .add(DamagePlugin)
+        //.add(DamagePlugin)
     }
 }
 

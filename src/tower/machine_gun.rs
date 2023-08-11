@@ -26,6 +26,8 @@ pub fn spawn_tower_machine_gun(
     pos: Vec3,
 ) {
     let tower_material = materials.add(tower_material());
+
+    // Children of tower
     let mg_barrel = |parent: &mut ChildBuilder| {
         parent.spawn((
             PbrBundle {
@@ -60,21 +62,23 @@ pub fn spawn_tower_machine_gun(
                     ..default()
                 },
                 MachineGunTowerMount,
-                AimFirstEnemy(None),
-                TargetPos(None),
                 RotateToTarget,
                 TowerHead,
             ))
             .with_children(mg_head);
     };
-    let sight_radius = 0.15;
+
+    // Tower
+    let sight_radius = 0.12;
     parent
         .spawn((
             spatial_from_pos(tower_start_pos(pos)),
             MachineGunTower,
             Tower,
-            SightRadius(sight_radius),
             Name::new("Machine Gun Tower"),
+            SightRadius(sight_radius),
+            AimFirstEnemy(None),
+            TargetPos(None),
             Animator::new(create_tower_spawn_animator(pos)),
         ))
         .with_children(|parent| {

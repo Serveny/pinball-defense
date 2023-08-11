@@ -17,16 +17,15 @@ pub(super) fn aim_first_enemy_system(
     q_enemy: Query<&Transform, With<Enemy>>,
 ) {
     for (mut target_pos, aim_enemy) in q_afe.iter_mut() {
-        if let Some(enemy_id) = aim_enemy.0 {
-            target_pos.0 = q_enemy.get(enemy_id).ok().map(|item| item.translation);
-            //log!("Set target pos to {:?}", target_pos.0);
-        }
+        target_pos.0 = aim_enemy
+            .0
+            .and_then(|enemy_id| q_enemy.get(enemy_id).ok().map(|item| item.translation));
     }
 }
 
 pub(super) fn enemy_sight_system(
     mut col_events: EventReader<CollisionEvent>,
-    mut q_afe: Query<(&mut AimFirstEnemy, &Parent)>,
+    mut q_afe: Query<&mut AimFirstEnemy>,
     q_tower_sight: Query<&Parent, With<TowerSightSensor>>,
 ) {
     for ev in col_events.iter() {
@@ -48,15 +47,12 @@ pub(super) fn enemy_sight_system(
 fn set_aim_target(
     id_1: Entity,
     id_2: Entity,
-    q_afe: &mut Query<(&mut AimFirstEnemy, &Parent)>,
+    q_afe: &mut Query<&mut AimFirstEnemy>,
     q_tower_sight: &Query<&Parent, With<TowerSightSensor>>,
 ) {
     for (id_1, id_2) in [(id_1, id_2), (id_2, id_1)] {
         if let Ok(ts_parent) = q_tower_sight.get(id_1) {
-            if let Some((mut afe, _)) = q_afe
-                .iter_mut()
-                .find(|(_, parent)| parent.get() == ts_parent.get())
-            {
+            if let Ok(mut afe) = q_afe.get_mut(ts_parent.get()) {
                 if afe.0.is_none() {
                     log!("😠 Set aim target {:?} to {:?}", id_1, id_2);
                     afe.0 = Some(id_2);
@@ -70,15 +66,12 @@ fn set_aim_target(
 fn unset_aim_target(
     id_1: Entity,
     id_2: Entity,
-    q_afe: &mut Query<(&mut AimFirstEnemy, &Parent)>,
+    q_afe: &mut Query<&mut AimFirstEnemy>,
     q_tower_sight: &Query<&Parent, With<TowerSightSensor>>,
 ) {
     for id in [id_1, id_2] {
         if let Ok(ts_parent) = q_tower_sight.get(id) {
-            if let Some((mut afe, _)) = q_afe
-                .iter_mut()
-                .find(|(_, parent)| parent.get() == ts_parent.get())
-            {
+            if let Ok(mut afe) = q_afe.get_mut(ts_parent.get()) {
                 if afe.0.is_some() {
                     afe.0 = None;
                     log!("😊 Unset aim target {:?}", afe.0);

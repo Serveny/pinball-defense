@@ -4,7 +4,6 @@ use self::machine_gun::spawn_tower_machine_gun;
 use self::microwave::spawn_tower_microwave;
 use self::target::aim_first_enemy_system;
 use self::tesla::spawn_tower_tesla;
-use crate::damage::DamageList;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::world::QueryWorld;
@@ -31,7 +30,6 @@ impl Plugin for TowerPlugin {
             .add_systems(
                 Update,
                 (
-                    rotate_to_pos_system,
                     light_off_system,
                     flash_light_system,
                     spawn_tower_system,
@@ -88,19 +86,6 @@ fn create_tower_spawn_animator(pos: Vec3) -> Sequence<Transform> {
 
 fn tower_start_pos(pos: Vec3) -> Vec3 {
     Vec3::new(pos.x, pos.y - 0.1, pos.z)
-}
-
-fn rotate_to_pos_system(
-    mut q_heads: Query<(&Parent, &mut Transform), With<TowerHead>>,
-    q_dmg: Query<&DamageList>,
-) {
-    for (parent, mut trans) in q_heads.iter_mut() {
-        if let Ok(dmg_list) = q_dmg.get(parent.get()) {
-            if let Some(dmg) = dmg_list.0.first() {
-                trans.look_at(dmg.pos, Vec3::Y);
-            }
-        }
-    }
 }
 
 #[derive(Event)]
