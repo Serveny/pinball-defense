@@ -34,7 +34,7 @@ struct EnemiesToSpawn(usize);
 #[derive(Resource, Deref, DerefMut, Default)]
 struct NextEnemySpawnTime(f32);
 
-const TIME_BETWEEN_WAVES: f32 = 4.;
+const TIME_BETWEEN_WAVES: f32 = 8.;
 
 fn wave_system(
     mut spawn_enemy_ev: EventWriter<SpawnEnemyEvent>,
@@ -49,7 +49,7 @@ fn wave_system(
             **wave_no += 1;
             **next_enemy_spawn = (now + TIME_BETWEEN_WAVES).round();
             log!("🏄‍♂️ Wave end. Wait until {}", **next_enemy_spawn);
-            **enemies_count = **wave_no;
+            **enemies_count = 1;
         } else {
             **enemies_count -= 1;
             **next_enemy_spawn = now + 1.;

@@ -20,14 +20,13 @@ pub(super) fn rotate_to_target_system(
     mut q_rtt: Query<(&mut Transform, &Parent), With<RotateToTarget>>,
     q_parent: Query<(&Transform, &TargetPos), Without<RotateToTarget>>,
 ) {
-    for (mut trans, parent) in q_rtt.iter_mut() {
+    for (mut rot_trans, parent) in q_rtt.iter_mut() {
         if let Ok((tower_trans, target_pos)) = q_parent.get(parent.get()) {
             let tower_pos = tower_trans.translation;
             if let Some(target_pos) = target_pos.0 {
                 let direction = target_pos - tower_pos;
-                let angle = direction.angle_between(Vec3::NEG_X);
-                log!("Rotate head to pos {:?}", angle);
-                trans.rotation = Quat::from_rotation_y(angle);
+                rot_trans.look_at(direction, Vec3::Y);
+                rot_trans.rotate_y(f32::to_radians(90.));
             }
         }
     }
