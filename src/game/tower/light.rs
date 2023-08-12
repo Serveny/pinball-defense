@@ -1,4 +1,4 @@
-use crate::ball::CollisionWithBallEvent;
+use crate::game::ball::CollisionWithBallEvent;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 

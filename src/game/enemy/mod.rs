@@ -1,10 +1,12 @@
 use self::step::Step;
 use self::walk::{road_end_reached_system, walk_system, RoadEndReachedEvent, WALK_SPEED};
-use crate::ball::CollisionWithBallEvent;
-use crate::events::collision::{ENEMY, INTERACT_WITH_BALL, INTERACT_WITH_ENEMY};
+use crate::game::ball::CollisionWithBallEvent;
+use crate::game::events::collision::{ENEMY, INTERACT_WITH_BALL, INTERACT_WITH_ENEMY};
+use crate::game::progress_bar;
+use crate::game::road::points::ROAD_POINTS;
+use crate::game::world::QueryWorld;
+use crate::game::GameState;
 use crate::prelude::*;
-use crate::world::QueryWorld;
-use crate::{road::points::ROAD_POINTS, GameState};
 use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
 use std::time::Duration;
 
@@ -113,7 +115,7 @@ fn spawn_enemy(
             Name::new("Enemy"),
         ))
         .with_children(|parent| {
-            crate::progress_bar::spawn(
+            progress_bar::spawn(
                 parent,
                 assets,
                 materials,

@@ -1,6 +1,6 @@
-use crate::ball::PinBall;
+use super::ball::PinBall;
+use super::CameraState;
 use crate::prelude::*;
-use crate::CameraState;
 pub struct BallCameraPlugin;
 
 impl Plugin for BallCameraPlugin {

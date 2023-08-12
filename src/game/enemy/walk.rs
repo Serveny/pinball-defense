@@ -1,7 +1,7 @@
 use super::Enemy;
-use crate::player_life::LifeBar;
+use crate::game::player_life::LifeBar;
+use crate::game::progress_bar::ProgressBarCountUpEvent;
 use crate::prelude::*;
-use crate::progress_bar::ProgressBarCountUpEvent;
 
 pub(super) const WALK_SPEED: f32 = 0.2;
 

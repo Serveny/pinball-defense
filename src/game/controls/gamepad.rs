@@ -1,10 +1,10 @@
 use super::set_flipper_status;
-use crate::ball_starter::SpawnBallEvent;
-use crate::prelude::*;
-use crate::{
+use crate::game::ball_starter::SpawnBallEvent;
+use crate::game::{
     ball_starter::BallStarterState,
     flipper::{FlipperStatus, FlipperType},
 };
+use crate::prelude::*;
 use bevy::input::gamepad::{GamepadButtonChangedEvent, GamepadConnectionEvent};
 
 /// Simple resource to store the ID of the connected gamepad.

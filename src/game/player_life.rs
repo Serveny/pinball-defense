@@ -1,6 +1,6 @@
+use super::progress_bar::{ProgressBarEmptyEvent, QueryProgressBar};
+use super::{GameState, IngameTime};
 use crate::prelude::*;
-use crate::progress_bar::{ProgressBarEmptyEvent, QueryProgressBar};
-use crate::{GameState, IngameTime};
 
 pub struct PlayerLifePlugin;
 
@@ -36,7 +36,7 @@ pub fn spawn_life_bar(
             LastDamage::default(),
         ))
         .with_children(|parent| {
-            crate::progress_bar::spawn(
+            super::progress_bar::spawn(
                 parent,
                 assets,
                 materials,
