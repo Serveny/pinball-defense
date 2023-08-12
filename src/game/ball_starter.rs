@@ -95,6 +95,10 @@ pub fn spawn(
                         TransformBundle::from(Transform::from_xyz(0.09, 0., 0.)),
                         Collider::cuboid(HALF_SIZE.x, HALF_SIZE.y, HALF_SIZE.z),
                         RigidBody::KinematicPositionBased,
+                        Restitution {
+                            coefficient: 0.,
+                            combine_rule: CoefficientCombineRule::Multiply,
+                        },
                         ColliderDebugColor(Color::GOLD),
                         collider_only_interact_with_ball(),
                     ));

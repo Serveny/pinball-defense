@@ -42,7 +42,9 @@ impl Plugin for TowerPlugin {
                     base::progress_system,
                     animations::rotate_always_system,
                     animations::rotate_to_target_system,
-                    target::enemy_sight_system,
+                    target::enemy_within_reach_system,
+                    target::target_pos_by_afe_system,
+                    target::remove_despawned_enemies_from_ewr_system,
                 )
                     .run_if(in_state(GameState::Ingame)),
             );
