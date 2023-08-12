@@ -1,9 +1,4 @@
-use self::foundation::{set_next_selected_system, DespawnFoundationEvent};
-use self::light::{contact_light_on_system, flash_light_system, light_off_system};
-use self::target::aim_first_enemy_system;
-use self::types::machine_gun::spawn_tower_machine_gun;
-use self::types::microwave::spawn_tower_microwave;
-use self::types::tesla::spawn_tower_tesla;
+use self::foundation::DespawnFoundationEvent;
 use super::GameState;
 use crate::game::world::QueryWorld;
 use crate::prelude::*;
@@ -11,6 +6,8 @@ use crate::settings::GraphicsSettings;
 use bevy_tweening::lens::TransformPositionLens;
 use bevy_tweening::{Delay, EaseFunction, Sequence, Tween};
 use std::time::Duration;
+pub use types::TowerType;
+use types::*;
 
 mod animations;
 pub mod base;
@@ -28,21 +25,21 @@ impl Plugin for TowerPlugin {
             .add_systems(
                 Update,
                 (
-                    light_off_system,
-                    flash_light_system,
-                    spawn_tower_system,
-                    set_next_selected_system,
-                    contact_light_on_system,
-                    aim_first_enemy_system,
-                    foundation::set_ready_to_build_system,
-                    foundation::despawn_system,
-                    foundation::progress_system,
-                    base::progress_system,
                     animations::rotate_always_system,
                     animations::rotate_to_target_system,
+                    base::progress_system,
+                    foundation::despawn_system,
+                    foundation::progress_system,
+                    foundation::set_next_selected_system,
+                    foundation::set_ready_to_build_system,
+                    light::contact_light_on_system,
+                    light::flash_light_system,
+                    light::light_off_system,
+                    target::aim_first_enemy_system,
                     target::enemy_within_reach_system,
-                    target::target_pos_by_afe_system,
                     target::remove_despawned_enemies_from_ewr_system,
+                    target::target_pos_by_afe_system,
+                    spawn_tower_system,
                 )
                     .run_if(in_state(GameState::Ingame)),
             );
@@ -53,13 +50,6 @@ pub struct Tower;
 
 #[derive(Component)]
 pub struct TowerHead;
-
-#[derive(Component, Clone, Copy, Debug)]
-pub enum TowerType {
-    MachineGun,
-    Tesla,
-    Microwave,
-}
 
 fn tower_material() -> StandardMaterial {
     StandardMaterial {
@@ -103,13 +93,9 @@ fn spawn_tower_system(
         cmds.entity(q_pbw.single()).with_children(|parent| {
             let pos = ev.1;
             match ev.0 {
-                TowerType::MachineGun => {
-                    spawn_tower_machine_gun(parent, &mut mats, &assets, &g_sett, pos)
-                }
-                TowerType::Tesla => spawn_tower_tesla(parent, &mut mats, &assets, &g_sett, pos),
-                TowerType::Microwave => {
-                    spawn_tower_microwave(parent, &mut mats, &assets, &g_sett, pos)
-                }
+                TowerType::Gun => gun::spawn(parent, &mut mats, &assets, &g_sett, pos),
+                TowerType::Tesla => tesla::spawn(parent, &mut mats, &assets, &g_sett, pos),
+                TowerType::Microwave => microwave::spawn(parent, &mut mats, &assets, &g_sett, pos),
             };
         });
     }

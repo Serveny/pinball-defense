@@ -7,18 +7,18 @@ use crate::settings::GraphicsSettings;
 use bevy_tweening::Animator;
 
 #[derive(Component)]
-pub struct MachineGunTower;
+pub struct GunTower;
 
 #[derive(Component)]
-pub struct MachineGunTowerMount;
+pub struct GunTowerMount;
 
 #[derive(Component)]
-pub struct MachineGunTowerHead;
+pub struct GunTowerHead;
 
 #[derive(Component)]
-pub struct MachineGunTowerBarrel;
+pub struct GunTowerBarrel;
 
-pub fn spawn_tower_machine_gun(
+pub fn spawn(
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseAssets,
@@ -36,7 +36,7 @@ pub fn spawn_tower_machine_gun(
                 transform: Transform::from_xyz(0., 0., 0.),
                 ..default()
             },
-            MachineGunTowerBarrel,
+            GunTowerBarrel,
         ));
     };
     let mg_head = |parent: &mut ChildBuilder| {
@@ -48,7 +48,7 @@ pub fn spawn_tower_machine_gun(
                     transform: Transform::from_xyz(0., 0., 0.),
                     ..default()
                 },
-                MachineGunTowerHead,
+                GunTowerHead,
             ))
             .with_children(mg_barrel);
     };
@@ -65,7 +65,7 @@ pub fn spawn_tower_machine_gun(
                     },
                     ..default()
                 },
-                MachineGunTowerMount,
+                GunTowerMount,
                 RotateToTarget,
                 TowerHead,
             ))
@@ -77,9 +77,9 @@ pub fn spawn_tower_machine_gun(
     parent
         .spawn((
             spatial_from_pos(tower_start_pos(pos)),
-            MachineGunTower,
+            GunTower,
             Tower,
-            Name::new("Machine Gun Tower"),
+            Name::new(" Gun Tower"),
             SightRadius(sight_radius),
             AimFirstEnemy(None),
             EnemiesWithinReach::default(),

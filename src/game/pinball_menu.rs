@@ -178,7 +178,7 @@ fn spawn_menu(
             Name::new("Tower Menu"),
         ))
         .with_children(|p| {
-            spawn_menu_element(MachineGun, p, mats, assets, g_sett, -0.25, 0.1);
+            spawn_menu_element(Gun, p, mats, assets, g_sett, -0.25, 0.1);
             spawn_menu_element(Microwave, p, mats, assets, g_sett, 0., 1.);
             spawn_menu_element(Tesla, p, mats, assets, g_sett, 0.25, 0.1);
         });
