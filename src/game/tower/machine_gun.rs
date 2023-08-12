@@ -1,6 +1,6 @@
 use super::animations::RotateToTarget;
 use super::base::spawn_tower_base;
-use super::target::{AimFirstEnemy, SightRadius, TargetPos};
+use super::target::{AimFirstEnemy, EnemiesWithinReach, SightRadius, TargetPos};
 use super::{create_tower_spawn_animator, tower_material, tower_start_pos, Tower, TowerHead};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
@@ -58,7 +58,11 @@ pub fn spawn_tower_machine_gun(
                 PbrBundle {
                     mesh: assets.tower_mg_mounting.clone(),
                     material: tower_material.clone(),
-                    transform: Transform::from_xyz(0., 0.023, 0.),
+                    transform: Transform {
+                        translation: Vec3::new(0., 0.023, 0.),
+                        scale: Vec3::new(0.9, 0.9, 0.9),
+                        ..default()
+                    },
                     ..default()
                 },
                 MachineGunTowerMount,
@@ -78,6 +82,7 @@ pub fn spawn_tower_machine_gun(
             Name::new("Machine Gun Tower"),
             SightRadius(sight_radius),
             AimFirstEnemy(None),
+            EnemiesWithinReach::default(),
             TargetPos(None),
             Animator::new(create_tower_spawn_animator(pos)),
         ))
