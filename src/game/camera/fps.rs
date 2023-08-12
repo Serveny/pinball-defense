@@ -1,6 +1,4 @@
-use super::controls::gamepad::MyGamepad;
-use super::CameraState;
-use super::GameState;
+use crate::game::controls::gamepad::MyGamepad;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy::core_pipeline::tonemapping::Tonemapping;
@@ -9,22 +7,8 @@ use bevy::input::mouse::MouseMotion;
 use bevy::render::render_resource::TextureViewDescriptor;
 use bevy::render::render_resource::TextureViewDimension;
 
-pub struct FirstPersonCameraPlugin;
-
-impl Plugin for FirstPersonCameraPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Ingame), setup_camera)
-            //.add_systems(Update, asset_loaded.run_if(in_state(GameState::Ingame)))
-            .add_systems(
-                Update,
-                (keyboard_mouse_motion_system, gamepad_input)
-                    .run_if(in_state(CameraState::FpsCamera)),
-            );
-    }
-}
-
 #[derive(Component)]
-struct LookDirection {
+pub(super) struct LookDirection {
     yaw: f32,
     pitch: f32,
 }
@@ -39,7 +23,7 @@ impl Default for LookDirection {
 }
 
 #[derive(Resource)]
-struct FirstPersonCameraSettings {
+pub(super) struct FirstPersonCameraSettings {
     pub move_speed: f32,
     pub mouse_sensitivity: f32,
     pub stick_sensitivity: f32,
@@ -55,7 +39,7 @@ impl Default for FirstPersonCameraSettings {
     }
 }
 
-fn keyboard_mouse_motion_system(
+pub(super) fn keyboard_mouse_motion_system(
     mut mouse_motion: EventReader<MouseMotion>,
     mut query: Query<(&mut Transform, &mut LookDirection)>,
     key_input: Res<Input<KeyCode>>,
@@ -87,7 +71,7 @@ fn keyboard_mouse_motion_system(
     });
 }
 
-fn gamepad_input(
+pub(super) fn gamepad_input(
     axes: Res<Axis<GamepadAxis>>,
     my_gamepad: Option<Res<MyGamepad>>,
     mut query: Query<(&mut Transform, &mut LookDirection)>,
@@ -145,7 +129,7 @@ fn look_and_move_in_direction(
     }
 }
 
-fn setup_camera(
+pub(super) fn setup_camera(
     mut cmds: Commands,
     assets: Res<PinballDefenseAssets>,
     images: ResMut<Assets<Image>>,
