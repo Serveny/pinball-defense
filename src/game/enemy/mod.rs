@@ -24,7 +24,7 @@ impl Plugin for EnemyPlugin {
                 Update,
                 (
                     pinball_hit_system,
-                    spawn_enemy_system,
+                    spawn_system,
                     walk_system,
                     road_end_reached_system,
                 )
@@ -64,7 +64,7 @@ impl Enemy {
 #[derive(Event)]
 pub struct SpawnEnemyEvent;
 
-fn spawn_enemy_system(
+fn spawn_system(
     mut cmds: Commands,
     mut evr: EventReader<SpawnEnemyEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -74,12 +74,12 @@ fn spawn_enemy_system(
 ) {
     for _ in evr.iter() {
         cmds.entity(q_pqw.single()).with_children(|parent| {
-            spawn_enemy(parent, &assets, &mut meshes, &mut mats);
+            spawn(parent, &assets, &mut meshes, &mut mats);
         });
     }
 }
 
-fn spawn_enemy(
+fn spawn(
     parent: &mut ChildBuilder,
     assets: &PinballDefenseAssets,
     meshes: &mut Assets<Mesh>,

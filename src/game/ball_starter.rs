@@ -1,5 +1,5 @@
 use crate::game::ball::{self, PinBall};
-use crate::game::events::collision::collider_only_interact_with_ball;
+use crate::game::events::collision::COLLIDE_ONLY_WITH_BALL;
 use crate::prelude::*;
 
 pub struct BallStarterPlugin;
@@ -69,45 +69,45 @@ pub fn spawn(
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
 ) {
+    let collider = |p: &mut ChildBuilder| {
+        p.spawn((
+            TransformBundle::from(Transform::from_xyz(0.09, 0., 0.)),
+            Collider::cuboid(HALF_SIZE.x, HALF_SIZE.y, HALF_SIZE.z),
+            RigidBody::KinematicPositionBased,
+            Restitution {
+                coefficient: 0.,
+                combine_rule: CoefficientCombineRule::Multiply,
+            },
+            ColliderDebugColor(Color::GOLD),
+            COLLIDE_ONLY_WITH_BALL,
+        ));
+    };
+    let plate = |p: &mut ChildBuilder| {
+        p.spawn((
+            PbrBundle {
+                mesh: meshes.add(Mesh::from(shape::Box::new(
+                    HALF_SIZE.x / 4.,
+                    HALF_SIZE.y * 2.,
+                    HALF_SIZE.z * 2.,
+                ))),
+                material: materials.add(Color::ORANGE.into()),
+                transform: Transform::from_translation(Vec3::new(-HALF_SIZE.x, 0., 0.)),
+                ..default()
+            },
+            BallStarterPlate,
+            Speed(1.),
+            //Ccd::enabled(),
+        ))
+        // Long cube collider to prevent clipping ball
+        .with_children(collider);
+    };
     parent
-        .spawn((SpatialBundle {
-            transform: Transform::from_translation(pos),
-            ..default()
-        },))
-        .with_children(|parent| {
-            parent
-                .spawn((
-                    PbrBundle {
-                        mesh: meshes.add(Mesh::from(shape::Box::new(
-                            HALF_SIZE.x / 4.,
-                            HALF_SIZE.y * 2.,
-                            HALF_SIZE.z * 2.,
-                        ))),
-                        material: materials.add(Color::ORANGE.into()),
-                        transform: Transform::from_translation(Vec3::new(-HALF_SIZE.x, 0., 0.)),
-                        ..default()
-                    },
-                    //Ccd::enabled(),
-                ))
-                // Long cube collider to prevent clipping ball
-                .with_children(|parent| {
-                    parent.spawn((
-                        TransformBundle::from(Transform::from_xyz(0.09, 0., 0.)),
-                        Collider::cuboid(HALF_SIZE.x, HALF_SIZE.y, HALF_SIZE.z),
-                        RigidBody::KinematicPositionBased,
-                        Restitution {
-                            coefficient: 0.,
-                            combine_rule: CoefficientCombineRule::Multiply,
-                        },
-                        ColliderDebugColor(Color::GOLD),
-                        collider_only_interact_with_ball(),
-                    ));
-                })
-                .insert(BallStarterPlate)
-                .insert(Speed(1.));
-        })
-        .insert(BallStarter)
-        .insert(Name::new("Ball Starter"));
+        .spawn((
+            spatial_from_pos(pos),
+            BallStarter,
+            Name::new("Ball Starter"),
+        ))
+        .with_children(plate);
 }
 
 fn spawn_ball_at_charge(

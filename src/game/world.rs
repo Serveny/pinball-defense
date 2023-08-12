@@ -1,5 +1,5 @@
 use super::ball_starter::BallStarterPlugin;
-use super::events::collision::collider_only_interact_with_ball;
+use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 use super::flipper::FlipperPlugin;
 use super::player_life::spawn_life_bar;
 use super::road::spawn_road;
@@ -64,7 +64,7 @@ fn spawn_pinball_world(
                 .unwrap(),
                 Friction::new(0.2),
                 ColliderDebugColor(Color::GOLD),
-                collider_only_interact_with_ball(),
+                COLLIDE_ONLY_WITH_BALL,
             ))
             .insert(Ground);
 

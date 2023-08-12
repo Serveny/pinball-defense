@@ -2,6 +2,7 @@ use assets::PinballDefenseAssets;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 //#[cfg(debug_assertions)]
 //use bevy_debug_grid::*;
+pub use bevy_asset_loader::prelude::*;
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_tweening::TweeningPlugin;

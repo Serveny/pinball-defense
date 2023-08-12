@@ -148,12 +148,12 @@ fn collision_with_ball_system(
     mut coll_with_ball_ev: EventWriter<CollisionWithBallEvent>,
     q_ball: Query<With<PinBall>>,
 ) {
-    for ev in ball_collision_start_only(coll_ev, q_ball) {
+    for ev in get_ball_collisions_start_only(coll_ev, q_ball) {
         coll_with_ball_ev.send(CollisionWithBallEvent::new(ev));
     }
 }
 
-fn ball_collision_start_only(
+fn get_ball_collisions_start_only(
     mut coll_ev: EventReader<CollisionEvent>,
     q_ball: Query<With<PinBall>>,
 ) -> Vec<(Entity, CollisionEventFlags)> {

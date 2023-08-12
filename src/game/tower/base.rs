@@ -1,9 +1,7 @@
 use super::light::{spawn_contact_light, LightOnCollision};
 use super::tower_material;
 use crate::game::ball::CollisionWithBallEvent;
-use crate::game::events::collision::{
-    collider_only_interact_with_ball, collider_only_interact_with_enemy,
-};
+use crate::game::events::collision::{COLLIDE_ONLY_WITH_BALL, COLLIDE_ONLY_WITH_ENEMY};
 use crate::game::progress_bar;
 use crate::game::progress_bar::ProgressBarCountUpEvent;
 use crate::prelude::*;
@@ -35,7 +33,7 @@ pub(super) fn spawn_tower_base(
             ActiveEvents::COLLISION_EVENTS,
             ColliderDebugColor(Color::RED),
             Collider::cylinder(0.12, 0.06),
-            collider_only_interact_with_ball(),
+            COLLIDE_ONLY_WITH_BALL,
             TowerBase,
             LightOnCollision,
             Name::new("Tower Base"),
@@ -73,7 +71,7 @@ fn spawn_tower_sight_sensor(parent: &mut ChildBuilder, radius: f32) {
         Collider::cylinder(0.06, radius),
         ActiveEvents::COLLISION_EVENTS,
         ActiveCollisionTypes::KINEMATIC_KINEMATIC,
-        collider_only_interact_with_enemy(),
+        COLLIDE_ONLY_WITH_ENEMY,
         TowerSightSensor,
     ));
 }

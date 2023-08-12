@@ -11,13 +11,10 @@ pub const BALL: Group = Group::GROUP_1;
 
 pub const INTERACT_WITH_BALL: Group = Group::GROUP_2;
 
-pub fn collider_only_interact_with_ball() -> CollisionGroups {
-    CollisionGroups::new(INTERACT_WITH_BALL, BALL)
-}
+pub const COLLIDE_ONLY_WITH_BALL: CollisionGroups = CollisionGroups::new(INTERACT_WITH_BALL, BALL);
 
 pub const ENEMY: Group = Group::GROUP_3;
 pub const INTERACT_WITH_ENEMY: Group = Group::GROUP_4;
 
-pub fn collider_only_interact_with_enemy() -> CollisionGroups {
-    CollisionGroups::new(INTERACT_WITH_ENEMY, ENEMY)
-}
+pub const COLLIDE_ONLY_WITH_ENEMY: CollisionGroups =
+    CollisionGroups::new(INTERACT_WITH_ENEMY, ENEMY);
