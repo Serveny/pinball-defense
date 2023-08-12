@@ -1,7 +1,7 @@
 use super::set_flipper_status;
 use crate::game::ball_starter::{BallStarterState, SpawnBallEvent};
+use crate::game::camera::CameraState;
 use crate::game::flipper::{FlipperStatus, FlipperType};
-use crate::game::CameraState;
 use crate::prelude::*;
 use bevy::window::{CursorGrabMode, PrimaryWindow};
 
