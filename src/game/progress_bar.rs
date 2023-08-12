@@ -1,6 +1,6 @@
+use super::GameState;
 use crate::prelude::*;
 use crate::utils::RelEntity;
-use crate::GameState;
 
 pub type QueryProgressBar<'w, 's, 'a> = Query<'w, 's, (&'a RelEntity, &'a mut ProgressBar)>;
 pub struct ProgressBarPlugin;

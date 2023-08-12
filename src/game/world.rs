@@ -1,13 +1,13 @@
+use super::ball_starter::BallStarterPlugin;
+use super::events::collision::collider_only_interact_with_ball;
+use super::flipper::FlipperPlugin;
+use super::player_life::spawn_life_bar;
+use super::road::spawn_road;
+use super::tower::foundation::spawn_foundation;
+use super::GameState;
 use crate::assets::PinballDefenseAssets;
-use crate::ball_starter::BallStarterPlugin;
-use crate::events::collision::collider_only_interact_with_ball;
-use crate::flipper::FlipperPlugin;
-use crate::player_life::spawn_life_bar;
 use crate::prelude::*;
-use crate::road::spawn_road;
 use crate::settings::GraphicsSettings;
-use crate::tower::foundation::spawn_foundation;
-use crate::GameState;
 
 pub type QueryWorld<'w, 's> = Query<'w, 's, Entity, With<PinballWorld>>;
 
@@ -70,15 +70,15 @@ fn spawn_pinball_world(
 
         // Ball starter
         let bs_pos = Vec3::new(1.175, -0.018, -0.657);
-        crate::ball_starter::spawn(parent, bs_pos, &mut meshes, &mut materials);
+        super::ball_starter::spawn(parent, bs_pos, &mut meshes, &mut materials);
 
         // Flipper left
         let fl_pos = Transform::from_xyz(0.83, -0.043, 0.32);
-        crate::flipper::spawn_left(fl_pos, parent, &mut materials, &mut assets);
+        super::flipper::spawn_left(fl_pos, parent, &mut materials, &mut assets);
 
         // Flipper right
         let fr_pos = Transform::from_xyz(0.83, -0.043, -0.246);
-        crate::flipper::spawn_right(fr_pos, parent, &mut materials, &mut assets);
+        super::flipper::spawn_right(fr_pos, parent, &mut materials, &mut assets);
 
         spawn_foundations(parent, &mut materials, &assets, &g_sett);
         spawn_road(parent, &mut materials, &mut meshes, &assets);

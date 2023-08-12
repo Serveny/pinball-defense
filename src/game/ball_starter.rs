@@ -1,5 +1,5 @@
-use crate::ball::{self, PinBall};
-use crate::events::collision::collider_only_interact_with_ball;
+use crate::game::ball::{self, PinBall};
+use crate::game::events::collision::collider_only_interact_with_ball;
 use crate::prelude::*;
 
 pub struct BallStarterPlugin;

@@ -1,4 +1,4 @@
-use crate::pinball_menu::PinballMenuEvent;
+use crate::game::pinball_menu::PinballMenuEvent;
 use crate::prelude::*;
 use bevy_tweening::TweenCompleted;
 

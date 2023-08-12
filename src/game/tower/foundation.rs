@@ -3,11 +3,12 @@ use super::light::{
     LightOnCollision,
 };
 use super::tower_material;
-use crate::ball::CollisionWithBallEvent;
-use crate::events::collision::collider_only_interact_with_ball;
-use crate::events::tween_completed::DESPAWN_ENTITY_EVENT_ID;
+use crate::game::ball::CollisionWithBallEvent;
+use crate::game::events::collision::collider_only_interact_with_ball;
+use crate::game::events::tween_completed::DESPAWN_ENTITY_EVENT_ID;
+use crate::game::progress_bar;
+use crate::game::progress_bar::{ProgressBarCountUpEvent, ProgressBarFullEvent};
 use crate::prelude::*;
-use crate::progress_bar::{ProgressBarCountUpEvent, ProgressBarFullEvent};
 use crate::settings::GraphicsSettings;
 use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
 use bevy_tweening::{
@@ -88,7 +89,7 @@ pub fn spawn_foundation(
                     Name::new("Tower Foundation Bottom"),
                 ))
                 .with_children(|parent| {
-                    crate::progress_bar::spawn(
+                    progress_bar::spawn(
                         parent,
                         assets,
                         materials,

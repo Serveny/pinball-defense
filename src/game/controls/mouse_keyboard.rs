@@ -1,8 +1,8 @@
 use super::set_flipper_status;
-use crate::ball_starter::{BallStarterState, SpawnBallEvent};
-use crate::flipper::{FlipperStatus, FlipperType};
+use crate::game::ball_starter::{BallStarterState, SpawnBallEvent};
+use crate::game::flipper::{FlipperStatus, FlipperType};
+use crate::game::CameraState;
 use crate::prelude::*;
-use crate::CameraState;
 use bevy::window::{CursorGrabMode, PrimaryWindow};
 
 #[allow(clippy::too_many_arguments)]
