@@ -1,6 +1,6 @@
 use super::animations::RotateAlways;
 use super::base::spawn_tower_base;
-use super::target::SightRadius;
+use super::target::{EnemiesWithinReach, SightRadius};
 use super::{create_tower_spawn_animator, tower_material, tower_start_pos, Tower, TowerHead};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
@@ -23,6 +23,7 @@ pub(super) fn spawn_tower_tesla(
             Tower,
             TeslaTower,
             SightRadius(0.1),
+            EnemiesWithinReach::default(),
             Name::new("Tesla Tower"),
             Animator::new(create_tower_spawn_animator(pos)),
         ))

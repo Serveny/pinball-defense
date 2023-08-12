@@ -11,8 +11,8 @@ opt-level = 3
 
 # setting the number codegen units to 1 will further improve performances in a noticeable way, 
 # even for a release build (though the build itself will take longer to complete)
-# [profile.release]
-# codegen-units = 1
+#[profile.release]
+#codegen-units = 1
 
 [features]
 log = []
@@ -21,7 +21,7 @@ log = []
 bevy = "0.11"
 bevy-inspector-egui = "0.19"
 bevy_asset_loader = "0.17"
-bevy_rapier3d = { version = "0.22" }
+bevy_rapier3d = { version = "0.22", features = ["parallel"]}
 bevy_window_title_diagnostics = "0.5.0"
 bevy_tweening = "0.8"
 #bevy_debug_grid = "0.1"

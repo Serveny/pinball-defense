@@ -19,6 +19,7 @@ impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<SpawnEnemyEvent>()
             .add_event::<RoadEndReachedEvent>()
+            .add_event::<OnEnemyDespawnEvent>()
             .add_systems(
                 Update,
                 (
@@ -133,6 +134,7 @@ fn spawn_enemy(
 
 fn pinball_hit_system(
     mut cmds: Commands,
+    mut despawn_ev: EventWriter<OnEnemyDespawnEvent>,
     mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
     q_enemy: Query<With<Enemy>>,
 ) {
@@ -140,6 +142,10 @@ fn pinball_hit_system(
         if *flag == CollisionEventFlags::SENSOR && q_enemy.contains(*id) {
             log!("😵 Pinball hits enemy {:?}", *id);
             cmds.entity(*id).despawn_recursive();
+            despawn_ev.send(OnEnemyDespawnEvent(*id));
         }
     }
 }
+
+#[derive(Event)]
+pub struct OnEnemyDespawnEvent(pub Entity);

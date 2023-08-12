@@ -54,7 +54,10 @@ pub fn spawn(
         RigidBody::Dynamic,
         Collider::ball(radius),
         ColliderDebugColor(Color::GOLD),
-        CollisionGroups::new(BALL.union(INTERACT_WITH_ENEMY), INTERACT_WITH_BALL),
+        CollisionGroups::new(
+            BALL.union(INTERACT_WITH_ENEMY).union(INTERACT_WITH_BALL),
+            INTERACT_WITH_BALL,
+        ),
         Sleeping::disabled(),
         ColliderMassProperties::Mass(0.081),
         Restitution::coefficient(0.5),
