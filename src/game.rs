@@ -1,14 +1,13 @@
 use ball::BallPlugin;
-use ball_camera::BallCameraPlugin;
 //#[cfg(debug_assertions)]
 //use bevy_debug_grid::*;
+use self::camera::PinballCameraPlugin;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::AppState;
 use controls::ControlsPlugin;
 use enemy::EnemyPlugin;
 use events::PinballEventsPlugin;
-use fps_camera::FirstPersonCameraPlugin;
 use pinball_menu::PinballMenuPlugin;
 use player_life::PlayerLifePlugin;
 use progress_bar::ProgressBarPlugin;
@@ -18,13 +17,12 @@ use wave::WavePlugin;
 use world::WorldPlugin;
 
 mod ball;
-mod ball_camera;
 mod ball_starter;
+mod camera;
 mod controls;
 mod enemy;
 mod events;
 mod flipper;
-mod fps_camera;
 mod pinball_menu;
 mod player_life;
 mod progress_bar;
@@ -32,14 +30,6 @@ mod road;
 mod tower;
 mod wave;
 mod world;
-
-#[derive(States, Debug, Clone, Eq, PartialEq, Hash, Default)]
-pub enum CameraState {
-    #[default]
-    None,
-    BallCamera,
-    FpsCamera,
-}
 
 #[derive(States, PartialEq, Eq, Clone, Copy, Debug, Hash, Default)]
 pub enum GameState {
@@ -53,14 +43,12 @@ pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_state::<CameraState>()
-            .add_state::<GameState>()
+        app.add_state::<GameState>()
             .init_resource::<IngameTime>()
             .add_plugins((
-                FirstPersonCameraPlugin,
                 WorldPlugin,
                 BallPlugin,
-                BallCameraPlugin,
+                PinballCameraPlugin,
                 TowerPlugin,
                 ControlsPlugin,
                 PinballMenuPlugin,

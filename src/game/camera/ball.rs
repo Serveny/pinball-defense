@@ -1,16 +1,5 @@
-use super::ball::PinBall;
-use super::CameraState;
+use crate::game::ball::PinBall;
 use crate::prelude::*;
-pub struct BallCameraPlugin;
-
-impl Plugin for BallCameraPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            follow_ball.run_if(in_state(CameraState::BallCamera)),
-        );
-    }
-}
 
 //fn place_cam(mut q_cam: Query<&mut Transform, (With<Camera>, Without<Ball>)>) {
 //if let Ok(mut cam) = q_cam.get_single_mut() {
@@ -19,7 +8,7 @@ impl Plugin for BallCameraPlugin {
 //}
 //}
 
-fn follow_ball(
+pub(super) fn follow_ball(
     mut q_cam: Query<&mut Transform, (With<Camera>, Without<PinBall>)>,
     q_ball: Query<&Transform, With<PinBall>>,
 ) {
