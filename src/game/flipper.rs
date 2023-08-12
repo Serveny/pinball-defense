@@ -1,5 +1,5 @@
 use super::ball::CollisionWithBallEvent;
-use super::events::collision::collider_only_interact_with_ball;
+use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 use super::pinball_menu::PinballMenuEvent;
 use super::GameState;
 use crate::prelude::*;
@@ -141,7 +141,7 @@ fn spawn(
                     coefficient: 0.1,
                     combine_rule: CoefficientCombineRule::Multiply,
                 },
-                collider_only_interact_with_ball(),
+                COLLIDE_ONLY_WITH_BALL,
                 FlipperCollider,
             ));
         });

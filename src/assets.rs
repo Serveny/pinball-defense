@@ -1,4 +1,5 @@
 use crate::prelude::*;
+pub use bevy_asset_loader::prelude::*;
 
 #[derive(Resource, AssetCollection)]
 pub struct PinballDefenseAssets {

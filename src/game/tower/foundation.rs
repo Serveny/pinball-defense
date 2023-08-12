@@ -4,7 +4,7 @@ use super::light::{
 };
 use super::tower_material;
 use crate::game::ball::CollisionWithBallEvent;
-use crate::game::events::collision::collider_only_interact_with_ball;
+use crate::game::events::collision::COLLIDE_ONLY_WITH_BALL;
 use crate::game::events::tween_completed::DESPAWN_ENTITY_EVENT_ID;
 use crate::game::progress_bar;
 use crate::game::progress_bar::{ProgressBarCountUpEvent, ProgressBarFullEvent};
@@ -56,7 +56,7 @@ pub fn spawn_foundation(
             Sensor,
             Collider::cylinder(0.1, 0.07),
             ColliderDebugColor(Color::GREEN),
-            collider_only_interact_with_ball(),
+            COLLIDE_ONLY_WITH_BALL,
             ActiveEvents::COLLISION_EVENTS,
             TowerFoundation,
             LightOnCollision,
