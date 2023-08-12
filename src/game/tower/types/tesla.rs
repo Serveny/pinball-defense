@@ -9,7 +9,7 @@ use bevy_tweening::Animator;
 #[derive(Component)]
 pub struct TeslaTower;
 
-pub fn spawn_tower_tesla(
+pub fn spawn(
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseAssets,
