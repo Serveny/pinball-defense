@@ -1,9 +1,9 @@
 use self::foundation::{set_next_selected_system, DespawnFoundationEvent};
 use self::light::{contact_light_on_system, flash_light_system, light_off_system};
-use self::machine_gun::spawn_tower_machine_gun;
-use self::microwave::spawn_tower_microwave;
 use self::target::aim_first_enemy_system;
-use self::tesla::spawn_tower_tesla;
+use self::types::machine_gun::spawn_tower_machine_gun;
+use self::types::microwave::spawn_tower_microwave;
+use self::types::tesla::spawn_tower_tesla;
 use super::GameState;
 use crate::game::world::QueryWorld;
 use crate::prelude::*;
@@ -16,10 +16,8 @@ mod animations;
 pub mod base;
 pub mod foundation;
 pub mod light;
-mod machine_gun;
-mod microwave;
 mod target;
-mod tesla;
+mod types;
 
 pub struct TowerPlugin;
 
