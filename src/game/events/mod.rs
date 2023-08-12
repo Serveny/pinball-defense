@@ -2,8 +2,8 @@ use self::{
     collision::{PinballEnemyHitEvent, TowerMenuElementCollisionStartEvent},
     tween_completed::tween_completed_system,
 };
+use crate::game::GameState;
 use crate::prelude::*;
-use crate::GameState;
 pub mod collision;
 pub mod tween_completed;
 

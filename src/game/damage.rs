@@ -1,9 +1,9 @@
-use crate::enemy::Enemy;
+use super::enemy::Enemy;
+use super::progress_bar::ProgressBarCountUpEvent;
+use super::world::QueryWorld;
+use super::GameState;
 use crate::prelude::*;
-use crate::progress_bar::ProgressBarCountUpEvent;
 use crate::utils::RelEntity;
-use crate::world::QueryWorld;
-use crate::GameState;
 
 pub struct DamagePlugin;
 

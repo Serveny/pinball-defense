@@ -1,5 +1,5 @@
 use super::base::TowerSightSensor;
-use crate::enemy::Enemy;
+use crate::game::enemy::Enemy;
 use crate::prelude::*;
 use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
 

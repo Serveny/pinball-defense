@@ -1,5 +1,5 @@
+use crate::game::road::points::{ROAD_DISTS, ROAD_POINTS};
 use crate::prelude::*;
-use crate::road::points::{ROAD_DISTS, ROAD_POINTS};
 
 pub(super) struct Step {
     pub i_road_point: usize,

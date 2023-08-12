@@ -1,8 +1,8 @@
-use crate::ball::CollisionWithBallEvent;
-use crate::events::collision::collider_only_interact_with_ball;
-use crate::pinball_menu::PinballMenuEvent;
+use super::ball::CollisionWithBallEvent;
+use super::events::collision::collider_only_interact_with_ball;
+use super::pinball_menu::PinballMenuEvent;
+use super::GameState;
 use crate::prelude::*;
-use crate::GameState;
 
 pub struct FlipperPlugin;
 

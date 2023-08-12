@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::GameState;
+use crate::AppState;
 
 pub struct LoadingScreenPlugin;
 
@@ -8,8 +8,8 @@ struct LoadingLayout;
 
 impl Plugin for LoadingScreenPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Loading), spawn_layout)
-            .add_systems(OnExit(GameState::Loading), despawn_layout);
+        app.add_systems(OnEnter(AppState::Loading), spawn_layout)
+            .add_systems(OnExit(AppState::Loading), despawn_layout);
     }
 }
 

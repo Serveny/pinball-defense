@@ -1,12 +1,12 @@
-use crate::ball::CollisionWithBallEvent;
-use crate::events::collision::collider_only_interact_with_ball;
-use crate::events::tween_completed::ACTIVATE_PINBALL_MENU_EVENT_ID;
+use super::ball::CollisionWithBallEvent;
+use super::events::collision::collider_only_interact_with_ball;
+use super::events::tween_completed::{ACTIVATE_PINBALL_MENU_EVENT_ID, DESPAWN_ENTITY_EVENT_ID};
+use super::tower::foundation::{DespawnFoundationEvent, QuerySelected, SelectedTowerFoundation};
+use super::tower::{SpawnTowerEvent, TowerType};
+use super::world::QueryWorld;
+use super::GameState;
 use crate::prelude::*;
-use crate::tower::foundation::{DespawnFoundationEvent, QuerySelected, SelectedTowerFoundation};
-use crate::tower::{SpawnTowerEvent, TowerType};
-use crate::world::QueryWorld;
-use crate::GameState;
-use crate::{events::tween_completed::DESPAWN_ENTITY_EVENT_ID, settings::GraphicsSettings};
+use crate::settings::GraphicsSettings;
 use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
 use bevy_tweening::{
     lens::{TransformPositionLens, TransformRotateYLens},

@@ -1,9 +1,9 @@
-use crate::events::collision::BALL;
-use crate::events::collision::INTERACT_WITH_BALL;
-use crate::events::collision::INTERACT_WITH_ENEMY;
-use crate::pinball_menu::PinballMenuEvent;
+use super::events::collision::BALL;
+use super::events::collision::INTERACT_WITH_BALL;
+use super::events::collision::INTERACT_WITH_ENEMY;
+use super::pinball_menu::PinballMenuEvent;
+use super::GameState;
 use crate::prelude::*;
-use crate::GameState;
 use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
 
 pub struct BallPlugin;

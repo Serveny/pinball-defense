@@ -1,11 +1,12 @@
 use super::light::{spawn_contact_light, LightOnCollision};
 use super::tower_material;
-use crate::ball::CollisionWithBallEvent;
-use crate::events::collision::{
+use crate::game::ball::CollisionWithBallEvent;
+use crate::game::events::collision::{
     collider_only_interact_with_ball, collider_only_interact_with_enemy,
 };
+use crate::game::progress_bar;
+use crate::game::progress_bar::ProgressBarCountUpEvent;
 use crate::prelude::*;
-use crate::progress_bar::ProgressBarCountUpEvent;
 use crate::settings::GraphicsSettings;
 use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
 
@@ -42,7 +43,7 @@ pub(super) fn spawn_tower_base(
         .with_children(|parent| {
             spawn_contact_light(parent, g_sett, Color::RED);
 
-            crate::progress_bar::spawn(
+            progress_bar::spawn(
                 parent,
                 assets,
                 materials,

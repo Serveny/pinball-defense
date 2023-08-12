@@ -1,8 +1,8 @@
 use self::gamepad::{gamepad_connections, gamepad_controls};
 use self::mouse_keyboard::{key_system, mouse_btn_system};
-use crate::flipper::{FlipperStatus, FlipperType};
+use crate::game::flipper::{FlipperStatus, FlipperType};
+use crate::game::GameState;
 use crate::prelude::*;
-use crate::GameState;
 
 pub mod gamepad;
 mod mouse_keyboard;

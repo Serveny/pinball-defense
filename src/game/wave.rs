@@ -1,7 +1,7 @@
-use crate::enemy::SpawnEnemyEvent;
+use super::enemy::SpawnEnemyEvent;
+use super::GameState;
+use super::IngameTime;
 use crate::prelude::*;
-use crate::GameState;
-use crate::IngameTime;
 
 pub struct WavePlugin;
 

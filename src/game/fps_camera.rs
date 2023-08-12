@@ -1,8 +1,8 @@
-use crate::controls::gamepad::MyGamepad;
+use super::controls::gamepad::MyGamepad;
+use super::CameraState;
+use super::GameState;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
-use crate::CameraState;
-use crate::GameState;
 use bevy::core_pipeline::tonemapping::Tonemapping;
 use bevy::core_pipeline::Skybox;
 use bevy::input::mouse::MouseMotion;
