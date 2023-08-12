@@ -1,5 +1,5 @@
 use super::ball::CollisionWithBallEvent;
-use super::events::collision::collider_only_interact_with_ball;
+use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 use super::events::tween_completed::{ACTIVATE_PINBALL_MENU_EVENT_ID, DESPAWN_ENTITY_EVENT_ID};
 use super::tower::foundation::{DespawnFoundationEvent, QuerySelected, SelectedTowerFoundation};
 use super::tower::{SpawnTowerEvent, TowerType};
@@ -18,13 +18,10 @@ pub struct PinballMenuPlugin;
 
 impl Plugin for PinballMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<PinballMenuEvent>()
-            .add_state::<PinballMenuStatus>()
-            .add_systems(
-                Update,
-                (menu_event_system, spawn_pinball_menu_system, execute_system)
-                    .run_if(in_state(GameState::Ingame)),
-            );
+        app.add_event::<PinballMenuEvent>().add_systems(
+            Update,
+            (menu_event_system, spawn_system, execute_system).run_if(in_state(GameState::Ingame)),
+        );
     }
 }
 
@@ -37,7 +34,7 @@ pub enum PinballMenuEvent {
 }
 
 #[derive(Component, Debug, Clone, Copy, Default)]
-enum MenuStatus {
+enum PinballMenuStatus {
     #[default]
     Disabled,
     Ready,
@@ -46,7 +43,7 @@ enum MenuStatus {
 
 fn menu_event_system(
     mut evr: EventReader<PinballMenuEvent>,
-    mut q_pb_menu: Query<(Entity, &mut MenuStatus), With<PinballMenu>>,
+    mut q_pb_menu: Query<(Entity, &mut PinballMenuStatus), With<PinballMenu>>,
     cmds: Commands,
     q_pbm_el: QueryPinballMenuElements,
     q_lights: Query<&mut Visibility, With<PinballMenuElementLight>>,
@@ -55,13 +52,13 @@ fn menu_event_system(
 ) {
     if let Some(ev) = evr.iter().next() {
         if let Ok((menu_entity, mut status)) = q_pb_menu.get_single_mut() {
-            use MenuStatus::*;
             use PinballMenuEvent::*;
+            use PinballMenuStatus::*;
             if let Some(new_status) = match (ev, *status) {
-                (Disable, Activated) => Some(despawn_menu(cmds, q_lights, q_pbm_el, menu_entity)),
+                (Disable, Activated) => Some(despawn(cmds, q_lights, q_pbm_el, menu_entity)),
                 (SetReady, Disabled) => Some(Ready),
-                (Deactivate, Activated) => Some(deactivate_menu(cmds, q_lights, q_pbm_el)), // TODO Status setzen
-                (Activate, Ready) => Some(activate_menu(cmds, q_lights, q_pbm_el, meshes, assets)),
+                (Deactivate, Activated) => Some(deactivate(cmds, q_lights, q_pbm_el)), // TODO Status setzen
+                (Activate, Ready) => Some(activate(cmds, q_lights, q_pbm_el, meshes, assets)),
                 _ => None,
             } {
                 *status = new_status;
@@ -70,18 +67,10 @@ fn menu_event_system(
     }
 }
 
-#[derive(States, Debug, Clone, Copy, Default, Eq, PartialEq, Hash)]
-enum PinballMenuStatus {
-    #[default]
-    Disabled,
-    Ready,
-    Activated,
-}
-
 type QueryPinballMenuElements<'w, 's, 'a> =
     Query<'w, 's, (Entity, &'a Transform), With<PinballMenuElement>>;
 
-fn spawn_pinball_menu_system(
+fn spawn_system(
     mut cmds: Commands,
     mut mats: ResMut<Assets<StandardMaterial>>,
     assets: Res<PinballDefenseAssets>,
@@ -94,75 +83,15 @@ fn spawn_pinball_menu_system(
         log!("🐢 Spawn tower menu for: {:?}", q_selected);
         cmds.entity(q_pbw.single()).with_children(|p| {
             let pos = Vec3::new(1.2, 0., 0.05);
-            spawn_menu(p, &mut mats, &assets, &g_sett, pos);
+            spawn(p, &mut mats, &assets, &g_sett, pos);
         });
     }
-}
-
-fn despawn_menu(
-    mut cmds: Commands,
-    q_lights: Query<&mut Visibility, With<PinballMenuElementLight>>,
-    q_pbm_el: QueryPinballMenuElements,
-    menu_entity: Entity,
-) -> MenuStatus {
-    // Despawn menu
-    let delay: Delay<Transform> =
-        Delay::new(Duration::from_secs(2)).with_completed_event(DESPAWN_ENTITY_EVENT_ID);
-    cmds.entity(menu_entity).insert(Animator::new(delay));
-    // Despawn animation
-    q_pbm_el.for_each(|(entity, trans)| {
-        cmds.entity(entity)
-            .insert(Animator::new(despawn_animation(trans.rotation.y)));
-    });
-    deactivate_menu(cmds, q_lights, q_pbm_el);
-    MenuStatus::Disabled
-}
-
-fn activate_menu(
-    mut cmds: Commands,
-    mut q_lights: Query<&mut Visibility, With<PinballMenuElementLight>>,
-    q_pbm_el: QueryPinballMenuElements,
-    meshes: Res<Assets<Mesh>>,
-    assets: Res<PinballDefenseAssets>,
-) -> MenuStatus {
-    q_pbm_el.for_each(|(entity, _)| {
-        cmds.entity(entity)
-            .insert((
-                // Active status collider
-                ColliderDebugColor(Color::GREEN),
-                Sensor,
-                ActiveEvents::COLLISION_EVENTS,
-                Collider::from_bevy_mesh(
-                    meshes
-                        .get(&assets.menu_element.clone())
-                        .expect("Failed to find mesh"),
-                    &ComputedColliderShape::TriMesh,
-                )
-                .unwrap(),
-                collider_only_interact_with_ball(),
-            ))
-            .remove::<ColliderDisabled>();
-    });
-    q_lights.for_each_mut(|mut visi| *visi = Visibility::Inherited);
-    MenuStatus::Activated
-}
-
-fn deactivate_menu(
-    mut cmds: Commands,
-    mut q_lights: Query<&mut Visibility, With<PinballMenuElementLight>>,
-    q_pbm_el: QueryPinballMenuElements,
-) -> MenuStatus {
-    q_pbm_el.for_each(|(entity, _)| {
-        cmds.entity(entity).remove::<Collider>();
-    });
-    q_lights.for_each_mut(|mut visi| *visi = Visibility::Hidden);
-    MenuStatus::Ready
 }
 
 #[derive(Component)]
 struct PinballMenu;
 
-fn spawn_menu(
+fn spawn(
     parent: &mut ChildBuilder,
     mats: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseAssets,
@@ -174,7 +103,7 @@ fn spawn_menu(
         .spawn((
             spatial_from_pos(pos),
             PinballMenu,
-            MenuStatus::Disabled,
+            PinballMenuStatus::Disabled,
             Name::new("Tower Menu"),
         ))
         .with_children(|p| {
@@ -238,6 +167,65 @@ fn spawn_menu_element(
                 PinballMenuElementLight,
             ));
         });
+}
+fn despawn(
+    mut cmds: Commands,
+    q_lights: Query<&mut Visibility, With<PinballMenuElementLight>>,
+    q_pbm_el: QueryPinballMenuElements,
+    menu_entity: Entity,
+) -> PinballMenuStatus {
+    // Despawn menu
+    let delay: Delay<Transform> =
+        Delay::new(Duration::from_secs(2)).with_completed_event(DESPAWN_ENTITY_EVENT_ID);
+    cmds.entity(menu_entity).insert(Animator::new(delay));
+    // Despawn animation
+    q_pbm_el.for_each(|(entity, trans)| {
+        cmds.entity(entity)
+            .insert(Animator::new(despawn_animation(trans.rotation.y)));
+    });
+    deactivate(cmds, q_lights, q_pbm_el);
+    PinballMenuStatus::Disabled
+}
+
+fn activate(
+    mut cmds: Commands,
+    mut q_lights: Query<&mut Visibility, With<PinballMenuElementLight>>,
+    q_pbm_el: QueryPinballMenuElements,
+    meshes: Res<Assets<Mesh>>,
+    assets: Res<PinballDefenseAssets>,
+) -> PinballMenuStatus {
+    q_pbm_el.for_each(|(entity, _)| {
+        cmds.entity(entity)
+            .insert((
+                // Active status collider
+                ColliderDebugColor(Color::GREEN),
+                Sensor,
+                ActiveEvents::COLLISION_EVENTS,
+                Collider::from_bevy_mesh(
+                    meshes
+                        .get(&assets.menu_element.clone())
+                        .expect("Failed to find mesh"),
+                    &ComputedColliderShape::TriMesh,
+                )
+                .unwrap(),
+                COLLIDE_ONLY_WITH_BALL,
+            ))
+            .remove::<ColliderDisabled>();
+    });
+    q_lights.for_each_mut(|mut visi| *visi = Visibility::Inherited);
+    PinballMenuStatus::Activated
+}
+
+fn deactivate(
+    mut cmds: Commands,
+    mut q_lights: Query<&mut Visibility, With<PinballMenuElementLight>>,
+    q_pbm_el: QueryPinballMenuElements,
+) -> PinballMenuStatus {
+    q_pbm_el.for_each(|(entity, _)| {
+        cmds.entity(entity).remove::<Collider>();
+    });
+    q_lights.for_each_mut(|mut visi| *visi = Visibility::Hidden);
+    PinballMenuStatus::Ready
 }
 
 fn elem_start_pos() -> Vec3 {
