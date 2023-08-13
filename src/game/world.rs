@@ -1,6 +1,7 @@
 use super::ball_starter::BallStarterPlugin;
 use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 use super::flipper::FlipperPlugin;
+use super::pinball_menu::spawn_pinball_menu_glass;
 use super::player_life::spawn_life_bar;
 use super::road::spawn_road;
 use super::tower::foundation::spawn_foundation;
@@ -30,7 +31,7 @@ struct Ground;
 fn spawn_pinball_world(
     mut cmds: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut mats: ResMut<Assets<StandardMaterial>>,
     mut assets: ResMut<PinballDefenseAssets>,
     g_sett: Res<GraphicsSettings>,
 ) {
@@ -45,11 +46,11 @@ fn spawn_pinball_world(
             .spawn((
                 PbrBundle {
                     mesh: assets.world_1_mesh.clone(),
-                    material: materials.add(StandardMaterial {
+                    material: mats.add(StandardMaterial {
                         base_color: Color::BLUE,
                         perceptual_roughness: 0.6,
                         metallic: 0.2,
-                        reflectance: 0.4,
+                        reflectance: 0.2,
                         ..default()
                     }),
                     ..default()
@@ -70,25 +71,26 @@ fn spawn_pinball_world(
 
         // Ball starter
         let bs_pos = Vec3::new(1.175, -0.018, -0.657);
-        super::ball_starter::spawn(parent, bs_pos, &mut meshes, &mut materials);
+        super::ball_starter::spawn(parent, bs_pos, &mut meshes, &mut mats);
 
         // Flipper left
         let fl_pos = Transform::from_xyz(0.83, -0.043, 0.32);
-        super::flipper::spawn_left(fl_pos, parent, &mut materials, &mut assets);
+        super::flipper::spawn_left(fl_pos, parent, &mut mats, &mut assets);
 
         // Flipper right
         let fr_pos = Transform::from_xyz(0.83, -0.043, -0.246);
-        super::flipper::spawn_right(fr_pos, parent, &mut materials, &mut assets);
+        super::flipper::spawn_right(fr_pos, parent, &mut mats, &mut assets);
 
-        spawn_foundations(parent, &mut materials, &assets, &g_sett);
-        spawn_road(parent, &mut materials, &mut meshes, &assets);
+        spawn_foundations(parent, &mut mats, &assets, &g_sett);
+        spawn_road(parent, &mut mats, &mut meshes, &assets);
 
         let lb_pos = Transform {
             translation: Vec3::new(1.15, -0.05, 0.035),
             scale: Vec3::new(4., 4., 4.),
             ..default()
         };
-        spawn_life_bar(parent, &assets, &mut materials, lb_pos);
+        spawn_life_bar(parent, &assets, &mut mats, lb_pos);
+        spawn_pinball_menu_glass(parent, &assets, &mut mats);
         //spawn_enemy(parent, &assets, &mut meshes, &mut materials, &g_sett);
         parent
             .spawn(TransformBundle::default())
