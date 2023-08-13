@@ -8,10 +8,7 @@ use super::GameState;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
-use bevy_tweening::{
-    lens::{TransformPositionLens, TransformRotateYLens},
-    Animator, Delay, EaseFunction, Sequence, Tween,
-};
+use bevy_tweening::{lens::TransformRotateYLens, Animator, Delay, EaseFunction, Sequence, Tween};
 use std::time::Duration;
 
 pub struct PinballMenuPlugin;
@@ -79,8 +76,9 @@ fn spawn_system(
     q_selected: Query<Entity, With<SelectedTowerFoundation>>,
 ) {
     if !q_selected.is_empty() && q_pb_menu.is_empty() {
-        log!("🐢 Spawn tower menu for: {:?}", q_selected);
-        cmds.entity(q_pbw.single()).with_children(|p| {
+        let selected_foundation_id = q_pbw.single();
+        log!("🐢 Spawn tower menu for: {:?}", selected_foundation_id);
+        cmds.entity(selected_foundation_id).with_children(|p| {
             spawn(p, &assets, &g_sett, MENU_POS);
         });
     }
@@ -108,9 +106,9 @@ fn spawn(
             let gun_mat = assets.pinball_menu_element_gun_material.clone();
             let tesla_mat = assets.pinball_menu_element_tesla_material.clone();
             let microwave_mat = assets.pinball_menu_element_microwave_material.clone();
-            spawn_menu_element(Gun, p, el.clone(), gun_mat, g_sett, -0.25, 0.1);
-            spawn_menu_element(Microwave, p, el.clone(), microwave_mat, g_sett, 0., 1.);
-            spawn_menu_element(Tesla, p, el, tesla_mat, g_sett, 0.25, 0.1);
+            spawn_menu_element(Gun, p, el.clone(), gun_mat, g_sett, -0.25, 1.25);
+            spawn_menu_element(Microwave, p, el.clone(), microwave_mat, g_sett, 0., 0.75);
+            spawn_menu_element(Tesla, p, el, tesla_mat, g_sett, 0.25, 0.25);
         });
 }
 
@@ -135,14 +133,10 @@ fn spawn_menu_element(
             PbrBundle {
                 mesh,
                 material,
-                //material: mats.add(StandardMaterial {
-                //base_color: Color::ANTIQUE_WHITE,
-                //perceptual_roughness: 0.6,
-                //metallic: 0.2,
-                //reflectance: 0.2,
-                //..default()
-                //}),
-                transform: Transform::from_translation(elem_start_pos()),
+                transform: Transform {
+                    rotation: Quat::from_rotation_y(ELEM_START_ANGLE),
+                    ..default()
+                },
                 ..default()
             },
             // Game components
@@ -155,21 +149,37 @@ fn spawn_menu_element(
         .with_children(|parent| {
             // Active status light
             parent.spawn((
-                PointLightBundle {
-                    visibility: Visibility::Hidden,
-                    point_light: PointLight {
-                        color: Color::GREEN,
-                        intensity: 0.2,
+                SpotLightBundle {
+                    transform: Transform::from_translation(Vec3::new(-0.79, 0., 0.))
+                        .looking_at(Vec3::new(-1.0, 0.0, 0.0), Vec3::Z),
+                    spot_light: SpotLight {
+                        intensity: 28., // lumens - roughly a 100W non-halogen incandescent bulb
+                        color: Color::BEIGE,
                         shadows_enabled: g_sett.is_shadows,
+                        range: 0.2,
+                        inner_angle: 0.2,
+                        outer_angle: 0.8,
                         ..default()
                     },
-                    transform: Transform::from_translation(Vec3::new(-0.8, 0., 0.)),
+                    visibility: Visibility::Hidden,
                     ..default()
                 },
+                //PointLightBundle {
+                //visibility: Visibility::Hidden,
+                //point_light: PointLight {
+                //color: Color::BEIGE,
+                //intensity: 0.2,
+                //shadows_enabled: g_sett.is_shadows,
+                //..default()
+                //},
+                //transform: Transform::from_translation(Vec3::new(-0.84, 0., 0.)),
+                //..default()
+                //},
                 PinballMenuElementLight,
             ));
         });
 }
+
 fn despawn(
     mut cmds: Commands,
     q_lights: Query<&mut Visibility, With<PinballMenuElementLight>>,
@@ -182,8 +192,12 @@ fn despawn(
     cmds.entity(menu_entity).insert(Animator::new(delay));
     // Despawn animation
     q_pbm_el.for_each(|(entity, trans)| {
-        cmds.entity(entity)
-            .insert(Animator::new(despawn_animation(trans.rotation.y)));
+        let secs = (trans.rotation.y + 0.2) * 2.;
+        log!("Durationn for {}: {}", trans.rotation.y, secs);
+        cmds.entity(entity).insert(Animator::new(despawn_animation(
+            trans.rotation.y,
+            Duration::from_secs_f32(secs),
+        )));
     });
     deactivate(cmds, q_lights, q_pbm_el);
     PinballMenuStatus::Disabled
@@ -197,22 +211,20 @@ fn activate(
     assets: Res<PinballDefenseAssets>,
 ) -> PinballMenuStatus {
     q_pbm_el.for_each(|(entity, _)| {
-        cmds.entity(entity)
-            .insert((
-                // Active status collider
-                ColliderDebugColor(Color::GREEN),
-                Sensor,
-                ActiveEvents::COLLISION_EVENTS,
-                Collider::from_bevy_mesh(
-                    meshes
-                        .get(&assets.pinball_menu_element_collider.clone())
-                        .expect("Failed to find mesh"),
-                    &ComputedColliderShape::TriMesh,
-                )
-                .unwrap(),
-                COLLIDE_ONLY_WITH_BALL,
-            ))
-            .remove::<ColliderDisabled>();
+        cmds.entity(entity).insert((
+            // Active status collider
+            ColliderDebugColor(Color::GREEN),
+            Sensor,
+            ActiveEvents::COLLISION_EVENTS,
+            Collider::from_bevy_mesh(
+                meshes
+                    .get(&assets.pinball_menu_element_collider.clone())
+                    .expect("Failed to find mesh"),
+                &ComputedColliderShape::TriMesh,
+            )
+            .unwrap(),
+            COLLIDE_ONLY_WITH_BALL,
+        ));
     });
     q_lights.for_each_mut(|mut visi| *visi = Visibility::Inherited);
     PinballMenuStatus::Activated
@@ -230,52 +242,33 @@ fn deactivate(
     PinballMenuStatus::Ready
 }
 
-fn elem_start_pos() -> Vec3 {
-    Vec3::new(0., -0.1, 0.)
-}
-
-fn despawn_animation(angle: f32) -> Sequence<Transform> {
-    let rotate = Tween::new(
-        EaseFunction::QuadraticOut,
-        Duration::from_secs_f32(1.),
-        TransformRotateYLens {
-            start: angle,
-            end: 0.,
-        },
-    );
-    let slide_down = Tween::new(
-        EaseFunction::QuadraticIn,
-        Duration::from_secs_f32(0.5),
-        TransformPositionLens {
-            start: Vec3::default(),
-            end: elem_start_pos(),
-        },
-    );
-
-    rotate.then(slide_down)
-}
+const ELEM_START_ANGLE: f32 = -0.58;
 
 fn spawn_animation(angle: f32, delay_secs: f32) -> Sequence<Transform> {
     let wait = Delay::new(Duration::from_secs_f32(delay_secs));
-    let slide_up = Tween::new(
-        EaseFunction::QuadraticIn,
-        Duration::from_secs(1),
-        TransformPositionLens {
-            start: elem_start_pos(),
-            end: Vec3::default(),
-        },
-    );
     let rotate = Tween::new(
-        EaseFunction::QuadraticIn,
-        Duration::from_secs(1),
+        EaseFunction::ElasticOut,
+        Duration::from_secs_f32(2.),
         TransformRotateYLens {
-            start: 0.,
+            start: ELEM_START_ANGLE + 0.2,
             end: angle,
         },
     );
 
-    wait.then(slide_up)
-        .then(rotate.with_completed_event(ACTIVATE_PINBALL_MENU_EVENT_ID))
+    wait.then(rotate.with_completed_event(ACTIVATE_PINBALL_MENU_EVENT_ID))
+}
+
+fn despawn_animation(angle: f32, duration: Duration) -> Sequence<Transform> {
+    let wait = Delay::new(duration);
+    let rotate = Tween::new(
+        EaseFunction::ExponentialInOut,
+        duration,
+        TransformRotateYLens {
+            start: angle,
+            end: ELEM_START_ANGLE,
+        },
+    );
+    wait.then(rotate)
 }
 
 fn execute_system(

@@ -7,6 +7,9 @@ pub struct PinballDefenseAssets {
     #[asset(path = "models/pinball_plate_1.gltf#Mesh1/Primitive0")]
     pub world_1_mesh: Handle<Mesh>,
 
+    #[asset(path = "models/pinball_plate_1.gltf#Material1")]
+    pub world_1_material: Handle<StandardMaterial>,
+
     #[asset(path = "models/pinball_plate_1.gltf#Mesh0/Primitive0")]
     pub world_1_collision_mesh: Handle<Mesh>,
 
