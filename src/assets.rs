@@ -3,10 +3,10 @@ pub use bevy_asset_loader::prelude::*;
 
 #[derive(Resource, AssetCollection)]
 pub struct PinballDefenseAssets {
-    #[asset(path = "models/pinball_plate_1.gltf#Mesh0/Primitive0")]
+    #[asset(path = "models/pinball_plate_1.gltf#Mesh1/Primitive0")]
     pub world_1_mesh: Handle<Mesh>,
 
-    #[asset(path = "models/pinball_plate_1.gltf#Mesh1/Primitive0")]
+    #[asset(path = "models/pinball_plate_1.gltf#Mesh0/Primitive0")]
     pub world_1_collision_mesh: Handle<Mesh>,
 
     #[asset(path = "textures/skybox.png")]
@@ -62,5 +62,14 @@ pub struct PinballDefenseAssets {
     pub tower_foundation_progress_bar_frame: Handle<Mesh>,
 
     #[asset(path = "models/pinball_world_menu.gltf#Mesh0/Primitive0")]
-    pub menu_element: Handle<Mesh>,
+    pub pinball_menu_glass: Handle<Mesh>,
+
+    #[asset(path = "models/pinball_world_menu.gltf#Mesh1/Primitive0")]
+    pub pinball_menu_element: Handle<Mesh>,
+
+    #[asset(path = "models/pinball_world_menu.gltf#Material0")]
+    pub pinball_menu_element_material: Handle<StandardMaterial>,
+
+    #[asset(path = "models/pinball_world_menu.gltf#Mesh2/Primitive0")]
+    pub pinball_menu_element_collider: Handle<Mesh>,
 }

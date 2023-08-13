@@ -82,8 +82,7 @@ fn spawn_system(
     if !q_selected.is_empty() && q_pb_menu.is_empty() {
         log!("🐢 Spawn tower menu for: {:?}", q_selected);
         cmds.entity(q_pbw.single()).with_children(|p| {
-            let pos = Vec3::new(1.2, 0., 0.05);
-            spawn(p, &mut mats, &assets, &g_sett, pos);
+            spawn(p, &mut mats, &assets, &g_sett, MENU_POS);
         });
     }
 }
@@ -132,14 +131,15 @@ fn spawn_menu_element(
     parent
         .spawn((
             PbrBundle {
-                mesh: assets.menu_element.clone(),
-                material: mats.add(StandardMaterial {
-                    base_color: Color::MIDNIGHT_BLUE,
-                    perceptual_roughness: 0.6,
-                    metallic: 0.2,
-                    reflectance: 0.8,
-                    ..default()
-                }),
+                mesh: assets.pinball_menu_element.clone(),
+                material: assets.pinball_menu_element_material.clone(),
+                //material: mats.add(StandardMaterial {
+                //base_color: Color::ANTIQUE_WHITE,
+                //perceptual_roughness: 0.6,
+                //metallic: 0.2,
+                //reflectance: 0.2,
+                //..default()
+                //}),
                 transform: Transform::from_translation(elem_start_pos()),
                 ..default()
             },
@@ -203,7 +203,7 @@ fn activate(
                 ActiveEvents::COLLISION_EVENTS,
                 Collider::from_bevy_mesh(
                     meshes
-                        .get(&assets.menu_element.clone())
+                        .get(&assets.pinball_menu_element_collider.clone())
                         .expect("Failed to find mesh"),
                     &ComputedColliderShape::TriMesh,
                 )
@@ -305,4 +305,29 @@ fn execute_system(
             }
         }
     }
+}
+
+const MENU_POS: Vec3 = Vec3::new(1.3, 0., 0.038);
+
+pub fn spawn_pinball_menu_glass(
+    parent: &mut ChildBuilder,
+    assets: &PinballDefenseAssets,
+    mats: &mut Assets<StandardMaterial>,
+) {
+    parent.spawn((
+        PbrBundle {
+            mesh: assets.pinball_menu_glass.clone(),
+            material: mats.add(StandardMaterial {
+                base_color: Color::ALICE_BLUE,
+                perceptual_roughness: 0.,
+                metallic: 0.,
+                reflectance: 0.6,
+                alpha_mode: AlphaMode::Multiply,
+                ..default()
+            }),
+            transform: Transform::from_translation(MENU_POS),
+            ..default()
+        },
+        Name::new("Pinball menu glass"),
+    ));
 }
