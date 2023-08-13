@@ -22,8 +22,9 @@ pub fn spawn_road(
             material: materials.add(StandardMaterial {
                 base_color: Color::TEAL,
                 perceptual_roughness: 0.8,
-                metallic: 0.,
-                reflectance: 0.8,
+                metallic: 0.1,
+                reflectance: 0.1,
+                alpha_mode: AlphaMode::Multiply,
                 ..default()
             }),
             transform: Transform::from_xyz(0., -0.04, 0.),

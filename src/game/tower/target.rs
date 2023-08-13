@@ -50,7 +50,7 @@ pub(super) fn enemy_within_reach_system(
             CollisionEvent::Started(id_1, id_2, flag) => {
                 if *flag == CollisionEventFlags::SENSOR {
                     edit_eir(*id_1, *id_2, &mut q_ewr, &q_tower_sight, |eir, enemy_id| {
-                        log!("Insert: {enemy_id:?}");
+                        //log!("Insert: {enemy_id:?}");
                         eir.0.insert(enemy_id);
                     });
                 }
@@ -58,7 +58,7 @@ pub(super) fn enemy_within_reach_system(
             CollisionEvent::Stopped(id_1, id_2, flag) => {
                 if *flag == CollisionEventFlags::SENSOR {
                     edit_eir(*id_1, *id_2, &mut q_ewr, &q_tower_sight, |eir, enemy_id| {
-                        log!("Remove: {enemy_id:?}");
+                        //log!("Remove: {enemy_id:?}");
                         eir.0.remove(&enemy_id);
                     });
                 }

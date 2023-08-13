@@ -46,13 +46,7 @@ fn spawn_pinball_world(
             .spawn((
                 PbrBundle {
                     mesh: assets.world_1_mesh.clone(),
-                    material: mats.add(StandardMaterial {
-                        base_color: Color::BLUE,
-                        perceptual_roughness: 0.6,
-                        metallic: 0.2,
-                        reflectance: 0.2,
-                        ..default()
-                    }),
+                    material: assets.world_1_material.clone(),
                     ..default()
                 },
                 //Ccd::enabled(),
