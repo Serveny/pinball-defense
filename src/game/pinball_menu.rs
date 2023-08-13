@@ -72,7 +72,6 @@ type QueryPinballMenuElements<'w, 's, 'a> =
 
 fn spawn_system(
     mut cmds: Commands,
-    mut mats: ResMut<Assets<StandardMaterial>>,
     assets: Res<PinballDefenseAssets>,
     q_pbw: QueryWorld,
     q_pb_menu: Query<&PinballMenu>,
@@ -82,7 +81,7 @@ fn spawn_system(
     if !q_selected.is_empty() && q_pb_menu.is_empty() {
         log!("🐢 Spawn tower menu for: {:?}", q_selected);
         cmds.entity(q_pbw.single()).with_children(|p| {
-            spawn(p, &mut mats, &assets, &g_sett, MENU_POS);
+            spawn(p, &assets, &g_sett, MENU_POS);
         });
     }
 }
@@ -92,7 +91,6 @@ struct PinballMenu;
 
 fn spawn(
     parent: &mut ChildBuilder,
-    mats: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseAssets,
     g_sett: &GraphicsSettings,
     pos: Vec3,
@@ -106,9 +104,13 @@ fn spawn(
             Name::new("Tower Menu"),
         ))
         .with_children(|p| {
-            spawn_menu_element(Gun, p, mats, assets, g_sett, -0.25, 0.1);
-            spawn_menu_element(Microwave, p, mats, assets, g_sett, 0., 1.);
-            spawn_menu_element(Tesla, p, mats, assets, g_sett, 0.25, 0.1);
+            let el = assets.pinball_menu_element.clone();
+            let gun_mat = assets.pinball_menu_element_gun_material.clone();
+            let tesla_mat = assets.pinball_menu_element_tesla_material.clone();
+            let microwave_mat = assets.pinball_menu_element_microwave_material.clone();
+            spawn_menu_element(Gun, p, el.clone(), gun_mat, g_sett, -0.25, 0.1);
+            spawn_menu_element(Microwave, p, el.clone(), microwave_mat, g_sett, 0., 1.);
+            spawn_menu_element(Tesla, p, el, tesla_mat, g_sett, 0.25, 0.1);
         });
 }
 
@@ -122,8 +124,8 @@ struct PinballMenuElementLight;
 fn spawn_menu_element(
     tower_type: TowerType,
     parent: &mut ChildBuilder,
-    mats: &mut Assets<StandardMaterial>,
-    assets: &PinballDefenseAssets,
+    mesh: Handle<Mesh>,
+    material: Handle<StandardMaterial>,
     g_sett: &GraphicsSettings,
     angle: f32,
     delay_secs: f32,
@@ -131,8 +133,8 @@ fn spawn_menu_element(
     parent
         .spawn((
             PbrBundle {
-                mesh: assets.pinball_menu_element.clone(),
-                material: assets.pinball_menu_element_material.clone(),
+                mesh,
+                material,
                 //material: mats.add(StandardMaterial {
                 //base_color: Color::ANTIQUE_WHITE,
                 //perceptual_roughness: 0.6,
@@ -316,7 +318,7 @@ pub fn spawn_pinball_menu_glass(
 ) {
     parent.spawn((
         PbrBundle {
-            mesh: assets.pinball_menu_glass.clone(),
+            mesh: assets.world_1_menu_glass.clone(),
             material: mats.add(StandardMaterial {
                 base_color: Color::ALICE_BLUE,
                 perceptual_roughness: 0.,
