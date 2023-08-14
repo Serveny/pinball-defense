@@ -164,17 +164,6 @@ fn spawn_menu_element(
                     visibility: Visibility::Hidden,
                     ..default()
                 },
-                //PointLightBundle {
-                //visibility: Visibility::Hidden,
-                //point_light: PointLight {
-                //color: Color::BEIGE,
-                //intensity: 0.2,
-                //shadows_enabled: g_sett.is_shadows,
-                //..default()
-                //},
-                //transform: Transform::from_translation(Vec3::new(-0.84, 0., 0.)),
-                //..default()
-                //},
                 PinballMenuElementLight,
             ));
         });

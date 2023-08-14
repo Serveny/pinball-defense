@@ -26,7 +26,10 @@ impl Plugin for WorldPlugin {
 pub struct PinballWorld;
 
 #[derive(Component)]
-struct Ground;
+struct WorldGround;
+
+#[derive(Component)]
+struct WorldFrame;
 
 fn spawn_pinball_world(
     mut cmds: Commands,
@@ -35,33 +38,122 @@ fn spawn_pinball_world(
     mut assets: ResMut<PinballDefenseAssets>,
     g_sett: Res<GraphicsSettings>,
 ) {
-    cmds.spawn(SpatialBundle {
-        transform: Transform::from_rotation(Quat::from_rotation_z(-0.25)),
-        ..default()
-    })
-    .insert(PinballWorld)
-    .insert(Name::new("Pinball World"))
+    cmds.spawn((
+        SpatialBundle {
+            transform: Transform::from_rotation(Quat::from_rotation_z(-0.25)),
+            ..default()
+        },
+        PinballWorld,
+        Name::new("Pinball World"),
+    ))
     .with_children(|parent| {
-        parent
-            .spawn((
-                PbrBundle {
-                    mesh: assets.world_1_mesh.clone(),
-                    material: assets.world_1_material.clone(),
-                    ..default()
-                },
-                //Ccd::enabled(),
-                Collider::from_bevy_mesh(
-                    meshes
-                        .get(&assets.world_1_collision_mesh)
-                        .expect("Failed to find mesh"),
-                    &ComputedColliderShape::TriMesh,
-                )
-                .unwrap(),
-                Friction::new(0.2),
-                ColliderDebugColor(Color::GOLD),
-                COLLIDE_ONLY_WITH_BALL,
-            ))
-            .insert(Ground);
+        // Frame
+        parent.spawn((
+            PbrBundle {
+                mesh: assets.world_1_frame.clone(),
+                material: assets.world_1_frame_material.clone(),
+                ..default()
+            },
+            Collider::from_bevy_mesh(
+                meshes
+                    .get(&assets.world_1_frame_collider)
+                    .expect("Failed to find mesh"),
+                &ComputedColliderShape::TriMesh,
+            )
+            .unwrap(),
+            Friction::new(0.4),
+            ColliderDebugColor(Color::GOLD),
+            COLLIDE_ONLY_WITH_BALL,
+            WorldGround,
+        ));
+
+        // Ground
+        parent.spawn((
+            PbrBundle {
+                mesh: assets.world_1_ground.clone(),
+                material: assets.world_1_ground_material.clone(),
+                ..default()
+            },
+            //Ccd::enabled(),
+            Collider::from_bevy_mesh(
+                meshes
+                    .get(&assets.world_1_ground_collider)
+                    .expect("Failed to find mesh"),
+                &ComputedColliderShape::TriMesh,
+            )
+            .unwrap(),
+            Friction::new(0.2),
+            ColliderDebugColor(Color::GOLD),
+            COLLIDE_ONLY_WITH_BALL,
+            WorldGround,
+        ));
+
+        // Top Glass (maybe with glass texture in future)
+        parent.spawn((
+            spatial_from_pos(Vec3::new(0., 0.12, 0.)),
+            //PbrBundle {
+            //mesh: assets.world_1_ground_collider.clone(),
+            //transform: Transform::from_translation(Vec3::new(0., 0.12, 0.)),
+            //material: mats.add(StandardMaterial {
+            //base_color: Color::WHITE,
+            //perceptual_roughness: 0.,
+            //metallic: 0.,
+            //reflectance: 0.6,
+            //alpha_mode: AlphaMode::Multiply,
+            //..default()
+            //}),
+            //..default()
+            //},
+            Collider::from_bevy_mesh(
+                meshes
+                    .get(&assets.world_1_ground_collider)
+                    .expect("Failed to find mesh"),
+                &ComputedColliderShape::TriMesh,
+            )
+            .unwrap(),
+            ColliderDebugColor(Color::NONE),
+            COLLIDE_ONLY_WITH_BALL,
+            Name::new("Pinball top glass"),
+        ));
+
+        // Rebound left
+        parent.spawn((
+            PbrBundle {
+                mesh: assets.world_1_rebound_left.clone(),
+                material: assets.world_1_rebound_left_material.clone(),
+                ..default()
+            },
+            Name::new("Pinball Rebound Left"),
+            Collider::from_bevy_mesh(
+                meshes
+                    .get(&assets.world_1_rebound_left_collider.clone())
+                    .expect("Failed to find mesh"),
+                &ComputedColliderShape::TriMesh,
+            )
+            .unwrap(),
+            Friction::new(0.4),
+            ColliderDebugColor(Color::GOLD),
+            COLLIDE_ONLY_WITH_BALL,
+        ));
+
+        // Rebound right
+        parent.spawn((
+            PbrBundle {
+                mesh: assets.world_1_rebound_right.clone(),
+                material: assets.world_1_rebound_right_material.clone(),
+                ..default()
+            },
+            Collider::from_bevy_mesh(
+                meshes
+                    .get(&assets.world_1_rebound_right_collider.clone())
+                    .expect("Failed to find mesh"),
+                &ComputedColliderShape::TriMesh,
+            )
+            .unwrap(),
+            Friction::new(0.4),
+            ColliderDebugColor(Color::GOLD),
+            Name::new("Pinball Dodger Right"),
+        ));
 
         // Ball starter
         let bs_pos = Vec3::new(1.175, -0.018, -0.657);
@@ -85,27 +177,7 @@ fn spawn_pinball_world(
         };
         spawn_life_bar(parent, &assets, &mut mats, lb_pos);
         spawn_pinball_menu_glass(parent, &assets, &mut mats);
-        //spawn_enemy(parent, &assets, &mut meshes, &mut materials, &g_sett);
-        parent
-            .spawn(TransformBundle::default())
-            .insert(Name::new("Colliders"))
-            .with_children(spawn_colliders);
     });
-}
-
-fn spawn_colliders(p: &mut ChildBuilder) {
-    let size = Vec3::new(1.30, 0.04, 0.70);
-    spawn_cube_collider("Top Glass", p, size, Vec3::new(0., 0.09, 0.));
-}
-
-fn spawn_cube_collider(name: &'static str, parent: &mut ChildBuilder, size: Vec3, pos: Vec3) {
-    parent
-        .spawn((
-            TransformBundle::from_transform(Transform::from_translation(pos)),
-            ColliderDebugColor(Color::RED),
-            Collider::cuboid(size.x, size.y, size.z),
-        ))
-        .insert(Name::new(name));
 }
 
 fn spawn_foundations(
