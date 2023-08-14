@@ -2,8 +2,10 @@ use super::animations::RotateToTarget;
 use super::base::spawn_tower_base;
 use super::target::{AimFirstEnemy, EnemiesWithinReach, SightRadius, TargetPos};
 use super::{create_tower_spawn_animator, tower_material, tower_start_pos, Tower, TowerHead};
+use crate::game::tower::target::TowerPos;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
+use crate::utils::RelEntity;
 use bevy_tweening::Animator;
 
 #[derive(Component)]
@@ -27,6 +29,23 @@ pub fn spawn(
 ) {
     let tower_material = materials.add(tower_material());
 
+    // Tower
+    let sight_radius = 0.3;
+    let mut tower = parent.spawn((
+        spatial_from_pos(tower_start_pos(pos)),
+        GunTower,
+        Tower,
+        Name::new(" Gun Tower"),
+        SightRadius(sight_radius),
+        AimFirstEnemy(None),
+        EnemiesWithinReach::default(),
+        TowerPos(pos),
+        //TowerPos(Vec3::new(pos.x, 0., pos.y)),
+        TargetPos(None),
+        Animator::new(create_tower_spawn_animator(pos)),
+    ));
+    let rel_id = tower.id();
+
     // Children of tower
     let mg_barrel = |parent: &mut ChildBuilder| {
         parent.spawn((
@@ -49,6 +68,8 @@ pub fn spawn(
                     ..default()
                 },
                 GunTowerHead,
+                //RotateToTarget::X,
+                RelEntity(rel_id),
             ))
             .with_children(mg_barrel);
     };
@@ -67,27 +88,14 @@ pub fn spawn(
                 },
                 GunTowerMount,
                 RotateToTarget,
+                RelEntity(rel_id),
                 TowerHead,
             ))
             .with_children(mg_head);
     };
 
-    // Tower
-    let sight_radius = 0.3;
-    parent
-        .spawn((
-            spatial_from_pos(tower_start_pos(pos)),
-            GunTower,
-            Tower,
-            Name::new(" Gun Tower"),
-            SightRadius(sight_radius),
-            AimFirstEnemy(None),
-            EnemiesWithinReach::default(),
-            TargetPos(None),
-            Animator::new(create_tower_spawn_animator(pos)),
-        ))
-        .with_children(|parent| {
-            spawn_tower_base(parent, materials, assets, g_sett, sight_radius);
-            mg_mounting(parent);
-        });
+    tower.with_children(|parent| {
+        spawn_tower_base(parent, materials, assets, g_sett, sight_radius);
+        mg_mounting(parent);
+    });
 }
