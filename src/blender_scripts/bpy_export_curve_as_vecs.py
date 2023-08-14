@@ -9,7 +9,7 @@ from pathlib import Path
 # file_name = os.path.splitext(bpy.data.filepath)[0] + ".curve.rs"
 
 dir_name = Path(__file__).parent.parent
-file_name = os.path.join(dir_name, "../../src/road/points.rs")
+file_name = os.path.join(dir_name, "../../src/game/road/points.rs")
 
 print("\n-------------------------------------\n")
 

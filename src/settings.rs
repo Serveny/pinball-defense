@@ -24,7 +24,7 @@ impl GraphicsSettings {
             is_shadows: true,
             is_hdr: true,
             bloom: BloomSettings {
-                intensity: 0.05,
+                intensity: 0.01,
                 composite_mode: BloomCompositeMode::Additive,
                 ..default()
             },
