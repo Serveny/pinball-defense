@@ -3,37 +3,68 @@ pub use bevy_asset_loader::prelude::*;
 
 #[derive(Resource, AssetCollection)]
 pub struct PinballDefenseAssets {
-    // World
-    #[asset(path = "models/pinball_plate_1.gltf#Mesh1/Primitive0")]
-    pub world_1_mesh: Handle<Mesh>,
+    // Pinball World
+    #[asset(path = "models/pinball_world_1.gltf#Mesh0/Primitive0")]
+    pub world_1_frame_collider: Handle<Mesh>,
 
-    #[asset(path = "models/pinball_plate_1.gltf#Material1")]
-    pub world_1_material: Handle<StandardMaterial>,
-
-    #[asset(path = "models/pinball_plate_1.gltf#Mesh0/Primitive0")]
-    pub world_1_collision_mesh: Handle<Mesh>,
-
-    #[asset(path = "models/pinball_plate_1.gltf#Mesh2/Primitive0")]
+    #[asset(path = "models/pinball_world_1.gltf#Mesh1/Primitive0")]
     pub world_1_menu_glass: Handle<Mesh>,
 
+    #[asset(path = "models/pinball_world_1.gltf#Mesh2/Primitive0")]
+    pub world_1_frame: Handle<Mesh>,
+
+    #[asset(path = "models/pinball_world_1.gltf#Mesh3/Primitive0")]
+    pub world_1_ground: Handle<Mesh>,
+
+    #[asset(path = "models/pinball_world_1.gltf#Mesh4/Primitive0")]
+    pub world_1_ground_collider: Handle<Mesh>,
+
+    #[asset(path = "models/pinball_world_1.gltf#Mesh5/Primitive0")]
+    pub world_1_rebound_left: Handle<Mesh>,
+
+    #[asset(path = "models/pinball_world_1.gltf#Mesh6/Primitive0")]
+    pub world_1_rebound_right: Handle<Mesh>,
+
+    #[asset(path = "models/pinball_world_1.gltf#Mesh7/Primitive0")]
+    pub world_1_rebound_left_collider: Handle<Mesh>,
+
+    #[asset(path = "models/pinball_world_1.gltf#Mesh8/Primitive0")]
+    pub world_1_rebound_right_collider: Handle<Mesh>,
+
+    #[asset(path = "models/pinball_world_1.gltf#Material0")]
+    pub world_1_frame_material: Handle<StandardMaterial>,
+
+    #[asset(path = "models/pinball_world_1.gltf#Material1")]
+    pub world_1_ground_material: Handle<StandardMaterial>,
+
+    #[asset(path = "models/pinball_world_1.gltf#Material2")]
+    pub world_1_rebound_left_material: Handle<StandardMaterial>,
+
+    #[asset(path = "models/pinball_world_1.gltf#Material3")]
+    pub world_1_rebound_right_material: Handle<StandardMaterial>,
+
+    // Other
     #[asset(path = "textures/skybox.png")]
     pub skybox: Handle<Image>,
 
     #[asset(path = "fonts/Quicksand-Regular.ttf")]
     pub font: Handle<Font>,
 
+    // Road
     #[asset(path = "models/pinball_world_1_road.gltf#Mesh0/Primitive0")]
     pub road_mesh: Handle<Mesh>,
 
-    #[asset(path = "models/pinball_plate_1.gltf#Animation0")]
+    #[asset(path = "models/pinball_world_1.gltf#Animation0")]
     pub road_path: Handle<AnimationClip>,
 
+    // Flipper
     #[asset(path = "models/flippers.gltf#Mesh0/Primitive0")]
     pub flipper_right: Handle<Mesh>,
 
     #[asset(path = "models/flippers.gltf#Mesh1/Primitive0")]
     pub flipper_left: Handle<Mesh>,
 
+    // Tower
     #[asset(path = "models/towers/tower_base.gltf#Mesh0/Primitive0")]
     pub tower_base: Handle<Mesh>,
 
@@ -73,15 +104,13 @@ pub struct PinballDefenseAssets {
     #[asset(path = "models/pinball_world_menu.gltf#Mesh2/Primitive0")]
     pub pinball_menu_element: Handle<Mesh>,
 
-    // Gun Tower
+    // Menu Elements
     #[asset(path = "models/pinball_world_menu.gltf#Material0")]
     pub pinball_menu_element_gun_material: Handle<StandardMaterial>,
 
-    // Microwave Tower
     #[asset(path = "models/pinball_world_menu.gltf#Material1")]
     pub pinball_menu_element_tesla_material: Handle<StandardMaterial>,
 
-    // Tesla Tower
     #[asset(path = "models/pinball_world_menu.gltf#Material2")]
     pub pinball_menu_element_microwave_material: Handle<StandardMaterial>,
 }
