@@ -114,15 +114,15 @@ fn spawn_foundations(
     assets: &PinballDefenseAssets,
     g_sett: &GraphicsSettings,
 ) {
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.89, -0.04, 0.48));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.89, -0.04, 0.2));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.69, -0.04, -0.2));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.5, -0.04, -0.01));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.3, -0.04, 0.5));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.1, -0.04, -0.02));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(0.1, -0.04, 0.5));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.904, -0.04, -0.01));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(0.01, -0.04, -0.41));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.275, -0.04, -0.41));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.5, -0.04, 0.25));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.89, -0.04, 0.49));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.89, -0.04, 0.21));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.69, -0.04, -0.19));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.5, -0.04, 0.));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.3, -0.04, 0.51));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.1, -0.04, -0.01));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(0.1, -0.04, 0.51));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.904, -0.04, 0.0));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(0.01, -0.04, -0.4));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.275, -0.04, -0.4));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.5, -0.04, 0.26));
 }

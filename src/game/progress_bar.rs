@@ -32,7 +32,7 @@ pub fn spawn(
     parent
         .spawn((
             PbrBundle {
-                mesh: assets.tower_foundation_progress_bar_frame.clone(),
+                mesh: assets.progress_bar_frame.clone(),
                 material: materials.add(StandardMaterial {
                     base_color: Color::BLACK,
                     perceptual_roughness: 0.4,

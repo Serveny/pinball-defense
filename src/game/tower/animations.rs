@@ -1,5 +1,6 @@
-use super::target::TargetPos;
+use super::target::{TargetPos, TowerPos};
 use crate::prelude::*;
+use crate::utils::RelEntity;
 
 #[derive(Component)]
 pub(super) struct RotateAlways;
@@ -17,16 +18,14 @@ pub(super) fn rotate_always_system(
 pub(super) struct RotateToTarget;
 
 pub(super) fn rotate_to_target_system(
-    mut q_rtt: Query<(&mut Transform, &Parent), With<RotateToTarget>>,
-    q_parent: Query<(&Transform, &TargetPos), Without<RotateToTarget>>,
+    mut q_rtt: Query<(&mut Transform, &RelEntity), With<RotateToTarget>>,
+    q_parent: Query<(&TowerPos, &TargetPos)>,
 ) {
-    for (mut rot_trans, parent) in q_rtt.iter_mut() {
-        if let Ok((tower_trans, target_pos)) = q_parent.get(parent.get()) {
-            let tower_pos = tower_trans.translation;
+    for (mut rot_trans, rel_id) in q_rtt.iter_mut() {
+        if let Ok((tower_pos, target_pos)) = q_parent.get(rel_id.0) {
             if let Some(target_pos) = target_pos.0 {
-                let direction = target_pos - tower_pos;
+                let direction = target_pos - tower_pos.0;
                 rot_trans.look_at(direction, Vec3::Y);
-                rot_trans.rotate_y(f32::to_radians(90.));
             }
         }
     }

@@ -8,6 +8,9 @@ use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
 pub(super) struct SightRadius(pub f32);
 
 #[derive(Component)]
+pub(super) struct TowerPos(pub Vec3);
+
+#[derive(Component)]
 pub(super) struct TargetPos(pub Option<Vec3>);
 
 pub(super) fn target_pos_by_afe_system(
