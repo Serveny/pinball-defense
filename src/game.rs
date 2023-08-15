@@ -2,6 +2,7 @@ use ball::BallPlugin;
 //#[cfg(debug_assertions)]
 //use bevy_debug_grid::*;
 use self::camera::PinballCameraPlugin;
+use self::level::LevelPlugin;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::AppState;
@@ -23,6 +24,7 @@ mod controls;
 mod enemy;
 mod events;
 mod flipper;
+mod level;
 mod pinball_menu;
 mod player_life;
 mod progress_bar;
@@ -57,9 +59,12 @@ impl Plugin for GamePlugin {
                 EnemyPlugin,
                 WavePlugin,
                 PlayerLifePlugin,
+                LevelPlugin,
             ))
-            .add_systems(Startup, setup_ambient_lights)
-            .add_systems(OnEnter(AppState::Game), set_state_ingame)
+            .add_systems(
+                OnEnter(AppState::Game),
+                (set_state_ingame, setup_ambient_lights),
+            )
             .add_systems(
                 Update,
                 tick_ingame_timer_system.run_if(in_state(GameState::Ingame)),
