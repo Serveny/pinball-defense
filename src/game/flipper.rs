@@ -1,6 +1,4 @@
-use super::ball::CollisionWithBallEvent;
 use super::events::collision::COLLIDE_ONLY_WITH_BALL;
-use super::pinball_menu::PinballMenuEvent;
 use super::GameState;
 use crate::prelude::*;
 
@@ -8,10 +6,7 @@ pub struct FlipperPlugin;
 
 impl Plugin for FlipperPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            (flipper_system, activate_menu_system).run_if(in_state(GameState::Ingame)),
-        );
+        app.add_systems(Update, (flipper_system).run_if(in_state(GameState::Ingame)));
     }
 }
 
@@ -170,18 +165,5 @@ fn flipper_system(
         let translation = transform.translation;
         transform.rotate_around(translation, pivot_rotation);
         flipper.curr_angle = new_clamped_angle;
-    }
-}
-
-fn activate_menu_system(
-    mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
-    mut pb_menu_ev: EventWriter<PinballMenuEvent>,
-    q_flipper_collider: Query<Entity, With<FlipperCollider>>,
-) {
-    for CollisionWithBallEvent(id, _) in ball_coll_ev.iter() {
-        if q_flipper_collider.contains(*id) {
-            pb_menu_ev.send(PinballMenuEvent::Activate);
-            return;
-        }
     }
 }
