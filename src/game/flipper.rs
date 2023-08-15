@@ -66,7 +66,7 @@ pub fn spawn_right(
     transform: Transform,
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
-    assets: &mut PinballDefenseAssets,
+    assets: &PinballDefenseAssets,
 ) {
     spawn(
         FlipperType::Right,
@@ -81,7 +81,7 @@ pub fn spawn_left(
     transform: Transform,
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
-    assets: &mut PinballDefenseAssets,
+    assets: &PinballDefenseAssets,
 ) {
     spawn(
         FlipperType::Left,
