@@ -21,6 +21,9 @@
 - optimize walk path ✅
 - enemy life bar ✅
 - refactor with multiple event reader ✅
+- generic pinball tower menu for variable count of cards
+- point display
+- point system
 - towers logic
   - target system
   - shoot/damage system
@@ -29,3 +32,4 @@
 - design enemy
 - settings menu
 - camera option
+- textures

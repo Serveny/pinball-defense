@@ -46,12 +46,12 @@ fn spawn_pinball_world(
         PinballWorld,
         Name::new("Pinball World"),
     ))
-    .with_children(|parent| {
-        // Frame
-        parent.spawn((
+    .with_children(|p| {
+        // World mesh
+        p.spawn((
             PbrBundle {
-                mesh: assets.world_1_frame.clone(),
-                material: assets.world_1_frame_material.clone(),
+                mesh: assets.world_1.clone(),
+                material: assets.world_1_material.clone(),
                 ..default()
             },
             Collider::from_bevy_mesh(
@@ -66,15 +66,19 @@ fn spawn_pinball_world(
             COLLIDE_ONLY_WITH_BALL,
             WorldGround,
         ));
+        let mesh = &assets.world_1_frame_collider;
+        p.spawn(side_coll("Frame Collider", &meshes, mesh));
 
-        // Ground
-        parent.spawn((
-            PbrBundle {
-                mesh: assets.world_1_ground.clone(),
-                material: assets.world_1_ground_material.clone(),
-                ..default()
-            },
-            //Ccd::enabled(),
+        let mesh = &assets.world_1_rebound_left_collider;
+        p.spawn(side_coll("Rebound Left Collider", &meshes, mesh));
+
+        let mesh = &assets.world_1_rebound_right_collider;
+        p.spawn(side_coll("Rebound Right Collider", &meshes, mesh));
+
+        // Ground Collider
+        p.spawn((
+            Name::new("Ground collider"),
+            SpatialBundle::default(),
             Collider::from_bevy_mesh(
                 meshes
                     .get(&assets.world_1_ground_collider)
@@ -89,13 +93,14 @@ fn spawn_pinball_world(
         ));
 
         // Top Glass (maybe with glass texture in future)
-        parent.spawn((
+        p.spawn((
+            Name::new("Pinball top glass"),
             spatial_from_pos(Vec3::new(0., 0.12, 0.)),
             //PbrBundle {
             //mesh: assets.world_1_ground_collider.clone(),
             //transform: Transform::from_translation(Vec3::new(0., 0.12, 0.)),
             //material: mats.add(StandardMaterial {
-            //base_color: Color::WHITE,
+            //base_color: Color::rgba_u8(255, 255, 255, 25),
             //perceptual_roughness: 0.,
             //metallic: 0.,
             //reflectance: 0.6,
@@ -113,71 +118,45 @@ fn spawn_pinball_world(
             .unwrap(),
             ColliderDebugColor(Color::NONE),
             COLLIDE_ONLY_WITH_BALL,
-            Name::new("Pinball top glass"),
-        ));
-
-        // Rebound left
-        parent.spawn((
-            PbrBundle {
-                mesh: assets.world_1_rebound_left.clone(),
-                material: assets.world_1_rebound_left_material.clone(),
-                ..default()
-            },
-            Name::new("Pinball Rebound Left"),
-            Collider::from_bevy_mesh(
-                meshes
-                    .get(&assets.world_1_rebound_left_collider.clone())
-                    .expect("Failed to find mesh"),
-                &ComputedColliderShape::TriMesh,
-            )
-            .unwrap(),
-            Friction::new(0.4),
-            ColliderDebugColor(Color::GOLD),
-            COLLIDE_ONLY_WITH_BALL,
-        ));
-
-        // Rebound right
-        parent.spawn((
-            PbrBundle {
-                mesh: assets.world_1_rebound_right.clone(),
-                material: assets.world_1_rebound_right_material.clone(),
-                ..default()
-            },
-            Collider::from_bevy_mesh(
-                meshes
-                    .get(&assets.world_1_rebound_right_collider.clone())
-                    .expect("Failed to find mesh"),
-                &ComputedColliderShape::TriMesh,
-            )
-            .unwrap(),
-            Friction::new(0.4),
-            ColliderDebugColor(Color::GOLD),
-            Name::new("Pinball Dodger Right"),
         ));
 
         // Ball starter
         let bs_pos = Vec3::new(1.175, -0.018, -0.657);
-        super::ball_starter::spawn(parent, bs_pos, &mut meshes, &mut mats);
+        super::ball_starter::spawn(p, bs_pos, &mut meshes, &mut mats);
 
         // Flipper left
         let fl_pos = Transform::from_xyz(0.83, -0.043, 0.32);
-        super::flipper::spawn_left(fl_pos, parent, &mut mats, &mut assets);
+        super::flipper::spawn_left(fl_pos, p, &mut mats, &mut assets);
 
         // Flipper right
         let fr_pos = Transform::from_xyz(0.83, -0.043, -0.246);
-        super::flipper::spawn_right(fr_pos, parent, &mut mats, &mut assets);
+        super::flipper::spawn_right(fr_pos, p, &mut mats, &mut assets);
 
-        spawn_foundations(parent, &mut mats, &assets, &g_sett);
-        spawn_road(parent, &mut mats, &mut meshes, &assets);
+        spawn_foundations(p, &mut mats, &assets, &g_sett);
+        spawn_road(p, &mut mats, &mut meshes, &assets);
 
         let lb_pos = Transform {
             translation: Vec3::new(1.15, -0.05, 0.035),
             scale: Vec3::new(4., 4., 4.),
             ..default()
         };
-        spawn_life_bar(parent, &assets, &mut mats, lb_pos);
-        spawn_pinball_menu_glass(parent, &assets, &mut mats);
+        spawn_life_bar(p, &assets, &mut mats, lb_pos);
+        spawn_pinball_menu_glass(p, &assets, &mut mats);
     });
+}
+
+fn side_coll(name: &'static str, meshes: &Assets<Mesh>, handle: &Handle<Mesh>) -> impl Bundle {
+    (
+        Name::new(name),
+        SpatialBundle::default(),
+        Collider::from_bevy_mesh(
+            meshes.get(handle).expect("Failed to find mesh"),
+            &ComputedColliderShape::TriMesh,
+        )
+        .unwrap(),
+        Friction::new(0.4),
+        ColliderDebugColor(Color::GOLD),
+    )
 }
 
 fn spawn_foundations(
@@ -187,8 +166,9 @@ fn spawn_foundations(
     g_sett: &GraphicsSettings,
 ) {
     spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.89, -0.04, 0.49));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.71, -0.04, 0.49));
     spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.89, -0.04, 0.21));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.69, -0.04, -0.19));
+    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.904, -0.04, -0.24));
     spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.5, -0.04, 0.));
     spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.3, -0.04, 0.51));
     spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.1, -0.04, -0.01));
