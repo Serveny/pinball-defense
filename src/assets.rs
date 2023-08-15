@@ -5,43 +5,25 @@ pub use bevy_asset_loader::prelude::*;
 pub struct PinballDefenseAssets {
     // Pinball World
     #[asset(path = "models/pinball_world_1.gltf#Mesh0/Primitive0")]
-    pub world_1_frame_collider: Handle<Mesh>,
+    pub world_1: Handle<Mesh>,
 
     #[asset(path = "models/pinball_world_1.gltf#Mesh1/Primitive0")]
     pub world_1_menu_glass: Handle<Mesh>,
 
     #[asset(path = "models/pinball_world_1.gltf#Mesh2/Primitive0")]
-    pub world_1_frame: Handle<Mesh>,
+    pub world_1_frame_collider: Handle<Mesh>,
 
     #[asset(path = "models/pinball_world_1.gltf#Mesh3/Primitive0")]
-    pub world_1_ground: Handle<Mesh>,
-
-    #[asset(path = "models/pinball_world_1.gltf#Mesh4/Primitive0")]
     pub world_1_ground_collider: Handle<Mesh>,
 
-    #[asset(path = "models/pinball_world_1.gltf#Mesh5/Primitive0")]
-    pub world_1_rebound_left: Handle<Mesh>,
-
-    #[asset(path = "models/pinball_world_1.gltf#Mesh6/Primitive0")]
-    pub world_1_rebound_right: Handle<Mesh>,
-
-    #[asset(path = "models/pinball_world_1.gltf#Mesh7/Primitive0")]
+    #[asset(path = "models/pinball_world_1.gltf#Mesh4/Primitive0")]
     pub world_1_rebound_left_collider: Handle<Mesh>,
 
-    #[asset(path = "models/pinball_world_1.gltf#Mesh8/Primitive0")]
+    #[asset(path = "models/pinball_world_1.gltf#Mesh5/Primitive0")]
     pub world_1_rebound_right_collider: Handle<Mesh>,
 
     #[asset(path = "models/pinball_world_1.gltf#Material0")]
-    pub world_1_frame_material: Handle<StandardMaterial>,
-
-    #[asset(path = "models/pinball_world_1.gltf#Material1")]
-    pub world_1_ground_material: Handle<StandardMaterial>,
-
-    #[asset(path = "models/pinball_world_1.gltf#Material2")]
-    pub world_1_rebound_left_material: Handle<StandardMaterial>,
-
-    #[asset(path = "models/pinball_world_1.gltf#Material3")]
-    pub world_1_rebound_right_material: Handle<StandardMaterial>,
+    pub world_1_material: Handle<StandardMaterial>,
 
     // Other
     #[asset(path = "textures/skybox.png")]

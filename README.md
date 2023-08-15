@@ -21,7 +21,7 @@ Tower Types:
 Pinball Part:
 
 - hitting a tower place fills bar, when bar is filled, tower upgrade is ready
-- to upgrade a tower, special fields on the side gets visible/hitable, hit one to select the tower type
+- to upgrade a tower, special fields gets visible/hitable, hit one to select the tower type
 - if more upgrades are ready, you can hit the special fields multiple times, the upgrades were build in queue
 - every tower is an object with collision, if one gets hit, bar fills, when bar is filled, tower gets upgrade
 - (random extra field, when hit, then temporary extra like second ball, bigger ball damage-/radius, etc.)
@@ -48,3 +48,9 @@ Beginning phase:
 
 - Very easy enemy waves, because it must take long to build a new tower
 - Only defending by hitting an enemy with the ball
+
+Upgrade System:
+
+- Hit foundation to fill progress bar, if full -> pinball menu tower selection (towers: gun, microwave, tesla, mortar)
+- Hit towers to fill progress bar, if full -> pinball menu upgrade selection (possible upgrades: more sight range, damage, faster rotate speed, bigger damgage range)
+- every action gives points, collect points to get on a higher level -> unlock more tower types and upgrades

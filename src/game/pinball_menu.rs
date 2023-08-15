@@ -1,4 +1,4 @@
-use super::ball::CollisionWithBallEvent;
+use super::ball::{CollisionWithBallEvent, PinBall};
 use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 use super::events::tween_completed::{ACTIVATE_PINBALL_MENU_EVENT_ID, DESPAWN_ENTITY_EVENT_ID};
 use super::tower::foundation::{DespawnFoundationEvent, QuerySelected, SelectedTowerFoundation};
@@ -17,7 +17,13 @@ impl Plugin for PinballMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<PinballMenuEvent>().add_systems(
             Update,
-            (menu_event_system, spawn_system, execute_system).run_if(in_state(GameState::Ingame)),
+            (
+                menu_event_system,
+                spawn_system,
+                execute_system,
+                de_activate_system,
+            )
+                .run_if(in_state(GameState::Ingame)),
         );
     }
 }
@@ -190,6 +196,38 @@ fn despawn(
     });
     deactivate(cmds, q_lights, q_pbm_el);
     PinballMenuStatus::Disabled
+}
+
+fn de_activate_system(
+    mut pb_menu_ev: EventWriter<PinballMenuEvent>,
+    q_ball: Query<&Transform, With<PinBall>>,
+    q_pb_menu_status: Query<&PinballMenuStatus>,
+) {
+    for status in q_pb_menu_status.iter() {
+        match *status {
+            PinballMenuStatus::Disabled => (),
+            PinballMenuStatus::Ready => {
+                if is_ball_in_x_zone(&q_ball, 0.6, 0.8) {
+                    pb_menu_ev.send(PinballMenuEvent::Activate);
+                }
+            }
+            PinballMenuStatus::Activated => {
+                if !is_ball_in_x_zone(&q_ball, 0.28, 1.) {
+                    pb_menu_ev.send(PinballMenuEvent::Deactivate);
+                }
+            }
+        }
+    }
+}
+
+fn is_ball_in_x_zone(q_ball: &Query<&Transform, With<PinBall>>, start: f32, end: f32) -> bool {
+    for ball in q_ball.iter() {
+        let trans = ball.translation;
+        if trans.x >= start && trans.x <= end && trans.z >= -0.42 && trans.z <= 0.46 {
+            return true;
+        }
+    }
+    false
 }
 
 fn activate(
