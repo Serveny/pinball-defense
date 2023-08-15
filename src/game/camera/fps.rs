@@ -140,12 +140,15 @@ pub(super) fn setup_camera(
             transform: Transform::from_translation(Vec3::new(2.40, 1.20, -0.28))
                 .looking_at(Vec3::ZERO, Vec3::Y),
             camera: Camera {
+                order: 1,
                 hdr: g_setting.is_hdr,
                 ..default()
             },
             tonemapping: Tonemapping::TonyMcMapface,
+
             ..default()
         },
+        UiCameraConfig { show_ui: false },
         g_setting.bloom.clone(),
         Skybox(assets.skybox.clone()),
         EnvironmentMapLight {

@@ -1,6 +1,7 @@
 use super::ball_starter::BallStarterPlugin;
 use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 use super::flipper::FlipperPlugin;
+use super::level::{spawn_point_display, spawn_point_display_ui_and_cam};
 use super::pinball_menu::spawn_pinball_menu_glass;
 use super::player_life::spawn_life_bar;
 use super::road::spawn_road;
@@ -35,9 +36,12 @@ fn spawn_pinball_world(
     mut cmds: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut mats: ResMut<Assets<StandardMaterial>>,
-    mut assets: ResMut<PinballDefenseAssets>,
+    mut images: ResMut<Assets<Image>>,
+    assets: Res<PinballDefenseAssets>,
     g_sett: Res<GraphicsSettings>,
 ) {
+    let assets = assets.as_ref();
+    let mut img_handle: Option<Handle<Image>> = None;
     cmds.spawn((
         SpatialBundle {
             transform: Transform::from_rotation(Quat::from_rotation_z(-0.25)),
@@ -48,49 +52,13 @@ fn spawn_pinball_world(
     ))
     .with_children(|p| {
         // World mesh
-        p.spawn((
-            PbrBundle {
-                mesh: assets.world_1.clone(),
-                material: assets.world_1_material.clone(),
-                ..default()
-            },
-            Collider::from_bevy_mesh(
-                meshes
-                    .get(&assets.world_1_frame_collider)
-                    .expect("Failed to find mesh"),
-                &ComputedColliderShape::TriMesh,
-            )
-            .unwrap(),
-            Friction::new(0.4),
-            ColliderDebugColor(Color::GOLD),
-            COLLIDE_ONLY_WITH_BALL,
-            WorldGround,
-        ));
-        let mesh = &assets.world_1_frame_collider;
-        p.spawn(side_coll("Frame Collider", &meshes, mesh));
+        p.spawn(PbrBundle {
+            mesh: assets.world_1.clone(),
+            material: assets.world_1_material.clone(),
+            ..default()
+        });
 
-        let mesh = &assets.world_1_rebound_left_collider;
-        p.spawn(side_coll("Rebound Left Collider", &meshes, mesh));
-
-        let mesh = &assets.world_1_rebound_right_collider;
-        p.spawn(side_coll("Rebound Right Collider", &meshes, mesh));
-
-        // Ground Collider
-        p.spawn((
-            Name::new("Ground collider"),
-            SpatialBundle::default(),
-            Collider::from_bevy_mesh(
-                meshes
-                    .get(&assets.world_1_ground_collider)
-                    .expect("Failed to find mesh"),
-                &ComputedColliderShape::TriMesh,
-            )
-            .unwrap(),
-            Friction::new(0.2),
-            ColliderDebugColor(Color::GOLD),
-            COLLIDE_ONLY_WITH_BALL,
-            WorldGround,
-        ));
+        spawn_colliders(p, &mut meshes, assets);
 
         // Top Glass (maybe with glass texture in future)
         p.spawn((
@@ -126,26 +94,50 @@ fn spawn_pinball_world(
 
         // Flipper left
         let fl_pos = Transform::from_xyz(0.83, -0.043, 0.32);
-        super::flipper::spawn_left(fl_pos, p, &mut mats, &mut assets);
+        super::flipper::spawn_left(fl_pos, p, &mut mats, assets);
 
         // Flipper right
         let fr_pos = Transform::from_xyz(0.83, -0.043, -0.246);
-        super::flipper::spawn_right(fr_pos, p, &mut mats, &mut assets);
+        super::flipper::spawn_right(fr_pos, p, &mut mats, assets);
 
-        spawn_foundations(p, &mut mats, &assets, &g_sett);
-        spawn_road(p, &mut mats, &mut meshes, &assets);
+        spawn_foundations(p, &mut mats, assets, &g_sett);
+        spawn_road(p, &mut mats, &mut meshes, assets);
 
-        let lb_pos = Transform {
+        let life_bar_trans = Transform {
             translation: Vec3::new(1.15, -0.05, 0.035),
             scale: Vec3::new(4., 4., 4.),
             ..default()
         };
-        spawn_life_bar(p, &assets, &mut mats, lb_pos);
-        spawn_pinball_menu_glass(p, &assets, &mut mats);
+        spawn_life_bar(p, assets, &mut mats, life_bar_trans);
+        spawn_pinball_menu_glass(p, assets, &mut mats);
+        img_handle = Some(spawn_point_display(p, &mut mats, &mut images, assets));
     });
+    if let Some(img) = img_handle {
+        spawn_point_display_ui_and_cam(&mut cmds, assets, img);
+    }
 }
 
-fn side_coll(name: &'static str, meshes: &Assets<Mesh>, handle: &Handle<Mesh>) -> impl Bundle {
+fn spawn_colliders(p: &mut ChildBuilder, meshes: &mut Assets<Mesh>, assets: &PinballDefenseAssets) {
+    let mesh = &assets.world_1_frame_collider;
+    p.spawn(ball_coll("Frame Collider", meshes, mesh, 0.4));
+
+    let mesh = &assets.world_1_rebound_left_collider;
+    p.spawn(ball_coll("Rebound Left Collider", meshes, mesh, 0.6));
+
+    let mesh = &assets.world_1_rebound_right_collider;
+    p.spawn(ball_coll("Rebound Right Collider", meshes, mesh, 0.6));
+
+    // Ground Collider
+    let mesh = &assets.world_1_ground_collider;
+    p.spawn(ball_coll("Ground Collider", meshes, mesh, 0.2));
+}
+
+fn ball_coll(
+    name: &'static str,
+    meshes: &Assets<Mesh>,
+    handle: &Handle<Mesh>,
+    friction: f32,
+) -> impl Bundle {
     (
         Name::new(name),
         SpatialBundle::default(),
@@ -154,7 +146,7 @@ fn side_coll(name: &'static str, meshes: &Assets<Mesh>, handle: &Handle<Mesh>) -
             &ComputedColliderShape::TriMesh,
         )
         .unwrap(),
-        Friction::new(0.4),
+        Friction::new(friction),
         ColliderDebugColor(Color::GOLD),
     )
 }

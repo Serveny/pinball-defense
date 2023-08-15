@@ -11,15 +11,18 @@ pub struct PinballDefenseAssets {
     pub world_1_menu_glass: Handle<Mesh>,
 
     #[asset(path = "models/pinball_world_1.gltf#Mesh2/Primitive0")]
-    pub world_1_frame_collider: Handle<Mesh>,
+    pub world_1_point_display: Handle<Mesh>,
 
     #[asset(path = "models/pinball_world_1.gltf#Mesh3/Primitive0")]
-    pub world_1_ground_collider: Handle<Mesh>,
+    pub world_1_frame_collider: Handle<Mesh>,
 
     #[asset(path = "models/pinball_world_1.gltf#Mesh4/Primitive0")]
-    pub world_1_rebound_left_collider: Handle<Mesh>,
+    pub world_1_ground_collider: Handle<Mesh>,
 
     #[asset(path = "models/pinball_world_1.gltf#Mesh5/Primitive0")]
+    pub world_1_rebound_left_collider: Handle<Mesh>,
+
+    #[asset(path = "models/pinball_world_1.gltf#Mesh6/Primitive0")]
     pub world_1_rebound_right_collider: Handle<Mesh>,
 
     #[asset(path = "models/pinball_world_1.gltf#Material0")]
@@ -29,8 +32,8 @@ pub struct PinballDefenseAssets {
     #[asset(path = "textures/skybox.png")]
     pub skybox: Handle<Image>,
 
-    #[asset(path = "fonts/Quicksand-Regular.ttf")]
-    pub font: Handle<Font>,
+    #[asset(path = "fonts/PressStart2P-Regular.ttf")]
+    pub digital_font: Handle<Font>,
 
     // Road
     #[asset(path = "models/pinball_world_1_road.gltf#Mesh0/Primitive0")]
