@@ -51,6 +51,7 @@ pub fn spawn(
             transform: Transform::from_translation(pos),
             ..default()
         },
+        Ccd::enabled(),
         RigidBody::Dynamic,
         Collider::ball(radius),
         ColliderDebugColor(Color::GOLD),
