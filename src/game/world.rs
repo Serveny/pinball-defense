@@ -1,7 +1,6 @@
 use super::ball_starter::BallStarterPlugin;
 use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 use super::flipper::FlipperPlugin;
-use super::level::{spawn_point_display, spawn_point_display_ui_and_cam};
 use super::pinball_menu::spawn_pinball_menu_glass;
 use super::player_life::spawn_life_bar;
 use super::road::spawn_road;
@@ -36,7 +35,6 @@ fn spawn_pinball_world(
     mut cmds: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut mats: ResMut<Assets<StandardMaterial>>,
-    mut images: ResMut<Assets<Image>>,
     assets: Res<PinballDefenseAssets>,
     g_sett: Res<GraphicsSettings>,
 ) {
