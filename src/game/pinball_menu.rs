@@ -60,7 +60,7 @@ fn menu_event_system(
             if let Some(new_status) = match (ev, *status) {
                 (Disable, Activated) => Some(despawn(cmds, q_lights, q_pbm_el, menu_entity)),
                 (SetReady, Disabled) => Some(Ready),
-                (Deactivate, Activated) => Some(deactivate(cmds, q_lights, q_pbm_el)), // TODO Status setzen
+                (Deactivate, Activated) => Some(deactivate(cmds, q_lights, q_pbm_el)),
                 (Activate, Ready) => Some(activate(cmds, q_lights, q_pbm_el, meshes, assets)),
                 _ => None,
             } {
