@@ -1,4 +1,4 @@
-use super::GameState;
+use super::{analog_counter::AnalogCounterSetToEvent, GameState};
 use crate::prelude::*;
 use bevy::{
     core_pipeline::clear_color::ClearColorConfig,
@@ -22,15 +22,17 @@ impl Plugin for LevelPlugin {
             .add_systems(
                 Update,
                 (
-                    update_display_system,
                     count_up_points_test_system,
                     level_up_system,
+                    update_analog_counter_system,
                 )
                     .run_if(in_state(GameState::Ingame).and_then(on_timer(Duration::from_secs(1)))),
             );
     }
 }
+
 #[derive(Resource, Default, Reflect)]
+
 struct Points(u32);
 
 #[derive(Resource, Default, Reflect)]
@@ -175,6 +177,16 @@ fn level_up_system(points: Res<Points>, mut level: ResMut<Level>) {
         }
     }
 }
+
 fn count_up_points_test_system(mut points: ResMut<Points>) {
     points.0 += 100;
+}
+
+fn update_analog_counter_system(
+    points: Res<Points>,
+    mut ac_set_ev: EventWriter<AnalogCounterSetToEvent>,
+) {
+    if points.is_changed() {
+        ac_set_ev.send(AnalogCounterSetToEvent(points.0));
+    }
 }

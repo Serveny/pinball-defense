@@ -22,7 +22,7 @@
 - enemy life bar ✅
 - refactor with multiple event reader ✅
 - generic pinball tower menu for variable count of cards
-- point display
+- point display (vintage style)
 - point system
 - towers logic
   - target system
