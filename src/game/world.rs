@@ -6,7 +6,7 @@ use super::pinball_menu::spawn_pinball_menu_glass;
 use super::player_life::spawn_life_bar;
 use super::road::spawn_road;
 use super::tower::foundation::spawn_foundation;
-use super::GameState;
+use super::{analog_counter, GameState};
 use crate::assets::PinballDefenseAssets;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
@@ -41,7 +41,7 @@ fn spawn_pinball_world(
     g_sett: Res<GraphicsSettings>,
 ) {
     let assets = assets.as_ref();
-    let mut img_handle: Option<Handle<Image>> = None;
+    //let mut img_handle: Option<Handle<Image>> = None;
     cmds.spawn((
         SpatialBundle {
             transform: Transform::from_rotation(Quat::from_rotation_z(-0.25)),
@@ -110,11 +110,12 @@ fn spawn_pinball_world(
         };
         spawn_life_bar(p, assets, &mut mats, life_bar_trans);
         spawn_pinball_menu_glass(p, assets, &mut mats);
-        img_handle = Some(spawn_point_display(p, &mut mats, &mut images, assets));
+        //img_handle = Some(spawn_point_display(p, &mut mats, &mut images, assets));
+        analog_counter::spawn(p, assets, Vec3::new(0.98, 0.01, 0.563958));
     });
-    if let Some(img) = img_handle {
-        spawn_point_display_ui_and_cam(&mut cmds, assets, img);
-    }
+    //if let Some(img) = img_handle {
+    //spawn_point_display_ui_and_cam(&mut cmds, assets, img);
+    //}
 }
 
 fn spawn_colliders(p: &mut ChildBuilder, meshes: &mut Assets<Mesh>, assets: &PinballDefenseAssets) {

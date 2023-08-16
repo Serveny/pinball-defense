@@ -24,4 +24,5 @@ bevy_asset_loader = "0.17"
 bevy_rapier3d = { version = "0.22", features = ["parallel"]}
 bevy_window_title_diagnostics = "0.5.0"
 bevy_tweening = "0.8"
+digits_iterator = "0.1"
 #bevy_debug_grid = "0.1"
