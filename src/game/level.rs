@@ -9,6 +9,7 @@ impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Points>()
             .init_resource::<Level>()
+            .add_event::<LevelUpEvent>()
             .add_systems(
                 Update,
                 (
@@ -28,12 +29,20 @@ struct Points(u32);
 #[derive(Resource, Default, Reflect)]
 struct Level(u16);
 
+#[derive(Event, Clone, Copy)]
+pub struct LevelUpEvent(pub u16);
 // WIP
-fn level_up_system(points: Res<Points>, mut level: ResMut<Level>) {
+fn level_up_system(
+    mut lvl_up_ev: EventWriter<LevelUpEvent>,
+    mut level: ResMut<Level>,
+    points: Res<Points>,
+) {
     if points.is_changed() {
         let new_level = (points.0 / 1000) as u16 + 1;
         if new_level != level.0 {
             level.0 = new_level;
+            lvl_up_ev.send(LevelUpEvent(new_level));
+            log!("🥳 Level up: {new_level}!");
         }
     }
 }

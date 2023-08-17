@@ -52,7 +52,7 @@ pub struct Tower;
 #[derive(Component)]
 pub struct TowerHead;
 
-#[derive(Component, Debug, Clone, Copy)]
+#[derive(Component, Clone, Copy, Debug, Hash, PartialEq, Eq)]
 pub enum TowerUpgrade {
     Damage,
     Range,
