@@ -171,13 +171,34 @@ fn spawn_tower_menu(
             Name::new("Pinball Tower Menu"),
         ))
         .with_children(|p| {
-            let mut angle = 0.39;
-            let angle_add = angle * 2. / unlocked_towers.0.len() as f32;
+            let mut angles = CardAngles::new(unlocked_towers.0.len() as u8);
             for tower in unlocked_towers.0.iter() {
-                spawn_menu_element(*tower, p, assets, g_sett, angle, 0.1);
-                angle -= angle_add;
+                spawn_menu_element(*tower, p, assets, g_sett, angles.next(), 0.1);
             }
         });
+}
+
+struct CardAngles {
+    angle: f32,
+    angle_add: f32,
+}
+
+impl CardAngles {
+    fn new(count: u8) -> Self {
+        let angle_add = -0.39 * 2. / count as f32;
+        let mut angle = 0.39;
+
+        // Place elements middle
+        if count < 5 {
+            angle -= angle_add / 2.;
+        }
+        Self { angle, angle_add }
+    }
+
+    fn next(&mut self) -> f32 {
+        self.angle += self.angle_add;
+        self.angle
+    }
 }
 
 fn spawn_upgrade_menu(
@@ -195,11 +216,9 @@ fn spawn_upgrade_menu(
             Name::new("Pinball Upgrade Menu"),
         ))
         .with_children(|p| {
-            let mut angle = 0.39;
-            let angle_add = angle * 2. / unlocked_tower_upgrades.0.len() as f32;
+            let mut angles = CardAngles::new(unlocked_tower_upgrades.0.len() as u8);
             for tower_upgrade in unlocked_tower_upgrades.0.iter() {
-                spawn_menu_element(*tower_upgrade, p, assets, g_sett, angle, 0.1);
-                angle -= angle_add;
+                spawn_menu_element(*tower_upgrade, p, assets, g_sett, angles.next(), 0.1);
             }
         });
 }
