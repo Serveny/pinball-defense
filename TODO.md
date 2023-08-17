@@ -24,6 +24,7 @@
 - point display (vintage style) ✅
 - generic pinball tower menu for variable count of cards
 - point system
+- level display
 - towers logic
   - target system
   - shoot/damage system
