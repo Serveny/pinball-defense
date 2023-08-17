@@ -21,8 +21,8 @@
 - optimize walk path ✅
 - enemy life bar ✅
 - refactor with multiple event reader ✅
+- point display (vintage style) ✅
 - generic pinball tower menu for variable count of cards
-- point display (vintage style)
 - point system
 - towers logic
   - target system

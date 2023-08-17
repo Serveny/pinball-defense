@@ -1,8 +1,11 @@
-use self::foundation::DespawnFoundationEvent;
+use self::base::TowerBase;
+use super::ball::CollisionWithBallEvent;
+use super::progress_bar::ProgressBarCountUpEvent;
 use super::GameState;
 use crate::game::world::QueryWorld;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
+use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
 use bevy_tweening::lens::TransformPositionLens;
 use bevy_tweening::{Delay, EaseFunction, Sequence, Tween};
 use std::time::Duration;
@@ -20,36 +23,40 @@ pub struct TowerPlugin;
 
 impl Plugin for TowerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SpawnTowerEvent>()
-            .add_event::<DespawnFoundationEvent>()
-            .add_systems(
-                Update,
-                (
-                    animations::rotate_always_system,
-                    animations::rotate_to_target_system,
-                    base::progress_system,
-                    foundation::despawn_system,
-                    foundation::progress_system,
-                    foundation::set_next_selected_system,
-                    foundation::set_ready_to_build_system,
-                    light::contact_light_on_system,
-                    light::flash_light_system,
-                    light::light_off_system,
-                    target::aim_first_enemy_system,
-                    target::enemy_within_reach_system,
-                    target::remove_despawned_enemies_from_ewr_system,
-                    target::target_pos_by_afe_system,
-                    spawn_tower_system,
-                )
-                    .run_if(in_state(GameState::Ingame)),
-            );
+        app.add_event::<SpawnTowerEvent>().add_systems(
+            Update,
+            (
+                animations::rotate_always_system,
+                animations::rotate_to_target_system,
+                foundation::despawn_system,
+                foundation::progress_system,
+                light::contact_light_on_system,
+                light::add_flashlight_system.after(light::disable_contact_light_system),
+                light::flash_light_system,
+                light::disable_contact_light_system,
+                target::aim_first_enemy_system,
+                target::enemy_within_reach_system,
+                target::remove_despawned_enemies_from_ewr_system,
+                target::target_pos_by_afe_system,
+                progress_system,
+                spawn_tower_system,
+            )
+                .run_if(in_state(GameState::Ingame)),
+        );
     }
 }
+
 #[derive(Component)]
 pub struct Tower;
 
 #[derive(Component)]
 pub struct TowerHead;
+
+#[derive(Component, Debug, Clone, Copy)]
+pub enum TowerUpgrade {
+    Damage,
+    Range,
+}
 
 fn tower_material() -> StandardMaterial {
     StandardMaterial {
@@ -99,4 +106,18 @@ fn spawn_tower_system(
             };
         });
     }
+}
+
+fn progress_system(
+    mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
+    mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
+    q_tower_base: Query<Entity, With<TowerBase>>,
+) {
+    ball_coll_ev
+        .iter()
+        .for_each(|CollisionWithBallEvent(id, flag)| {
+            if *flag != CollisionEventFlags::SENSOR && q_tower_base.contains(*id) {
+                prog_bar_ev.send(ProgressBarCountUpEvent(*id, 1.));
+            }
+        });
 }

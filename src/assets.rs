@@ -99,6 +99,12 @@ pub struct PinballDefenseAssets {
     #[asset(path = "models/pinball_world_menu.gltf#Material2")]
     pub pinball_menu_element_microwave_material: Handle<StandardMaterial>,
 
+    #[asset(path = "models/pinball_world_menu.gltf#Material3")]
+    pub pinball_menu_element_damage_upgrade_mat: Handle<StandardMaterial>,
+
+    #[asset(path = "models/pinball_world_menu.gltf#Material4")]
+    pub pinball_menu_element_range_upgrade_mat: Handle<StandardMaterial>,
+
     // Analog number counter
     #[asset(path = "models/analog_counter.gltf#Mesh0/Primitive0")]
     pub analog_counter_casing: Handle<Mesh>,

@@ -1,4 +1,5 @@
 use crate::game::ball::CollisionWithBallEvent;
+use crate::game::pinball_menu::PinballMenuOnSetSelectedEvent;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 
@@ -28,18 +29,20 @@ pub(super) fn spawn_contact_light(
     ));
 }
 
-pub(super) fn add_flash_light(
-    cmds: &mut Commands,
-    q_light: &Query<(&Parent, Entity), With<ContactLight>>,
-    parent_id: Entity,
+pub(super) fn add_flashlight_system(
+    mut cmds: Commands,
+    mut pb_menu_open_ev: EventReader<PinballMenuOnSetSelectedEvent>,
+    mut q_light: Query<(&mut Visibility, &Parent, Entity), With<ContactLight>>,
 ) {
-    cmds.entity(
-        q_light
-            .iter()
-            .find_map(|(parent, light_id)| if_true!(parent.get() == parent_id, light_id))
-            .expect("Parent should have ContactLight as child"),
-    )
-    .insert(FlashLight);
+    for ev in pb_menu_open_ev.iter() {
+        let (mut visi, _, light_id) = q_light
+            .iter_mut()
+            .find(|(_, parent, _)| parent.get() == ev.0)
+            .expect("Parent should have ContactLight as child");
+
+        cmds.entity(light_id).insert(FlashLight);
+        *visi = Visibility::Inherited;
+    }
 }
 
 #[derive(Component)]
@@ -74,16 +77,22 @@ const LIGHT_INTENSITY: f32 = 48.;
 type QueryContactLight<'w, 's, 'a> = Query<
     'w,
     's,
-    (&'a mut Visibility, &'a mut PointLight, &'a Parent),
+    (
+        &'a Parent,
+        &'a mut Visibility,
+        &'a mut PointLight,
+        &'a Parent,
+    ),
     (With<ContactLight>, Without<FlashLight>),
 >;
 
-pub(super) fn light_off_system(mut q_light: QueryContactLight, time: Res<Time>) {
-    for (mut visi, mut light, _) in q_light.iter_mut() {
+pub(super) fn disable_contact_light_system(mut q_light: QueryContactLight, time: Res<Time>) {
+    for (parent, mut visi, mut light, _) in q_light.iter_mut() {
         if *visi != Visibility::Hidden {
             let time = time.delta_seconds() * 64.;
             light.intensity -= time;
             if light.intensity <= 0. {
+                log!("Disable contact light for {:?}", parent.get());
                 light.intensity = 0.;
                 *visi = Visibility::Hidden;
             }
@@ -100,14 +109,15 @@ pub(super) fn disable_flash_light(
         .iter_mut()
         .find(|(_, p, _)| p.get() == parent_id)
         .expect("Here should be the selected parend 🫢");
+    log!("Disable flashlight for {:?}", parent_id);
     *visi = Visibility::Hidden;
     cmds.entity(entity).remove::<FlashLight>();
 }
 
 pub(super) fn light_on_by_parent(parent_id: Entity, q_light: &mut QueryContactLight) {
-    if let Some((mut visi, mut light, _)) = q_light
+    if let Some((_, mut visi, mut light, _)) = q_light
         .iter_mut()
-        .find(|(_, _, parent)| parent_id == parent.get())
+        .find(|(_, _, _, parent)| parent_id == parent.get())
     {
         *visi = Visibility::Inherited;
         light.intensity = LIGHT_INTENSITY;

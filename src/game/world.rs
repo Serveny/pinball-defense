@@ -4,7 +4,7 @@ use super::flipper::FlipperPlugin;
 use super::pinball_menu::spawn_pinball_menu_glass;
 use super::player_life::spawn_life_bar;
 use super::road::spawn_road;
-use super::tower::foundation::spawn_foundation;
+use super::tower::foundation;
 use super::{analog_counter, GameState};
 use crate::assets::PinballDefenseAssets;
 use crate::prelude::*;
@@ -156,16 +156,16 @@ fn spawn_foundations(
     assets: &PinballDefenseAssets,
     g_sett: &GraphicsSettings,
 ) {
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.89, -0.04, 0.49));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.71, -0.04, 0.49));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.89, -0.04, 0.21));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.904, -0.04, -0.24));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.5, -0.04, 0.));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.3, -0.04, 0.51));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.1, -0.04, -0.01));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(0.1, -0.04, 0.51));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.904, -0.04, 0.0));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(0.01, -0.04, -0.4));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.275, -0.04, -0.4));
-    spawn_foundation(p, mats, assets, g_sett, Vec3::new(-0.5, -0.04, 0.26));
+    foundation::spawn(p, mats, assets, g_sett, Vec3::new(-0.89, -0.04, 0.49));
+    foundation::spawn(p, mats, assets, g_sett, Vec3::new(-0.71, -0.04, 0.49));
+    foundation::spawn(p, mats, assets, g_sett, Vec3::new(-0.89, -0.04, 0.21));
+    foundation::spawn(p, mats, assets, g_sett, Vec3::new(-0.904, -0.04, -0.24));
+    foundation::spawn(p, mats, assets, g_sett, Vec3::new(-0.5, -0.04, 0.));
+    foundation::spawn(p, mats, assets, g_sett, Vec3::new(-0.3, -0.04, 0.51));
+    foundation::spawn(p, mats, assets, g_sett, Vec3::new(-0.1, -0.04, -0.01));
+    foundation::spawn(p, mats, assets, g_sett, Vec3::new(0.1, -0.04, 0.51));
+    foundation::spawn(p, mats, assets, g_sett, Vec3::new(-0.904, -0.04, 0.0));
+    foundation::spawn(p, mats, assets, g_sett, Vec3::new(0.01, -0.04, -0.4));
+    foundation::spawn(p, mats, assets, g_sett, Vec3::new(-0.275, -0.04, -0.4));
+    foundation::spawn(p, mats, assets, g_sett, Vec3::new(-0.5, -0.04, 0.26));
 }
