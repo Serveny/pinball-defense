@@ -120,12 +120,6 @@ fn spawn_colliders(p: &mut ChildBuilder, meshes: &mut Assets<Mesh>, assets: &Pin
     let mesh = &assets.world_1_frame_collider;
     p.spawn(ball_coll("Frame Collider", meshes, mesh, 0.4));
 
-    let mesh = &assets.world_1_rebound_left_collider;
-    p.spawn(ball_coll("Rebound Left Collider", meshes, mesh, 0.6));
-
-    let mesh = &assets.world_1_rebound_right_collider;
-    p.spawn(ball_coll("Rebound Right Collider", meshes, mesh, 0.6));
-
     // Ground Collider
     let mesh = &assets.world_1_ground_collider;
     p.spawn(ball_coll("Ground Collider", meshes, mesh, 0.2));
@@ -150,22 +144,28 @@ fn ball_coll(
     )
 }
 
+const TOWER_POSIS: [Vec3; 12] = [
+    Vec3::new(-0.89, -0.04, 0.49),
+    Vec3::new(-0.71, -0.04, 0.49),
+    Vec3::new(-0.89, -0.04, 0.21),
+    Vec3::new(-0.904, -0.04, -0.24),
+    Vec3::new(-0.5, -0.04, 0.),
+    Vec3::new(-0.3, -0.04, 0.51),
+    Vec3::new(-0.1, -0.04, -0.01),
+    Vec3::new(0.1, -0.04, 0.51),
+    Vec3::new(-0.904, -0.04, 0.0),
+    Vec3::new(0.01, -0.04, -0.4),
+    Vec3::new(-0.275, -0.04, -0.4),
+    Vec3::new(-0.5, -0.04, 0.26),
+];
+
 fn spawn_foundations(
-    p: &mut ChildBuilder,
+    parent: &mut ChildBuilder,
     mats: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseAssets,
     g_sett: &GraphicsSettings,
 ) {
-    foundation::spawn(p, mats, assets, g_sett, Vec3::new(-0.89, -0.04, 0.49));
-    foundation::spawn(p, mats, assets, g_sett, Vec3::new(-0.71, -0.04, 0.49));
-    foundation::spawn(p, mats, assets, g_sett, Vec3::new(-0.89, -0.04, 0.21));
-    foundation::spawn(p, mats, assets, g_sett, Vec3::new(-0.904, -0.04, -0.24));
-    foundation::spawn(p, mats, assets, g_sett, Vec3::new(-0.5, -0.04, 0.));
-    foundation::spawn(p, mats, assets, g_sett, Vec3::new(-0.3, -0.04, 0.51));
-    foundation::spawn(p, mats, assets, g_sett, Vec3::new(-0.1, -0.04, -0.01));
-    foundation::spawn(p, mats, assets, g_sett, Vec3::new(0.1, -0.04, 0.51));
-    foundation::spawn(p, mats, assets, g_sett, Vec3::new(-0.904, -0.04, 0.0));
-    foundation::spawn(p, mats, assets, g_sett, Vec3::new(0.01, -0.04, -0.4));
-    foundation::spawn(p, mats, assets, g_sett, Vec3::new(-0.275, -0.04, -0.4));
-    foundation::spawn(p, mats, assets, g_sett, Vec3::new(-0.5, -0.04, 0.26));
+    for pos in TOWER_POSIS {
+        foundation::spawn(parent, mats, assets, g_sett, pos);
+    }
 }
