@@ -1,7 +1,10 @@
 use self::base::TowerBase;
+use self::light::FlashLight;
 use super::ball::CollisionWithBallEvent;
+use super::pinball_menu::UpgradeMenuExecuteEvent;
 use super::progress_bar::ProgressBarCountUpEvent;
 use super::GameState;
+use crate::game::tower::light::disable_flash_light;
 use crate::game::world::QueryWorld;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
@@ -40,13 +43,14 @@ impl Plugin for TowerPlugin {
                 target::target_pos_by_afe_system,
                 progress_system,
                 spawn_tower_system,
+                upgrade_system,
             )
                 .run_if(in_state(GameState::Ingame)),
         );
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Tower;
 
 #[derive(Component)]
@@ -120,4 +124,17 @@ fn progress_system(
                 prog_bar_ev.send(ProgressBarCountUpEvent(*id, 1.));
             }
         });
+}
+
+fn upgrade_system(
+    mut cmds: Commands,
+    mut upgrade_menu_exec_ev: EventReader<UpgradeMenuExecuteEvent>,
+    mut q_light: Query<(Entity, &Parent, &mut Visibility), With<FlashLight>>,
+    q_tower: Query<&Tower>,
+) {
+    for ev in upgrade_menu_exec_ev.iter() {
+        let tower = q_tower.get(ev.tower_id);
+        log!("Upgrade tower {tower:?}");
+        disable_flash_light(&mut cmds, &mut q_light, ev.tower_id);
+    }
 }

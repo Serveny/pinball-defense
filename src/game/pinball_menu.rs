@@ -178,29 +178,6 @@ fn spawn_tower_menu(
         });
 }
 
-struct CardAngles {
-    angle: f32,
-    angle_add: f32,
-}
-
-impl CardAngles {
-    fn new(count: u8) -> Self {
-        let angle_add = -0.39 * 2. / count as f32;
-        let mut angle = 0.39;
-
-        // Place elements middle
-        if count < 5 {
-            angle -= angle_add / 2.;
-        }
-        Self { angle, angle_add }
-    }
-
-    fn next(&mut self) -> f32 {
-        self.angle += self.angle_add;
-        self.angle
-    }
-}
-
 fn spawn_upgrade_menu(
     parent: &mut ChildBuilder,
     assets: &PinballDefenseAssets,
@@ -604,5 +581,28 @@ impl GetMaterial for TowerUpgrade {
             TowerUpgrade::Damage => assets.pinball_menu_element_damage_upgrade_mat.clone(),
             TowerUpgrade::Range => assets.pinball_menu_element_range_upgrade_mat.clone(),
         }
+    }
+}
+
+struct CardAngles {
+    angle: f32,
+    angle_add: f32,
+}
+
+impl CardAngles {
+    fn new(count: u8) -> Self {
+        let angle_add = -0.39 * 2. / count as f32;
+        let mut angle = 0.39;
+
+        // Place elements middle
+        if count < 5 {
+            angle -= angle_add / 2.;
+        }
+        Self { angle, angle_add }
+    }
+
+    fn next(&mut self) -> f32 {
+        self.angle += self.angle_add;
+        self.angle
     }
 }

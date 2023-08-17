@@ -29,7 +29,7 @@ pub(super) struct TowerFoundationBottom;
 
 pub fn spawn(
     parent: &mut ChildBuilder,
-    materials: &mut Assets<StandardMaterial>,
+    mats: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseAssets,
     g_sett: &GraphicsSettings,
     pos: Vec3,
@@ -39,7 +39,7 @@ pub fn spawn(
             Name::new("Tower Foundation"),
             PbrBundle {
                 mesh: assets.tower_foundation_ring.clone(),
-                material: materials.add(StandardMaterial {
+                material: mats.add(StandardMaterial {
                     base_color: Color::BLACK,
                     perceptual_roughness: 1.,
                     metallic: 0.0,
@@ -65,7 +65,7 @@ pub fn spawn(
                 Name::new("Tower Foundation Top"),
                 PbrBundle {
                     mesh: assets.tower_foundation_top.clone(),
-                    material: materials.add(tower_material()),
+                    material: mats.add(tower_material()),
                     transform: Transform::from_translation(Vec3::new(-0.06, 0., 0.)),
                     ..default()
                 },
@@ -77,7 +77,7 @@ pub fn spawn(
                     Name::new("Tower Foundation Bottom"),
                     PbrBundle {
                         mesh: assets.tower_foundation_bottom.clone(),
-                        material: materials.add(tower_material()),
+                        material: mats.add(tower_material()),
                         transform: Transform::from_translation(Vec3::new(0.06, 0., 0.)),
                         ..default()
                     },
@@ -88,7 +88,7 @@ pub fn spawn(
                     progress_bar::spawn(
                         parent,
                         assets,
-                        materials,
+                        mats,
                         rel_id,
                         Transform::from_translation(Vec3::new(-0.06, 0., 0.)),
                         Color::GREEN,
