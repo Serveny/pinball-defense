@@ -22,6 +22,8 @@ struct AnalogCounter;
 struct Digit {
     number: u8,
     position: u8,
+    current_rot_rad10: f32,
+    is_active: bool,
 }
 
 impl Digit {
@@ -29,7 +31,14 @@ impl Digit {
         Self {
             number: 0,
             position: place,
+            current_rot_rad10: 0.,
+            is_active: false,
         }
+    }
+
+    fn set_number(&mut self, number: u8) {
+        self.number = number;
+        self.is_active = true;
     }
 }
 
@@ -46,7 +55,7 @@ fn on_set_system(
                 .iter_mut()
                 .find(|digit_comp| digit_comp.position == i as u8)
                 .unwrap_or_else(|| panic!("No digit component for i ({i})"))
-                .number = number;
+                .set_number(number);
         }
     }
 }
@@ -81,20 +90,22 @@ pub fn spawn(parent: &mut ChildBuilder, assets: &PinballDefenseAssets, pos: Vec3
 
 const TURN_SPEED_RADIANS_PER_SECOND: f32 = PI;
 
-fn turn_digit_system(mut q_digit: Query<(&mut Transform, &Digit)>, time: Res<Time>) {
-    for (mut trans, digit) in q_digit.iter_mut() {
-        let actual_rot_angle = trans.rotation.to_axis_angle();
-        let mut actual_rot = ((actual_rot_angle.1) % TAU) * 10.;
-        if actual_rot_angle.0.z < 0. {
-            actual_rot = TAU * 10. - actual_rot;
-        }
-        actual_rot = actual_rot.floor();
-        let target_rot = (TAU * digit.number as f32).floor();
-        if target_rot != actual_rot {
-            //log!("{target_rot} != {actual_rot}");
-            trans.rotate_z(TURN_SPEED_RADIANS_PER_SECOND * time.delta_seconds());
-        } else {
-            *trans = trans.with_rotation(Quat::from_rotation_z(TAU * digit.number as f32 / 10.));
+fn turn_digit_system(mut q_digit: Query<(&mut Transform, &mut Digit)>, time: Res<Time>) {
+    for (mut trans, mut digit) in q_digit.iter_mut() {
+        if digit.is_active {
+            let current_rot = digit.current_rot_rad10.floor();
+            let target_rot = (TAU * digit.number as f32).floor();
+            if target_rot != current_rot {
+                let rotation_to_add = TURN_SPEED_RADIANS_PER_SECOND * time.delta_seconds();
+                trans.rotate_z(rotation_to_add);
+                digit.current_rot_rad10 += rotation_to_add * 10.;
+                digit.current_rot_rad10 %= TAU * 10.;
+            } else {
+                let angle = TAU * digit.number as f32;
+                *trans = trans.with_rotation(Quat::from_rotation_z(angle / 10.));
+                digit.current_rot_rad10 = angle;
+                digit.is_active = false;
+            }
         }
     }
 }

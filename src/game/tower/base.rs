@@ -1,12 +1,10 @@
 use super::light::{spawn_contact_light, LightOnCollision};
 use super::tower_material;
-use crate::game::ball::CollisionWithBallEvent;
 use crate::game::events::collision::{COLLIDE_ONLY_WITH_BALL, COLLIDE_ONLY_WITH_ENEMY};
+use crate::game::pinball_menu::PinballMenuTrigger;
 use crate::game::progress_bar;
-use crate::game::progress_bar::ProgressBarCountUpEvent;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
-use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
 
 #[derive(Component)]
 pub(super) struct TowerBase;
@@ -35,6 +33,7 @@ pub(super) fn spawn_tower_base(
             Collider::cylinder(0.12, 0.06),
             COLLIDE_ONLY_WITH_BALL,
             TowerBase,
+            PinballMenuTrigger::Upgrade,
             LightOnCollision,
             Name::new("Tower Base"),
         ))
@@ -74,16 +73,4 @@ fn spawn_tower_sight_sensor(parent: &mut ChildBuilder, radius: f32) {
         COLLIDE_ONLY_WITH_ENEMY,
         TowerSightSensor,
     ));
-}
-
-pub(super) fn progress_system(
-    mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
-    mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
-    q_tower_base: Query<Entity, With<TowerBase>>,
-) {
-    for CollisionWithBallEvent(id, flag) in ball_coll_ev.iter() {
-        if *flag != CollisionEventFlags::SENSOR && q_tower_base.contains(*id) {
-            prog_bar_ev.send(ProgressBarCountUpEvent(*id, 0.05));
-        }
-    }
 }

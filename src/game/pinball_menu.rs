@@ -1,8 +1,8 @@
 use super::ball::{CollisionWithBallEvent, PinBall};
 use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 use super::events::tween_completed::{ACTIVATE_PINBALL_MENU_EVENT_ID, DESPAWN_ENTITY_EVENT_ID};
-use super::tower::foundation::{DespawnFoundationEvent, QuerySelected, SelectedTowerFoundation};
-use super::tower::{SpawnTowerEvent, TowerType};
+use super::progress_bar::ProgressBarFullEvent;
+use super::tower::{SpawnTowerEvent, TowerType, TowerUpgrade};
 use super::world::QueryWorld;
 use super::GameState;
 use crate::prelude::*;
@@ -15,18 +15,26 @@ pub struct PinballMenuPlugin;
 
 impl Plugin for PinballMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<PinballMenuEvent>().add_systems(
-            Update,
-            (
-                menu_event_system,
-                spawn_system,
-                execute_system,
-                de_activate_system,
-            )
-                .run_if(in_state(GameState::Ingame)),
-        );
+        app.add_event::<PinballMenuEvent>()
+            .add_event::<TowerMenuExecuteEvent>()
+            .add_event::<UpgradeMenuExecuteEvent>()
+            .add_event::<PinballMenuOnSetSelectedEvent>()
+            .add_systems(
+                Update,
+                (
+                    menu_event_system,
+                    spawn_system,
+                    execute_system,
+                    de_activate_system,
+                    ready_system,
+                    selected_system,
+                )
+                    .run_if(in_state(GameState::Ingame)),
+            );
     }
 }
+
+// --- Public Area ---
 
 #[derive(Event, Debug, Clone, Copy)]
 pub enum PinballMenuEvent {
@@ -35,6 +43,44 @@ pub enum PinballMenuEvent {
     Activate,
     Deactivate,
 }
+
+#[derive(Component, Debug, Clone, Copy)]
+pub enum PinballMenuTrigger {
+    Tower,
+    Upgrade,
+}
+
+#[derive(Event, Clone, Copy)]
+pub struct TowerMenuExecuteEvent {
+    pub foundation_id: Entity,
+    pub tower_type: TowerType,
+}
+
+impl TowerMenuExecuteEvent {
+    pub fn new(foundation_id: Entity, tower_type: TowerType) -> Self {
+        Self {
+            foundation_id,
+            tower_type,
+        }
+    }
+}
+
+#[derive(Event, Clone, Copy)]
+pub struct PinballMenuOnSetSelectedEvent(pub Entity);
+
+#[derive(Event, Clone, Copy)]
+pub struct UpgradeMenuExecuteEvent {
+    pub tower_id: Entity,
+    pub upgrade: TowerUpgrade,
+}
+
+impl UpgradeMenuExecuteEvent {
+    pub fn new(tower_id: Entity, upgrade: TowerUpgrade) -> Self {
+        Self { tower_id, upgrade }
+    }
+}
+
+// --- Private Area ---
 
 #[derive(Component, Debug, Clone, Copy, Default)]
 enum PinballMenuStatus {
@@ -79,21 +125,29 @@ fn spawn_system(
     q_pbw: QueryWorld,
     q_pb_menu: Query<&PinballMenu>,
     g_sett: Res<GraphicsSettings>,
-    q_selected: Query<Entity, With<SelectedTowerFoundation>>,
+    q_selected: Query<&PinballMenuTrigger, With<PinballMenuSelected>>,
 ) {
-    if !q_selected.is_empty() && q_pb_menu.is_empty() {
-        let selected_foundation_id = q_pbw.single();
-        log!("🐢 Spawn tower menu for: {:?}", selected_foundation_id);
-        cmds.entity(selected_foundation_id).with_children(|p| {
-            spawn(p, &assets, &g_sett, MENU_POS);
-        });
+    if q_pb_menu.is_empty() {
+        if let Ok(trigger) = q_selected.get_single() {
+            log!("🐢 Spawn {trigger:?} menu");
+            cmds.entity(q_pbw.single())
+                .with_children(|p| match *trigger {
+                    PinballMenuTrigger::Tower => spawn_tower_menu(p, &assets, &g_sett, MENU_POS),
+                    PinballMenuTrigger::Upgrade => {
+                        spawn_upgrade_menu(p, &assets, &g_sett, MENU_POS)
+                    }
+                });
+        }
     }
 }
 
 #[derive(Component)]
-struct PinballMenu;
+enum PinballMenu {
+    Tower,
+    Upgrade,
+}
 
-fn spawn(
+fn spawn_tower_menu(
     parent: &mut ChildBuilder,
     assets: &PinballDefenseAssets,
     g_sett: &GraphicsSettings,
@@ -103,7 +157,7 @@ fn spawn(
     parent
         .spawn((
             spatial_from_pos(pos),
-            PinballMenu,
+            PinballMenu::Tower,
             PinballMenuStatus::Disabled,
             Name::new("Tower Menu"),
         ))
@@ -118,6 +172,44 @@ fn spawn(
         });
 }
 
+fn spawn_upgrade_menu(
+    parent: &mut ChildBuilder,
+    assets: &PinballDefenseAssets,
+    g_sett: &GraphicsSettings,
+    pos: Vec3,
+) {
+    parent
+        .spawn((
+            spatial_from_pos(pos),
+            PinballMenu::Upgrade,
+            PinballMenuStatus::Disabled,
+            Name::new("Upgrade Menu"),
+        ))
+        .with_children(|p| {
+            let el = assets.pinball_menu_element.clone();
+            let dam_mat = assets.pinball_menu_element_damage_upgrade_mat.clone();
+            let range_mat = assets.pinball_menu_element_range_upgrade_mat.clone();
+            spawn_menu_element(
+                TowerUpgrade::Damage,
+                p,
+                el.clone(),
+                dam_mat,
+                g_sett,
+                -0.25,
+                1.25,
+            );
+            spawn_menu_element(
+                TowerUpgrade::Range,
+                p,
+                el.clone(),
+                range_mat,
+                g_sett,
+                0.,
+                0.75,
+            );
+        });
+}
+
 // Only pub(crate)for collision events
 #[derive(Component)]
 struct PinballMenuElement;
@@ -126,7 +218,7 @@ struct PinballMenuElement;
 struct PinballMenuElementLight;
 
 fn spawn_menu_element(
-    tower_type: TowerType,
+    menu_el_type: impl Component,
     parent: &mut ChildBuilder,
     mesh: Handle<Mesh>,
     material: Handle<StandardMaterial>,
@@ -148,7 +240,7 @@ fn spawn_menu_element(
             // Game components
             PinballMenuElement,
             Name::new("Tower Menu element"),
-            tower_type,
+            menu_el_type,
             // Spawn animation
             Animator::new(spawn_animation(angle, delay_secs)),
         ))
@@ -298,32 +390,70 @@ fn despawn_animation(angle: f32, duration: Duration) -> Sequence<Transform> {
     wait.then(rotate)
 }
 
+type QueryUpgradeMenuEls<'w, 's, 'a> =
+    Query<'w, 's, (Entity, &'a TowerUpgrade), (With<PinballMenuElement>, Without<TowerType>)>;
+
 fn execute_system(
+    mut cmds: Commands,
     mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
-    mut despawn_foundation_ev: EventWriter<DespawnFoundationEvent>,
+    mut on_tower_el_selected: EventWriter<TowerMenuExecuteEvent>,
+    mut on_upgrade_el_selected: EventWriter<UpgradeMenuExecuteEvent>,
     mut pb_menu_ev: EventWriter<PinballMenuEvent>,
     mut spawn_tower_ev: EventWriter<SpawnTowerEvent>,
-    q_menu_els: Query<(Entity, &TowerType), With<PinballMenuElement>>,
-    q_selected: QuerySelected,
+    q_pb_menu: Query<&PinballMenu>,
+    q_tower_menu_els: Query<(Entity, &TowerType), With<PinballMenuElement>>,
+    q_upgrade_menu_els: QueryUpgradeMenuEls,
+    q_selected: Query<(Entity, &Transform), With<PinballMenuSelected>>,
 ) {
     for CollisionWithBallEvent(id, flag) in ball_coll_ev.iter() {
         if *flag == CollisionEventFlags::SENSOR {
-            if let Some((_, tower_type)) = q_menu_els.iter().find(|(el_id, _)| *el_id == *id) {
-                if let Ok((_, sel_trans)) = q_selected.get_single() {
-                    despawn_foundation_ev.send(DespawnFoundationEvent);
+            if let Ok(pb_menu) = q_pb_menu.get_single() {
+                log!(
+                    "{:?}",
+                    q_selected.iter().collect::<Vec<(Entity, &Transform)>>()
+                );
+                match pb_menu {
+                    PinballMenu::Tower => {
+                        if let Some((_, tower_type)) =
+                            q_tower_menu_els.iter().find(|(el_id, _)| *el_id == *id)
+                        {
+                            if let Ok((foundation_id, sel_trans)) = q_selected.get_single() {
+                                // Deselect
+                                cmds.entity(foundation_id).remove::<PinballMenuSelected>();
 
-                    // Despawn menu
-                    pb_menu_ev.send(PinballMenuEvent::Disable);
+                                on_tower_el_selected
+                                    .send(TowerMenuExecuteEvent::new(foundation_id, *tower_type));
 
-                    // Spawn new tower
-                    let pos = sel_trans.translation;
-                    spawn_tower_ev.send(SpawnTowerEvent(
-                        *tower_type,
-                        Vec3::new(pos.x, -0.025, pos.z),
-                    ));
+                                // Spawn new tower
+                                let pos = sel_trans.translation;
+                                spawn_tower_ev.send(SpawnTowerEvent(
+                                    *tower_type,
+                                    Vec3::new(pos.x, -0.025, pos.z),
+                                ));
+                            }
+                        }
+                    }
+                    PinballMenu::Upgrade => {
+                        if let Some((_, upgrade)) =
+                            q_upgrade_menu_els.iter().find(|(el_id, _)| *el_id == *id)
+                        {
+                            if let Ok((tower_id, _)) = q_selected.get_single() {
+                                // Deselect
+                                cmds.entity(tower_id).remove::<PinballMenuSelected>();
 
-                    return;
+                                on_upgrade_el_selected.send(UpgradeMenuExecuteEvent::new(
+                                    q_selected.single().0,
+                                    *upgrade,
+                                ));
+                            }
+                        }
+                    }
                 }
+
+                // Despawn menu
+                pb_menu_ev.send(PinballMenuEvent::Disable);
+
+                return;
             }
         }
     }
@@ -352,4 +482,42 @@ pub fn spawn_pinball_menu_glass(
         },
         Name::new("Pinball menu glass"),
     ));
+}
+
+#[derive(Component)]
+struct PinballMenuReady;
+
+fn ready_system(
+    mut cmds: Commands,
+    mut on_progress_full_ev: EventReader<ProgressBarFullEvent>,
+    q_trigger: Query<&PinballMenuTrigger>,
+) {
+    for ev in on_progress_full_ev.iter() {
+        if q_trigger.contains(ev.0) {
+            cmds.entity(ev.0).insert(PinballMenuReady);
+        }
+    }
+}
+
+#[derive(Component)]
+struct PinballMenuSelected;
+
+fn selected_system(
+    mut cmds: Commands,
+    mut on_sel_ev: EventWriter<PinballMenuOnSetSelectedEvent>,
+    q_ready: Query<Entity, With<PinballMenuReady>>,
+    q_selected: Query<With<PinballMenuSelected>>,
+) {
+    if q_selected.is_empty() {
+        if let Some(ready_id) = q_ready.iter().next() {
+            set_selected(&mut cmds, ready_id);
+            on_sel_ev.send(PinballMenuOnSetSelectedEvent(ready_id));
+        }
+    }
+}
+
+fn set_selected(cmds: &mut Commands, ref_id: Entity) {
+    cmds.entity(ref_id)
+        .remove::<PinballMenuReady>()
+        .insert(PinballMenuSelected);
 }
