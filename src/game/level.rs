@@ -1,58 +1,93 @@
 use super::{analog_counter::AnalogCounterSetToEvent, GameState};
 use crate::prelude::*;
-use bevy::time::common_conditions::on_timer;
-use std::time::Duration;
 
 pub struct LevelPlugin;
 
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<Points>()
-            .init_resource::<Level>()
+        app.init_resource::<PointHub>()
+            .init_resource::<LevelHub>()
+            .add_event::<PointsEvent>()
             .add_event::<LevelUpEvent>()
             .add_systems(
                 Update,
                 (
-                    count_up_points_test_system,
+                    add_points_system,
                     level_up_system,
                     update_analog_counter_system,
                 )
-                    .run_if(in_state(GameState::Ingame).and_then(on_timer(Duration::from_secs(1)))),
+                    .run_if(in_state(GameState::Ingame)),
             );
     }
 }
 
-#[derive(Resource, Default, Reflect)]
-
-struct Points(u32);
-
-#[derive(Resource, Default, Reflect)]
-struct Level(u16);
-
 #[derive(Event, Clone, Copy)]
-pub struct LevelUpEvent(pub u16);
-// WIP
-fn level_up_system(
-    mut lvl_up_ev: EventWriter<LevelUpEvent>,
-    mut level: ResMut<Level>,
-    points: Res<Points>,
-) {
-    if points.is_changed() {
-        let new_level = (points.0 / 1000) as u16 + 1;
-        if new_level != level.0 {
-            level.0 = new_level;
-            lvl_up_ev.send(LevelUpEvent(new_level));
-            log!("🥳 Level up: {new_level}!");
-        }
+#[repr(u32)]
+pub enum PointsEvent {
+    BallCollided = 1,
+    FlipperHit = 2,
+    FoundationHit = 10,
+    TowerHit = 20,
+    BallSpawned = 100,
+    TowerUpgrade = 500,
+    TowerBuild = 1000,
+}
+
+impl PointsEvent {
+    fn points(&self) -> Points {
+        *self as Points
     }
 }
 
-fn count_up_points_test_system(mut points: ResMut<Points>) {
-    points.0 += 100;
+fn add_points_system(mut points_ev: EventReader<PointsEvent>, mut points: ResMut<PointHub>) {
+    for ev in points_ev.iter() {
+        points.0 += ev.points();
+    }
+}
+
+pub type Points = u32;
+pub type Level = u8;
+
+#[derive(Resource, Default, Reflect)]
+
+struct PointHub(Points);
+
+#[derive(Resource, Default, Reflect)]
+struct LevelHub {
+    level: Level,
+    points_level_up: Points,
+}
+
+impl LevelHub {
+    fn is_level_up(&self, points: Points) -> bool {
+        points >= self.points_level_up
+    }
+
+    fn level_up(&mut self) -> Level {
+        self.level += 1;
+        let factor = self.level as Points * 10;
+        self.points_level_up = factor.pow(2) + (factor as f32).log10() as Points;
+        self.level
+    }
+}
+
+#[derive(Event, Clone, Copy)]
+pub struct LevelUpEvent(pub Level);
+// WIP
+fn level_up_system(
+    mut lvl_up_ev: EventWriter<LevelUpEvent>,
+    mut level: ResMut<LevelHub>,
+    points: Res<PointHub>,
+) {
+    if points.is_changed() && level.is_level_up(points.0) {
+        let new_level = level.level_up();
+        lvl_up_ev.send(LevelUpEvent(new_level));
+        log!("🥳 Level up: {new_level}!");
+    }
 }
 
 fn update_analog_counter_system(
-    points: Res<Points>,
+    points: Res<PointHub>,
     mut ac_set_ev: EventWriter<AnalogCounterSetToEvent>,
 ) {
     if points.is_changed() {
