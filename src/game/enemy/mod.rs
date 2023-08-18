@@ -1,5 +1,6 @@
 use self::step::Step;
 use self::walk::{road_end_reached_system, walk_system, RoadEndReachedEvent, WALK_SPEED};
+use super::level::PointsEvent;
 use crate::game::ball::CollisionWithBallEvent;
 use crate::game::events::collision::{ENEMY, INTERACT_WITH_BALL, INTERACT_WITH_ENEMY};
 use crate::game::progress_bar;
@@ -136,6 +137,7 @@ fn pinball_hit_system(
     mut cmds: Commands,
     mut despawn_ev: EventWriter<OnEnemyDespawnEvent>,
     mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
+    mut points_ev: EventWriter<PointsEvent>,
     q_enemy: Query<With<Enemy>>,
 ) {
     for CollisionWithBallEvent(id, flag) in ball_coll_ev.iter() {
@@ -143,6 +145,7 @@ fn pinball_hit_system(
             log!("😵 Pinball hits enemy {:?}", *id);
             cmds.entity(*id).despawn_recursive();
             despawn_ev.send(OnEnemyDespawnEvent(*id));
+            points_ev.send(PointsEvent::BallEnemyHit);
         }
     }
 }
