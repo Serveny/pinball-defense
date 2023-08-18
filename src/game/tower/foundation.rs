@@ -3,6 +3,7 @@ use super::tower_material;
 use crate::game::ball::CollisionWithBallEvent;
 use crate::game::events::collision::COLLIDE_ONLY_WITH_BALL;
 use crate::game::events::tween_completed::DESPAWN_ENTITY_EVENT_ID;
+use crate::game::level::PointsEvent;
 use crate::game::pinball_menu::{PinballMenuTrigger, TowerMenuExecuteEvent};
 use crate::game::progress_bar;
 use crate::game::progress_bar::ProgressBarCountUpEvent;
@@ -170,11 +171,13 @@ pub(super) fn despawn_system(
 pub(super) fn progress_system(
     mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
     mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
+    mut points_ev: EventWriter<PointsEvent>,
     q_tower_foundation: Query<Entity, With<TowerFoundation>>,
 ) {
     for CollisionWithBallEvent(id, flag) in ball_coll_ev.iter() {
         if *flag == CollisionEventFlags::SENSOR && q_tower_foundation.contains(*id) {
             prog_bar_ev.send(ProgressBarCountUpEvent(*id, 1.));
+            points_ev.send(PointsEvent::FoundationHit);
         }
     }
 }

@@ -1,4 +1,6 @@
+use super::ball::CollisionWithBallEvent;
 use super::events::collision::COLLIDE_ONLY_WITH_BALL;
+use super::level::PointsEvent;
 use super::GameState;
 use crate::prelude::*;
 
@@ -6,7 +8,10 @@ pub struct FlipperPlugin;
 
 impl Plugin for FlipperPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (flipper_system).run_if(in_state(GameState::Ingame)));
+        app.add_systems(
+            Update,
+            (flipper_system, on_collision_with_ball_system).run_if(in_state(GameState::Ingame)),
+        );
     }
 }
 
@@ -165,5 +170,17 @@ fn flipper_system(
         let translation = transform.translation;
         transform.rotate_around(translation, pivot_rotation);
         flipper.curr_angle = new_clamped_angle;
+    }
+}
+
+fn on_collision_with_ball_system(
+    mut points_ev: EventWriter<PointsEvent>,
+    mut coll_ev: EventReader<CollisionWithBallEvent>,
+    q_flipper: Query<With<FlipperCollider>>,
+) {
+    for ev in coll_ev.iter() {
+        if q_flipper.contains(ev.0) {
+            points_ev.send(PointsEvent::FlipperHit);
+        }
     }
 }
