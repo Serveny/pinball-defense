@@ -1,6 +1,7 @@
 use self::base::TowerBase;
 use self::light::FlashLight;
 use super::ball::CollisionWithBallEvent;
+use super::level::PointsEvent;
 use super::pinball_menu::UpgradeMenuExecuteEvent;
 use super::progress_bar::ProgressBarCountUpEvent;
 use super::GameState;
@@ -96,6 +97,7 @@ fn spawn_tower_system(
     mut cmds: Commands,
     mut evs: EventReader<SpawnTowerEvent>,
     mut mats: ResMut<Assets<StandardMaterial>>,
+    mut points_ev: EventWriter<PointsEvent>,
     assets: Res<PinballDefenseAssets>,
     q_pbw: QueryWorld,
     g_sett: Res<GraphicsSettings>,
@@ -108,6 +110,7 @@ fn spawn_tower_system(
                 TowerType::Tesla => tesla::spawn(parent, &mut mats, &assets, &g_sett, pos),
                 TowerType::Microwave => microwave::spawn(parent, &mut mats, &assets, &g_sett, pos),
             };
+            points_ev.send(PointsEvent::TowerBuild);
         });
     }
 }
@@ -115,6 +118,7 @@ fn spawn_tower_system(
 fn progress_system(
     mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
     mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
+    mut points_ev: EventWriter<PointsEvent>,
     q_tower_base: Query<Entity, With<TowerBase>>,
 ) {
     ball_coll_ev
@@ -122,6 +126,7 @@ fn progress_system(
         .for_each(|CollisionWithBallEvent(id, flag)| {
             if *flag != CollisionEventFlags::SENSOR && q_tower_base.contains(*id) {
                 prog_bar_ev.send(ProgressBarCountUpEvent(*id, 1.));
+                points_ev.send(PointsEvent::TowerHit);
             }
         });
 }
@@ -130,11 +135,13 @@ fn upgrade_system(
     mut cmds: Commands,
     mut upgrade_menu_exec_ev: EventReader<UpgradeMenuExecuteEvent>,
     mut q_light: Query<(Entity, &Parent, &mut Visibility), With<FlashLight>>,
+    mut points_ev: EventWriter<PointsEvent>,
     q_tower: Query<&Tower>,
 ) {
     for ev in upgrade_menu_exec_ev.iter() {
         let tower = q_tower.get(ev.tower_id);
         log!("Upgrade tower {tower:?}");
         disable_flash_light(&mut cmds, &mut q_light, ev.tower_id);
+        points_ev.send(PointsEvent::TowerUpgrade);
     }
 }

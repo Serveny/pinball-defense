@@ -1,3 +1,4 @@
+use super::level::PointsEvent;
 use crate::game::ball::{self, PinBall};
 use crate::game::events::collision::COLLIDE_ONLY_WITH_BALL;
 use crate::prelude::*;
@@ -22,14 +23,16 @@ impl Plugin for BallStarterPlugin {
 pub struct SpawnBallEvent;
 
 fn spawn_ball_system(
-    spawn_ball_ev: EventReader<SpawnBallEvent>,
     mut cmds: Commands,
-    ball_spawn: Res<BallSpawn>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut spawn_ball_ev: EventReader<SpawnBallEvent>,
+    mut points_ev: EventWriter<PointsEvent>,
+    ball_spawn: Res<BallSpawn>,
 ) {
-    if !spawn_ball_ev.is_empty() {
+    for _ in spawn_ball_ev.iter() {
         ball::spawn(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
+        points_ev.send(PointsEvent::BallSpawned);
     }
 }
 
@@ -111,14 +114,11 @@ pub fn spawn(
 }
 
 fn spawn_ball_at_charge(
-    mut cmds: Commands,
-    ball_spawn: Res<BallSpawn>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut spawn_ball_ev: EventWriter<SpawnBallEvent>,
     q_ball: Query<With<PinBall>>,
 ) {
     if q_ball.is_empty() {
-        ball::spawn(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
+        spawn_ball_ev.send(SpawnBallEvent);
     }
 }
 

@@ -56,8 +56,8 @@ fn spawn_pinball_world(
                 material: assets.world_1_material.clone(),
                 ..default()
             },
-            super::colliders::create_collider(),
-            ColliderDebugColor(Color::RED),
+            //super::colliders::create_collider(),
+            //ColliderDebugColor(Color::RED),
         ));
 
         spawn_colliders(p, &mut meshes, assets);

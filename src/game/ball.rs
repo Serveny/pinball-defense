@@ -1,6 +1,7 @@
 use super::events::collision::BALL;
 use super::events::collision::INTERACT_WITH_BALL;
 use super::events::collision::INTERACT_WITH_ENEMY;
+use super::level::PointsEvent;
 use super::pinball_menu::PinballMenuEvent;
 use super::GameState;
 use crate::prelude::*;
@@ -147,10 +148,12 @@ impl CollisionWithBallEvent {
 fn collision_with_ball_system(
     coll_ev: EventReader<CollisionEvent>,
     mut coll_with_ball_ev: EventWriter<CollisionWithBallEvent>,
+    mut points_ev: EventWriter<PointsEvent>,
     q_ball: Query<With<PinBall>>,
 ) {
     for ev in get_ball_collisions_start_only(coll_ev, q_ball) {
         coll_with_ball_ev.send(CollisionWithBallEvent::new(ev));
+        points_ev.send(PointsEvent::BallCollided);
     }
 }
 

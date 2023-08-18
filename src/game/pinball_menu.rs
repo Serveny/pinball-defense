@@ -1,7 +1,7 @@
 use super::ball::{CollisionWithBallEvent, PinBall};
 use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 use super::events::tween_completed::{ACTIVATE_PINBALL_MENU_EVENT_ID, DESPAWN_ENTITY_EVENT_ID};
-use super::level::LevelUpEvent;
+use super::level::{Level, LevelUpEvent};
 use super::progress_bar::ProgressBarFullEvent;
 use super::tower::{SpawnTowerEvent, TowerType, TowerUpgrade};
 use super::world::QueryWorld;
@@ -543,7 +543,7 @@ fn unlock_system(
     }
 }
 
-fn new_tower_unlock(level: u16) -> Option<TowerType> {
+fn new_tower_unlock(level: Level) -> Option<TowerType> {
     match level {
         2 => Some(TowerType::Gun),
         3 => Some(TowerType::Tesla),
@@ -552,7 +552,7 @@ fn new_tower_unlock(level: u16) -> Option<TowerType> {
     }
 }
 
-fn new_tower_upgrade_unlock(level: u16) -> Option<TowerUpgrade> {
+fn new_tower_upgrade_unlock(level: Level) -> Option<TowerUpgrade> {
     match level {
         5 => Some(TowerUpgrade::Range),
         6 => Some(TowerUpgrade::Damage),
