@@ -50,11 +50,15 @@ fn spawn_pinball_world(
     ))
     .with_children(|p| {
         // World mesh
-        p.spawn(PbrBundle {
-            mesh: assets.world_1.clone(),
-            material: assets.world_1_material.clone(),
-            ..default()
-        });
+        p.spawn((
+            PbrBundle {
+                mesh: assets.world_1.clone(),
+                material: assets.world_1_material.clone(),
+                ..default()
+            },
+            super::colliders::create_collider(),
+            ColliderDebugColor(Color::RED),
+        ));
 
         spawn_colliders(p, &mut meshes, assets);
 
