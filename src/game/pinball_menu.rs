@@ -269,7 +269,6 @@ fn despawn(
     // Despawn animation
     q_pbm_el.for_each(|(entity, trans)| {
         let secs = (trans.rotation.y + 0.2) * 2.;
-        log!("Durationn for {}: {}", trans.rotation.y, secs);
         cmds.entity(entity).insert(Animator::new(despawn_animation(
             trans.rotation.y,
             Duration::from_secs_f32(secs),
