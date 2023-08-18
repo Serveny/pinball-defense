@@ -22,6 +22,7 @@ mod analog_counter;
 mod ball;
 mod ball_starter;
 mod camera;
+mod colliders;
 mod controls;
 mod enemy;
 mod events;
