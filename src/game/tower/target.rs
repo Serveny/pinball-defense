@@ -1,4 +1,4 @@
-use super::base::TowerSightSensor;
+use super::TowerSightSensor;
 use crate::game::enemy::{Enemy, OnEnemyDespawnEvent};
 use crate::prelude::*;
 use bevy::utils::HashSet;
@@ -6,9 +6,6 @@ use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
 
 #[derive(Component)]
 pub(super) struct SightRadius(pub f32);
-
-#[derive(Component)]
-pub(super) struct TowerPos(pub Vec3);
 
 #[derive(Component)]
 pub(super) struct TargetPos(pub Option<Vec3>);
