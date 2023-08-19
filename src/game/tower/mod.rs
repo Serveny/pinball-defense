@@ -136,6 +136,7 @@ fn upgrade_system(
     mut upgrade_menu_exec_ev: EventReader<UpgradeMenuExecuteEvent>,
     mut q_light: Query<(Entity, &Parent, &mut Visibility), With<FlashLight>>,
     mut points_ev: EventWriter<PointsEvent>,
+    mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
     q_tower: Query<&Tower>,
 ) {
     for ev in upgrade_menu_exec_ev.iter() {
@@ -143,5 +144,6 @@ fn upgrade_system(
         log!("Upgrade tower {tower:?}");
         disable_flash_light(&mut cmds, &mut q_light, ev.tower_id);
         points_ev.send(PointsEvent::TowerUpgrade);
+        prog_bar_ev.send(ProgressBarCountUpEvent(ev.tower_id, -1.));
     }
 }
