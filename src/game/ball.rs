@@ -3,6 +3,8 @@ use super::events::collision::INTERACT_WITH_BALL;
 use super::events::collision::INTERACT_WITH_ENEMY;
 use super::level::PointsEvent;
 use super::pinball_menu::PinballMenuEvent;
+use super::player_life::LifeBar;
+use super::progress_bar::ProgressBarCountUpEvent;
 use super::GameState;
 use crate::prelude::*;
 use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
@@ -90,11 +92,16 @@ pub struct OnBallDespawnEvent;
 fn ball_reset_system(
     mut cmds: Commands,
     mut evw: EventWriter<OnBallDespawnEvent>,
+    mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
     q_ball: Query<(Entity, &Transform), With<PinBall>>,
+    q_life_bar: Query<Entity, With<LifeBar>>,
 ) {
     for (entity, transform) in q_ball.iter() {
         let trans = transform.translation;
         if trans.y <= -1. || trans.y >= 0.4 || (trans.x > 1.2 && trans.z > -0.3) {
+            if trans.x > 1.2 {
+                prog_bar_ev.send(ProgressBarCountUpEvent(q_life_bar.single(), -0.05));
+            }
             log!("🎱 Despawn ball");
             cmds.get_entity(entity).unwrap().despawn_recursive();
             evw.send(OnBallDespawnEvent);
