@@ -62,27 +62,28 @@ pub struct PinballDefenseAssets {
     pub tower_tesla_top: Handle<Mesh>,
 
     #[asset(path = "models/towers/tower_foundation.gltf#Mesh0/Primitive0")]
-    pub tower_foundation_bottom: Handle<Mesh>,
+    pub foundation_lid_bottom: Handle<Mesh>,
 
     #[asset(path = "models/towers/tower_foundation.gltf#Mesh1/Primitive0")]
-    pub tower_foundation_top: Handle<Mesh>,
+    pub foundation_lid_top: Handle<Mesh>,
 
     #[asset(path = "models/towers/tower_foundation.gltf#Mesh2/Primitive0")]
     pub tower_foundation_ring: Handle<Mesh>,
 
+    // Progress bar
     #[asset(path = "models/progress_bar.gltf#Mesh0/Primitive0")]
     pub progress_bar: Handle<Mesh>,
 
     #[asset(path = "models/progress_bar.gltf#Mesh1/Primitive0")]
     pub progress_bar_frame: Handle<Mesh>,
 
+    // Menu Elements
     #[asset(path = "models/pinball_world_menu.gltf#Mesh1/Primitive0")]
     pub pinball_menu_element_collider: Handle<Mesh>,
 
     #[asset(path = "models/pinball_world_menu.gltf#Mesh2/Primitive0")]
     pub pinball_menu_element: Handle<Mesh>,
 
-    // Menu Elements
     #[asset(path = "models/pinball_world_menu.gltf#Material0")]
     pub pinball_menu_element_gun_material: Handle<StandardMaterial>,
 

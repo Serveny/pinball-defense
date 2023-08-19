@@ -1,6 +1,7 @@
 use super::GameState;
 use crate::prelude::*;
 extern crate digits_iterator;
+use crate::utils::RelEntity;
 use digits_iterator::*;
 use std::f32::consts::{PI, TAU};
 
@@ -8,7 +9,7 @@ pub struct AnalogCounterPlugin;
 
 impl Plugin for AnalogCounterPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<AnalogCounterSetToEvent>().add_systems(
+        app.add_event::<AnalogCounterSetEvent>().add_systems(
             Update,
             (on_set_system, turn_digit_system).run_if(in_state(GameState::Ingame)),
         );
@@ -43,29 +44,34 @@ impl Digit {
 }
 
 #[derive(Event)]
-pub struct AnalogCounterSetToEvent {
-    counter_id: Entity,
+pub struct AnalogCounterSetEvent {
+    rel_id: Entity,
     number: u32,
 }
 
-impl AnalogCounterSetToEvent {
-    pub fn new(counter_id: Entity, number: u32) -> Self {
-        Self { counter_id, number }
+impl AnalogCounterSetEvent {
+    pub fn new(rel_id: Entity, number: u32) -> Self {
+        Self { rel_id, number }
     }
 }
 
 fn on_set_system(
-    mut on_set_ev: EventReader<AnalogCounterSetToEvent>,
+    mut on_set_ev: EventReader<AnalogCounterSetEvent>,
     mut q_digit: Query<(&mut Digit, &Parent)>,
+    q_counter: Query<(Entity, &RelEntity), With<AnalogCounter>>,
 ) {
     for ev in on_set_ev.iter() {
-        for (i, number) in ev.number.digits().rev().enumerate() {
-            q_digit
-                .iter_mut()
-                .find(|(digit_comp, p)| p.get() == ev.counter_id && digit_comp.position == i as u8)
-                .unwrap_or_else(|| panic!("😥 No digit component for i ({i}) with given parent!"))
-                .0
-                .set_number(number);
+        if let Some((counter_id, _)) = q_counter.iter().find(|(_, rel_id)| rel_id.0 == ev.rel_id) {
+            for (i, number) in ev.number.digits().rev().enumerate() {
+                q_digit
+                    .iter_mut()
+                    .find(|(digit_comp, p)| p.get() == counter_id && digit_comp.position == i as u8)
+                    .unwrap_or_else(|| {
+                        panic!("😥 No digit component for i ({i}) with given parent!")
+                    })
+                    .0
+                    .set_number(number);
+            }
         }
     }
 }
@@ -74,84 +80,96 @@ pub fn spawn_10_digit(
     parent: &mut ChildBuilder,
     assets: &PinballDefenseAssets,
     pos: Vec3,
+    rel_id: Option<Entity>,
 ) -> Entity {
-    parent
-        .spawn((
-            Name::new("Analog Counter Casing 10 Digit"),
-            PbrBundle {
-                mesh: assets.analog_counter_10_digit_casing.clone(),
-                material: assets.analog_counter_casing_10_digit_material.clone(),
-                transform: Transform::from_translation(pos),
-                ..default()
-            },
-            AnalogCounter,
-        ))
-        .with_children(|parent| {
-            for i in 0..9 {
-                parent.spawn((
-                    Name::new("Analog Counter Digit"),
-                    PbrBundle {
-                        mesh: assets.analog_counter_cylinder.clone(),
-                        material: assets.analog_counter_cylinder_material.clone(),
-                        transform: Transform::from_xyz(0., 0., i as f32 * 0.0242 - 0.096),
-                        ..default()
-                    },
-                    Digit::new(i),
-                ));
-            }
+    let mut counter = parent.spawn((
+        Name::new("Analog Counter Casing 10 Digit"),
+        PbrBundle {
+            mesh: assets.analog_counter_10_digit_casing.clone(),
+            material: assets.analog_counter_casing_10_digit_material.clone(),
+            transform: Transform::from_translation(pos),
+            ..default()
+        },
+        AnalogCounter,
+    ));
+    counter.with_children(|parent| {
+        for i in 0..9 {
             parent.spawn((
-                Name::new("Level Sign"),
+                Name::new("Analog Counter Digit"),
                 PbrBundle {
-                    mesh: assets.point_sign.clone(),
-                    material: assets.points_sign_material.clone(),
-                    transform: Transform::from_xyz(-0.055, 0.047, 0.),
+                    mesh: assets.analog_counter_cylinder.clone(),
+                    material: assets.analog_counter_cylinder_material.clone(),
+                    transform: Transform::from_xyz(0., 0., i as f32 * 0.0242 - 0.096),
                     ..default()
                 },
+                Digit::new(i),
             ));
-        })
-        .id()
+        }
+        parent.spawn((
+            Name::new("Level Sign"),
+            PbrBundle {
+                mesh: assets.point_sign.clone(),
+                material: assets.points_sign_material.clone(),
+                transform: Transform::from_xyz(-0.055, 0.047, 0.),
+                ..default()
+            },
+        ));
+    });
+
+    let counter_id = counter.id();
+    counter.insert(RelEntity(match rel_id {
+        Some(rel_id) => rel_id,
+        None => counter_id,
+    }));
+    counter_id
 }
 
 pub fn spawn_2_digit(
     parent: &mut ChildBuilder,
     assets: &PinballDefenseAssets,
-    pos: Vec3,
+    transform: Transform,
+    rel_id: Option<Entity>,
 ) -> Entity {
-    parent
-        .spawn((
-            Name::new("Analog Counter Casing 2 Digit"),
-            PbrBundle {
-                mesh: assets.analog_counter_casing_2_digit.clone(),
-                material: assets.analog_counter_casing_2_digit_material.clone(),
-                transform: Transform::from_translation(pos),
-                ..default()
-            },
-            AnalogCounter,
-        ))
-        .with_children(|parent| {
-            for i in 0..2 {
-                parent.spawn((
-                    Name::new("Analog Counter Digit"),
-                    PbrBundle {
-                        mesh: assets.analog_counter_cylinder.clone(),
-                        material: assets.analog_counter_cylinder_material.clone(),
-                        transform: Transform::from_xyz(0., 0., i as f32 * 0.022 - 0.012),
-                        ..default()
-                    },
-                    Digit::new(i),
-                ));
-            }
+    let mut counter = parent.spawn((
+        Name::new("Analog Counter Casing 2 Digit"),
+        PbrBundle {
+            mesh: assets.analog_counter_casing_2_digit.clone(),
+            material: assets.analog_counter_casing_2_digit_material.clone(),
+            transform,
+            ..default()
+        },
+        AnalogCounter,
+    ));
+    counter.with_children(|parent| {
+        for i in 0..2 {
             parent.spawn((
-                Name::new("Level Sign"),
+                Name::new("Analog Counter Digit"),
                 PbrBundle {
-                    mesh: assets.level_sign.clone(),
-                    material: assets.level_sign_material.clone(),
-                    transform: Transform::from_xyz(-0.055, 0.047, 0.),
+                    mesh: assets.analog_counter_cylinder.clone(),
+                    material: assets.analog_counter_cylinder_material.clone(),
+                    transform: Transform::from_xyz(0., 0., i as f32 * 0.022 - 0.012),
                     ..default()
                 },
+                Digit::new(i),
             ));
-        })
-        .id()
+        }
+        parent.spawn((
+            Name::new("Level Sign"),
+            PbrBundle {
+                mesh: assets.level_sign.clone(),
+                material: assets.level_sign_material.clone(),
+                transform: Transform::from_xyz(-0.055, 0.047, 0.),
+                ..default()
+            },
+        ));
+    });
+
+    let counter_id = counter.id();
+    counter.insert(RelEntity(match rel_id {
+        Some(rel_id) => rel_id,
+        None => counter_id,
+    }));
+    counter_id
 }
 const TURN_SPEED_RADIANS_PER_SECOND: f32 = PI;
 

@@ -1,4 +1,4 @@
-use super::light::{disable_flash_light, spawn_contact_light, FlashLight, LightOnCollision};
+use super::light::{contact_light_bundle, disable_flash_light, FlashLight, LightOnCollision};
 use super::tower_material;
 use crate::game::ball::CollisionWithBallEvent;
 use crate::game::events::collision::COLLIDE_ONLY_WITH_BALL;
@@ -35,68 +35,73 @@ pub fn spawn(
     g_sett: &GraphicsSettings,
     pos: Vec3,
 ) {
-    parent
-        .spawn((
-            Name::new("Tower Foundation"),
-            PbrBundle {
-                mesh: assets.tower_foundation_ring.clone(),
-                material: mats.add(StandardMaterial {
-                    base_color: Color::BLACK,
-                    perceptual_roughness: 1.,
-                    metallic: 0.0,
-                    reflectance: 0.0,
-                    ..default()
-                }),
-                transform: Transform::from_translation(pos),
-                ..default()
-            },
-            Sensor,
-            Collider::cylinder(0.1, 0.07),
-            ColliderDebugColor(Color::GREEN),
-            COLLIDE_ONLY_WITH_BALL,
-            ActiveEvents::COLLISION_EVENTS,
-            TowerFoundation,
-            LightOnCollision,
-            PinballMenuTrigger::Tower,
-        ))
-        .with_children(|parent| {
-            let rel_id = parent.parent_entity();
-            spawn_contact_light(parent, g_sett, Color::GREEN);
-            parent.spawn((
-                Name::new("Tower Foundation Top"),
-                PbrBundle {
-                    mesh: assets.tower_foundation_top.clone(),
-                    material: mats.add(tower_material()),
-                    transform: Transform::from_translation(Vec3::new(-0.06, 0., 0.)),
-                    ..default()
-                },
-                TowerFoundationTop,
-                TowerFoundationLid,
-            ));
-            parent
-                .spawn((
-                    Name::new("Tower Foundation Bottom"),
-                    PbrBundle {
-                        mesh: assets.tower_foundation_bottom.clone(),
-                        material: mats.add(tower_material()),
-                        transform: Transform::from_translation(Vec3::new(0.06, 0., 0.)),
-                        ..default()
-                    },
-                    TowerFoundationBottom,
-                    TowerFoundationLid,
-                ))
-                .with_children(|parent| {
-                    progress_bar::spawn(
-                        parent,
-                        assets,
-                        mats,
-                        rel_id,
-                        Transform::from_translation(Vec3::new(-0.06, 0., 0.)),
-                        Color::GREEN,
-                        0.,
-                    );
-                });
+    parent.spawn(ring(mats, assets, pos)).with_children(|p| {
+        let rel_id = p.parent_entity();
+        p.spawn(contact_light_bundle(g_sett, Color::GREEN));
+        p.spawn(lid_top(mats, assets));
+        p.spawn(lid_bottom(mats, assets)).with_children(|p| {
+            let bar_trans = Transform::from_translation(Vec3::new(-0.06, 0., 0.));
+            progress_bar::spawn(p, assets, mats, rel_id, bar_trans, Color::GREEN, 0.);
         });
+    });
+}
+
+fn ring(
+    mats: &mut Assets<StandardMaterial>,
+    assets: &PinballDefenseAssets,
+    pos: Vec3,
+) -> impl Bundle {
+    (
+        Name::new("Tower Foundation"),
+        PbrBundle {
+            mesh: assets.tower_foundation_ring.clone(),
+            material: mats.add(StandardMaterial {
+                base_color: Color::BLACK,
+                perceptual_roughness: 1.,
+                metallic: 0.0,
+                reflectance: 0.0,
+                ..default()
+            }),
+            transform: Transform::from_translation(pos),
+            ..default()
+        },
+        Sensor,
+        Collider::cylinder(0.1, 0.07),
+        ColliderDebugColor(Color::GREEN),
+        COLLIDE_ONLY_WITH_BALL,
+        ActiveEvents::COLLISION_EVENTS,
+        TowerFoundation,
+        LightOnCollision,
+        PinballMenuTrigger::Tower,
+    )
+}
+
+fn lid_top(mats: &mut Assets<StandardMaterial>, assets: &PinballDefenseAssets) -> impl Bundle {
+    (
+        Name::new("Tower Foundation Top"),
+        PbrBundle {
+            mesh: assets.foundation_lid_top.clone(),
+            material: mats.add(tower_material()),
+            transform: Transform::from_translation(Vec3::new(-0.06, 0., 0.)),
+            ..default()
+        },
+        TowerFoundationTop,
+        TowerFoundationLid,
+    )
+}
+
+fn lid_bottom(mats: &mut Assets<StandardMaterial>, assets: &PinballDefenseAssets) -> impl Bundle {
+    (
+        Name::new("Tower Foundation Bottom"),
+        PbrBundle {
+            mesh: assets.foundation_lid_bottom.clone(),
+            material: mats.add(tower_material()),
+            transform: Transform::from_translation(Vec3::new(0.06, 0., 0.)),
+            ..default()
+        },
+        TowerFoundationBottom,
+        TowerFoundationLid,
+    )
 }
 
 fn set_lid_open_animation(

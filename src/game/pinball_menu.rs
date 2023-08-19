@@ -425,10 +425,8 @@ fn execute_system(
                                 // Deselect
                                 cmds.entity(tower_id).remove::<PinballMenuSelected>();
 
-                                on_upgrade_el_selected.send(UpgradeMenuExecuteEvent::new(
-                                    q_selected.single().0,
-                                    *upgrade,
-                                ));
+                                on_upgrade_el_selected
+                                    .send(UpgradeMenuExecuteEvent::new(tower_id, *upgrade));
                             }
                         }
                     }

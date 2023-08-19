@@ -1,4 +1,4 @@
-use super::{analog_counter::AnalogCounterSetToEvent, GameState};
+use super::{analog_counter::AnalogCounterSetEvent, GameState};
 use crate::prelude::*;
 
 pub struct LevelPlugin;
@@ -101,11 +101,11 @@ impl Default for PointCounterId {
 
 fn update_points_counter_system(
     points: Res<PointHub>,
-    mut ac_set_ev: EventWriter<AnalogCounterSetToEvent>,
+    mut ac_set_ev: EventWriter<AnalogCounterSetEvent>,
     pc_id: Res<PointCounterId>,
 ) {
     if points.is_changed() {
-        ac_set_ev.send(AnalogCounterSetToEvent::new(pc_id.0, points.0));
+        ac_set_ev.send(AnalogCounterSetEvent::new(pc_id.0, points.0));
     }
 }
 
@@ -120,11 +120,11 @@ impl Default for LevelCounterId {
 
 fn update_level_counter_system(
     level: Res<LevelHub>,
-    mut ac_set_ev: EventWriter<AnalogCounterSetToEvent>,
+    mut ac_set_ev: EventWriter<AnalogCounterSetEvent>,
     lc_id: Res<LevelCounterId>,
 ) {
     if level.is_changed() {
-        ac_set_ev.send(AnalogCounterSetToEvent::new(lc_id.0, level.level as u32));
+        ac_set_ev.send(AnalogCounterSetEvent::new(lc_id.0, level.level as u32));
     }
 }
 //#[derive(Component)]

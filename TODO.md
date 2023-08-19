@@ -27,7 +27,6 @@
 - tower progess bar reset after upgrade ✅
 - level display ✅
 - tower level
-- level counter display
 - towers logic
   - target system
   - shoot/damage system
