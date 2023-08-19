@@ -6,12 +6,8 @@ use crate::settings::GraphicsSettings;
 #[derive(Component)]
 pub(super) struct ContactLight;
 
-pub(super) fn spawn_contact_light(
-    parent: &mut ChildBuilder,
-    g_sett: &GraphicsSettings,
-    color: Color,
-) {
-    parent.spawn((
+pub(super) fn contact_light_bundle(g_sett: &GraphicsSettings, color: Color) -> impl Bundle {
+    (
         PointLightBundle {
             transform: Transform::from_xyz(0., 0.005, 0.),
             point_light: PointLight {
@@ -26,7 +22,7 @@ pub(super) fn spawn_contact_light(
             ..default()
         },
         ContactLight,
-    ));
+    )
 }
 
 pub(super) fn add_flashlight_system(

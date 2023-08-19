@@ -1,23 +1,24 @@
-use self::base::TowerBase;
-use self::light::FlashLight;
+use self::light::{contact_light_bundle, FlashLight, LightOnCollision};
+use self::target::{EnemiesWithinReach, SightRadius, TargetPos};
 use super::ball::CollisionWithBallEvent;
-use super::level::PointsEvent;
-use super::pinball_menu::UpgradeMenuExecuteEvent;
-use super::progress_bar::ProgressBarCountUpEvent;
-use super::GameState;
+use super::events::collision::{COLLIDE_ONLY_WITH_BALL, COLLIDE_ONLY_WITH_ENEMY};
+use super::level::{Level, PointsEvent};
+use super::pinball_menu::{PinballMenuTrigger, UpgradeMenuExecuteEvent};
+use super::progress_bar::{self, ProgressBarCountUpEvent};
+use super::{analog_counter, GameState};
+use crate::game::analog_counter::AnalogCounterSetEvent;
 use crate::game::tower::light::disable_flash_light;
 use crate::game::world::QueryWorld;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
 use bevy_tweening::lens::TransformPositionLens;
-use bevy_tweening::{Delay, EaseFunction, Sequence, Tween};
+use bevy_tweening::{Animator, Delay, EaseFunction, Sequence, Tween};
 use std::time::Duration;
 pub use types::TowerType;
 use types::*;
 
 mod animations;
-pub mod base;
 pub mod foundation;
 pub mod light;
 mod target;
@@ -52,7 +53,15 @@ impl Plugin for TowerPlugin {
 }
 
 #[derive(Component, Debug)]
-pub struct Tower;
+pub struct Tower {
+    pos: Vec3,
+}
+
+impl Tower {
+    pub fn new(pos: Vec3) -> Self {
+        Self { pos }
+    }
+}
 
 #[derive(Component)]
 pub struct TowerHead;
@@ -61,6 +70,100 @@ pub struct TowerHead;
 pub enum TowerUpgrade {
     Damage,
     Range,
+}
+
+fn tower_bundle(pos: Vec3, sight_radius: f32) -> impl Bundle {
+    (
+        // General Tower components
+        spatial_from_pos(tower_start_pos(pos)),
+        Tower::new(pos),
+        TowerLevel(1),
+        //
+        // Enemy target system
+        TargetPos(None),
+        SightRadius(sight_radius),
+        EnemiesWithinReach::default(),
+        //
+        // Collider
+        RigidBody::KinematicPositionBased,
+        Restitution {
+            coefficient: 2.,
+            combine_rule: CoefficientCombineRule::Multiply,
+        },
+        ActiveEvents::COLLISION_EVENTS,
+        ColliderDebugColor(Color::RED),
+        Collider::cylinder(0.12, 0.06),
+        COLLIDE_ONLY_WITH_BALL,
+        PinballMenuTrigger::Upgrade,
+        LightOnCollision,
+        //
+        // Spawn animation
+        Animator::new(create_tower_spawn_animator(pos)),
+    )
+}
+
+#[derive(Component)]
+pub struct TowerSightSensor;
+
+fn tower_sight_sensor_bundle(radius: f32) -> impl Bundle {
+    (
+        PbrBundle::default(),
+        Sensor,
+        RigidBody::KinematicPositionBased,
+        ColliderDebugColor(Color::ORANGE),
+        Collider::cylinder(0.06, radius),
+        ActiveEvents::COLLISION_EVENTS,
+        ActiveCollisionTypes::KINEMATIC_KINEMATIC,
+        COLLIDE_ONLY_WITH_ENEMY,
+        TowerSightSensor,
+    )
+}
+
+fn tower_base_bundle(
+    assets: &PinballDefenseAssets,
+    mats: &mut Assets<StandardMaterial>,
+) -> impl Bundle {
+    (
+        Name::new("Tower Base"),
+        PbrBundle {
+            mesh: assets.tower_base.clone(),
+            material: mats.add(tower_material()),
+            ..default()
+        },
+    )
+}
+
+fn spawn(
+    pb_world: &mut ChildBuilder,
+    mats: &mut Assets<StandardMaterial>,
+    assets: &PinballDefenseAssets,
+    g_sett: &GraphicsSettings,
+    pos: Vec3,
+    sight_radius: f32,
+    tower_type_bundle: impl Bundle,
+    add_to_tower: impl Fn(&mut ChildBuilder),
+) {
+    pb_world
+        .spawn(tower_bundle(pos, sight_radius))
+        .insert(tower_type_bundle)
+        .with_children(|p| {
+            let tower_id = p.parent_entity();
+            let color = Color::RED;
+            let bar_trans =
+                Transform::from_xyz(0.034, -0.007, 0.).with_scale(Vec3::new(0.5, 1., 0.5));
+            let counter_trans = Transform::from_xyz(0.016, 0.004, 0.)
+                .with_scale(Vec3::new(0.25, 0.25, 0.25))
+                .with_rotation(Quat::from_rotation_z(-1.05));
+
+            p.spawn(tower_base_bundle(assets, mats));
+            p.spawn(contact_light_bundle(g_sett, color));
+            p.spawn(tower_sight_sensor_bundle(sight_radius));
+
+            progress_bar::spawn(p, assets, mats, tower_id, bar_trans, color, 0.);
+            analog_counter::spawn_2_digit(p, assets, counter_trans, Some(p.parent_entity()));
+
+            add_to_tower(p);
+        });
 }
 
 fn tower_material() -> StandardMaterial {
@@ -119,17 +222,20 @@ fn progress_system(
     mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
     mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
     mut points_ev: EventWriter<PointsEvent>,
-    q_tower_base: Query<Entity, With<TowerBase>>,
+    q_tower: Query<With<Tower>>,
 ) {
     ball_coll_ev
         .iter()
         .for_each(|CollisionWithBallEvent(id, flag)| {
-            if *flag != CollisionEventFlags::SENSOR && q_tower_base.contains(*id) {
+            if *flag != CollisionEventFlags::SENSOR && q_tower.contains(*id) {
                 prog_bar_ev.send(ProgressBarCountUpEvent(*id, 1.));
                 points_ev.send(PointsEvent::TowerHit);
             }
         });
 }
+
+#[derive(Component, Default)]
+struct TowerLevel(Level);
 
 fn upgrade_system(
     mut cmds: Commands,
@@ -137,13 +243,25 @@ fn upgrade_system(
     mut q_light: Query<(Entity, &Parent, &mut Visibility), With<FlashLight>>,
     mut points_ev: EventWriter<PointsEvent>,
     mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
-    q_tower: Query<&Tower>,
+    mut q_tower: Query<&mut TowerLevel>,
+    mut ac_set_ev: EventWriter<AnalogCounterSetEvent>,
 ) {
     for ev in upgrade_menu_exec_ev.iter() {
-        let tower = q_tower.get(ev.tower_id);
-        log!("Upgrade tower {tower:?}");
+        let mut tower_level = q_tower
+            .get_mut(ev.tower_id)
+            .unwrap_or_else(|_| panic!("😥 No tower level for id {:?} found", ev.tower_id));
+        tower_level.0 += 1;
         disable_flash_light(&mut cmds, &mut q_light, ev.tower_id);
+        ac_set_ev.send(AnalogCounterSetEvent::new(
+            ev.tower_id,
+            tower_level.0 as u32,
+        ));
         points_ev.send(PointsEvent::TowerUpgrade);
         prog_bar_ev.send(ProgressBarCountUpEvent(ev.tower_id, -1.));
+        log!(
+            "🐱 Upgrade tower {:?} to level {:?}",
+            ev.tower_id,
+            tower_level.0
+        );
     }
 }

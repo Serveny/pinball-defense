@@ -1,4 +1,5 @@
-use super::target::{TargetPos, TowerPos};
+use super::target::TargetPos;
+use super::Tower;
 use crate::prelude::*;
 use crate::utils::RelEntity;
 
@@ -19,12 +20,12 @@ pub(super) struct RotateToTarget;
 
 pub(super) fn rotate_to_target_system(
     mut q_rtt: Query<(&mut Transform, &RelEntity), With<RotateToTarget>>,
-    q_parent: Query<(&TowerPos, &TargetPos)>,
+    q_parent: Query<(&Tower, &TargetPos)>,
 ) {
     for (mut rot_trans, rel_id) in q_rtt.iter_mut() {
-        if let Ok((tower_pos, target_pos)) = q_parent.get(rel_id.0) {
+        if let Ok((tower, target_pos)) = q_parent.get(rel_id.0) {
             if let Some(target_pos) = target_pos.0 {
-                let direction = target_pos - tower_pos.0;
+                let direction = target_pos - tower.pos;
                 rot_trans.look_at(direction, Vec3::Y);
             }
         }

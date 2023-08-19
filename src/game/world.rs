@@ -116,8 +116,9 @@ fn spawn_pinball_world(
         spawn_life_bar(p, assets, &mut mats, life_bar_trans);
         spawn_pinball_menu_glass(p, assets, &mut mats);
         //img_handle = Some(spawn_point_display(p, &mut mats, &mut images, assets));
-        pc_id.0 = analog_counter::spawn_10_digit(p, assets, Vec3::new(0.98, 0.01, 0.563958));
-        lc_id.0 = analog_counter::spawn_2_digit(p, assets, Vec3::new(0.98, 0.01, -0.41));
+        pc_id.0 = analog_counter::spawn_10_digit(p, assets, Vec3::new(0.98, 0.01, 0.563958), None);
+        lc_id.0 =
+            analog_counter::spawn_2_digit(p, assets, Transform::from_xyz(0.98, 0.01, -0.41), None);
     });
     //if let Some(img) = img_handle {
     //spawn_point_display_ui_and_cam(&mut cmds, assets, img);
