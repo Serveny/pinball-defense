@@ -25,7 +25,7 @@
 - generic pinball tower menu for variable count of cards ✅
 - point system ✅
 - tower progess bar reset after upgrade ✅
-- level display
+- level display ✅
 - tower level
 - level counter display
 - towers logic

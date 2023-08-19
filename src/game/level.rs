@@ -7,6 +7,8 @@ impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<PointHub>()
             .init_resource::<LevelHub>()
+            .init_resource::<PointCounterId>()
+            .init_resource::<LevelCounterId>()
             .add_event::<PointsEvent>()
             .add_event::<LevelUpEvent>()
             .add_systems(
@@ -14,7 +16,8 @@ impl Plugin for LevelPlugin {
                 (
                     add_points_system,
                     level_up_system,
-                    update_analog_counter_system,
+                    update_points_counter_system,
+                    update_level_counter_system,
                 )
                     .run_if(in_state(GameState::Ingame)),
             );
@@ -87,12 +90,41 @@ fn level_up_system(
     }
 }
 
-fn update_analog_counter_system(
+#[derive(Resource)]
+pub struct PointCounterId(pub Entity);
+
+impl Default for PointCounterId {
+    fn default() -> Self {
+        Self(Entity::from_bits(0))
+    }
+}
+
+fn update_points_counter_system(
     points: Res<PointHub>,
     mut ac_set_ev: EventWriter<AnalogCounterSetToEvent>,
+    pc_id: Res<PointCounterId>,
 ) {
     if points.is_changed() {
-        ac_set_ev.send(AnalogCounterSetToEvent(points.0));
+        ac_set_ev.send(AnalogCounterSetToEvent::new(pc_id.0, points.0));
+    }
+}
+
+#[derive(Resource)]
+pub struct LevelCounterId(pub Entity);
+
+impl Default for LevelCounterId {
+    fn default() -> Self {
+        Self(Entity::from_bits(0))
+    }
+}
+
+fn update_level_counter_system(
+    level: Res<LevelHub>,
+    mut ac_set_ev: EventWriter<AnalogCounterSetToEvent>,
+    lc_id: Res<LevelCounterId>,
+) {
+    if level.is_changed() {
+        ac_set_ev.send(AnalogCounterSetToEvent::new(lc_id.0, level.level as u32));
     }
 }
 //#[derive(Component)]

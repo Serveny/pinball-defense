@@ -1,6 +1,7 @@
 use super::ball_starter::BallStarterPlugin;
 use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 use super::flipper::FlipperPlugin;
+use super::level::{LevelCounterId, PointCounterId};
 use super::pinball_menu::spawn_pinball_menu_glass;
 use super::player_life::spawn_life_bar;
 use super::road::spawn_road;
@@ -35,6 +36,8 @@ fn spawn_pinball_world(
     mut cmds: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut mats: ResMut<Assets<StandardMaterial>>,
+    mut pc_id: ResMut<PointCounterId>,
+    mut lc_id: ResMut<LevelCounterId>,
     assets: Res<PinballDefenseAssets>,
     g_sett: Res<GraphicsSettings>,
 ) {
@@ -113,7 +116,8 @@ fn spawn_pinball_world(
         spawn_life_bar(p, assets, &mut mats, life_bar_trans);
         spawn_pinball_menu_glass(p, assets, &mut mats);
         //img_handle = Some(spawn_point_display(p, &mut mats, &mut images, assets));
-        analog_counter::spawn(p, assets, Vec3::new(0.98, 0.01, 0.563958));
+        pc_id.0 = analog_counter::spawn_10_digit(p, assets, Vec3::new(0.98, 0.01, 0.563958));
+        lc_id.0 = analog_counter::spawn_2_digit(p, assets, Vec3::new(0.98, 0.01, -0.41));
     });
     //if let Some(img) = img_handle {
     //spawn_point_display_ui_and_cam(&mut cmds, assets, img);
