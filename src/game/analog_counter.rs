@@ -43,30 +43,44 @@ impl Digit {
 }
 
 #[derive(Event)]
-pub struct AnalogCounterSetToEvent(pub u32);
+pub struct AnalogCounterSetToEvent {
+    counter_id: Entity,
+    number: u32,
+}
+
+impl AnalogCounterSetToEvent {
+    pub fn new(counter_id: Entity, number: u32) -> Self {
+        Self { counter_id, number }
+    }
+}
 
 fn on_set_system(
     mut on_set_ev: EventReader<AnalogCounterSetToEvent>,
-    mut q_digit: Query<&mut Digit>,
+    mut q_digit: Query<(&mut Digit, &Parent)>,
 ) {
     for ev in on_set_ev.iter() {
-        for (i, number) in ev.0.digits().rev().enumerate() {
+        for (i, number) in ev.number.digits().rev().enumerate() {
             q_digit
                 .iter_mut()
-                .find(|digit_comp| digit_comp.position == i as u8)
-                .unwrap_or_else(|| panic!("No digit component for i ({i})"))
+                .find(|(digit_comp, p)| p.get() == ev.counter_id && digit_comp.position == i as u8)
+                .unwrap_or_else(|| panic!("😥 No digit component for i ({i}) with given parent!"))
+                .0
                 .set_number(number);
         }
     }
 }
 
-pub fn spawn(parent: &mut ChildBuilder, assets: &PinballDefenseAssets, pos: Vec3) {
+pub fn spawn_10_digit(
+    parent: &mut ChildBuilder,
+    assets: &PinballDefenseAssets,
+    pos: Vec3,
+) -> Entity {
     parent
         .spawn((
-            Name::new("Analog Counter Casing"),
+            Name::new("Analog Counter Casing 10 Digit"),
             PbrBundle {
-                mesh: assets.analog_counter_casing.clone(),
-                material: assets.analog_counter_casing_material.clone(),
+                mesh: assets.analog_counter_10_digit_casing.clone(),
+                material: assets.analog_counter_casing_10_digit_material.clone(),
                 transform: Transform::from_translation(pos),
                 ..default()
             },
@@ -85,9 +99,60 @@ pub fn spawn(parent: &mut ChildBuilder, assets: &PinballDefenseAssets, pos: Vec3
                     Digit::new(i),
                 ));
             }
-        });
+            parent.spawn((
+                Name::new("Level Sign"),
+                PbrBundle {
+                    mesh: assets.point_sign.clone(),
+                    material: assets.points_sign_material.clone(),
+                    transform: Transform::from_xyz(-0.055, 0.047, 0.),
+                    ..default()
+                },
+            ));
+        })
+        .id()
 }
 
+pub fn spawn_2_digit(
+    parent: &mut ChildBuilder,
+    assets: &PinballDefenseAssets,
+    pos: Vec3,
+) -> Entity {
+    parent
+        .spawn((
+            Name::new("Analog Counter Casing 2 Digit"),
+            PbrBundle {
+                mesh: assets.analog_counter_casing_2_digit.clone(),
+                material: assets.analog_counter_casing_2_digit_material.clone(),
+                transform: Transform::from_translation(pos),
+                ..default()
+            },
+            AnalogCounter,
+        ))
+        .with_children(|parent| {
+            for i in 0..2 {
+                parent.spawn((
+                    Name::new("Analog Counter Digit"),
+                    PbrBundle {
+                        mesh: assets.analog_counter_cylinder.clone(),
+                        material: assets.analog_counter_cylinder_material.clone(),
+                        transform: Transform::from_xyz(0., 0., i as f32 * 0.022 - 0.012),
+                        ..default()
+                    },
+                    Digit::new(i),
+                ));
+            }
+            parent.spawn((
+                Name::new("Level Sign"),
+                PbrBundle {
+                    mesh: assets.level_sign.clone(),
+                    material: assets.level_sign_material.clone(),
+                    transform: Transform::from_xyz(-0.055, 0.047, 0.),
+                    ..default()
+                },
+            ));
+        })
+        .id()
+}
 const TURN_SPEED_RADIANS_PER_SECOND: f32 = PI;
 
 fn turn_digit_system(mut q_digit: Query<(&mut Transform, &mut Digit)>, time: Res<Time>) {

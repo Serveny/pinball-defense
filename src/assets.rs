@@ -100,14 +100,32 @@ pub struct PinballDefenseAssets {
 
     // Analog number counter
     #[asset(path = "models/analog_counter.gltf#Mesh0/Primitive0")]
-    pub analog_counter_casing: Handle<Mesh>,
+    pub analog_counter_10_digit_casing: Handle<Mesh>,
 
     #[asset(path = "models/analog_counter.gltf#Mesh1/Primitive0")]
     pub analog_counter_cylinder: Handle<Mesh>,
 
+    #[asset(path = "models/analog_counter.gltf#Mesh2/Primitive0")]
+    pub point_sign: Handle<Mesh>,
+
+    #[asset(path = "models/analog_counter.gltf#Mesh3/Primitive0")]
+    pub analog_counter_casing_2_digit: Handle<Mesh>,
+
+    #[asset(path = "models/analog_counter.gltf#Mesh4/Primitive0")]
+    pub level_sign: Handle<Mesh>,
+
     #[asset(path = "models/analog_counter.gltf#Material0")]
-    pub analog_counter_casing_material: Handle<StandardMaterial>,
+    pub analog_counter_casing_10_digit_material: Handle<StandardMaterial>,
 
     #[asset(path = "models/analog_counter.gltf#Material1")]
     pub analog_counter_cylinder_material: Handle<StandardMaterial>,
+
+    #[asset(path = "models/analog_counter.gltf#Material2")]
+    pub points_sign_material: Handle<StandardMaterial>,
+
+    #[asset(path = "models/analog_counter.gltf#Material3")]
+    pub analog_counter_casing_2_digit_material: Handle<StandardMaterial>,
+
+    #[asset(path = "models/analog_counter.gltf#Material4")]
+    pub level_sign_material: Handle<StandardMaterial>,
 }
