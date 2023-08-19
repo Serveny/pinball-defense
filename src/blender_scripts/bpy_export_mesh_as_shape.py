@@ -28,16 +28,26 @@ pub fn create_collider() -> Collider {
     """
     )
     for face in faces:
+        file.write("        (")
+
+        # Position
+        pos = face.center
+        file.write(f"Vec3::new({pos.x:f}, {pos.z:f}, {-pos.y:f}), ")
+
+        # Rotation
         norm: Vector = face.normal
         quat: Quaternion = Vector((norm.x, norm.z, -norm.y)).to_track_quat("Z", "Y")
-        pos = face.center
-        file.write("        (")
-        file.write(f"Vec3::new({pos.x:f}, {pos.z:f}, {-pos.y:f}), ")
         file.write(f"Quat::from_xyzw({quat.x:f}, {quat.y:f}, {quat.z:f}, {quat.w:f}), ")
+        print(f"{quat.to_euler()=}")
+
+        # Size of face
         verts: list[Vector] = [vertices[key].co for key in face.vertices]
-        width = (verts[1] - verts[0]).length / 2
-        height = (verts[1] - verts[2]).length / 2
-        file.write(f"Collider::cuboid({width:f}, {height:f}, {0.0001:f})")
+        width = (verts[1] - verts[2]).length / 2
+        height = (verts[1] - verts[0]).length / 2
+        if height >= 0.1:
+            width, height = height, width
+        # print(f"{width=}, {height=}")
+        file.write(f"Collider::cuboid({height:f}, {width:f}, {0.0001:f})")
         file.write("),\n")
     file.write("    ];")
     file.write("    Collider::compound(faces)")
