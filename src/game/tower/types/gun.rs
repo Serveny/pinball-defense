@@ -77,7 +77,7 @@ fn muzzle_flash_light(g_sett: &GraphicsSettings, rel_id: Entity) -> impl Bundle 
     (
         Name::new("Muzzle Flash"),
         SpotLightBundle {
-            transform: Transform::from_translation(Vec3::new(0., 0., -0.04))
+            transform: Transform::from_xyz(0., 0., -0.04)
                 .looking_at(Vec3::new(0.0, 0.0, -1.0), Vec3::Z),
             spot_light: SpotLight {
                 intensity: 0., // lumens - roughly a 100W non-halogen incandescent bulb

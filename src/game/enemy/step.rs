@@ -22,6 +22,7 @@ impl Step {
     pub fn next(&self) -> Self {
         Self::new(self.i_road_point + 1)
     }
+
     pub fn walk(&mut self, current_pos: Vec3, distance: f32) -> Vec3 {
         self.distance_walked += distance;
         current_pos + self.direction * distance
