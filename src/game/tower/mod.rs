@@ -46,6 +46,7 @@ impl Plugin for TowerPlugin {
                 progress_system,
                 spawn_tower_system,
                 upgrade_system,
+                types::gun::shot_animation_system,
             )
                 .run_if(in_state(GameState::Ingame)),
         );
@@ -77,7 +78,7 @@ fn tower_bundle(pos: Vec3, sight_radius: f32) -> impl Bundle {
         // General Tower components
         spatial_from_pos(tower_start_pos(pos)),
         Tower::new(pos),
-        TowerLevel(1),
+        TowerLevel(0),
         //
         // Enemy target system
         TargetPos(None),
