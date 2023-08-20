@@ -1,5 +1,6 @@
 use super::animations::RotateToTarget;
 use super::target::AimFirstEnemy;
+use crate::game::tower::damage::DamageOverTime;
 use crate::game::tower::{tower_material, TowerHead};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
@@ -35,7 +36,12 @@ pub fn spawn(
         g_sett,
         pos,
         sight_radius,
-        (Name::new(" Gun Tower"), GunTower, AimFirstEnemy(None)),
+        (
+            Name::new(" Gun Tower"),
+            GunTower,
+            AimFirstEnemy(None),
+            DamageOverTime(0.1),
+        ),
         |tower| {
             let rel_id = tower.parent_entity();
 
@@ -69,6 +75,7 @@ pub struct MuzzleFlashLight;
 
 fn muzzle_flash_light(g_sett: &GraphicsSettings, rel_id: Entity) -> impl Bundle {
     (
+        Name::new("Muzzle Flash"),
         SpotLightBundle {
             transform: Transform::from_translation(Vec3::new(0., 0., -0.04))
                 .looking_at(Vec3::new(0.0, 0.0, -1.0), Vec3::Z),
@@ -77,7 +84,7 @@ fn muzzle_flash_light(g_sett: &GraphicsSettings, rel_id: Entity) -> impl Bundle 
                 color: Color::rgba_u8(215, 205, 117, 255),
                 shadows_enabled: g_sett.is_shadows,
                 range: 0.4,
-                inner_angle: 0.2,
+                inner_angle: 0.02,
                 outer_angle: 0.8,
                 ..default()
             },
@@ -95,6 +102,7 @@ fn barrel(
     rel_id: Entity,
 ) -> impl Bundle {
     (
+        Name::new("Barrel"),
         PbrBundle {
             mesh: assets.tower_mg_barrel.clone(),
             material: tower_mat,
@@ -112,6 +120,7 @@ fn head(
     rel_id: Entity,
 ) -> impl Bundle {
     (
+        Name::new("Head"),
         PbrBundle {
             mesh: assets.tower_mg_head.clone(),
             material: tower_mat,
@@ -130,6 +139,7 @@ fn mounting(
     rel_id: Entity,
 ) -> impl Bundle {
     (
+        Name::new("Mounting"),
         PbrBundle {
             mesh: assets.tower_mg_mounting.clone(),
             material: tower_mat.clone(),
@@ -163,7 +173,7 @@ pub(in super::super) fn shot_animation_system(
                 let sin = (time.elapsed_seconds() * 64.).sin();
                 *flash.0 = Visibility::Inherited;
                 get_barrel(&mut q_barrel, tower_id).0.translation.z = sin * 0.002;
-                flash.1.intensity = (sin + 1.) * 16.;
+                flash.1.intensity = (sin + 1.) * 32.;
             }
             None => {
                 if *flash.0 != Visibility::Hidden {

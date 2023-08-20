@@ -30,9 +30,10 @@ pub enum PointsEvent {
     BallCollided = 1,
     FlipperHit = 2,
     FoundationHit = 10,
+    BallEnemyHit = 15,
     TowerHit = 20,
     BallSpawned = 50,
-    BallEnemyHit = 100,
+    EnemyDied = 85,
     TowerUpgrade = 500,
     TowerBuild = 1000,
 }
