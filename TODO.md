@@ -26,12 +26,12 @@
 - point system ✅
 - tower progess bar reset after upgrade ✅
 - level display ✅
-- tower level
+- tower level ✅
 - towers logic
-  - target system
-  - shoot/damage system
-  - special effects
-  - upgrade system
+  - target system ✅
+  - shoot/damage system ✅
+  - (special effects)
+  - upgrade system ✅
 - design enemy
 - settings menu
 - camera option

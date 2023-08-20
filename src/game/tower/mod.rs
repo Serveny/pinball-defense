@@ -1,3 +1,4 @@
+use self::damage::DamageOverTime;
 use self::light::{contact_light_bundle, FlashLight, LightOnCollision};
 use self::target::{EnemiesWithinReach, SightRadius, TargetPos};
 use super::ball::CollisionWithBallEvent;
@@ -31,10 +32,18 @@ pub struct TowerPlugin;
 impl Plugin for TowerPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<SpawnTowerEvent>()
+            .add_event::<DamageUpgradeEvent>()
+            .add_event::<RangeUpgradeEvent>()
             // Tower systems
             .add_systems(
                 Update,
-                (progress_system, spawn_tower_system, upgrade_system)
+                (
+                    progress_system,
+                    spawn_tower_system,
+                    upgrade_system,
+                    damage_upgrade_system,
+                    range_upgrade_system,
+                )
                     .run_if(in_state(GameState::Ingame)),
             )
             // Child systems
@@ -258,6 +267,8 @@ fn upgrade_system(
     mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
     mut q_tower: Query<&mut TowerLevel>,
     mut ac_set_ev: EventWriter<AnalogCounterSetEvent>,
+    mut range_upgrade_ev: EventWriter<RangeUpgradeEvent>,
+    mut damage_upgrade_ev: EventWriter<DamageUpgradeEvent>,
 ) {
     for ev in upgrade_menu_exec_ev.iter() {
         let mut tower_level = q_tower
@@ -271,10 +282,50 @@ fn upgrade_system(
         ));
         points_ev.send(PointsEvent::TowerUpgrade);
         prog_bar_ev.send(ProgressBarCountUpEvent(ev.tower_id, -1.));
+        match ev.upgrade {
+            TowerUpgrade::Damage => damage_upgrade_ev.send(DamageUpgradeEvent(ev.tower_id)),
+            TowerUpgrade::Range => range_upgrade_ev.send(RangeUpgradeEvent(ev.tower_id)),
+        }
         log!(
             "🐱 Upgrade tower {:?} to level {:?}",
             ev.tower_id,
             tower_level.0
         );
+    }
+}
+
+#[derive(Event)]
+struct RangeUpgradeEvent(Entity);
+
+fn range_upgrade_system(
+    mut range_upgrade_ev: EventReader<RangeUpgradeEvent>,
+    mut q_tower: Query<(Entity, &mut SightRadius), With<Tower>>,
+    mut q_coll: Query<(&mut Transform, &Parent), With<TowerSightSensor>>,
+) {
+    for ev in range_upgrade_ev.iter() {
+        if let Ok((tower_id, mut sight_radius)) = q_tower.get_mut(ev.0) {
+            let upgrade_factor = 0.01;
+            sight_radius.0 += upgrade_factor;
+            q_coll
+                .iter_mut()
+                .find(|(_, parent)| parent.get() == tower_id)
+                .expect("No tower sight radius for tower found")
+                .0
+                .scale += 0.1;
+        }
+    }
+}
+
+#[derive(Event)]
+struct DamageUpgradeEvent(Entity);
+
+fn damage_upgrade_system(
+    mut damage_upgrade_ev: EventReader<DamageUpgradeEvent>,
+    mut q_tower: Query<&mut DamageOverTime, With<Tower>>,
+) {
+    for ev in damage_upgrade_ev.iter() {
+        if let Ok(mut damage) = q_tower.get_mut(ev.0) {
+            damage.0 *= 2.;
+        }
     }
 }
