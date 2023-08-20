@@ -1,7 +1,10 @@
 use super::animations::RotateAlways;
 use super::{tower_material, TowerHead};
+use crate::game::tower::damage::{DamageAllTargetsInReach, DamageOverTime};
+use crate::game::tower::target::EnemiesWithinReach;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
+use crate::utils::RelEntity;
 
 #[derive(Component)]
 pub struct TeslaTower;
@@ -22,9 +25,15 @@ pub fn spawn(
         g_sett,
         pos,
         sight_radius,
-        (Name::new("Tesla Tower"), TeslaTower),
+        (
+            Name::new("Tesla Tower"),
+            TeslaTower,
+            DamageAllTargetsInReach,
+            DamageOverTime(0.025),
+        ),
         |tower| {
             tower.spawn(top(tower_mat.clone(), assets));
+            tower.spawn(shot_flash_light(g_sett, tower.parent_entity()));
         },
     );
 }
@@ -40,4 +49,62 @@ fn top(material: Handle<StandardMaterial>, assets: &PinballDefenseAssets) -> imp
         TowerHead,
         RotateAlways,
     )
+}
+
+#[derive(Component)]
+pub struct ShotFlashLight;
+
+fn shot_flash_light(g_sett: &GraphicsSettings, rel_id: Entity) -> impl Bundle {
+    (
+        Name::new("Shot Flash"),
+        PointLightBundle {
+            transform: Transform::from_xyz(0., 0.1, 0.),
+            point_light: PointLight {
+                intensity: 0., // lumens - roughly a 100W non-halogen incandescent bulb
+                color: Color::BLUE,
+                shadows_enabled: g_sett.is_shadows,
+                range: 0.2,
+                ..default()
+            },
+            visibility: Visibility::Hidden,
+            ..default()
+        },
+        ShotFlashLight,
+        RelEntity(rel_id),
+    )
+}
+
+pub(in super::super) fn shot_animation_system(
+    time: Res<Time>,
+    q_tesla: Query<(Entity, &EnemiesWithinReach), With<TeslaTower>>,
+    mut q_shot_flash: Query<(&mut Visibility, &mut PointLight, &RelEntity), With<ShotFlashLight>>,
+) {
+    for (tower_id, ewr) in q_tesla.iter() {
+        let mut flash = get_flash(&mut q_shot_flash, tower_id);
+        match ewr.0.is_empty() {
+            false => {
+                let sin = (time.elapsed_seconds() * 32.).sin();
+                *flash.0 = Visibility::Inherited;
+                flash.1.intensity = (sin + 1.) * 32.;
+            }
+            true => {
+                if *flash.0 != Visibility::Hidden {
+                    *flash.0 = Visibility::Hidden;
+                }
+            }
+        }
+    }
+}
+
+fn get_flash<'a>(
+    q_muzzle_flash: &'a mut Query<
+        (&mut Visibility, &mut PointLight, &RelEntity),
+        With<ShotFlashLight>,
+    >,
+    tower_id: Entity,
+) -> (Mut<'a, Visibility>, Mut<'a, PointLight>, &'a RelEntity) {
+    q_muzzle_flash
+        .iter_mut()
+        .find(|(_, _, rel_id)| rel_id.0 == tower_id)
+        .expect("No muzzle flash for tower found")
 }

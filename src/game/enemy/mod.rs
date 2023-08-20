@@ -1,5 +1,7 @@
 use self::step::Step;
-use self::walk::{road_end_reached_system, walk_system, RoadEndReachedEvent, WALK_SPEED};
+use self::walk::{
+    recover_speed_system, road_end_reached_system, walk_system, RoadEndReachedEvent, WALK_SPEED,
+};
 use super::level::PointsEvent;
 use super::progress_bar::{ProgressBarCountUpEvent, ProgressBarEmptyEvent};
 use crate::game::ball::CollisionWithBallEvent;
@@ -30,6 +32,7 @@ impl Plugin for EnemyPlugin {
                     walk_system,
                     road_end_reached_system,
                     death_system,
+                    recover_speed_system,
                 )
                     .run_if(in_state(GameState::Ingame)),
             );
@@ -40,6 +43,7 @@ impl Plugin for EnemyPlugin {
 pub struct Enemy {
     step: Step,
     speed: f32,
+    current_speed: f32,
 }
 
 impl Enemy {
@@ -47,11 +51,12 @@ impl Enemy {
         Self {
             step: Step::new(1),
             speed: WALK_SPEED,
+            current_speed: WALK_SPEED,
         }
     }
 
     pub fn walk(&mut self, current_pos: Vec3, dur: Duration) -> Option<Vec3> {
-        let distance = dur.as_secs_f32() * self.speed;
+        let distance = dur.as_secs_f32() * self.current_speed;
         let mut new_pos = self.step.walk(current_pos, distance);
         if self.step.is_reached_point() {
             if self.step.is_reached_road_end() {
@@ -61,6 +66,10 @@ impl Enemy {
             new_pos = self.step.start_pos();
         }
         Some(new_pos)
+    }
+
+    pub fn slow_down(&mut self, factor: f32) {
+        self.current_speed = self.speed * factor;
     }
 }
 

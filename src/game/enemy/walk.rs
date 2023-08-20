@@ -36,3 +36,12 @@ pub(super) fn road_end_reached_system(
         progress_ev.send(ProgressBarCountUpEvent(q_life_bar.single(), -0.1));
     }
 }
+
+pub(super) fn recover_speed_system(time: Res<Time>, mut q_enemy: Query<&mut Enemy>) {
+    for mut enemy in q_enemy.iter_mut() {
+        if enemy.current_speed < enemy.speed {
+            enemy.current_speed += time.delta_seconds() * 0.2;
+            enemy.current_speed = enemy.current_speed.clamp(0., enemy.speed);
+        }
+    }
+}

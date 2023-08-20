@@ -22,6 +22,7 @@ mod animations;
 mod damage;
 pub mod foundation;
 pub mod light;
+mod speed;
 mod target;
 mod types;
 
@@ -29,29 +30,38 @@ pub struct TowerPlugin;
 
 impl Plugin for TowerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SpawnTowerEvent>().add_systems(
-            Update,
-            (
-                animations::rotate_always_system,
-                animations::rotate_to_target_system,
-                damage::afe_damage_over_time_system,
-                foundation::despawn_system,
-                foundation::progress_system,
-                light::contact_light_on_system,
-                light::add_flashlight_system.after(light::disable_contact_light_system),
-                light::flash_light_system,
-                light::disable_contact_light_system,
-                target::aim_first_enemy_system,
-                target::enemy_within_reach_system,
-                target::remove_despawned_enemies_from_ewr_system,
-                target::target_pos_by_afe_system,
-                types::gun::shot_animation_system,
-                progress_system,
-                spawn_tower_system,
-                upgrade_system,
+        app.add_event::<SpawnTowerEvent>()
+            // Tower systems
+            .add_systems(
+                Update,
+                (progress_system, spawn_tower_system, upgrade_system)
+                    .run_if(in_state(GameState::Ingame)),
             )
-                .run_if(in_state(GameState::Ingame)),
-        );
+            // Child systems
+            .add_systems(
+                Update,
+                (
+                    animations::rotate_always_system,
+                    animations::rotate_to_target_system,
+                    damage::afe_damage_over_time_system,
+                    damage::datir_damage_over_time_system,
+                    foundation::despawn_system,
+                    foundation::progress_system,
+                    light::contact_light_on_system,
+                    light::add_flashlight_system.after(light::disable_contact_light_system),
+                    light::flash_light_system,
+                    light::disable_contact_light_system,
+                    speed::afe_slow_down_system,
+                    target::aim_first_enemy_system,
+                    target::enemy_within_reach_system,
+                    target::remove_despawned_enemies_from_ewr_system,
+                    target::target_pos_by_afe_system,
+                    types::gun::shot_animation_system,
+                    types::microwave::shot_animation_system,
+                    types::tesla::shot_animation_system,
+                )
+                    .run_if(in_state(GameState::Ingame)),
+            );
     }
 }
 
