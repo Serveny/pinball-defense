@@ -1,6 +1,7 @@
 use self::step::Step;
 use self::walk::{road_end_reached_system, walk_system, RoadEndReachedEvent, WALK_SPEED};
 use super::level::PointsEvent;
+use super::progress_bar::{ProgressBarCountUpEvent, ProgressBarEmptyEvent};
 use crate::game::ball::CollisionWithBallEvent;
 use crate::game::events::collision::{ENEMY, INTERACT_WITH_BALL, INTERACT_WITH_ENEMY};
 use crate::game::progress_bar;
@@ -28,6 +29,7 @@ impl Plugin for EnemyPlugin {
                     spawn_system,
                     walk_system,
                     road_end_reached_system,
+                    death_system,
                 )
                     .run_if(in_state(GameState::Ingame)),
             );
@@ -134,17 +136,15 @@ fn spawn(
 }
 
 fn pinball_hit_system(
-    mut cmds: Commands,
-    mut despawn_ev: EventWriter<OnEnemyDespawnEvent>,
     mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
+    mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
     mut points_ev: EventWriter<PointsEvent>,
     q_enemy: Query<With<Enemy>>,
 ) {
     for CollisionWithBallEvent(id, flag) in ball_coll_ev.iter() {
         if *flag == CollisionEventFlags::SENSOR && q_enemy.contains(*id) {
             log!("😵 Pinball hits enemy {:?}", *id);
-            cmds.entity(*id).despawn_recursive();
-            despawn_ev.send(OnEnemyDespawnEvent(*id));
+            prog_bar_ev.send(ProgressBarCountUpEvent(*id, -1.));
             points_ev.send(PointsEvent::BallEnemyHit);
         }
     }
@@ -152,3 +152,19 @@ fn pinball_hit_system(
 
 #[derive(Event)]
 pub struct OnEnemyDespawnEvent(pub Entity);
+
+fn death_system(
+    mut cmds: Commands,
+    mut prog_bar_empty_ev: EventReader<ProgressBarEmptyEvent>,
+    mut despawn_ev: EventWriter<OnEnemyDespawnEvent>,
+    mut points_ev: EventWriter<PointsEvent>,
+    q_enemy: Query<With<Enemy>>,
+) {
+    for ev in prog_bar_empty_ev.iter() {
+        if q_enemy.contains(ev.0) {
+            cmds.entity(ev.0).despawn_recursive();
+            despawn_ev.send(OnEnemyDespawnEvent(ev.0));
+            points_ev.send(PointsEvent::EnemyDied);
+        }
+    }
+}

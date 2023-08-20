@@ -19,6 +19,7 @@ pub use types::TowerType;
 use types::*;
 
 mod animations;
+mod damage;
 pub mod foundation;
 pub mod light;
 mod target;
@@ -33,6 +34,7 @@ impl Plugin for TowerPlugin {
             (
                 animations::rotate_always_system,
                 animations::rotate_to_target_system,
+                damage::afe_damage_over_time_system,
                 foundation::despawn_system,
                 foundation::progress_system,
                 light::contact_light_on_system,
@@ -43,10 +45,10 @@ impl Plugin for TowerPlugin {
                 target::enemy_within_reach_system,
                 target::remove_despawned_enemies_from_ewr_system,
                 target::target_pos_by_afe_system,
+                types::gun::shot_animation_system,
                 progress_system,
                 spawn_tower_system,
                 upgrade_system,
-                types::gun::shot_animation_system,
             )
                 .run_if(in_state(GameState::Ingame)),
         );
