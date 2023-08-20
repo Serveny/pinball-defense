@@ -57,6 +57,7 @@ impl Wave {
         self.number += 1;
         self.next_enemy_spawn_time = (now + TIME_BETWEEN_WAVES).round();
         self.enemies_count = (self.number as f32 * 1.5) as usize;
+        self.time_between_enemies *= 0.999;
         log!("🏄‍♂️ Wave end. Wait until {}", self.next_enemy_spawn_time);
     }
 }

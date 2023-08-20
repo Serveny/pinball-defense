@@ -32,7 +32,7 @@
   - shoot/damage system ✅
   - (special effects)
   - upgrade system ✅
-- design enemy
 - settings menu
 - camera option
 - textures
+- design enemy
