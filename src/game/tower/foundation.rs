@@ -9,7 +9,6 @@ use crate::game::progress_bar;
 use crate::game::progress_bar::ProgressBarCountUpEvent;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
-use bevy::gltf::{Gltf, GltfMesh};
 use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use bevy_tweening::{
     lens::{TransformPositionLens, TransformRotationLens},

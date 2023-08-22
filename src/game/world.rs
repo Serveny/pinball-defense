@@ -6,11 +6,10 @@ use super::pinball_menu::spawn_pinball_menu_glass;
 use super::player_life::spawn_life_bar;
 use super::road::spawn_road;
 use super::tower::foundation;
-use super::{analog_counter, load_gltf_content, GameState};
+use super::{analog_counter, GameState};
 use crate::assets::PinballDefenseGltfAssets;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
-use std::f32::consts::PI;
 
 pub type QueryWorld<'w, 's> = Query<'w, 's, Entity, With<PinballWorld>>;
 
