@@ -9,7 +9,7 @@ use super::GameState;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy::utils::hashbrown::HashSet;
-use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
+use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use bevy_tweening::{lens::TransformRotateYLens, Animator, Delay, EaseFunction, Sequence, Tween};
 use std::time::Duration;
 
@@ -102,7 +102,7 @@ fn menu_event_system(
     q_pbm_el: QueryPinballMenuElements,
     q_lights: Query<&mut Visibility, With<PinballMenuElementLight>>,
     meshes: Res<Assets<Mesh>>,
-    assets: Res<PinballDefenseAssets>,
+    assets: Res<PinballDefenseGltfAssets>,
 ) {
     if let Some(ev) = evr.iter().next() {
         if let Ok((menu_entity, mut status)) = q_pb_menu.get_single_mut() {
@@ -126,7 +126,7 @@ type QueryPinballMenuElements<'w, 's, 'a> =
 
 fn spawn_system(
     mut cmds: Commands,
-    assets: Res<PinballDefenseAssets>,
+    assets: Res<PinballDefenseGltfAssets>,
     q_pbw: QueryWorld,
     q_pb_menu: Query<&PinballMenu>,
     g_sett: Res<GraphicsSettings>,
@@ -158,7 +158,7 @@ enum PinballMenu {
 
 fn spawn_tower_menu(
     parent: &mut ChildBuilder,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
     unlocked_towers: &UnlockedTowers,
     pos: Vec3,
@@ -180,7 +180,7 @@ fn spawn_tower_menu(
 
 fn spawn_upgrade_menu(
     parent: &mut ChildBuilder,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
     unlocked_tower_upgrades: &UnlockedUpgrades,
     pos: Vec3,
@@ -210,7 +210,7 @@ struct PinballMenuElementLight;
 fn spawn_menu_element(
     menu_el_type: impl Component + GetMaterial,
     parent: &mut ChildBuilder,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
     angle: f32,
     delay_secs: f32,
@@ -315,7 +315,7 @@ fn activate(
     mut q_lights: Query<&mut Visibility, With<PinballMenuElementLight>>,
     q_pbm_el: QueryPinballMenuElements,
     meshes: Res<Assets<Mesh>>,
-    assets: Res<PinballDefenseAssets>,
+    assets: Res<PinballDefenseGltfAssets>,
 ) -> PinballMenuStatus {
     q_pbm_el.for_each(|(entity, _)| {
         cmds.entity(entity).insert((
@@ -323,13 +323,14 @@ fn activate(
             ColliderDebugColor(Color::GREEN),
             Sensor,
             ActiveEvents::COLLISION_EVENTS,
-            Collider::from_bevy_mesh(
-                meshes
-                    .get(&assets.pinball_menu_element_collider.clone())
-                    .expect("Failed to find mesh"),
-                &ComputedColliderShape::TriMesh,
-            )
-            .unwrap(),
+            // TODO
+            //Collider::from_bevy_mesh(
+            //meshes
+            //.get(&assets.pinball_menu_element_collider.clone())
+            //.expect("Failed to find mesh"),
+            //&ComputedColliderShape::TriMesh,
+            //)
+            //.unwrap(),
             COLLIDE_ONLY_WITH_BALL,
         ));
     });
@@ -445,7 +446,7 @@ const MENU_POS: Vec3 = Vec3::new(1.3, 0., 0.038);
 
 pub fn spawn_pinball_menu_glass(
     parent: &mut ChildBuilder,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
     mats: &mut Assets<StandardMaterial>,
 ) {
     parent.spawn((
@@ -559,11 +560,17 @@ fn new_tower_upgrade_unlock(level: Level) -> Option<TowerUpgrade> {
 }
 
 trait GetMaterial {
-    fn get_menu_element_material(&self, assets: &PinballDefenseAssets) -> Handle<StandardMaterial>;
+    fn get_menu_element_material(
+        &self,
+        assets: &PinballDefenseGltfAssets,
+    ) -> Handle<StandardMaterial>;
 }
 
 impl GetMaterial for TowerType {
-    fn get_menu_element_material(&self, assets: &PinballDefenseAssets) -> Handle<StandardMaterial> {
+    fn get_menu_element_material(
+        &self,
+        assets: &PinballDefenseGltfAssets,
+    ) -> Handle<StandardMaterial> {
         match *self {
             TowerType::Gun => assets.pinball_menu_element_gun_material.clone(),
             TowerType::Tesla => assets.pinball_menu_element_tesla_material.clone(),
@@ -573,7 +580,10 @@ impl GetMaterial for TowerType {
 }
 
 impl GetMaterial for TowerUpgrade {
-    fn get_menu_element_material(&self, assets: &PinballDefenseAssets) -> Handle<StandardMaterial> {
+    fn get_menu_element_material(
+        &self,
+        assets: &PinballDefenseGltfAssets,
+    ) -> Handle<StandardMaterial> {
         match *self {
             TowerUpgrade::Damage => assets.pinball_menu_element_damage_upgrade_mat.clone(),
             TowerUpgrade::Range => assets.pinball_menu_element_range_upgrade_mat.clone(),

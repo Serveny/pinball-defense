@@ -118,7 +118,7 @@ fn look_and_move_in_direction(
     direction.pitch += (delta_look.y * sensitivity).clamp(-89., 89.);
 
     // Rotate the camera using yaw and pitch
-    transform.rotation = Quat::from_axis_angle(Vec3::Y, direction.yaw.to_radians())
+    transform.rotation = Quat::from_axis_angle(Vec3::Z, direction.yaw.to_radians())
         * Quat::from_axis_angle(-Vec3::X, direction.pitch.to_radians());
 
     // Handle keyboard input to move the camera
@@ -137,8 +137,8 @@ pub(super) fn setup_camera(
 ) {
     cmds.spawn((
         Camera3dBundle {
-            transform: Transform::from_translation(Vec3::new(2.40, 1.20, -0.28))
-                .looking_at(Vec3::ZERO, Vec3::Y),
+            transform: Transform::from_translation(Vec3::new(0.17, -2.0, 2.))
+                .looking_at(Vec3::ZERO, Vec3::Z),
             camera: Camera {
                 order: 1,
                 hdr: g_setting.is_hdr,

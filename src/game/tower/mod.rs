@@ -12,7 +12,7 @@ use crate::game::tower::light::disable_flash_light;
 use crate::game::world::QueryWorld;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
-use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
+use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use bevy_tweening::lens::TransformPositionLens;
 use bevy_tweening::{Animator, Delay, EaseFunction, Sequence, Tween};
 use std::time::Duration;
@@ -114,7 +114,7 @@ fn tower_bundle(pos: Vec3, sight_radius: f32) -> impl Bundle {
         },
         ActiveEvents::COLLISION_EVENTS,
         ColliderDebugColor(Color::RED),
-        Collider::cylinder(0.12, 0.06),
+        Collider::ball(0.06),
         COLLIDE_ONLY_WITH_BALL,
         PinballMenuTrigger::Upgrade,
         LightOnCollision,
@@ -133,7 +133,7 @@ fn tower_sight_sensor_bundle(radius: f32) -> impl Bundle {
         Sensor,
         RigidBody::KinematicPositionBased,
         ColliderDebugColor(Color::ORANGE),
-        Collider::cylinder(0.06, radius),
+        Collider::ball(radius),
         ActiveEvents::COLLISION_EVENTS,
         ActiveCollisionTypes::KINEMATIC_KINEMATIC,
         COLLIDE_ONLY_WITH_ENEMY,
@@ -142,7 +142,7 @@ fn tower_sight_sensor_bundle(radius: f32) -> impl Bundle {
 }
 
 fn tower_base_bundle(
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
     mats: &mut Assets<StandardMaterial>,
 ) -> impl Bundle {
     (
@@ -158,7 +158,7 @@ fn tower_base_bundle(
 fn spawn(
     pb_world: &mut ChildBuilder,
     mats: &mut Assets<StandardMaterial>,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
     pos: Vec3,
     sight_radius: f32,
@@ -223,7 +223,7 @@ fn spawn_tower_system(
     mut evs: EventReader<SpawnTowerEvent>,
     mut mats: ResMut<Assets<StandardMaterial>>,
     mut points_ev: EventWriter<PointsEvent>,
-    assets: Res<PinballDefenseAssets>,
+    assets: Res<PinballDefenseGltfAssets>,
     q_pbw: QueryWorld,
     g_sett: Res<GraphicsSettings>,
 ) {

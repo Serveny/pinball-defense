@@ -22,7 +22,7 @@ pub struct ProgressBar(pub f32);
 
 pub fn spawn(
     parent: &mut ChildBuilder,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
     materials: &mut Assets<StandardMaterial>,
     rel_id: Entity,
     transform: Transform,

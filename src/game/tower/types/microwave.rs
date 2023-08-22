@@ -12,7 +12,7 @@ pub struct MicrowaveTower;
 pub fn spawn(
     pb_world: &mut ChildBuilder,
     mats: &mut Assets<StandardMaterial>,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
     pos: Vec3,
 ) {
@@ -44,7 +44,7 @@ pub fn spawn(
 
 fn head(
     material: Handle<StandardMaterial>,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
     rel_id: Entity,
 ) -> impl Bundle {
     (

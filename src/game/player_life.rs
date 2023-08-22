@@ -24,7 +24,7 @@ struct LastDamage {
 
 pub fn spawn_life_bar(
     parent: &mut ChildBuilder,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
     materials: &mut Assets<StandardMaterial>,
     trans: Transform,
 ) {

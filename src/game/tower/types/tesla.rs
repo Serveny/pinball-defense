@@ -12,7 +12,7 @@ pub struct TeslaTower;
 pub fn spawn(
     pb_world: &mut ChildBuilder,
     mats: &mut Assets<StandardMaterial>,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
     pos: Vec3,
 ) {
@@ -38,7 +38,7 @@ pub fn spawn(
     );
 }
 
-fn top(material: Handle<StandardMaterial>, assets: &PinballDefenseAssets) -> impl Bundle {
+fn top(material: Handle<StandardMaterial>, assets: &PinballDefenseGltfAssets) -> impl Bundle {
     (
         PbrBundle {
             mesh: assets.tower_tesla_top.clone(),

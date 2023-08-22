@@ -7,7 +7,7 @@ use super::player_life::LifeBar;
 use super::progress_bar::ProgressBarCountUpEvent;
 use super::GameState;
 use crate::prelude::*;
-use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
+use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 
 pub struct BallPlugin;
 
@@ -134,7 +134,7 @@ pub fn limit_velocity(mut velocity: Mut<Velocity>) {
         log!("🥨 Limit velocity from {} to {}", length, velocity.linvel);
 
         // If we reduce speed, maybe we should reduce turn speed too, idk
-        let length = velocity.angvel.length_squared();
+        let length = velocity.angvel;
         if length > MAX_SQUARED_ANGLE_SPEED {
             velocity.angvel *= MAX_SQUARED_ANGLE_SPEED / length;
 

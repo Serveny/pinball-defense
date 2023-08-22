@@ -21,7 +21,7 @@ pub struct GunTowerBarrel;
 pub fn spawn(
     pb_world: &mut ChildBuilder,
     mats: &mut Assets<StandardMaterial>,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
     pos: Vec3,
 ) {
@@ -98,7 +98,7 @@ fn muzzle_flash_light(g_sett: &GraphicsSettings, rel_id: Entity) -> impl Bundle 
 
 fn barrel(
     tower_mat: Handle<StandardMaterial>,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
     rel_id: Entity,
 ) -> impl Bundle {
     (
@@ -116,7 +116,7 @@ fn barrel(
 
 fn head(
     tower_mat: Handle<StandardMaterial>,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
     rel_id: Entity,
 ) -> impl Bundle {
     (
@@ -135,7 +135,7 @@ fn head(
 
 fn mounting(
     tower_mat: Handle<StandardMaterial>,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
     rel_id: Entity,
 ) -> impl Bundle {
     (

@@ -11,7 +11,7 @@ use crate::game::road::points::ROAD_POINTS;
 use crate::game::world::QueryWorld;
 use crate::game::GameState;
 use crate::prelude::*;
-use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
+use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use std::time::Duration;
 
 mod step;
@@ -81,7 +81,7 @@ fn spawn_system(
     mut evr: EventReader<SpawnEnemyEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut mats: ResMut<Assets<StandardMaterial>>,
-    assets: Res<PinballDefenseAssets>,
+    assets: Res<PinballDefenseGltfAssets>,
     q_pqw: QueryWorld,
 ) {
     for _ in evr.iter() {
@@ -93,7 +93,7 @@ fn spawn_system(
 
 fn spawn(
     parent: &mut ChildBuilder,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
 ) {

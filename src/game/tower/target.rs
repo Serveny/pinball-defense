@@ -2,7 +2,7 @@ use super::TowerSightSensor;
 use crate::game::enemy::{Enemy, OnEnemyDespawnEvent};
 use crate::prelude::*;
 use bevy::utils::HashSet;
-use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
+use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 
 #[derive(Component)]
 pub(super) struct SightRadius(pub f32);
