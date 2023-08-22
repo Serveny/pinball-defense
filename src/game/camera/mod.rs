@@ -1,4 +1,4 @@
-use super::GameState;
+use super::{load_gltf_content, GameState};
 use crate::prelude::*;
 
 mod ball;

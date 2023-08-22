@@ -75,7 +75,7 @@ pub fn spawn(
     let collider = |p: &mut ChildBuilder| {
         p.spawn((
             TransformBundle::from(Transform::from_xyz(0.09, 0., 0.)),
-            Collider::cuboid(HALF_SIZE.x, HALF_SIZE.y, HALF_SIZE.z),
+            Collider::cuboid(HALF_SIZE.x, HALF_SIZE.z),
             RigidBody::KinematicPositionBased,
             Restitution {
                 coefficient: 0.,

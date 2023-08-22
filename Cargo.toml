@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 # Enable optimizations for rapier always
-[profile.dev.package.bevy_rapier3d]
+[profile.dev.package.bevy_rapier2d]
 opt-level = 3
 
 # setting the number codegen units to 1 will further improve performances in a noticeable way, 
@@ -21,8 +21,9 @@ log = []
 bevy = "0.11"
 bevy-inspector-egui = "0.19"
 bevy_asset_loader = "0.17"
-bevy_rapier3d = { version = "0.22", features = ["parallel"]}
+bevy_rapier2d = { version = "0.22", features = ["parallel"]}
 bevy_window_title_diagnostics = "0.5.0"
 bevy_tweening = "0.8"
 digits_iterator = "0.1"
+struct_iterable = "0.1"
 #bevy_debug_grid = "0.1"

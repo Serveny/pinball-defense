@@ -3,6 +3,7 @@ use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 use super::level::PointsEvent;
 use super::GameState;
 use crate::prelude::*;
+use std::f32::consts::PI;
 
 pub struct FlipperPlugin;
 
@@ -71,7 +72,7 @@ pub fn spawn_right(
     transform: Transform,
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
 ) {
     spawn(
         FlipperType::Right,
@@ -86,7 +87,7 @@ pub fn spawn_left(
     transform: Transform,
     parent: &mut ChildBuilder,
     materials: &mut Assets<StandardMaterial>,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
 ) {
     spawn(
         FlipperType::Left,
@@ -131,11 +132,11 @@ fn spawn(
             parent.spawn((
                 TransformBundle::from(Transform {
                     translation: Vec3::new(0.008, 0.035, sig * 0.115),
-                    rotation: Quat::from_rotation_y(sig * 0.075),
+                    rotation: Quat::from_rotation_x(-PI / 2. * 0.85),
                     ..default()
                 }),
                 RigidBody::KinematicPositionBased,
-                Collider::cuboid(0.03, 0.035, 0.12),
+                Collider::cuboid(0.03, 0.12),
                 ActiveEvents::COLLISION_EVENTS,
                 Restitution {
                     coefficient: 0.1,
