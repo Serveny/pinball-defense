@@ -201,7 +201,3 @@ fn setup_ambient_lights(mut cmds: Commands, g_sett: Res<GraphicsSettings>) {
         ..default()
     });
 }
-
-fn set_state_ingame(mut state: ResMut<NextState<GameState>>) {
-    state.set(GameState::Ingame);
-}
