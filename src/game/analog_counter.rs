@@ -78,7 +78,7 @@ fn on_set_system(
 
 pub fn spawn_10_digit(
     parent: &mut ChildBuilder,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
     pos: Vec3,
     rel_id: Option<Entity>,
 ) -> Entity {
@@ -126,7 +126,7 @@ pub fn spawn_10_digit(
 
 pub fn spawn_2_digit(
     parent: &mut ChildBuilder,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
     transform: Transform,
     rel_id: Option<Entity>,
 ) -> Entity {

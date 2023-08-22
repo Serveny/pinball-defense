@@ -9,7 +9,8 @@ use crate::game::progress_bar;
 use crate::game::progress_bar::ProgressBarCountUpEvent;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
-use bevy_rapier3d::rapier::prelude::CollisionEventFlags;
+use bevy::gltf::{Gltf, GltfMesh};
+use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use bevy_tweening::{
     lens::{TransformPositionLens, TransformRotationLens},
     Animator, Delay, EaseFunction, Tween,
@@ -31,7 +32,7 @@ pub(super) struct TowerFoundationBottom;
 pub fn spawn(
     parent: &mut ChildBuilder,
     mats: &mut Assets<StandardMaterial>,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
     pos: Vec3,
 ) {
@@ -48,13 +49,13 @@ pub fn spawn(
 
 fn ring(
     mats: &mut Assets<StandardMaterial>,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
     pos: Vec3,
 ) -> impl Bundle {
     (
         Name::new("Tower Foundation"),
         PbrBundle {
-            mesh: assets.tower_foundation_ring.clone(),
+            mesh: assets.foundation_ring.clone(),
             material: mats.add(StandardMaterial {
                 base_color: Color::BLACK,
                 perceptual_roughness: 1.,
@@ -66,7 +67,7 @@ fn ring(
             ..default()
         },
         Sensor,
-        Collider::cylinder(0.1, 0.07),
+        Collider::ball(0.07),
         ColliderDebugColor(Color::GREEN),
         COLLIDE_ONLY_WITH_BALL,
         ActiveEvents::COLLISION_EVENTS,
@@ -76,7 +77,7 @@ fn ring(
     )
 }
 
-fn lid_top(mats: &mut Assets<StandardMaterial>, assets: &PinballDefenseAssets) -> impl Bundle {
+fn lid_top(mats: &mut Assets<StandardMaterial>, assets: &PinballDefenseGltfAssets) -> impl Bundle {
     (
         Name::new("Tower Foundation Top"),
         PbrBundle {
@@ -90,7 +91,10 @@ fn lid_top(mats: &mut Assets<StandardMaterial>, assets: &PinballDefenseAssets) -
     )
 }
 
-fn lid_bottom(mats: &mut Assets<StandardMaterial>, assets: &PinballDefenseAssets) -> impl Bundle {
+fn lid_bottom(
+    mats: &mut Assets<StandardMaterial>,
+    assets: &PinballDefenseGltfAssets,
+) -> impl Bundle {
     (
         Name::new("Tower Foundation Bottom"),
         PbrBundle {

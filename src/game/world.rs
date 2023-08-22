@@ -6,10 +6,11 @@ use super::pinball_menu::spawn_pinball_menu_glass;
 use super::player_life::spawn_life_bar;
 use super::road::spawn_road;
 use super::tower::foundation;
-use super::{analog_counter, GameState};
-use crate::assets::PinballDefenseAssets;
+use super::{analog_counter, load_gltf_content, GameState};
+use crate::assets::PinballDefenseGltfAssets;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
+use std::f32::consts::PI;
 
 pub type QueryWorld<'w, 's> = Query<'w, 's, Entity, With<PinballWorld>>;
 
@@ -38,16 +39,13 @@ fn spawn_pinball_world(
     mut mats: ResMut<Assets<StandardMaterial>>,
     mut pc_id: ResMut<PointCounterId>,
     mut lc_id: ResMut<LevelCounterId>,
-    assets: Res<PinballDefenseAssets>,
+    assets: Res<PinballDefenseGltfAssets>,
     g_sett: Res<GraphicsSettings>,
 ) {
     let assets = assets.as_ref();
     //let mut img_handle: Option<Handle<Image>> = None;
     cmds.spawn((
-        SpatialBundle {
-            transform: Transform::from_rotation(Quat::from_rotation_z(-0.25)),
-            ..default()
-        },
+        SpatialBundle { ..default() },
         PinballWorld,
         Name::new("Pinball World"),
     ))
@@ -82,13 +80,14 @@ fn spawn_pinball_world(
             //}),
             //..default()
             //},
-            Collider::from_bevy_mesh(
-                meshes
-                    .get(&assets.world_1_ground_collider)
-                    .expect("Failed to find mesh"),
-                &ComputedColliderShape::TriMesh,
-            )
-            .unwrap(),
+            // TODO
+            //Collider::from_bevy_mesh(
+            //meshes
+            //.get(&assets.world_1_ground_collider)
+            //.expect("Failed to find mesh"),
+            //&ComputedColliderShape::TriMesh,
+            //)
+            //.unwrap(),
             ColliderDebugColor(Color::NONE),
             COLLIDE_ONLY_WITH_BALL,
         ));
@@ -125,7 +124,11 @@ fn spawn_pinball_world(
     //}
 }
 
-fn spawn_colliders(p: &mut ChildBuilder, meshes: &mut Assets<Mesh>, assets: &PinballDefenseAssets) {
+fn spawn_colliders(
+    p: &mut ChildBuilder,
+    meshes: &mut Assets<Mesh>,
+    assets: &PinballDefenseGltfAssets,
+) {
     let mesh = &assets.world_1_frame_collider;
     p.spawn(ball_coll("Frame Collider", meshes, mesh, 0.4));
 
@@ -143,11 +146,12 @@ fn ball_coll(
     (
         Name::new(name),
         SpatialBundle::default(),
-        Collider::from_bevy_mesh(
-            meshes.get(handle).expect("Failed to find mesh"),
-            &ComputedColliderShape::TriMesh,
-        )
-        .unwrap(),
+        // TODO
+        //Collider::from_bevy_mesh(
+        //meshes.get(handle).expect("Failed to find mesh"),
+        //&ComputedColliderShape::TriMesh,
+        //)
+        //.unwrap(),
         Friction::new(friction),
         ColliderDebugColor(Color::GOLD),
     )
@@ -171,7 +175,7 @@ const TOWER_POSIS: [Vec3; 12] = [
 fn spawn_foundations(
     parent: &mut ChildBuilder,
     mats: &mut Assets<StandardMaterial>,
-    assets: &PinballDefenseAssets,
+    assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
 ) {
     for pos in TOWER_POSIS {

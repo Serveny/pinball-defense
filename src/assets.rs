@@ -3,24 +3,6 @@ pub use bevy_asset_loader::prelude::*;
 
 #[derive(Resource, AssetCollection)]
 pub struct PinballDefenseAssets {
-    // Pinball World
-    #[asset(path = "models/pinball_world_1.gltf#Mesh0/Primitive0")]
-    pub world_1: Handle<Mesh>,
-
-    #[asset(path = "models/pinball_world_1.gltf#Mesh1/Primitive0")]
-    pub world_1_menu_glass: Handle<Mesh>,
-
-    //#[asset(path = "models/pinball_world_1.gltf#Mesh2/Primitive0")]
-    //pub world_1_point_display: Handle<Mesh>,
-    #[asset(path = "models/pinball_world_1.gltf#Mesh2/Primitive0")]
-    pub world_1_ground_collider: Handle<Mesh>,
-
-    #[asset(path = "models/pinball_world_1.gltf#Mesh3/Primitive0")]
-    pub world_1_frame_collider: Handle<Mesh>,
-
-    #[asset(path = "models/pinball_world_1.gltf#Material0")]
-    pub world_1_material: Handle<StandardMaterial>,
-
     // Other
     #[asset(path = "textures/skybox.png")]
     pub skybox: Handle<Image>,
@@ -29,104 +11,58 @@ pub struct PinballDefenseAssets {
     pub digital_font: Handle<Font>,
 
     // Road
-    #[asset(path = "models/pinball_world_1_road.gltf#Mesh0/Primitive0")]
+    #[asset(path = "models/gltf/road.gltf#Mesh0/Primitive0")]
     pub road_mesh: Handle<Mesh>,
+}
 
-    #[asset(path = "models/pinball_world_1.gltf#Animation0")]
-    pub road_path: Handle<AnimationClip>,
+#[derive(Resource, Reflect, Default)]
+pub struct PinballDefenseGltfAssets {
+    pub analog_counter_10_digit_casing: Handle<Mesh>,
+    pub analog_counter_cylinder: Handle<Mesh>,
+    pub point_sign: Handle<Mesh>,
+    pub analog_counter_casing_2_digit: Handle<Mesh>,
+    pub level_sign: Handle<Mesh>,
+    pub analog_counter_casing_10_digit_material: Handle<StandardMaterial>,
+    pub analog_counter_cylinder_material: Handle<StandardMaterial>,
+    pub points_sign_material: Handle<StandardMaterial>,
+    pub analog_counter_casing_2_digit_material: Handle<StandardMaterial>,
+    pub level_sign_material: Handle<StandardMaterial>,
 
     // Flipper
-    #[asset(path = "models/flippers.gltf#Mesh0/Primitive0")]
+    pub flipper_left: Handle<Mesh>,
     pub flipper_right: Handle<Mesh>,
 
-    #[asset(path = "models/flippers.gltf#Mesh1/Primitive0")]
-    pub flipper_left: Handle<Mesh>,
-
-    // Tower
-    #[asset(path = "models/towers/tower_base.gltf#Mesh0/Primitive0")]
-    pub tower_base: Handle<Mesh>,
-
-    #[asset(path = "models/towers/tower_microwave.gltf#Mesh0/Primitive0")]
-    pub tower_microwave_top: Handle<Mesh>,
-
-    #[asset(path = "models/towers/tower_machine_gun.gltf#Mesh0/Primitive0")]
-    pub tower_mg_mounting: Handle<Mesh>,
-
-    #[asset(path = "models/towers/tower_machine_gun.gltf#Mesh1/Primitive0")]
-    pub tower_mg_head: Handle<Mesh>,
-
-    #[asset(path = "models/towers/tower_machine_gun.gltf#Mesh2/Primitive0")]
-    pub tower_mg_barrel: Handle<Mesh>,
-
-    #[asset(path = "models/towers/tower_tesla.gltf#Mesh1/Primitive0")]
-    pub tower_tesla_top: Handle<Mesh>,
-
-    #[asset(path = "models/towers/tower_foundation.gltf#Mesh0/Primitive0")]
-    pub foundation_lid_bottom: Handle<Mesh>,
-
-    #[asset(path = "models/towers/tower_foundation.gltf#Mesh1/Primitive0")]
-    pub foundation_lid_top: Handle<Mesh>,
-
-    #[asset(path = "models/towers/tower_foundation.gltf#Mesh2/Primitive0")]
-    pub tower_foundation_ring: Handle<Mesh>,
-
-    // Progress bar
-    #[asset(path = "models/progress_bar.gltf#Mesh0/Primitive0")]
-    pub progress_bar: Handle<Mesh>,
-
-    #[asset(path = "models/progress_bar.gltf#Mesh1/Primitive0")]
-    pub progress_bar_frame: Handle<Mesh>,
-
     // Menu Elements
-    #[asset(path = "models/pinball_world_menu.gltf#Mesh1/Primitive0")]
-    pub pinball_menu_element_collider: Handle<Mesh>,
-
-    #[asset(path = "models/pinball_world_menu.gltf#Mesh2/Primitive0")]
     pub pinball_menu_element: Handle<Mesh>,
-
-    #[asset(path = "models/pinball_world_menu.gltf#Material0")]
+    pub pinball_menu_element_collider: Handle<Mesh>,
     pub pinball_menu_element_gun_material: Handle<StandardMaterial>,
-
-    #[asset(path = "models/pinball_world_menu.gltf#Material1")]
     pub pinball_menu_element_tesla_material: Handle<StandardMaterial>,
-
-    #[asset(path = "models/pinball_world_menu.gltf#Material2")]
     pub pinball_menu_element_microwave_material: Handle<StandardMaterial>,
-
-    #[asset(path = "models/pinball_world_menu.gltf#Material3")]
     pub pinball_menu_element_damage_upgrade_mat: Handle<StandardMaterial>,
-
-    #[asset(path = "models/pinball_world_menu.gltf#Material4")]
     pub pinball_menu_element_range_upgrade_mat: Handle<StandardMaterial>,
 
-    // Analog number counter
-    #[asset(path = "models/analog_counter.gltf#Mesh0/Primitive0")]
-    pub analog_counter_10_digit_casing: Handle<Mesh>,
+    // Pinball Plate
+    pub world_1: Handle<Mesh>,
+    pub world_1_menu_glass: Handle<Mesh>,
+    pub world_1_ground_collider: Handle<Mesh>,
+    pub world_1_frame_collider: Handle<Mesh>,
+    pub world_1_material: Handle<StandardMaterial>,
 
-    #[asset(path = "models/analog_counter.gltf#Mesh1/Primitive0")]
-    pub analog_counter_cylinder: Handle<Mesh>,
+    // Progress bar
+    pub progress_bar: Handle<Mesh>,
+    pub progress_bar_frame: Handle<Mesh>,
 
-    #[asset(path = "models/analog_counter.gltf#Mesh2/Primitive0")]
-    pub point_sign: Handle<Mesh>,
+    // Road
+    pub road_mesh: Handle<Mesh>,
 
-    #[asset(path = "models/analog_counter.gltf#Mesh3/Primitive0")]
-    pub analog_counter_casing_2_digit: Handle<Mesh>,
-
-    #[asset(path = "models/analog_counter.gltf#Mesh4/Primitive0")]
-    pub level_sign: Handle<Mesh>,
-
-    #[asset(path = "models/analog_counter.gltf#Material0")]
-    pub analog_counter_casing_10_digit_material: Handle<StandardMaterial>,
-
-    #[asset(path = "models/analog_counter.gltf#Material1")]
-    pub analog_counter_cylinder_material: Handle<StandardMaterial>,
-
-    #[asset(path = "models/analog_counter.gltf#Material2")]
-    pub points_sign_material: Handle<StandardMaterial>,
-
-    #[asset(path = "models/analog_counter.gltf#Material3")]
-    pub analog_counter_casing_2_digit_material: Handle<StandardMaterial>,
-
-    #[asset(path = "models/analog_counter.gltf#Material4")]
-    pub level_sign_material: Handle<StandardMaterial>,
+    // Tower
+    pub tower_base: Handle<Mesh>,
+    pub tower_microwave_top: Handle<Mesh>,
+    pub tower_mg_mounting: Handle<Mesh>,
+    pub tower_mg_head: Handle<Mesh>,
+    pub tower_mg_barrel: Handle<Mesh>,
+    pub tower_tesla_top: Handle<Mesh>,
+    pub foundation_lid_bottom: Handle<Mesh>,
+    pub foundation_lid_top: Handle<Mesh>,
+    pub foundation_ring: Handle<Mesh>,
 }
