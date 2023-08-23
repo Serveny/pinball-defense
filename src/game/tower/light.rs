@@ -9,7 +9,7 @@ pub(super) struct ContactLight;
 pub(super) fn contact_light_bundle(g_sett: &GraphicsSettings, color: Color) -> impl Bundle {
     (
         PointLightBundle {
-            transform: Transform::from_xyz(0., 0.005, 0.),
+            transform: Transform::from_xyz(0., 0., 0.005),
             point_light: PointLight {
                 intensity: 0.,
                 color,

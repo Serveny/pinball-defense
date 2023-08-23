@@ -1,5 +1,4 @@
 use super::ball_starter::BallStarterPlugin;
-use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 use super::flipper::FlipperPlugin;
 use super::level::{LevelCounterId, PointCounterId};
 use super::pinball_menu::spawn_pinball_menu_glass;
@@ -56,119 +55,55 @@ fn spawn_pinball_world(
                 material: assets.world_1_material.clone(),
                 ..default()
             },
-            //super::colliders::create_collider(),
-            //ColliderDebugColor(Color::RED),
-        ));
-
-        spawn_colliders(p, &mut meshes, assets);
-
-        // Top Glass (maybe with glass texture in future)
-        p.spawn((
-            Name::new("Pinball top glass"),
-            spatial_from_pos(Vec3::new(0., 0.12, 0.)),
-            //PbrBundle {
-            //mesh: assets.world_1_ground_collider.clone(),
-            //transform: Transform::from_translation(Vec3::new(0., 0.12, 0.)),
-            //material: mats.add(StandardMaterial {
-            //base_color: Color::rgba_u8(255, 255, 255, 25),
-            //perceptual_roughness: 0.,
-            //metallic: 0.,
-            //reflectance: 0.6,
-            //alpha_mode: AlphaMode::Multiply,
-            //..default()
-            //}),
-            //..default()
-            //},
-            // TODO
-            //Collider::from_bevy_mesh(
-            //meshes
-            //.get(&assets.world_1_ground_collider)
-            //.expect("Failed to find mesh"),
-            //&ComputedColliderShape::TriMesh,
-            //)
-            //.unwrap(),
-            ColliderDebugColor(Color::NONE),
-            COLLIDE_ONLY_WITH_BALL,
+            super::colliders::create_collider(),
+            ColliderDebugColor(Color::RED),
         ));
 
         // Ball starter
-        let bs_pos = Vec3::new(1.175, -0.018, -0.657);
+        let bs_pos = Vec3::new(1.175, 0.657, -0.018);
         super::ball_starter::spawn(p, bs_pos, &mut meshes, &mut mats);
 
         // Flipper left
-        let fl_pos = Transform::from_xyz(0.83, -0.043, 0.32);
+        let fl_pos = Transform::from_xyz(0.83, -0.32, -0.043);
         super::flipper::spawn_left(fl_pos, p, &mut mats, assets);
 
         // Flipper right
-        let fr_pos = Transform::from_xyz(0.83, -0.043, -0.246);
+        let fr_pos = Transform::from_xyz(0.83, 0.246, -0.043);
         super::flipper::spawn_right(fr_pos, p, &mut mats, assets);
 
         spawn_foundations(p, &mut mats, assets, &g_sett);
         spawn_road(p, &mut mats, &mut meshes, assets);
 
         let life_bar_trans = Transform {
-            translation: Vec3::new(1.15, -0.05, 0.035),
+            translation: Vec3::new(1.15, -0.035, -0.05),
             scale: Vec3::new(4., 4., 4.),
             ..default()
         };
         spawn_life_bar(p, assets, &mut mats, life_bar_trans);
         spawn_pinball_menu_glass(p, assets, &mut mats);
         //img_handle = Some(spawn_point_display(p, &mut mats, &mut images, assets));
-        pc_id.0 = analog_counter::spawn_10_digit(p, assets, Vec3::new(0.98, 0.01, 0.563958), None);
+        pc_id.0 = analog_counter::spawn_10_digit(p, assets, Vec3::new(0.98, -0.563958, 0.01), None);
         lc_id.0 =
-            analog_counter::spawn_2_digit(p, assets, Transform::from_xyz(0.98, 0.01, -0.41), None);
+            analog_counter::spawn_2_digit(p, assets, Transform::from_xyz(0.98, 0.41, 0.01), None);
     });
     //if let Some(img) = img_handle {
     //spawn_point_display_ui_and_cam(&mut cmds, assets, img);
     //}
 }
 
-fn spawn_colliders(
-    p: &mut ChildBuilder,
-    meshes: &mut Assets<Mesh>,
-    assets: &PinballDefenseGltfAssets,
-) {
-    let mesh = &assets.world_1_frame_collider;
-    p.spawn(ball_coll("Frame Collider", meshes, mesh, 0.4));
-
-    // Ground Collider
-    let mesh = &assets.world_1_ground_collider;
-    p.spawn(ball_coll("Ground Collider", meshes, mesh, 0.2));
-}
-
-fn ball_coll(
-    name: &'static str,
-    meshes: &Assets<Mesh>,
-    handle: &Handle<Mesh>,
-    friction: f32,
-) -> impl Bundle {
-    (
-        Name::new(name),
-        SpatialBundle::default(),
-        // TODO
-        //Collider::from_bevy_mesh(
-        //meshes.get(handle).expect("Failed to find mesh"),
-        //&ComputedColliderShape::TriMesh,
-        //)
-        //.unwrap(),
-        Friction::new(friction),
-        ColliderDebugColor(Color::GOLD),
-    )
-}
-
 const TOWER_POSIS: [Vec3; 12] = [
-    Vec3::new(-0.89, -0.04, 0.49),
-    Vec3::new(-0.71, -0.04, 0.49),
-    Vec3::new(-0.89, -0.04, 0.21),
-    Vec3::new(-0.904, -0.04, -0.24),
-    Vec3::new(-0.5, -0.04, 0.),
-    Vec3::new(-0.3, -0.04, 0.51),
-    Vec3::new(-0.1, -0.04, -0.01),
-    Vec3::new(0.1, -0.04, 0.51),
-    Vec3::new(-0.904, -0.04, 0.0),
-    Vec3::new(0.01, -0.04, -0.4),
-    Vec3::new(-0.275, -0.04, -0.4),
-    Vec3::new(-0.5, -0.04, 0.26),
+    Vec3::new(-0.89, -0.49, -0.04),
+    Vec3::new(-0.71, -0.49, -0.04),
+    Vec3::new(-0.89, -0.21, -0.04),
+    Vec3::new(-0.904, 0.24, -0.04),
+    Vec3::new(-0.5, 0., -0.04),
+    Vec3::new(-0.3, -0.51, -0.04),
+    Vec3::new(-0.1, 0.01, -0.04),
+    Vec3::new(0.1, -0.51, -0.04),
+    Vec3::new(-0.904, -0.0, -0.04),
+    Vec3::new(0.01, 0.4, -0.04),
+    Vec3::new(-0.275, 0.4, -0.04),
+    Vec3::new(-0.5, -0.26, -0.04),
 ];
 
 fn spawn_foundations(

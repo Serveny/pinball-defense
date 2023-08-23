@@ -27,7 +27,7 @@ pub fn spawn_road(
                 alpha_mode: AlphaMode::Multiply,
                 ..default()
             }),
-            transform: Transform::from_xyz(0., -0.04, 0.),
+            transform: Transform::from_xyz(0., 0., -0.04),
             ..default()
         },
         Name::new("Road Mesh"),

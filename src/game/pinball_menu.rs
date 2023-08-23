@@ -10,7 +10,8 @@ use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy::utils::hashbrown::HashSet;
 use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
-use bevy_tweening::{lens::TransformRotateYLens, Animator, Delay, EaseFunction, Sequence, Tween};
+use bevy_tweening::lens::TransformRotateZLens;
+use bevy_tweening::{Animator, Delay, EaseFunction, Sequence, Tween};
 use std::time::Duration;
 
 pub struct PinballMenuPlugin;
@@ -101,8 +102,6 @@ fn menu_event_system(
     cmds: Commands,
     q_pbm_el: QueryPinballMenuElements,
     q_lights: Query<&mut Visibility, With<PinballMenuElementLight>>,
-    meshes: Res<Assets<Mesh>>,
-    assets: Res<PinballDefenseGltfAssets>,
 ) {
     if let Some(ev) = evr.iter().next() {
         if let Ok((menu_entity, mut status)) = q_pb_menu.get_single_mut() {
@@ -112,7 +111,7 @@ fn menu_event_system(
                 (Disable, Activated) => Some(despawn(cmds, q_lights, q_pbm_el, menu_entity)),
                 (SetReady, Disabled) => Some(Ready),
                 (Deactivate, Activated) => Some(deactivate(cmds, q_lights, q_pbm_el)),
-                (Activate, Ready) => Some(activate(cmds, q_lights, q_pbm_el, meshes, assets)),
+                (Activate, Ready) => Some(activate(cmds, q_lights, q_pbm_el)),
                 _ => None,
             } {
                 *status = new_status;
@@ -216,44 +215,53 @@ fn spawn_menu_element(
     delay_secs: f32,
 ) {
     parent
-        .spawn((
-            PbrBundle {
-                mesh: assets.pinball_menu_element.clone(),
-                material: menu_el_type.get_menu_element_material(assets),
-                transform: Transform {
-                    rotation: Quat::from_rotation_y(ELEM_START_ANGLE),
-                    ..default()
-                },
+        .spawn(element_bundle(menu_el_type, assets))
+        .insert(Animator::new(spawn_animation(angle, delay_secs)))
+        .with_children(|parent| {
+            parent.spawn(active_light_bundle(g_sett));
+        });
+}
+
+fn element_bundle(
+    menu_el_type: impl Component + GetMaterial,
+    assets: &PinballDefenseGltfAssets,
+) -> impl Bundle {
+    (
+        PbrBundle {
+            mesh: assets.pinball_menu_element.clone(),
+            material: menu_el_type.get_menu_element_material(assets),
+            transform: Transform {
+                rotation: Quat::from_rotation_y(ELEM_START_ANGLE),
                 ..default()
             },
-            // Game components
-            PinballMenuElement,
-            Name::new("Pinball Menu Element"),
-            menu_el_type,
-            // Spawn animation
-            Animator::new(spawn_animation(angle, delay_secs)),
-        ))
-        .with_children(|parent| {
-            // Active status light
-            parent.spawn((
-                SpotLightBundle {
-                    transform: Transform::from_translation(Vec3::new(-0.79, 0., 0.))
-                        .looking_at(Vec3::new(-1.0, 0.0, 0.0), Vec3::Z),
-                    spot_light: SpotLight {
-                        intensity: 28., // lumens - roughly a 100W non-halogen incandescent bulb
-                        color: Color::BEIGE,
-                        shadows_enabled: g_sett.is_shadows,
-                        range: 0.2,
-                        inner_angle: 0.2,
-                        outer_angle: 0.8,
-                        ..default()
-                    },
-                    visibility: Visibility::Hidden,
-                    ..default()
-                },
-                PinballMenuElementLight,
-            ));
-        });
+            ..default()
+        },
+        // Game components
+        PinballMenuElement,
+        Name::new("Pinball Menu Element"),
+        menu_el_type,
+    )
+}
+
+fn active_light_bundle(g_sett: &GraphicsSettings) -> impl Bundle {
+    (
+        SpotLightBundle {
+            transform: Transform::from_translation(Vec3::new(-0.79, -0., 0.))
+                .looking_at(Vec3::new(-1.0, -0.0, 0.0), Vec3::Z),
+            spot_light: SpotLight {
+                intensity: 28., // lumens - roughly a 100W non-halogen incandescent bulb
+                color: Color::BEIGE,
+                shadows_enabled: g_sett.is_shadows,
+                range: 0.2,
+                inner_angle: 0.2,
+                outer_angle: 0.8,
+                ..default()
+            },
+            visibility: Visibility::Hidden,
+            ..default()
+        },
+        PinballMenuElementLight,
+    )
 }
 
 fn despawn(
@@ -314,8 +322,6 @@ fn activate(
     mut cmds: Commands,
     mut q_lights: Query<&mut Visibility, With<PinballMenuElementLight>>,
     q_pbm_el: QueryPinballMenuElements,
-    meshes: Res<Assets<Mesh>>,
-    assets: Res<PinballDefenseGltfAssets>,
 ) -> PinballMenuStatus {
     q_pbm_el.for_each(|(entity, _)| {
         cmds.entity(entity).insert((
@@ -323,14 +329,13 @@ fn activate(
             ColliderDebugColor(Color::GREEN),
             Sensor,
             ActiveEvents::COLLISION_EVENTS,
-            // TODO
-            //Collider::from_bevy_mesh(
-            //meshes
-            //.get(&assets.pinball_menu_element_collider.clone())
-            //.expect("Failed to find mesh"),
-            //&ComputedColliderShape::TriMesh,
-            //)
-            //.unwrap(),
+            Collider::convex_polyline(vec![
+                Vec2::new(-0.98, -0.09),
+                Vec2::new(-0.98, 0.08),
+                Vec2::new(-0.83, 0.07),
+                Vec2::new(-0.83, -0.07),
+            ])
+            .expect("Cannot build menu element convex"),
             COLLIDE_ONLY_WITH_BALL,
         ));
     });
@@ -357,7 +362,7 @@ fn spawn_animation(angle: f32, delay_secs: f32) -> Sequence<Transform> {
     let rotate = Tween::new(
         EaseFunction::ElasticOut,
         Duration::from_secs_f32(2.),
-        TransformRotateYLens {
+        TransformRotateZLens {
             start: ELEM_START_ANGLE + 0.2,
             end: angle,
         },
@@ -371,7 +376,7 @@ fn despawn_animation(angle: f32, duration: Duration) -> Sequence<Transform> {
     let rotate = Tween::new(
         EaseFunction::ExponentialInOut,
         duration,
-        TransformRotateYLens {
+        TransformRotateZLens {
             start: angle,
             end: ELEM_START_ANGLE,
         },
@@ -413,7 +418,7 @@ fn execute_system(
                                 let pos = sel_trans.translation;
                                 spawn_tower_ev.send(SpawnTowerEvent(
                                     *tower_type,
-                                    Vec3::new(pos.x, -0.025, pos.z),
+                                    Vec3::new(pos.x, pos.y, -0.025),
                                 ));
                             }
                         }
@@ -442,7 +447,7 @@ fn execute_system(
     }
 }
 
-const MENU_POS: Vec3 = Vec3::new(1.3, 0., 0.038);
+const MENU_POS: Vec3 = Vec3::new(1.3, -0.038, 0.);
 
 pub fn spawn_pinball_menu_glass(
     parent: &mut ChildBuilder,

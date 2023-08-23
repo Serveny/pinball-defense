@@ -43,7 +43,7 @@ fn top(material: Handle<StandardMaterial>, assets: &PinballDefenseGltfAssets) ->
         PbrBundle {
             mesh: assets.tower_tesla_top.clone(),
             material,
-            transform: Transform::from_xyz(0., 0.02, 0.),
+            transform: Transform::from_xyz(0., 0., 0.02),
             ..default()
         },
         TowerHead,
@@ -58,7 +58,7 @@ fn shot_flash_light(g_sett: &GraphicsSettings, rel_id: Entity) -> impl Bundle {
     (
         Name::new("Shot Flash"),
         PointLightBundle {
-            transform: Transform::from_xyz(0., 0.1, 0.),
+            transform: Transform::from_xyz(0., 0., 0.1),
             point_light: PointLight {
                 intensity: 0., // lumens - roughly a 100W non-halogen incandescent bulb
                 color: Color::BLUE,

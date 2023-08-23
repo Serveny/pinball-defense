@@ -172,8 +172,8 @@ fn spawn(
             let tower_id = p.parent_entity();
             let color = Color::RED;
             let bar_trans =
-                Transform::from_xyz(0.034, -0.007, 0.).with_scale(Vec3::new(0.5, 1., 0.5));
-            let counter_trans = Transform::from_xyz(0.016, 0.004, 0.)
+                Transform::from_xyz(0.034, 0., -0.007).with_scale(Vec3::new(0.5, 1., 0.5));
+            let counter_trans = Transform::from_xyz(0.016, 0., 0.004)
                 .with_scale(Vec3::new(0.25, 0.25, 0.25))
                 .with_rotation(Quat::from_rotation_z(-1.05));
 
@@ -212,7 +212,7 @@ fn create_tower_spawn_animator(pos: Vec3) -> Sequence<Transform> {
 }
 
 fn tower_start_pos(pos: Vec3) -> Vec3 {
-    Vec3::new(pos.x, pos.y - 0.1, pos.z)
+    Vec3::new(pos.x, pos.y, pos.z - 0.1)
 }
 
 #[derive(Event)]

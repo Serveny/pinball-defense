@@ -119,8 +119,8 @@ fn set_lid_open_animation(
             EaseFunction::QuadraticIn,
             std::time::Duration::from_secs(2),
             TransformRotationLens {
-                start: Quat::from_rotation_z(0.),
-                end: Quat::from_rotation_z(signum * PI / 2.),
+                start: Quat::from_rotation_y(0.),
+                end: Quat::from_rotation_y(-signum * PI / 2.),
             },
         );
         cmds.entity(lid_id).insert(Animator::new(tween));
@@ -134,7 +134,7 @@ fn set_foundation_despawn_animation(cmds: &mut Commands, foundation_id: Entity, 
         std::time::Duration::from_secs(2),
         TransformPositionLens {
             start: pos,
-            end: Vec3::new(pos.x, pos.y - 0.1, pos.z),
+            end: Vec3::new(pos.x, pos.y, pos.z - 0.1),
         },
     )
     .with_completed_event(DESPAWN_ENTITY_EVENT_ID);
