@@ -68,6 +68,7 @@ fn add_rapier(app: &mut App) {
         //dt: 1. / 64.,
         //substeps: 4,
         //},
+        gravity: Vec2::new(1., 0.),
         ..default()
     };
     app.insert_resource(rapier_cfg)
