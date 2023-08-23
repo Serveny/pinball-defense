@@ -28,15 +28,13 @@ pub enum AppState {
 fn main() {
     let mut app = App::new();
 
-    app.add_state::<AppState>()
-        .add_loading_state(LoadingState::new(AppState::Loading).continue_to_state(AppState::Game))
-        .add_collection_to_loading_state::<_, PinballDefenseAssets>(AppState::Loading)
-        .add_plugins((
-            DefaultPlugins,
-            FrameTimeDiagnosticsPlugin,
-            TweeningPlugin,
-            WindowTitleLoggerDiagnosticsPlugin::default(),
-        ));
+    app.add_state::<AppState>().add_plugins((
+        DefaultPlugins,
+        FrameTimeDiagnosticsPlugin,
+        TweeningPlugin,
+        WindowTitleLoggerDiagnosticsPlugin::default(),
+    ));
+
     add_rapier(&mut app);
 
     // Only show debug data in debug mode

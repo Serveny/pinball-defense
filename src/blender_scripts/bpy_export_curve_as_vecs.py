@@ -81,7 +81,7 @@ with open(file_name, "w") as file:
     file.write(f"pub const ROAD_POINTS: [Vec3; {len(points)}] = [\n")
 
     for vec in points:
-        file.write("    Vec3::new(%.3f, %.3f, %.3f),\n" % (vec.x, vec.z, -vec.y))
+        file.write("    Vec3::new(%.3f, %.3f, %.3f),\n" % (vec.x, vec.y, vec.z))
 
     file.write("];\n")
 
