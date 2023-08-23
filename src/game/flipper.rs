@@ -131,8 +131,8 @@ fn spawn(
         .with_children(|parent| {
             parent.spawn((
                 TransformBundle::from(Transform {
-                    translation: Vec3::new(0.008, 0.035, sig * 0.115),
-                    rotation: Quat::from_rotation_x(-PI / 2. * 0.85),
+                    translation: Vec3::new(0.008, sig * -0.115, 0.035),
+                    rotation: Quat::from_rotation_y(-PI / 2. * 0.85),
                     ..default()
                 }),
                 RigidBody::KinematicPositionBased,
@@ -167,7 +167,7 @@ fn flipper_system(
         }
         let new_angle = flipper.curr_angle + change_angle;
         let new_clamped_angle = new_angle.clamp(-0.4, 0.4);
-        let pivot_rotation = Quat::from_rotation_y(new_clamped_angle - flipper.curr_angle);
+        let pivot_rotation = Quat::from_rotation_z(new_clamped_angle - flipper.curr_angle);
         let translation = transform.translation;
         transform.rotate_around(translation, pivot_rotation);
         flipper.curr_angle = new_clamped_angle;

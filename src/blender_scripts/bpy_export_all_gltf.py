@@ -14,4 +14,5 @@ bpy.ops.export_scene.gltf(
     export_materials="EXPORT",
     export_format="GLTF_EMBEDDED",
     export_yup=False,
+    export_apply=True,
 )

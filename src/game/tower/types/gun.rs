@@ -77,8 +77,8 @@ fn muzzle_flash_light(g_sett: &GraphicsSettings, rel_id: Entity) -> impl Bundle 
     (
         Name::new("Muzzle Flash"),
         SpotLightBundle {
-            transform: Transform::from_xyz(0., 0., -0.04)
-                .looking_at(Vec3::new(0.0, 0.0, -1.0), Vec3::Z),
+            transform: Transform::from_xyz(0., 0.04, 0.)
+                .looking_at(Vec3::new(0.0, 1.0, 0.0), Vec3::Z),
             spot_light: SpotLight {
                 intensity: 0., // lumens - roughly a 100W non-halogen incandescent bulb
                 color: Color::rgba_u8(215, 205, 117, 255),
@@ -144,7 +144,7 @@ fn mounting(
             mesh: assets.tower_mg_mounting.clone(),
             material: tower_mat.clone(),
             transform: Transform {
-                translation: Vec3::new(0., 0.023, 0.),
+                translation: Vec3::new(0., 0., 0.023),
                 scale: Vec3::new(0.9, 0.9, 0.9),
                 ..default()
             },

@@ -57,7 +57,7 @@ pub fn spawn(
                         ..default()
                     }),
                     transform: Transform {
-                        translation: Vec3::new(0.003, 0.003, 0.034),
+                        translation: Vec3::new(0.003, -0.034, 0.003),
                         scale: Vec3::new(1., 1., init_val),
                         ..default()
                     },
@@ -120,14 +120,14 @@ fn count_up_system(
 // Makes progress visible
 fn scale_system(mut q_progress: Query<(&mut Transform, &ProgressBar)>, time: Res<Time>) {
     for (mut trans, progress) in q_progress.iter_mut() {
-        let mut z = trans.scale.z;
+        let mut y = trans.scale.y;
         let p = progress.0;
-        if z < p - 0.005 {
-            z += time.delta_seconds() * 0.5;
-            trans.scale.z = z.clamp(0., 1.);
-        } else if z > p + 0.005 {
-            z -= time.delta_seconds() * 0.5;
-            trans.scale.z = z.clamp(0., 1.);
+        if y < p - 0.005 {
+            y += time.delta_seconds() * 0.5;
+            trans.scale.y = y.clamp(0., 1.);
+        } else if y > p + 0.005 {
+            y -= time.delta_seconds() * 0.5;
+            trans.scale.y = y.clamp(0., 1.);
         }
     }
 }

@@ -137,7 +137,7 @@ pub(super) fn setup_camera(
 ) {
     cmds.spawn((
         Camera3dBundle {
-            transform: Transform::from_translation(Vec3::new(0.17, -2.0, 2.))
+            transform: Transform::from_translation(Vec3::new(1.7, 0., 1.7))
                 .looking_at(Vec3::ZERO, Vec3::Z),
             camera: Camera {
                 order: 1,

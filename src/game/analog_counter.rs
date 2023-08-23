@@ -99,7 +99,7 @@ pub fn spawn_10_digit(
                 PbrBundle {
                     mesh: assets.analog_counter_cylinder.clone(),
                     material: assets.analog_counter_cylinder_material.clone(),
-                    transform: Transform::from_xyz(0., 0., i as f32 * 0.0242 - 0.096),
+                    transform: Transform::from_xyz(0., i as f32 * -0.0242 + 0.096, 0.),
                     ..default()
                 },
                 Digit::new(i),
@@ -110,7 +110,7 @@ pub fn spawn_10_digit(
             PbrBundle {
                 mesh: assets.point_sign.clone(),
                 material: assets.points_sign_material.clone(),
-                transform: Transform::from_xyz(-0.055, 0.047, 0.),
+                transform: Transform::from_xyz(-0.055, 0., 0.047),
                 ..default()
             },
         ));
@@ -147,7 +147,7 @@ pub fn spawn_2_digit(
                 PbrBundle {
                     mesh: assets.analog_counter_cylinder.clone(),
                     material: assets.analog_counter_cylinder_material.clone(),
-                    transform: Transform::from_xyz(0., 0., i as f32 * 0.022 - 0.012),
+                    transform: Transform::from_xyz(0., i as f32 * -0.022 + 0.012, 0.),
                     ..default()
                 },
                 Digit::new(i),
@@ -158,7 +158,7 @@ pub fn spawn_2_digit(
             PbrBundle {
                 mesh: assets.level_sign.clone(),
                 material: assets.level_sign_material.clone(),
-                transform: Transform::from_xyz(-0.055, 0.047, 0.),
+                transform: Transform::from_xyz(-0.055, 0., 0.047),
                 ..default()
             },
         ));
@@ -177,15 +177,16 @@ fn turn_digit_system(mut q_digit: Query<(&mut Transform, &mut Digit)>, time: Res
     for (mut trans, mut digit) in q_digit.iter_mut() {
         if digit.is_active {
             let current_rot = digit.current_rot_rad10.floor();
-            let target_rot = (TAU * digit.number as f32).floor();
+            let target_rot = (-TAU * digit.number as f32).rem_euclid(TAU * 10.).floor();
+            //log!("{current_rot} == {target_rot}");
             if target_rot != current_rot {
-                let rotation_to_add = TURN_SPEED_RADIANS_PER_SECOND * time.delta_seconds();
-                trans.rotate_z(rotation_to_add);
+                let rotation_to_add = -TURN_SPEED_RADIANS_PER_SECOND * time.delta_seconds();
+                trans.rotate_y(rotation_to_add);
                 digit.current_rot_rad10 += rotation_to_add * 10.;
-                digit.current_rot_rad10 %= TAU * 10.;
+                digit.current_rot_rad10 = digit.current_rot_rad10.rem_euclid(TAU * 10.);
             } else {
-                let angle = TAU * digit.number as f32;
-                *trans = trans.with_rotation(Quat::from_rotation_z(angle / 10.));
+                let angle = (-TAU * digit.number as f32).rem_euclid(TAU * 10.).floor();
+                *trans = trans.with_rotation(Quat::from_rotation_y(angle / 10.));
                 digit.current_rot_rad10 = angle;
                 digit.is_active = false;
             }
