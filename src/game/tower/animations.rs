@@ -11,7 +11,7 @@ pub(super) fn rotate_always_system(
     time: Res<Time>,
 ) {
     for mut trans in q_rha.iter_mut() {
-        trans.rotate(Quat::from_rotation_y(time.delta_seconds()));
+        trans.rotate(Quat::from_rotation_z(time.delta_seconds()));
     }
 }
 
@@ -26,7 +26,7 @@ pub(super) fn rotate_to_target_system(
         if let Ok((tower, target_pos)) = q_parent.get(rel_id.0) {
             if let Some(target_pos) = target_pos.0 {
                 let direction = target_pos - tower.pos;
-                rot_trans.look_at(direction, Vec3::Y);
+                rot_trans.look_at(direction, Vec3::Z);
             }
         }
     }

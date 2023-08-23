@@ -51,7 +51,7 @@ fn head(
         PbrBundle {
             mesh: assets.tower_microwave_top.clone(),
             material,
-            transform: Transform::from_xyz(0., 0.04, 0.),
+            transform: Transform::from_xyz(0., 0., 0.04),
             ..default()
         },
         RotateToTarget,
@@ -67,8 +67,8 @@ fn slow_down_flash_light(g_sett: &GraphicsSettings, rel_id: Entity) -> impl Bund
     (
         Name::new("Slow Down Flash"),
         SpotLightBundle {
-            transform: Transform::from_xyz(0., 0., -0.04)
-                .looking_at(Vec3::new(0.0, 0.0, -1.0), Vec3::Z),
+            transform: Transform::from_xyz(0., 0.04, 0.)
+                .looking_at(Vec3::new(0.0, 1.0, 0.0), Vec3::Z),
             spot_light: SpotLight {
                 intensity: 0., // lumens - roughly a 100W non-halogen incandescent bulb
                 color: Color::ORANGE_RED,

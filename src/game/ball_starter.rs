@@ -40,7 +40,7 @@ fn spawn_ball_system(
 struct BallSpawn(pub Vec3);
 
 fn setup(mut cmds: Commands) {
-    cmds.insert_resource(BallSpawn(Vec3::new(0.96, -0.26, -0.6)));
+    cmds.insert_resource(BallSpawn(Vec3::new(0.96, 0.6, -0.02)));
 }
 const HALF_SIZE: Vec3 = Vec3 {
     x: 0.099,

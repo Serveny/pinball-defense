@@ -22,7 +22,7 @@ mod analog_counter;
 mod ball;
 mod ball_starter;
 mod camera;
-//mod colliders;
+mod colliders;
 mod controls;
 mod enemy;
 mod events;
@@ -103,7 +103,7 @@ fn setup_ambient_lights(mut cmds: Commands, g_sett: Res<GraphicsSettings>) {
             shadows_enabled: g_sett.is_shadows,
             ..default()
         },
-        transform: Transform::from_xyz(0.0, 2.0, 0.0)
+        transform: Transform::from_xyz(0.0, -0.0, 2.0)
             .with_rotation(Quat::from_rotation_x(-PI / 4.)),
         ..default()
     });

@@ -134,8 +134,8 @@ fn spawn(
                 materials,
                 parent.parent_entity(),
                 Transform {
-                    translation: Vec3::new(0., 0.04, 0.),
-                    rotation: Quat::from_rotation_z(f32::to_radians(90.)),
+                    translation: Vec3::new(0., 0., 0.04),
+                    rotation: Quat::from_rotation_y(f32::to_radians(90.)),
                     scale: Vec3::new(0.5, 1., 0.5),
                 },
                 Color::ORANGE_RED,

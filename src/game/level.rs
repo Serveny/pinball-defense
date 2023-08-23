@@ -182,7 +182,7 @@ fn update_level_counter_system(
 //material: material_handle,
 //// Do not know, how to rotate the generated texture, so I rotate the object
 //transform: Transform::from_rotation(Quat::from_rotation_y(PI / 2.))
-//.with_translation(Vec3::new(0.98, 0.051, 0.56)),
+//.with_translation(Vec3::new(0.98, -0.56, 0.051)),
 //..default()
 //},
 //PointDisplay,

@@ -8,6 +8,7 @@ use super::progress_bar::ProgressBarCountUpEvent;
 use super::GameState;
 use crate::prelude::*;
 use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
+use std::ops::Range;
 
 pub struct BallPlugin;
 
@@ -89,6 +90,10 @@ pub fn spawn(
 #[derive(Event)]
 pub struct OnBallDespawnEvent;
 
+const X_RANGE: Range<f32> = -1.3..1.3;
+const Y_RANGE: Range<f32> = -0.72..0.72;
+const HIT_RANGE: Range<f32> = -0.2..0.12;
+
 fn ball_reset_system(
     mut cmds: Commands,
     mut evw: EventWriter<OnBallDespawnEvent>,
@@ -97,9 +102,9 @@ fn ball_reset_system(
     q_life_bar: Query<Entity, With<LifeBar>>,
 ) {
     for (entity, transform) in q_ball.iter() {
-        let trans = transform.translation;
-        if trans.y <= -1. || trans.y >= 0.4 || (trans.x > 1.2 && trans.z > -0.3) {
-            if trans.x > 1.2 {
+        let ball_pos = transform.translation;
+        if !X_RANGE.contains(&ball_pos.x) || !Y_RANGE.contains(&ball_pos.y) {
+            if ball_pos.x > 1.2 && HIT_RANGE.contains(&ball_pos.x) {
                 prog_bar_ev.send(ProgressBarCountUpEvent(q_life_bar.single(), -0.05));
             }
             log!("🎱 Despawn ball");
