@@ -83,12 +83,11 @@ type QueryContactLight<'w, 's, 'a> = Query<
 >;
 
 pub(super) fn disable_contact_light_system(mut q_light: QueryContactLight, time: Res<Time>) {
-    for (parent, mut visi, mut light, _) in q_light.iter_mut() {
+    for (_, mut visi, mut light, _) in q_light.iter_mut() {
         if *visi != Visibility::Hidden {
             let time = time.delta_seconds() * 64.;
             light.intensity -= time;
             if light.intensity <= 0. {
-                log!("Disable contact light for {:?}", parent.get());
                 light.intensity = 0.;
                 *visi = Visibility::Hidden;
             }

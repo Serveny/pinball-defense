@@ -172,10 +172,10 @@ fn spawn(
             let tower_id = p.parent_entity();
             let color = Color::RED;
             let bar_trans =
-                Transform::from_xyz(0.034, 0., -0.007).with_scale(Vec3::new(0.5, 1., 0.5));
+                Transform::from_xyz(0.034, 0., -0.007).with_scale(Vec3::new(0.5, 0.5, 1.));
             let counter_trans = Transform::from_xyz(0.016, 0., 0.004)
                 .with_scale(Vec3::new(0.25, 0.25, 0.25))
-                .with_rotation(Quat::from_rotation_z(-1.05));
+                .with_rotation(Quat::from_rotation_y(1.05));
 
             p.spawn(tower_base_bundle(assets, mats));
             p.spawn(contact_light_bundle(g_sett, color));
