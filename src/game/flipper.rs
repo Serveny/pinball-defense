@@ -10,7 +10,7 @@ pub struct FlipperPlugin;
 impl Plugin for FlipperPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
-            Update,
+            FixedUpdate,
             (flipper_system, on_collision_with_ball_system).run_if(in_state(GameState::Ingame)),
         );
     }
@@ -105,47 +105,60 @@ fn spawn(
     flipper_type: FlipperType,
     transform: Transform,
     parent: &mut ChildBuilder,
-    materials: &mut Assets<StandardMaterial>,
+    mats: &mut Assets<StandardMaterial>,
     flipper_mesh: &Handle<Mesh>,
 ) {
     let sig = flipper_type.signum();
     parent
-        .spawn((
-            PbrBundle {
-                mesh: flipper_mesh.clone(),
-                material: materials.add(StandardMaterial {
-                    base_color: Color::ORANGE,
-                    perceptual_roughness: 0.5,
-                    metallic: 0.5,
-                    reflectance: 0.5,
-                    ..default()
-                }),
-                transform,
-                ..default()
-            },
-            Flipper::new(),
-            Name::new(flipper_type.to_string()),
-            FlipperStatus::Idle,
-            flipper_type,
-        ))
+        .spawn(flipper(flipper_type, flipper_mesh, mats, transform))
         .with_children(|parent| {
-            parent.spawn((
-                TransformBundle::from(Transform {
-                    translation: Vec3::new(0.008, sig * -0.115, 0.035),
-                    rotation: Quat::from_rotation_y(-PI / 2. * 0.85),
-                    ..default()
-                }),
-                RigidBody::KinematicPositionBased,
-                Collider::cuboid(0.03, 0.12),
-                ActiveEvents::COLLISION_EVENTS,
-                Restitution {
-                    coefficient: 0.1,
-                    combine_rule: CoefficientCombineRule::Multiply,
-                },
-                COLLIDE_ONLY_WITH_BALL,
-                FlipperCollider,
-            ));
+            parent.spawn(collider(sig));
         });
+}
+
+fn flipper(
+    flipper_type: FlipperType,
+    mesh: &Handle<Mesh>,
+    mats: &mut Assets<StandardMaterial>,
+    transform: Transform,
+) -> impl Bundle {
+    (
+        PbrBundle {
+            mesh: mesh.clone(),
+            material: mats.add(StandardMaterial {
+                base_color: Color::ORANGE,
+                perceptual_roughness: 0.5,
+                metallic: 0.5,
+                reflectance: 0.5,
+                ..default()
+            }),
+            transform,
+            ..default()
+        },
+        Flipper::new(),
+        Name::new(flipper_type.to_string()),
+        FlipperStatus::Idle,
+        flipper_type,
+    )
+}
+
+fn collider(sig: f32) -> impl Bundle {
+    (
+        TransformBundle::from(Transform {
+            translation: Vec3::new(0.008, sig * -0.115, 0.035),
+            rotation: Quat::from_rotation_y(-PI / 2. * 0.85),
+            ..default()
+        }),
+        RigidBody::KinematicPositionBased,
+        Collider::cuboid(0.03, 0.12),
+        ActiveEvents::COLLISION_EVENTS,
+        Restitution {
+            coefficient: 0.1,
+            combine_rule: CoefficientCombineRule::Multiply,
+        },
+        COLLIDE_ONLY_WITH_BALL,
+        FlipperCollider,
+    )
 }
 
 fn flipper_system(

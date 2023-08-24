@@ -25,15 +25,19 @@ pub enum AppState {
     Game,
 }
 
+pub const TICK_TIME: f32 = 1. / 240.;
+
 fn main() {
     let mut app = App::new();
 
-    app.add_state::<AppState>().add_plugins((
-        DefaultPlugins,
-        FrameTimeDiagnosticsPlugin,
-        TweeningPlugin,
-        WindowTitleLoggerDiagnosticsPlugin::default(),
-    ));
+    app.add_state::<AppState>()
+        .add_plugins((
+            DefaultPlugins,
+            FrameTimeDiagnosticsPlugin,
+            TweeningPlugin,
+            WindowTitleLoggerDiagnosticsPlugin::default(),
+        ))
+        .insert_resource(FixedTime::new_from_secs(TICK_TIME));
 
     add_rapier(&mut app);
 
@@ -60,15 +64,20 @@ fn add_debug_plugins(app: &mut App) {
 fn add_rapier(app: &mut App) {
     let rapier_cfg = RapierConfiguration {
         //timestep_mode: TimestepMode::Variable {
-        //max_dt: 1. / 128.,
+        //max_dt: TICK_TIME,
+        //time_scale: 1.,
+        //substeps: 2,
+        //},
+        //timestep_mode: TimestepMode::Fixed {
+        //dt: TICK_TIME,
+        //substeps: 2,
+        //},
+        //timestep_mode: TimestepMode::Interpolated {
+        //dt: TICK_TIME,
         //time_scale: 1.,
         //substeps: 1,
         //},
-        //timestep_mode: TimestepMode::Fixed {
-        //dt: 1. / 256.,
-        //substeps: 1,
-        //},
-        gravity: Vec2::new(1., 0.),
+        gravity: Vec2::X,
         ..default()
     };
     app.insert_resource(rapier_cfg)
