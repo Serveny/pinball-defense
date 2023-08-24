@@ -99,6 +99,7 @@ fn spawn(
 ) {
     parent
         .spawn((
+            Name::new("Enemy"),
             PbrBundle {
                 mesh: meshes.add(Mesh::from(shape::UVSphere {
                     radius: 0.03,
@@ -125,7 +126,6 @@ fn spawn(
             },
             ActiveEvents::COLLISION_EVENTS,
             Enemy::new(),
-            Name::new("Enemy"),
         ))
         .with_children(|parent| {
             progress_bar::spawn(
@@ -136,7 +136,7 @@ fn spawn(
                 Transform {
                     translation: Vec3::new(0., 0., 0.04),
                     rotation: Quat::from_rotation_y(f32::to_radians(90.)),
-                    scale: Vec3::new(0.5, 1., 0.5),
+                    scale: Vec3::new(0.5, 0.5, 1.),
                 },
                 Color::ORANGE_RED,
                 1.,

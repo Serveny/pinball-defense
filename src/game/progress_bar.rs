@@ -23,51 +23,69 @@ pub struct ProgressBar(pub f32);
 pub fn spawn(
     parent: &mut ChildBuilder,
     assets: &PinballDefenseGltfAssets,
-    materials: &mut Assets<StandardMaterial>,
+    mats: &mut Assets<StandardMaterial>,
     rel_id: Entity,
     transform: Transform,
     color: Color,
     init_val: f32,
 ) {
     parent
-        .spawn((
-            PbrBundle {
-                mesh: assets.progress_bar_frame.clone(),
-                material: materials.add(StandardMaterial {
-                    base_color: Color::BLACK,
-                    perceptual_roughness: 0.4,
-                    metallic: 0.6,
-                    reflectance: 0.5,
-                    ..default()
-                }),
-                transform,
+        .spawn(frame_bundle(assets, mats, transform))
+        .with_children(|parent| {
+            parent.spawn(bar_bundle(assets, mats, init_val, rel_id, color));
+        });
+}
+
+fn frame_bundle(
+    assets: &PinballDefenseGltfAssets,
+    mats: &mut Assets<StandardMaterial>,
+    transform: Transform,
+) -> impl Bundle {
+    (
+        Name::new("Progress Bar Frame"),
+        PbrBundle {
+            mesh: assets.progress_bar_frame.clone(),
+            material: mats.add(StandardMaterial {
+                base_color: Color::BLACK,
+                perceptual_roughness: 0.4,
+                metallic: 0.6,
+                reflectance: 0.5,
+                ..default()
+            }),
+            transform,
+            ..default()
+        },
+    )
+}
+
+fn bar_bundle(
+    assets: &PinballDefenseGltfAssets,
+    mats: &mut Assets<StandardMaterial>,
+    init_val: f32,
+    rel_id: Entity,
+    color: Color,
+) -> impl Bundle {
+    (
+        PbrBundle {
+            mesh: assets.progress_bar.clone(),
+            material: mats.add(StandardMaterial {
+                base_color: color,
+                perceptual_roughness: 0.4,
+                metallic: 0.6,
+                reflectance: 0.5,
+                ..default()
+            }),
+            transform: Transform {
+                translation: Vec3::new(0.003, -0.034, 0.003),
+                scale: Vec3::new(1., init_val, 1.),
                 ..default()
             },
-            Name::new("Progress Bar Frame"),
-        ))
-        .with_children(|parent| {
-            parent.spawn((
-                PbrBundle {
-                    mesh: assets.progress_bar.clone(),
-                    material: materials.add(StandardMaterial {
-                        base_color: color,
-                        perceptual_roughness: 0.4,
-                        metallic: 0.6,
-                        reflectance: 0.5,
-                        ..default()
-                    }),
-                    transform: Transform {
-                        translation: Vec3::new(0.003, -0.034, 0.003),
-                        scale: Vec3::new(1., 1., init_val),
-                        ..default()
-                    },
-                    ..default()
-                },
-                ProgressBar(init_val),
-                RelEntity(rel_id),
-                Name::new("Progress Bar"),
-            ));
-        });
+            ..default()
+        },
+        ProgressBar(init_val),
+        RelEntity(rel_id),
+        Name::new("Progress Bar"),
+    )
 }
 
 #[derive(Event)]

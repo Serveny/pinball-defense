@@ -2,12 +2,11 @@ import os
 from pathlib import Path
 import bpy
 from bpy.types import MeshPolygon, MeshVertex, MeshEdge
-from mathutils import Vector, Quaternion, Euler
-from math import sqrt
+from mathutils import Vector
 
 dir_name = Path(__file__).parent.parent
 file_name = os.path.join(dir_name, "../../src/game/colliders.rs")
-face_thickness = 0.002
+face_thickness = 0.001
 
 print("\n-------------------------------------\n")
 
