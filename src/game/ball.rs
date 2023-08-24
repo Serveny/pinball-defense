@@ -46,7 +46,7 @@ pub fn spawn(
                 ..default()
             })),
             material: materials.add(StandardMaterial {
-                base_color: Color::SILVER,
+                base_color: Color::GOLD,
                 perceptual_roughness: 0.,
                 metallic: 1.,
                 reflectance: 1.,
