@@ -95,53 +95,55 @@ fn spawn(
     parent: &mut ChildBuilder,
     assets: &PinballDefenseGltfAssets,
     meshes: &mut Assets<Mesh>,
-    materials: &mut Assets<StandardMaterial>,
+    mats: &mut Assets<StandardMaterial>,
 ) {
-    parent
-        .spawn((
-            Name::new("Enemy"),
-            PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::UVSphere {
-                    radius: 0.03,
-                    ..default()
-                })),
-                material: materials.add(StandardMaterial {
-                    base_color: Color::RED,
-                    perceptual_roughness: 0.,
-                    metallic: 1.,
-                    reflectance: 1.,
-                    ..default()
-                }),
-                transform: Transform::from_translation(ROAD_POINTS[0]),
+    parent.spawn(enemy(meshes, mats)).with_children(|parent| {
+        progress_bar::spawn(
+            parent,
+            assets,
+            mats,
+            parent.parent_entity(),
+            Transform {
+                translation: Vec3::new(0., 0., 0.04),
+                rotation: Quat::from_rotation_y(f32::to_radians(90.)),
+                scale: Vec3::new(0.5, 0.5, 1.),
+            },
+            Color::ORANGE_RED,
+            1.,
+        )
+    });
+}
+
+fn enemy(meshes: &mut Assets<Mesh>, mats: &mut Assets<StandardMaterial>) -> impl Bundle {
+    (
+        Name::new("Enemy"),
+        PbrBundle {
+            mesh: meshes.add(Mesh::from(shape::UVSphere {
+                radius: 0.03,
                 ..default()
-            },
-            Sensor,
-            RigidBody::KinematicPositionBased,
-            Collider::ball(0.03),
-            ColliderDebugColor(Color::RED),
-            CollisionGroups::new(ENEMY.union(INTERACT_WITH_BALL), INTERACT_WITH_ENEMY),
-            Restitution {
-                coefficient: 2.,
-                combine_rule: CoefficientCombineRule::Multiply,
-            },
-            ActiveEvents::COLLISION_EVENTS,
-            Enemy::new(),
-        ))
-        .with_children(|parent| {
-            progress_bar::spawn(
-                parent,
-                assets,
-                materials,
-                parent.parent_entity(),
-                Transform {
-                    translation: Vec3::new(0., 0., 0.04),
-                    rotation: Quat::from_rotation_y(f32::to_radians(90.)),
-                    scale: Vec3::new(0.5, 0.5, 1.),
-                },
-                Color::ORANGE_RED,
-                1.,
-            )
-        });
+            })),
+            material: mats.add(StandardMaterial {
+                base_color: Color::RED,
+                perceptual_roughness: 0.,
+                metallic: 1.,
+                reflectance: 1.,
+                ..default()
+            }),
+            transform: Transform::from_translation(ROAD_POINTS[0]),
+            ..default()
+        },
+        Sensor,
+        RigidBody::KinematicPositionBased,
+        Collider::ball(0.03),
+        ColliderDebugColor(Color::RED),
+        CollisionGroups::new(ENEMY.union(INTERACT_WITH_BALL), INTERACT_WITH_ENEMY),
+        Restitution {
+            coefficient: 2.,
+            combine_rule: CoefficientCombineRule::Multiply,
+        },
+        ActiveEvents::COLLISION_EVENTS,
+        Enemy::new(),
+    )
 }
 
 fn pinball_hit_system(
