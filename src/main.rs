@@ -65,8 +65,8 @@ fn add_rapier(app: &mut App) {
         //substeps: 1,
         //},
         //timestep_mode: TimestepMode::Fixed {
-        //dt: 1. / 64.,
-        //substeps: 4,
+        //dt: 1. / 256.,
+        //substeps: 1,
         //},
         gravity: Vec2::new(1., 0.),
         ..default()
