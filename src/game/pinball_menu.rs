@@ -162,19 +162,21 @@ fn spawn_tower_menu(
     unlocked_towers: &UnlockedTowers,
     pos: Vec3,
 ) {
-    parent
-        .spawn((
-            spatial_from_pos(pos),
-            PinballMenu::Tower,
-            PinballMenuStatus::Disabled,
-            Name::new("Pinball Tower Menu"),
-        ))
-        .with_children(|p| {
-            let mut angles = CardAngles::new(unlocked_towers.0.len() as u8);
-            for tower in unlocked_towers.0.iter() {
-                spawn_menu_element(*tower, p, assets, g_sett, angles.next(), 0.1);
-            }
-        });
+    parent.spawn(menu(pos)).with_children(|p| {
+        let mut angles = CardAngles::new(unlocked_towers.0.len() as u8);
+        for tower in unlocked_towers.0.iter() {
+            spawn_menu_element(*tower, p, assets, g_sett, angles.next(), 0.1);
+        }
+    });
+}
+
+fn menu(pos: Vec3) -> impl Bundle {
+    (
+        Name::new("Pinball Tower Menu"),
+        spatial_from_pos(pos),
+        PinballMenu::Tower,
+        PinballMenuStatus::Disabled,
+    )
 }
 
 fn spawn_upgrade_menu(
@@ -184,19 +186,21 @@ fn spawn_upgrade_menu(
     unlocked_tower_upgrades: &UnlockedUpgrades,
     pos: Vec3,
 ) {
-    parent
-        .spawn((
-            spatial_from_pos(pos),
-            PinballMenu::Upgrade,
-            PinballMenuStatus::Disabled,
-            Name::new("Pinball Upgrade Menu"),
-        ))
-        .with_children(|p| {
-            let mut angles = CardAngles::new(unlocked_tower_upgrades.0.len() as u8);
-            for tower_upgrade in unlocked_tower_upgrades.0.iter() {
-                spawn_menu_element(*tower_upgrade, p, assets, g_sett, angles.next(), 0.1);
-            }
-        });
+    parent.spawn(menu_element(pos)).with_children(|p| {
+        let mut angles = CardAngles::new(unlocked_tower_upgrades.0.len() as u8);
+        for tower_upgrade in unlocked_tower_upgrades.0.iter() {
+            spawn_menu_element(*tower_upgrade, p, assets, g_sett, angles.next(), 0.1);
+        }
+    });
+}
+
+fn menu_element(pos: Vec3) -> impl Bundle {
+    (
+        Name::new("Pinball Upgrade Menu"),
+        spatial_from_pos(pos),
+        PinballMenu::Upgrade,
+        PinballMenuStatus::Disabled,
+    )
 }
 
 // Only pub(crate)for collision events
@@ -324,23 +328,26 @@ fn activate(
     q_pbm_el: QueryPinballMenuElements,
 ) -> PinballMenuStatus {
     q_pbm_el.for_each(|(entity, _)| {
-        cmds.entity(entity).insert((
-            // Active status collider
-            ColliderDebugColor(Color::GREEN),
-            Sensor,
-            ActiveEvents::COLLISION_EVENTS,
-            Collider::convex_polyline(vec![
-                Vec2::new(-0.98, -0.09),
-                Vec2::new(-0.98, 0.08),
-                Vec2::new(-0.83, 0.07),
-                Vec2::new(-0.83, -0.07),
-            ])
-            .expect("Cannot build menu element convex"),
-            COLLIDE_ONLY_WITH_BALL,
-        ));
+        cmds.entity(entity).insert(active_collider());
     });
     q_lights.for_each_mut(|mut visi| *visi = Visibility::Inherited);
     PinballMenuStatus::Activated
+}
+
+fn active_collider() -> impl Bundle {
+    (
+        ColliderDebugColor(Color::GREEN),
+        Sensor,
+        ActiveEvents::COLLISION_EVENTS,
+        Collider::convex_polyline(vec![
+            Vec2::new(-0.98, -0.09),
+            Vec2::new(-0.98, 0.08),
+            Vec2::new(-0.83, 0.07),
+            Vec2::new(-0.83, -0.07),
+        ])
+        .expect("Cannot build menu element convex"),
+        COLLIDE_ONLY_WITH_BALL,
+    )
 }
 
 fn deactivate(
@@ -449,12 +456,11 @@ fn execute_system(
 
 const MENU_POS: Vec3 = Vec3::new(1.3, -0.038, 0.);
 
-pub fn spawn_pinball_menu_glass(
-    parent: &mut ChildBuilder,
+pub fn pinball_menu_glass(
     assets: &PinballDefenseGltfAssets,
     mats: &mut Assets<StandardMaterial>,
-) {
-    parent.spawn((
+) -> impl Bundle {
+    (
         PbrBundle {
             mesh: assets.world_1_menu_glass.clone(),
             material: mats.add(StandardMaterial {
@@ -469,7 +475,7 @@ pub fn spawn_pinball_menu_glass(
             ..default()
         },
         Name::new("Pinball menu glass"),
-    ));
+    )
 }
 
 #[derive(Component)]
