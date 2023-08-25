@@ -50,11 +50,11 @@ fn spawn_pinball_world(
     ))
     .with_children(|p| {
         // World mesh
-        //p.spawn((PbrBundle {
-        //mesh: assets.world_1.clone(),
-        //material: assets.world_1_material.clone(),
-        //..default()
-        //},));
+        p.spawn((PbrBundle {
+            mesh: assets.world_1.clone(),
+            material: assets.world_1_material.clone(),
+            ..default()
+        },));
 
         // Map colliders
         for coll in super::colliders::colliders() {

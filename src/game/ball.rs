@@ -66,7 +66,7 @@ pub fn spawn(
         Sleeping::disabled(),
         ColliderMassProperties::Mass(0.081),
         Restitution::coefficient(0.5),
-        Friction::coefficient(1.),
+        Friction::coefficient(0.01),
         Velocity::default(),
         PinBall,
         Name::new("Ball"),

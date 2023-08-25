@@ -70,26 +70,12 @@ fn add_debug_plugins(app: &mut App) {
 
 fn add_rapier(app: &mut App) {
     let rapier_cfg = RapierConfiguration {
-        //timestep_mode: TimestepMode::Variable {
-        //max_dt: TICK_TIME,
-        //time_scale: 1.,
-        //substeps: 2,
-        //},
-        //timestep_mode: TimestepMode::Fixed {
-        //dt: TICK_TIME,
-        //substeps: 2,
-        //},
-        //timestep_mode: TimestepMode::Interpolated {
-        //dt: TICK_TIME,
-        //time_scale: 1.,
-        //substeps: 1,
-        //},
         timestep_mode: TimestepMode::Variable {
             max_dt: TICK_TIME,
             time_scale: 1.0,
             substeps: 2,
         },
-        gravity: Vec2::X,
+        gravity: Vec2::X * 4.,
         ..default()
     };
     app.insert_resource(rapier_cfg)
