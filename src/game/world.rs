@@ -1,4 +1,5 @@
 use super::ball_starter::BallStarterPlugin;
+use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 use super::flipper::FlipperPlugin;
 use super::level::{LevelCounterId, PointCounterId};
 use super::pinball_menu::pinball_menu_glass;
@@ -49,16 +50,21 @@ fn spawn_pinball_world(
     ))
     .with_children(|p| {
         // World mesh
-        p.spawn((
-            PbrBundle {
-                mesh: assets.world_1.clone(),
-                material: assets.world_1_material.clone(),
-                ..default()
-            },
-            super::colliders::create_collider(),
-            ColliderDebugColor(Color::RED),
-        ));
+        //p.spawn((PbrBundle {
+        //mesh: assets.world_1.clone(),
+        //material: assets.world_1_material.clone(),
+        //..default()
+        //},));
 
+        // Map colliders
+        for coll in super::colliders::colliders() {
+            p.spawn((
+                SpatialBundle::default(),
+                coll,
+                ColliderDebugColor(Color::RED),
+                COLLIDE_ONLY_WITH_BALL,
+            ));
+        }
         // Ball starter
         let bs_pos = Vec3::new(1.175, 0.657, -0.018);
         super::ball_starter::spawn(p, bs_pos, &mut meshes, &mut mats);

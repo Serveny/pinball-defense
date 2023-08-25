@@ -2,6 +2,7 @@ use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 //#[cfg(debug_assertions)]
 //use bevy_debug_grid::*;
 pub use bevy_asset_loader::prelude::*;
+use bevy_framepace::Limiter;
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_tweening::TweeningPlugin;
@@ -25,7 +26,7 @@ pub enum AppState {
     Game,
 }
 
-pub const TICK_TIME: f32 = 1. / 240.;
+pub const TICK_TIME: f32 = 1. / 120.;
 
 fn main() {
     let mut app = App::new();
@@ -33,11 +34,13 @@ fn main() {
     app.add_state::<AppState>()
         .add_plugins((
             DefaultPlugins,
+            bevy_framepace::FramepacePlugin,
             FrameTimeDiagnosticsPlugin,
             TweeningPlugin,
             WindowTitleLoggerDiagnosticsPlugin::default(),
         ))
-        .insert_resource(FixedTime::new_from_secs(TICK_TIME));
+        .insert_resource(FixedTime::new_from_secs(TICK_TIME))
+        .add_systems(Startup, set_framerate);
 
     add_rapier(&mut app);
 
@@ -52,6 +55,10 @@ fn main() {
     app.insert_resource(GraphicsSettings::high());
 
     app.add_plugins((LoadingScreenPlugin, GamePlugin)).run();
+}
+
+fn set_framerate(mut settings: ResMut<bevy_framepace::FramepaceSettings>) {
+    settings.limiter = Limiter::from_framerate(1. / TICK_TIME as f64);
 }
 
 #[cfg(debug_assertions)]
@@ -77,6 +84,11 @@ fn add_rapier(app: &mut App) {
         //time_scale: 1.,
         //substeps: 1,
         //},
+        timestep_mode: TimestepMode::Variable {
+            max_dt: TICK_TIME,
+            time_scale: 1.0,
+            substeps: 2,
+        },
         gravity: Vec2::X,
         ..default()
     };
