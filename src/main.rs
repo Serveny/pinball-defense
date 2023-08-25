@@ -1,6 +1,4 @@
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
-//#[cfg(debug_assertions)]
-//use bevy_debug_grid::*;
 pub use bevy_asset_loader::prelude::*;
 use bevy_framepace::Limiter;
 #[cfg(debug_assertions)]
@@ -26,7 +24,8 @@ pub enum AppState {
     Game,
 }
 
-pub const TICK_TIME: f32 = 1. / 120.;
+const MAX_FRAME_RATE: f32 = 144.;
+const TICK_TIME: f32 = 1. / MAX_FRAME_RATE;
 
 fn main() {
     let mut app = App::new();
@@ -58,24 +57,25 @@ fn main() {
 }
 
 fn set_framerate(mut settings: ResMut<bevy_framepace::FramepaceSettings>) {
-    settings.limiter = Limiter::from_framerate(1. / TICK_TIME as f64);
+    settings.limiter = Limiter::from_framerate(MAX_FRAME_RATE as f64);
 }
 
 #[cfg(debug_assertions)]
 fn add_debug_plugins(app: &mut App) {
-    app.add_plugins((RapierDebugRenderPlugin::default(), WorldInspectorPlugin::default()))
-        //.add_plugin(DebugGridPlugin::with_floor_grid())
-        ;
+    app.add_plugins((
+        RapierDebugRenderPlugin::default(),
+        WorldInspectorPlugin::default(),
+    ));
 }
 
 fn add_rapier(app: &mut App) {
     let rapier_cfg = RapierConfiguration {
         timestep_mode: TimestepMode::Variable {
-            max_dt: TICK_TIME,
+            max_dt: 1. / 60.,
             time_scale: 1.0,
             substeps: 2,
         },
-        gravity: Vec2::X * 4.,
+        gravity: Vec2::X * 2.,
         ..default()
     };
     app.insert_resource(rapier_cfg)
