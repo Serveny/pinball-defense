@@ -71,31 +71,17 @@ impl std::fmt::Display for FlipperType {
 pub fn spawn_right(
     transform: Transform,
     parent: &mut ChildBuilder,
-    materials: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseGltfAssets,
 ) {
-    spawn(
-        FlipperType::Right,
-        transform,
-        parent,
-        materials,
-        &assets.flipper_right,
-    );
+    spawn(FlipperType::Right, transform, parent, assets);
 }
 
 pub fn spawn_left(
     transform: Transform,
     parent: &mut ChildBuilder,
-    materials: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseGltfAssets,
 ) {
-    spawn(
-        FlipperType::Left,
-        transform,
-        parent,
-        materials,
-        &assets.flipper_left,
-    );
+    spawn(FlipperType::Left, transform, parent, assets);
 }
 
 #[derive(Component)]
@@ -105,12 +91,11 @@ fn spawn(
     flipper_type: FlipperType,
     transform: Transform,
     parent: &mut ChildBuilder,
-    mats: &mut Assets<StandardMaterial>,
-    flipper_mesh: &Handle<Mesh>,
+    assets: &PinballDefenseGltfAssets,
 ) {
     let sig = flipper_type.signum();
     parent
-        .spawn(flipper(flipper_type, flipper_mesh, mats, transform))
+        .spawn(flipper(flipper_type, assets, transform))
         .with_children(|parent| {
             parent.spawn(collider(sig));
         });
@@ -118,20 +103,16 @@ fn spawn(
 
 fn flipper(
     flipper_type: FlipperType,
-    mesh: &Handle<Mesh>,
-    mats: &mut Assets<StandardMaterial>,
+    assets: &PinballDefenseGltfAssets,
     transform: Transform,
 ) -> impl Bundle {
     (
         PbrBundle {
-            mesh: mesh.clone(),
-            material: mats.add(StandardMaterial {
-                base_color: Color::ORANGE,
-                perceptual_roughness: 0.5,
-                metallic: 0.5,
-                reflectance: 0.5,
-                ..default()
-            }),
+            mesh: match flipper_type {
+                FlipperType::Left => assets.flipper_left.clone(),
+                FlipperType::Right => assets.flipper_right.clone(),
+            },
+            material: assets.flipper_material.clone(),
             transform,
             ..default()
         },

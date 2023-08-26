@@ -71,7 +71,7 @@ fn add_debug_plugins(app: &mut App) {
 fn add_rapier(app: &mut App) {
     let rapier_cfg = RapierConfiguration {
         timestep_mode: TimestepMode::Variable {
-            max_dt: 1. / 60.,
+            max_dt: 1. / 80.,
             time_scale: 1.0,
             substeps: 2,
         },

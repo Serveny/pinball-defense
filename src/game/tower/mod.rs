@@ -250,7 +250,7 @@ fn progress_system(
         .iter()
         .for_each(|CollisionWithBallEvent(id, flag)| {
             if *flag != CollisionEventFlags::SENSOR && q_tower.contains(*id) {
-                prog_bar_ev.send(ProgressBarCountUpEvent(*id, 1.));
+                prog_bar_ev.send(ProgressBarCountUpEvent(*id, 0.05));
                 points_ev.send(PointsEvent::TowerHit);
             }
         });

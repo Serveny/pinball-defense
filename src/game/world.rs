@@ -71,11 +71,11 @@ fn spawn_pinball_world(
 
         // Flipper left
         let fl_pos = Transform::from_xyz(0.83, -0.32, -0.043);
-        super::flipper::spawn_left(fl_pos, p, &mut mats, assets);
+        super::flipper::spawn_left(fl_pos, p, assets);
 
         // Flipper right
         let fr_pos = Transform::from_xyz(0.83, 0.246, -0.043);
-        super::flipper::spawn_right(fr_pos, p, &mut mats, assets);
+        super::flipper::spawn_right(fr_pos, p, assets);
 
         spawn_foundations(p, &mut mats, assets, &g_sett);
         spawn_road(p, &mut mats, &mut meshes, assets);
