@@ -23,8 +23,8 @@ pub struct PinballDefenseGltfAssets {
     pub level_sign: Handle<Mesh>,
     pub analog_counter_casing_10_digit_material: Handle<StandardMaterial>,
     pub analog_counter_cylinder_material: Handle<StandardMaterial>,
-    pub points_sign_material: Handle<StandardMaterial>,
     pub analog_counter_casing_2_digit_material: Handle<StandardMaterial>,
+    pub points_sign_material: Handle<StandardMaterial>,
     pub level_sign_material: Handle<StandardMaterial>,
 
     // Flipper
@@ -54,6 +54,7 @@ pub struct PinballDefenseGltfAssets {
 
     // Road
     pub road_mesh: Handle<Mesh>,
+    pub road_material: Handle<StandardMaterial>,
 
     // Tower
     pub tower_base: Handle<Mesh>,
