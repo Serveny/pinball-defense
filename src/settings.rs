@@ -31,3 +31,8 @@ impl GraphicsSettings {
         }
     }
 }
+
+//#[derive(Resource)]
+//pub struct AudioSettings {
+//volume_background_music: f32,
+//}

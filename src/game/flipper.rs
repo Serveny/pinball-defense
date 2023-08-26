@@ -10,7 +10,7 @@ pub struct FlipperPlugin;
 impl Plugin for FlipperPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
-            FixedUpdate,
+            Update,
             (flipper_system, on_collision_with_ball_system).run_if(in_state(GameState::Ingame)),
         );
     }
@@ -156,7 +156,7 @@ fn flipper_system(
             }
             FlipperStatus::Pushed => {
                 change_angle *= -time * flipper.acceleration_factor;
-                flipper.acceleration_factor += time * 128.;
+                flipper.acceleration_factor += time * 256.;
             }
         }
         let new_angle = flipper.curr_angle + change_angle;
