@@ -12,7 +12,8 @@ bpy.ops.export_scene.gltf(
     filepath=file_path,
     use_active_scene=True,
     export_materials="EXPORT",
-    export_format="GLTF_EMBEDDED",
+    # export_format="GLTF_EMBEDDED",
+    export_format="GLB",
     export_yup=False,
     export_apply=True,
 )

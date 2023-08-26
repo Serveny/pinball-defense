@@ -19,15 +19,7 @@ pub fn spawn_road(
     parent.spawn((
         PbrBundle {
             mesh: assets.road_mesh.clone(),
-            material: materials.add(StandardMaterial {
-                base_color: Color::TEAL,
-                perceptual_roughness: 0.8,
-                metallic: 0.1,
-                reflectance: 0.1,
-                alpha_mode: AlphaMode::Multiply,
-                ..default()
-            }),
-            transform: Transform::from_xyz(0., 0., -0.04),
+            material: assets.road_material.clone(),
             ..default()
         },
         Name::new("Road Mesh"),
