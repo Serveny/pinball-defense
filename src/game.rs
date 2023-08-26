@@ -2,6 +2,7 @@ use ball::BallPlugin;
 //#[cfg(debug_assertions)]
 //use bevy_debug_grid::*;
 use self::analog_counter::AnalogCounterPlugin;
+use self::audio::AudioPlugin;
 use self::camera::PinballCameraPlugin;
 use self::level::LevelPlugin;
 use crate::prelude::*;
@@ -19,6 +20,7 @@ use wave::WavePlugin;
 use world::WorldPlugin;
 
 mod analog_counter;
+mod audio;
 mod ball;
 mod ball_starter;
 mod camera;
@@ -65,6 +67,7 @@ impl Plugin for GamePlugin {
                 PlayerLifePlugin,
                 LevelPlugin,
                 AnalogCounterPlugin,
+                AudioPlugin,
             ))
             .add_systems(
                 OnEnter(AppState::Game),

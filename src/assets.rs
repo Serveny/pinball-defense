@@ -12,6 +12,11 @@ pub struct PinballDefenseAssets {
 
     #[asset(path = "fonts/PressStart2P-Regular.ttf")]
     pub digital_font: Handle<Font>,
+
+    #[asset(path = "music/pinball_defense_background_music.ogg")]
+    pub background_music: Handle<AudioSource>,
+    // #[asset(path = "sound_fx/tower_hit_1.ogg")]
+    // pub tower_hit_sound: Handle<AudioSource>,
 }
 
 #[derive(Resource, Reflect, Default)]
