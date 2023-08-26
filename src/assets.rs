@@ -30,6 +30,7 @@ pub struct PinballDefenseGltfAssets {
     // Flipper
     pub flipper_left: Handle<Mesh>,
     pub flipper_right: Handle<Mesh>,
+    pub flipper_material: Handle<StandardMaterial>,
 
     // Menu Elements
     pub pinball_menu_element: Handle<Mesh>,
@@ -103,7 +104,7 @@ fn set_appstate_if_finished(
 struct GltfHandle(Handle<Gltf>);
 
 fn init_gltf_load(mut cmds: Commands, ass: Res<AssetServer>) {
-    let handle = ass.load("models/gltf/world.gltf");
+    let handle = ass.load("models/gltf/world.glb");
     cmds.insert_resource(GltfHandle(handle));
 }
 
