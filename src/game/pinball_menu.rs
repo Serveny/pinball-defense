@@ -315,7 +315,7 @@ fn de_activate_system(
 fn is_ball_in_x_zone(q_ball: &Query<&Transform, With<PinBall>>, start: f32, end: f32) -> bool {
     for ball in q_ball.iter() {
         let trans = ball.translation;
-        if trans.x >= start && trans.x <= end && trans.z >= -0.42 && trans.z <= 0.46 {
+        if trans.x >= start && trans.x <= end && trans.y >= -0.42 && trans.y <= 0.46 {
             return true;
         }
     }
