@@ -65,7 +65,7 @@ impl Plugin for TowerPlugin {
                     target::enemy_within_reach_system,
                     target::remove_despawned_enemies_from_ewr_system,
                     target::target_pos_by_afe_system,
-                    types::gun::shot_animation_system,
+                    types::gun::shoot_animation_system,
                     types::microwave::shot_animation_system,
                     types::tesla::shot_animation_system,
                 )

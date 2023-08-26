@@ -157,7 +157,7 @@ fn mounting(
     )
 }
 
-pub(in super::super) fn shot_animation_system(
+pub(in super::super) fn shoot_animation_system(
     time: Res<Time>,
     q_gun_tower: Query<(Entity, &AimFirstEnemy), With<GunTower>>,
     mut q_barrel: Query<(&mut Transform, &RelEntity), With<GunTowerBarrel>>,
@@ -172,13 +172,13 @@ pub(in super::super) fn shot_animation_system(
             Some(_) => {
                 let sin = (time.elapsed_seconds() * 64.).sin();
                 *flash.0 = Visibility::Inherited;
-                get_barrel(&mut q_barrel, tower_id).0.translation.z = sin * 0.002;
+                get_barrel(&mut q_barrel, tower_id).0.translation.y = sin * 0.002;
                 flash.1.intensity = (sin + 1.) * 32.;
             }
             None => {
                 if *flash.0 != Visibility::Hidden {
                     *flash.0 = Visibility::Hidden;
-                    get_barrel(&mut q_barrel, tower_id).0.translation.z = 0.;
+                    get_barrel(&mut q_barrel, tower_id).0.translation.y = 0.;
                 }
             }
         }
