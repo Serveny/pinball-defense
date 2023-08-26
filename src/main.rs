@@ -73,7 +73,7 @@ fn add_rapier(app: &mut App) {
         timestep_mode: TimestepMode::Variable {
             max_dt: 1. / 80.,
             time_scale: 1.0,
-            substeps: 2,
+            substeps: 3,
         },
         gravity: Vec2::X * 2.,
         ..default()
