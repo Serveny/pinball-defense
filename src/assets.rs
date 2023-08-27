@@ -1,8 +1,12 @@
 use crate::prelude::*;
 use crate::AppState;
+use bevy::asset::Asset;
 use bevy::asset::LoadState;
 use bevy::gltf::{Gltf, GltfMesh};
 pub use bevy_asset_loader::prelude::*;
+use rand::Rng;
+use std::env;
+use std::path::PathBuf;
 
 #[derive(Resource, AssetCollection, Default)]
 pub struct PinballDefenseAssets {
@@ -12,11 +16,6 @@ pub struct PinballDefenseAssets {
 
     #[asset(path = "fonts/PressStart2P-Regular.ttf")]
     pub digital_font: Handle<Font>,
-
-    #[asset(path = "music/pinball_defense_background_music.ogg")]
-    pub background_music: Handle<AudioSource>,
-    // #[asset(path = "sound_fx/tower_hit_1.ogg")]
-    // pub tower_hit_sound: Handle<AudioSource>,
 }
 
 #[derive(Resource, Reflect, Default)]
@@ -73,11 +72,35 @@ pub struct PinballDefenseGltfAssets {
     pub foundation_ring: Handle<Mesh>,
 }
 
+#[derive(Resource, Reflect, Default)]
+pub struct PinballDefenseAudioAssets {
+    pub flipper_press: Handles<AudioSource>,
+    pub flipper_release: Handles<AudioSource>,
+    pub background_music: Handle<AudioSource>,
+}
+
+#[derive(Reflect)]
+pub struct Handles<T: Asset>(Vec<Handle<T>>);
+
+impl<T: Asset> Default for Handles<T> {
+    fn default() -> Self {
+        Self(Default::default())
+    }
+}
+
+impl<T: Asset> Handles<T> {
+    pub fn rnd(&self) -> &Handle<T> {
+        let rnd = rand::thread_rng().gen_range(0..self.0.len());
+        self.0
+            .get(rnd)
+            .unwrap_or_else(|| panic!("😥 Could not find element {rnd} in vector."))
+    }
+}
 pub struct AssetsPlugin;
 
 impl Plugin for AssetsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_state::<GltfLoadState>()
+        app.add_state::<AssetsInternalLoadState>()
             .add_state::<AssetsLoadState>()
             .init_resource::<GltfHandle>()
             .add_loading_state(
@@ -85,23 +108,31 @@ impl Plugin for AssetsPlugin {
                     .continue_to_state(AssetsLoadState::Finished),
             )
             .add_collection_to_loading_state::<_, PinballDefenseAssets>(AssetsLoadState::Loading)
-            .add_systems(Startup, init_gltf_load)
+            .add_systems(Startup, (init_gltf_load, add_audio_resource))
             .add_systems(
                 Update,
-                check_assets_ready.run_if(in_state(GltfLoadState::Loading)),
+                check_assets_ready.run_if(in_state(AssetsInternalLoadState::Loading)),
             )
-            .add_systems(OnEnter(GltfLoadState::GltfLoaded), load_gltf_content)
+            .add_systems(
+                OnEnter(AssetsInternalLoadState::AssetServerFinished),
+                (add_gltf_resource, add_audio_resource),
+            )
             .add_systems(OnEnter(AssetsLoadState::Finished), set_appstate_if_finished)
-            .add_systems(OnEnter(GltfLoadState::Finished), set_appstate_if_finished);
+            .add_systems(
+                OnEnter(AssetsInternalLoadState::Finished),
+                set_appstate_if_finished,
+            );
     }
 }
 
 fn set_appstate_if_finished(
     mut app_state: ResMut<NextState<AppState>>,
-    gltf_load_state: Res<State<GltfLoadState>>,
+    gltf_load_state: Res<State<AssetsInternalLoadState>>,
     load_state: Res<State<AssetsLoadState>>,
 ) {
-    if *gltf_load_state == GltfLoadState::Finished && *load_state == AssetsLoadState::Finished {
+    if *gltf_load_state == AssetsInternalLoadState::Finished
+        && *load_state == AssetsLoadState::Finished
+    {
         app_state.set(AppState::Game);
     }
 }
@@ -115,10 +146,10 @@ fn init_gltf_load(mut cmds: Commands, ass: Res<AssetServer>) {
 }
 
 #[derive(States, Default, Debug, PartialEq, Eq, Hash, Clone, Copy)]
-enum GltfLoadState {
+enum AssetsInternalLoadState {
     #[default]
     Loading,
-    GltfLoaded,
+    AssetServerFinished,
     Finished,
 }
 
@@ -130,20 +161,20 @@ enum AssetsLoadState {
 }
 
 fn check_assets_ready(
-    mut state: ResMut<NextState<GltfLoadState>>,
+    mut state: ResMut<NextState<AssetsInternalLoadState>>,
     server: Res<AssetServer>,
     loading: Res<GltfHandle>,
 ) {
     match server.get_group_load_state(vec![loading.0.id()]) {
         LoadState::Failed => panic!("😭 Failed loading asset"),
-        LoadState::Loaded => state.set(GltfLoadState::GltfLoaded),
+        LoadState::Loaded => state.set(AssetsInternalLoadState::AssetServerFinished),
         _ => (),
     }
 }
 
-fn load_gltf_content(
+fn add_gltf_resource(
     mut cmds: Commands,
-    mut state: ResMut<NextState<GltfLoadState>>,
+    mut state: ResMut<NextState<AssetsInternalLoadState>>,
     gltf_meshes: Res<Assets<GltfMesh>>,
     gltfs: Res<Assets<Gltf>>,
     gltf_handle: Res<GltfHandle>,
@@ -171,10 +202,10 @@ fn load_gltf_content(
         }
     }
     cmds.insert_resource(assets);
-    state.set(GltfLoadState::Finished);
+    state.set(AssetsInternalLoadState::Finished);
 }
 
-fn prop_name(assets: &PinballDefenseGltfAssets, i: usize) -> String {
+fn prop_name(assets: &impl Struct, i: usize) -> String {
     assets
         .name_at(i)
         .unwrap_or_else(|| panic!("😭 No name at index {i}"))
@@ -201,10 +232,87 @@ fn material(material_name: &str, gltf: &Gltf) -> Handle<StandardMaterial> {
         .clone()
 }
 
-fn set_field(assets: &mut PinballDefenseGltfAssets, i: usize, obj: Box<dyn Reflect>) {
+fn get_field(assets: &mut impl Struct, i: usize) -> &mut dyn Reflect {
     assets
         .field_at_mut(i)
         .unwrap_or_else(|| panic!("😭 No object at position {i}"))
+}
+
+fn set_field(assets: &mut impl Struct, i: usize, obj: Box<dyn Reflect>) {
+    get_field(assets, i)
         .set(obj)
         .unwrap_or_else(|error| panic!("😭 Not able to set object at position {i}: {error:?}"));
+}
+
+fn audio_assets_path(sub_dir: Option<&str>) -> PathBuf {
+    env::current_exe()
+        .expect("😥 No current exe")
+        .parent()
+        .expect("😥 No parent folder of current exe")
+        .join(PathBuf::from(format!(
+            "../../assets/audio/{}",
+            if let Some(sub_dir) = sub_dir {
+                sub_dir
+            } else {
+                ""
+            }
+        )))
+}
+
+fn add_audio_resource(mut cmds: Commands, ass: Res<AssetServer>) {
+    let audio_dir = audio_assets_path(None);
+    let file_name_paths: Vec<(String, PathBuf)> = file_paths(audio_dir);
+
+    let mut audio_assets = PinballDefenseAudioAssets::default();
+    for (i, field) in PinballDefenseAudioAssets::default()
+        .iter_fields()
+        .enumerate()
+    {
+        let prop_name = prop_name(&audio_assets, i);
+        match field.type_name() {
+            "pinball_defense::assets::Handles<bevy_audio::audio_source::AudioSource>" => {
+                let audio_dir = audio_assets_path(Some(&prop_name));
+                let field: &mut Handles<AudioSource> = get_field(&mut audio_assets, i)
+                    .downcast_mut()
+                    .expect("😥 Unexpected: Handles type is no handles type.");
+                for (_, path) in file_paths(audio_dir) {
+                    field.0.push(ass.load(path));
+                }
+            }
+            "bevy_asset::handle::Handle<bevy_audio::audio_source::AudioSource>" => {
+                let file_path = path_by_name(&prop_name, &file_name_paths);
+                let handle: Handle<AudioSource> = ass.load(file_path);
+                set_field(&mut audio_assets, i, Box::new(handle));
+            }
+            type_name => println!("🔊 Unknown type in audio asset struct: {}", type_name),
+        }
+    }
+    cmds.insert_resource(audio_assets);
+}
+
+fn path_by_name(name: &str, files: &[(String, PathBuf)]) -> PathBuf {
+    files
+        .iter()
+        .find(|file| file.0 == name)
+        .unwrap_or_else(|| panic!("😥 No file with name {name} in audio folder."))
+        .1
+        .clone()
+}
+
+fn file_paths(dir: PathBuf) -> Vec<(String, PathBuf)> {
+    dir.read_dir()
+        .unwrap_or_else(|err| panic!("😥 Can not read audio directory {dir:?} with error {err}"))
+        .map(|file| {
+            let file = file.as_ref().expect("😥 Can not read file");
+            (
+                file.path()
+                    .file_stem()
+                    .expect("😥 Can not stem file")
+                    .to_str()
+                    .expect("😥 Can not convert os string to string")
+                    .to_string(),
+                file.path(),
+            )
+        })
+        .collect()
 }

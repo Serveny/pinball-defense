@@ -6,11 +6,16 @@ pub struct AudioPlugin;
 
 impl Plugin for AudioPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Ingame), play_music);
+        app.add_event::<PlaySoundEvent>()
+            .add_systems(OnEnter(GameState::Ingame), play_music)
+            .add_systems(
+                Update,
+                play_sound_system.run_if(in_state(GameState::Ingame)),
+            );
     }
 }
 
-fn play_music(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
+fn play_music(mut cmds: Commands, assets: Res<PinballDefenseAudioAssets>) {
     cmds.spawn(AudioBundle {
         source: assets.background_music.clone(),
         settings: PlaybackSettings {
@@ -22,22 +27,16 @@ fn play_music(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
     });
 }
 
-//#[derive(Component)]
-//struct TowerHitSound;
+#[derive(Event)]
+pub enum PlaySoundEvent {
+    BallSpawn,
+}
 
-//fn spawn_tower_hit_sound(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
-//cmds.spawn((
-//AudioBundle {
-//source: assets.tower_hit_sound.clone(),
-//settings: PlaybackSettings {
-//mode: bevy::audio::PlaybackMode::Once,
-//volume: bevy::audio::Volume::Absolute(VolumeLevel::new(0.2)),
-//speed: 1.,
-//paused: true,
-//},
-//},
-//TowerHitSound,
-//));
-//}
-
-//fn play_tower_hit_system(on_tower_hit: EventReader<)
+fn play_sound_system(mut evr: EventReader<PlaySoundEvent>) {
+    for ev in evr.iter() {
+        use PlaySoundEvent::*;
+        match *ev {
+            BallSpawn => (),
+        }
+    }
+}
