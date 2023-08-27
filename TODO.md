@@ -28,10 +28,16 @@
 - level display ✅
 - tower level ✅
 - towers logic
+
   - target system ✅
   - shoot/damage system ✅
   - (special effects)
   - upgrade system ✅
+
+- generate some flipper test sound files ✅
+- audio asset loading system ✅
+- audio player system
+
 - settings menu
 - camera option
 - textures
