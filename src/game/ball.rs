@@ -1,3 +1,4 @@
+use super::audio::PlaySoundEvent;
 use super::events::collision::BALL;
 use super::events::collision::INTERACT_WITH_BALL;
 use super::events::collision::INTERACT_WITH_ENEMY;
@@ -117,9 +118,11 @@ fn ball_reset_system(
 fn on_ball_despawn_system(
     mut evr: EventReader<OnBallDespawnEvent>,
     mut pm_status_ev: EventWriter<PinballMenuEvent>,
+    mut sound_ev: EventWriter<PlaySoundEvent>,
 ) {
     if evr.iter().next().is_some() {
         pm_status_ev.send(PinballMenuEvent::Deactivate);
+        sound_ev.send(PlaySoundEvent::BallHitsEnd);
     }
 }
 

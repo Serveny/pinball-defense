@@ -20,6 +20,24 @@ pub enum PlaySoundEvent {
     FlipperPress,
     FlipperRelease,
     TowerHit,
+    BallHitsEnd,
+    EnemyDeath,
+    EnemyReachEnd,
+}
+
+impl PlaySoundEvent {
+    fn sound_bundle<'a>(&self, assets: &'a PinballDefenseAudioAssets) -> SoundHandle<'a> {
+        use PlaySoundEvent::*;
+        match *self {
+            BallSpawn => SoundHandle::Single(&assets.ball_release),
+            FlipperPress => SoundHandle::Various(&assets.flipper_press),
+            FlipperRelease => SoundHandle::Various(&assets.flipper_release),
+            TowerHit => SoundHandle::Various(&assets.tower_hit),
+            BallHitsEnd => SoundHandle::Single(&assets.ball_hits_end),
+            EnemyDeath => SoundHandle::Single(&assets.enemy_death),
+            EnemyReachEnd => SoundHandle::Single(&assets.enemy_reach_end),
+        }
+    }
 }
 
 fn play_sound_system(
@@ -28,13 +46,7 @@ fn play_sound_system(
     assets: Res<PinballDefenseAudioAssets>,
 ) {
     for ev in evr.iter() {
-        use PlaySoundEvent::*;
-        match *ev {
-            BallSpawn => cmds.spawn(sound(SoundHandle::Single(&assets.ball_release))),
-            FlipperPress => cmds.spawn(sound(SoundHandle::Various(&assets.flipper_press))),
-            FlipperRelease => cmds.spawn(sound(SoundHandle::Various(&assets.flipper_release))),
-            TowerHit => cmds.spawn(sound(SoundHandle::Various(&assets.tower_hit))),
-        };
+        cmds.spawn(sound(ev.sound_bundle(&assets)));
     }
 }
 
