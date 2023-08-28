@@ -1,9 +1,8 @@
 use super::GameState;
 use crate::prelude::*;
-use bevy::{audio::VolumeLevel, utils::HashMap};
+use bevy::audio::{PlaybackMode, Volume, VolumeLevel};
 
 pub struct AudioPlugin;
-
 impl Plugin for AudioPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<PlaySoundEvent>()
@@ -15,65 +14,69 @@ impl Plugin for AudioPlugin {
     }
 }
 
+#[derive(Event)]
+pub enum PlaySoundEvent {
+    BallSpawn,
+    FlipperPress,
+    FlipperRelease,
+    TowerHit,
+}
+
+fn play_sound_system(
+    mut cmds: Commands,
+    mut evr: EventReader<PlaySoundEvent>,
+    assets: Res<PinballDefenseAudioAssets>,
+) {
+    for ev in evr.iter() {
+        use PlaySoundEvent::*;
+        match *ev {
+            BallSpawn => cmds.spawn(sound(SoundHandle::Single(&assets.ball_release))),
+            FlipperPress => cmds.spawn(sound(SoundHandle::Various(&assets.flipper_press))),
+            FlipperRelease => cmds.spawn(sound(SoundHandle::Various(&assets.flipper_release))),
+            TowerHit => cmds.spawn(sound(SoundHandle::Various(&assets.tower_hit))),
+        };
+    }
+}
+
+enum SoundHandle<'a> {
+    Single(&'a Handle<AudioSource>),
+    Various(&'a Handles<AudioSource>),
+}
+
+const VOLUME: f32 = 0.6;
+
 fn play_music(mut cmds: Commands, assets: Res<PinballDefenseAudioAssets>) {
     cmds.spawn(AudioBundle {
         source: assets.background_music.clone(),
         settings: PlaybackSettings {
-            mode: bevy::audio::PlaybackMode::Loop,
-            volume: bevy::audio::Volume::Absolute(VolumeLevel::new(0.2)),
+            mode: PlaybackMode::Loop,
+            volume: Volume::Absolute(VolumeLevel::new(VOLUME)),
             speed: 1.,
             paused: false,
         },
     });
 }
 
-#[derive(Resource, Default)]
-struct AudioIds(pub HashMap<String, Vec<Entity>>);
-
 #[derive(Component)]
 struct Sound;
 
-fn sound(name: &str, audio_srcs: &PinballDefenseAudioSources) -> impl Bundle {
+fn sound(handle: SoundHandle) -> impl Bundle {
     (
-        Name::new(format!("{name} FX")),
+        Name::new("Sound"),
         Sound,
         AudioBundle {
-            source: audio_srcs
-                .0
-                .get(name)
-                .unwrap_or_else(|| panic!("😥 No audio src with name {name}"))
-                .choose()
-                .clone(),
+            source: match handle {
+                SoundHandle::Single(handle) => handle.clone(),
+                SoundHandle::Various(handles) => handles.choose().clone(),
+            },
             settings: PlaybackSettings {
-                mode: bevy::audio::PlaybackMode::Once,
-                volume: bevy::audio::Volume::Absolute(VolumeLevel::new(0.2)),
+                mode: PlaybackMode::Once,
+                volume: Volume::Absolute(VolumeLevel::new(VOLUME)),
                 speed: 1.,
                 paused: false,
             },
         },
     )
-}
-
-#[derive(Event)]
-pub enum PlaySoundEvent {
-    BallSpawn,
-    FlipperPress,
-    FlipperRelease,
-}
-
-fn play_sound_system(
-    mut cmds: Commands,
-    mut evr: EventReader<PlaySoundEvent>,
-    audio_srcs: Res<PinballDefenseAudioSources>,
-) {
-    for ev in evr.iter() {
-        use PlaySoundEvent::*;
-        match *ev {
-            BallSpawn => cmds.spawn(sound("flipper_press", &audio_srcs)),
-            FlipperPress => cmds.spawn(sound("flipper_press", &audio_srcs)),
-            FlipperRelease => cmds.spawn(sound("flipper_release", &audio_srcs)),
-        };
-    }
 }
 
 fn clean_up_sound_system(mut cmds: Commands, q_sound: Query<(Entity, &AudioSink), With<Sound>>) {
