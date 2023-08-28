@@ -28,16 +28,28 @@
 - level display ✅
 - tower level ✅
 - towers logic
-
   - target system ✅
   - shoot/damage system ✅
   - (special effects)
   - upgrade system ✅
-
 - generate some flipper test sound files ✅
 - audio asset loading system ✅
-- audio player system
-
+- audio player system ✅
+- sounds:
+  - enemy hit sound ✅
+  - ball hits road end sound ✅
+  - enemy reached road end sound
+  - tower build sound
+  - tower upgrade sound
+  - analog counter sound
+  - ball charger/starter sound
+  - pinball menu element fade in sound
+  - pinball menu active sound
+  - pinball menu selected sound
+  - ball rolling sound
+  - tower mg shoot sound
+  - tower microwave sound
+  - tower tesla sound
 - settings menu
 - camera option
 - textures

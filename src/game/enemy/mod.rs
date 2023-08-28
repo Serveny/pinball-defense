@@ -2,6 +2,7 @@ use self::step::Step;
 use self::walk::{
     recover_speed_system, road_end_reached_system, walk_system, RoadEndReachedEvent, WALK_SPEED,
 };
+use super::audio::PlaySoundEvent;
 use super::level::PointsEvent;
 use super::progress_bar::{ProgressBarCountUpEvent, ProgressBarEmptyEvent};
 use crate::game::ball::CollisionWithBallEvent;
@@ -150,6 +151,7 @@ fn pinball_hit_system(
     mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
     mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
     mut points_ev: EventWriter<PointsEvent>,
+    mut sound_ev: EventWriter<PlaySoundEvent>,
     q_enemy: Query<With<Enemy>>,
 ) {
     for CollisionWithBallEvent(id, flag) in ball_coll_ev.iter() {
@@ -157,6 +159,7 @@ fn pinball_hit_system(
             log!("😵 Pinball hits enemy {:?}", *id);
             prog_bar_ev.send(ProgressBarCountUpEvent(*id, -1.));
             points_ev.send(PointsEvent::BallEnemyHit);
+            sound_ev.send(PlaySoundEvent::EnemyDeath);
         }
     }
 }
