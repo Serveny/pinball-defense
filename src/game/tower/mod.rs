@@ -1,6 +1,7 @@
 use self::damage::DamageOverTime;
 use self::light::{contact_light_bundle, FlashLight, LightOnCollision};
 use self::target::{EnemiesWithinReach, SightRadius, TargetPos};
+use super::audio::PlaySoundEvent;
 use super::ball::CollisionWithBallEvent;
 use super::events::collision::{COLLIDE_ONLY_WITH_BALL, COLLIDE_ONLY_WITH_ENEMY};
 use super::level::{Level, PointsEvent};
@@ -244,6 +245,7 @@ fn progress_system(
     mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
     mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
     mut points_ev: EventWriter<PointsEvent>,
+    mut sound_ev: EventWriter<PlaySoundEvent>,
     q_tower: Query<With<Tower>>,
 ) {
     ball_coll_ev
@@ -252,6 +254,7 @@ fn progress_system(
             if *flag != CollisionEventFlags::SENSOR && q_tower.contains(*id) {
                 prog_bar_ev.send(ProgressBarCountUpEvent(*id, 0.05));
                 points_ev.send(PointsEvent::TowerHit);
+                sound_ev.send(PlaySoundEvent::TowerHit);
             }
         });
 }

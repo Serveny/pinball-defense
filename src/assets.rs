@@ -78,6 +78,8 @@ pub struct PinballDefenseAudioAssets {
     pub flipper_press: Handles<AudioSource>,
     pub flipper_release: Handles<AudioSource>,
     pub background_music: Handle<AudioSource>,
+    pub ball_release: Handle<AudioSource>,
+    pub tower_hit: Handles<AudioSource>,
 }
 
 #[derive(Resource, Reflect, Default)]
