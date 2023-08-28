@@ -3,8 +3,9 @@ use crate::AppState;
 use bevy::asset::Asset;
 use bevy::asset::LoadState;
 use bevy::gltf::{Gltf, GltfMesh};
+use bevy::utils::HashMap;
 pub use bevy_asset_loader::prelude::*;
-use rand::Rng;
+use rand::seq::SliceRandom;
 use std::env;
 use std::path::PathBuf;
 
@@ -79,8 +80,11 @@ pub struct PinballDefenseAudioAssets {
     pub background_music: Handle<AudioSource>,
 }
 
-#[derive(Reflect)]
-pub struct Handles<T: Asset>(Vec<Handle<T>>);
+#[derive(Resource, Reflect, Default)]
+pub struct AudioAssetId(HashMap<Entity, String>);
+
+#[derive(Reflect, Clone)]
+pub struct Handles<T: Asset>(pub Vec<Handle<T>>);
 
 impl<T: Asset> Default for Handles<T> {
     fn default() -> Self {
@@ -89,11 +93,14 @@ impl<T: Asset> Default for Handles<T> {
 }
 
 impl<T: Asset> Handles<T> {
-    pub fn rnd(&self) -> &Handle<T> {
-        let rnd = rand::thread_rng().gen_range(0..self.0.len());
+    pub fn choose(&self) -> &Handle<T> {
         self.0
-            .get(rnd)
-            .unwrap_or_else(|| panic!("😥 Could not find element {rnd} in vector."))
+            .choose(&mut rand::thread_rng())
+            .expect("😥 Vector empty, no sound to choose")
+    }
+
+    fn from(value: Handle<T>) -> Self {
+        Self(vec![value])
     }
 }
 pub struct AssetsPlugin;
@@ -259,11 +266,15 @@ fn audio_assets_path(sub_dir: Option<&str>) -> PathBuf {
         )))
 }
 
+#[derive(Resource, Default)]
+pub struct PinballDefenseAudioSources(pub HashMap<String, Handles<AudioSource>>);
+
 fn add_audio_resource(mut cmds: Commands, ass: Res<AssetServer>) {
     let audio_dir = audio_assets_path(None);
     let file_name_paths: Vec<(String, PathBuf)> = file_paths(audio_dir);
 
     let mut audio_assets = PinballDefenseAudioAssets::default();
+    let mut handles_map = PinballDefenseAudioSources::default();
     for (i, field) in PinballDefenseAudioAssets::default()
         .iter_fields()
         .enumerate()
@@ -276,18 +287,24 @@ fn add_audio_resource(mut cmds: Commands, ass: Res<AssetServer>) {
                     .downcast_mut()
                     .expect("😥 Unexpected: Handles type is no handles type.");
                 for (_, path) in file_paths(audio_dir) {
-                    field.0.push(ass.load(path));
+                    let handle = ass.load(path);
+                    field.0.push(handle);
                 }
+                handles_map.0.insert(prop_name.clone(), field.clone());
             }
             "bevy_asset::handle::Handle<bevy_audio::audio_source::AudioSource>" => {
                 let file_path = path_by_name(&prop_name, &file_name_paths);
                 let handle: Handle<AudioSource> = ass.load(file_path);
+                handles_map
+                    .0
+                    .insert(prop_name.clone(), Handles::from(handle.clone()));
                 set_field(&mut audio_assets, i, Box::new(handle));
             }
             type_name => println!("🔊 Unknown type in audio asset struct: {}", type_name),
         }
     }
     cmds.insert_resource(audio_assets);
+    cmds.insert_resource(handles_map);
 }
 
 fn path_by_name(name: &str, files: &[(String, PathBuf)]) -> PathBuf {
