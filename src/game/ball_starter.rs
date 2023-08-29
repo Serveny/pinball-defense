@@ -1,4 +1,4 @@
-use super::audio::PlaySoundEvent;
+use super::audio::SoundEvent;
 use super::level::PointsEvent;
 use crate::game::ball::{self, PinBall};
 use crate::game::events::collision::COLLIDE_ONLY_WITH_BALL;
@@ -29,13 +29,13 @@ fn spawn_ball_system(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut spawn_ball_ev: EventReader<SpawnBallEvent>,
     mut points_ev: EventWriter<PointsEvent>,
-    mut sound_ev: EventWriter<PlaySoundEvent>,
+    mut sound_ev: EventWriter<SoundEvent>,
     ball_spawn: Res<BallSpawn>,
 ) {
     for _ in spawn_ball_ev.iter() {
         ball::spawn(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
         points_ev.send(PointsEvent::BallSpawned);
-        sound_ev.send(PlaySoundEvent::BallSpawn);
+        sound_ev.send(SoundEvent::BallSpawn);
     }
 }
 
