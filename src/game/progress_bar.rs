@@ -12,13 +12,29 @@ impl Plugin for ProgressBarPlugin {
             .add_event::<ProgressBarEmptyEvent>()
             .add_systems(
                 Update,
-                (count_up_system, scale_system).run_if(in_state(GameState::Ingame)),
+                (
+                    count_up_system,
+                    scale_system,
+                    bar_empty_system,
+                    bar_full_system,
+                )
+                    .run_if(in_state(GameState::Ingame)),
             );
     }
 }
 
 #[derive(Component, Default, Deref, DerefMut)]
 pub struct ProgressBar(pub f32);
+
+impl ProgressBar {
+    fn is_empty(&self) -> bool {
+        self.0 <= 0.
+    }
+
+    fn is_full(&self) -> bool {
+        self.0 >= 1.
+    }
+}
 
 pub fn spawn(
     parent: &mut ChildBuilder,
@@ -89,48 +105,56 @@ fn bar_bundle(
 }
 
 #[derive(Event)]
-pub struct ProgressBarCountUpEvent(pub Entity, pub f32);
+pub struct ProgressBarCountUpEvent {
+    rel_id: Entity,
+    amount: f32,
+}
 
-#[derive(Event)]
-pub struct ProgressBarFullEvent(pub Entity);
-
-#[derive(Event)]
-pub struct ProgressBarEmptyEvent(pub Entity);
+impl ProgressBarCountUpEvent {
+    pub fn new(rel_id: Entity, amount: f32) -> Self {
+        Self { rel_id, amount }
+    }
+}
 
 fn count_up_system(
     mut evr: EventReader<ProgressBarCountUpEvent>,
     mut q_progress: QueryProgressBar,
-    mut full_ev: EventWriter<ProgressBarFullEvent>,
-    mut empty_ev: EventWriter<ProgressBarEmptyEvent>,
 ) {
     for ev in evr.iter() {
-        let (rel_id, to_add) = (ev.0, ev.1);
-        if let Some((_, mut progress)) = q_progress.iter_mut().find(|(p, _)| p.0 == rel_id) {
+        if let Some((_, mut progress)) = q_progress.iter_mut().find(|(p, _)| p.0 == ev.rel_id) {
             let old = progress.0;
-            if to_add.is_sign_negative() {
-                if old == 0. {
-                    continue;
-                }
-
-                let mut new = progress.0 + to_add;
-                if new <= 0. {
-                    empty_ev.send(ProgressBarEmptyEvent(rel_id));
-                    new = 0.;
-                }
-                progress.0 = new;
-            } else {
-                if old == 1. {
-                    continue;
-                }
-
-                let mut new = progress.0 + to_add;
-                if new >= 1. {
-                    full_ev.send(ProgressBarFullEvent(rel_id));
-                    new = 1.;
-                }
-                progress.0 = new;
-                log!("🧑‍💻 Progress: {} + {} = {}", old, to_add, new);
+            let new = (old + ev.amount).clamp(0., 1.);
+            if new != progress.0 {
+                progress.0 = new
             }
+        }
+    }
+}
+
+#[derive(Event)]
+pub struct ProgressBarFullEvent(pub Entity);
+
+fn bar_full_system(
+    mut full_ev: EventWriter<ProgressBarFullEvent>,
+    q_bar: Query<(&RelEntity, &ProgressBar), Changed<ProgressBar>>,
+) {
+    for (rel_id, bar) in q_bar.iter() {
+        if bar.is_full() {
+            full_ev.send(ProgressBarFullEvent(rel_id.0));
+        }
+    }
+}
+
+#[derive(Event)]
+pub struct ProgressBarEmptyEvent(pub Entity);
+
+fn bar_empty_system(
+    mut full_ev: EventWriter<ProgressBarEmptyEvent>,
+    q_bar: Query<(&RelEntity, &ProgressBar), Changed<ProgressBar>>,
+) {
+    for (rel_id, bar) in q_bar.iter() {
+        if bar.is_empty() {
+            full_ev.send(ProgressBarEmptyEvent(rel_id.0));
         }
     }
 }
