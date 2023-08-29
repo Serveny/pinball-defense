@@ -159,7 +159,7 @@ fn pinball_hit_system(
             log!("😵 Pinball hits enemy {:?}", *id);
             prog_bar_ev.send(ProgressBarCountUpEvent(*id, -1.));
             points_ev.send(PointsEvent::BallEnemyHit);
-            sound_ev.send(SoundEvent::EnemyDeath);
+            sound_ev.send(SoundEvent::BallHitsEnemy);
         }
     }
 }
