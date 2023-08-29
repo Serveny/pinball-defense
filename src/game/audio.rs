@@ -21,9 +21,11 @@ pub enum SoundEvent {
     FlipperRelease,
     TowerHit,
     BallHitsEnd,
-    EnemyDeath,
+    BallHitsEnemy,
     EnemyReachEnd,
     TowerBuild,
+    TowerUpgradeRange,
+    TowerUpgradeDamage,
 }
 
 impl SoundEvent {
@@ -35,9 +37,11 @@ impl SoundEvent {
             FlipperRelease => SoundHandle::Various(&assets.flipper_release),
             TowerHit => SoundHandle::Various(&assets.tower_hit),
             BallHitsEnd => SoundHandle::Single(&assets.ball_hits_end),
-            EnemyDeath => SoundHandle::Single(&assets.enemy_death),
+            BallHitsEnemy => SoundHandle::Single(&assets.ball_hits_enemy),
             EnemyReachEnd => SoundHandle::Single(&assets.enemy_reach_end),
             TowerBuild => SoundHandle::Single(&assets.tower_build),
+            TowerUpgradeRange => SoundHandle::Single(&assets.tower_upgrade_range),
+            TowerUpgradeDamage => SoundHandle::Single(&assets.tower_upgrade_damage),
         }
     }
 }
