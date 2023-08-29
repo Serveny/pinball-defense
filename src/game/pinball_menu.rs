@@ -8,7 +8,6 @@ use super::world::QueryWorld;
 use super::GameState;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
-use bevy::utils::hashbrown::HashSet;
 use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use bevy_tweening::lens::TransformRotateZLens;
 use bevy_tweening::{Animator, Delay, EaseFunction, Sequence, Tween};

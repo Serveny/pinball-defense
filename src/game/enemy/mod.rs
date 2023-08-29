@@ -3,8 +3,8 @@ use self::walk::{
     recover_speed_system, road_end_reached_system, walk_system, RoadEndReachedEvent, WALK_SPEED,
 };
 use super::audio::SoundEvent;
+use super::health::{ChangeHealthEvent, Health, HealthEmptyEvent};
 use super::level::PointsEvent;
-use super::progress_bar::{ProgressBarCountUpEvent, ProgressBarEmptyEvent};
 use crate::game::ball::CollisionWithBallEvent;
 use crate::game::events::collision::{ENEMY, INTERACT_WITH_BALL, INTERACT_WITH_ENEMY};
 use crate::game::progress_bar;
@@ -118,6 +118,8 @@ fn spawn(
 fn enemy(meshes: &mut Assets<Mesh>, mats: &mut Assets<StandardMaterial>) -> impl Bundle {
     (
         Name::new("Enemy"),
+        Enemy::new(),
+        Health::new(100.),
         PbrBundle {
             mesh: meshes.add(Mesh::from(shape::UVSphere {
                 radius: 0.03,
@@ -143,21 +145,20 @@ fn enemy(meshes: &mut Assets<Mesh>, mats: &mut Assets<StandardMaterial>) -> impl
             combine_rule: CoefficientCombineRule::Multiply,
         },
         ActiveEvents::COLLISION_EVENTS,
-        Enemy::new(),
     )
 }
 
 fn pinball_hit_system(
     mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
-    mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
     mut points_ev: EventWriter<PointsEvent>,
     mut sound_ev: EventWriter<SoundEvent>,
+    mut health_ev: EventWriter<ChangeHealthEvent>,
     q_enemy: Query<With<Enemy>>,
 ) {
     for CollisionWithBallEvent(id, flag) in ball_coll_ev.iter() {
         if *flag == CollisionEventFlags::SENSOR && q_enemy.contains(*id) {
             log!("😵 Pinball hits enemy {:?}", *id);
-            prog_bar_ev.send(ProgressBarCountUpEvent(*id, -1.));
+            health_ev.send(ChangeHealthEvent::new(*id, -100.));
             points_ev.send(PointsEvent::BallEnemyHit);
             sound_ev.send(SoundEvent::BallHitsEnemy);
         }
@@ -169,12 +170,12 @@ pub struct OnEnemyDespawnEvent(pub Entity);
 
 fn death_system(
     mut cmds: Commands,
-    mut prog_bar_empty_ev: EventReader<ProgressBarEmptyEvent>,
+    mut health_empty_ev: EventReader<HealthEmptyEvent>,
     mut despawn_ev: EventWriter<OnEnemyDespawnEvent>,
     mut points_ev: EventWriter<PointsEvent>,
     q_enemy: Query<With<Enemy>>,
 ) {
-    for ev in prog_bar_empty_ev.iter() {
+    for ev in health_empty_ev.iter() {
         if q_enemy.contains(ev.0) {
             cmds.entity(ev.0).despawn_recursive();
             despawn_ev.send(OnEnemyDespawnEvent(ev.0));

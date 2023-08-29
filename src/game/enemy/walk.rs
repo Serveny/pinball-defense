@@ -17,8 +17,10 @@ pub(super) fn walk_system(
             Some(pos) => trans.translation = pos,
             None => {
                 // Reminder: If you need infos about the enemy, overgive only infos, not enemy id
-                cmds.entity(enemy_id).despawn_recursive();
                 end_reached_ev.send(RoadEndReachedEvent);
+
+                // Delete enemy here, to prevent double events
+                cmds.entity(enemy_id).despawn_recursive();
             }
         };
     }
@@ -35,7 +37,7 @@ pub(super) fn road_end_reached_system(
 ) {
     for _ in evr.iter() {
         log!("🔚 Enemy reached road end");
-        progress_ev.send(ProgressBarCountUpEvent(q_life_bar.single(), -0.1));
+        progress_ev.send(ProgressBarCountUpEvent::new(q_life_bar.single(), -0.1));
         sound_ev.send(SoundEvent::EnemyReachEnd);
     }
 }

@@ -2,10 +2,10 @@ use super::audio::SoundEvent;
 use super::events::collision::BALL;
 use super::events::collision::INTERACT_WITH_BALL;
 use super::events::collision::INTERACT_WITH_ENEMY;
+use super::health::ChangeHealthEvent;
 use super::level::PointsEvent;
 use super::pinball_menu::PinballMenuEvent;
 use super::player_life::LifeBar;
-use super::progress_bar::ProgressBarCountUpEvent;
 use super::GameState;
 use crate::prelude::*;
 use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
@@ -93,20 +93,20 @@ pub struct OnBallDespawnEvent;
 
 const X_RANGE: Range<f32> = -1.3..1.3;
 const Y_RANGE: Range<f32> = -0.72..0.72;
-const HIT_RANGE: Range<f32> = -0.2..0.12;
+const HIT_Y_RANGE: Range<f32> = -0.2..0.12;
 
 fn ball_reset_system(
     mut cmds: Commands,
     mut evw: EventWriter<OnBallDespawnEvent>,
-    mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
+    mut health_ev: EventWriter<ChangeHealthEvent>,
     q_ball: Query<(Entity, &Transform), With<PinBall>>,
     q_life_bar: Query<Entity, With<LifeBar>>,
 ) {
     for (entity, transform) in q_ball.iter() {
         let ball_pos = transform.translation;
         if !X_RANGE.contains(&ball_pos.x) || !Y_RANGE.contains(&ball_pos.y) {
-            if ball_pos.x > 1.2 && HIT_RANGE.contains(&ball_pos.x) {
-                prog_bar_ev.send(ProgressBarCountUpEvent(q_life_bar.single(), -0.05));
+            if ball_pos.x > 1.2 && HIT_Y_RANGE.contains(&ball_pos.y) {
+                health_ev.send(ChangeHealthEvent::new(q_life_bar.single(), -5.));
             }
             log!("🎱 Despawn ball");
             cmds.get_entity(entity).unwrap().despawn_recursive();

@@ -185,7 +185,10 @@ pub(super) fn progress_system(
 ) {
     for CollisionWithBallEvent(id, flag) in ball_coll_ev.iter() {
         if *flag == CollisionEventFlags::SENSOR && q_tower_foundation.contains(*id) {
-            prog_bar_ev.send(ProgressBarCountUpEvent(*id, CONFIG.foundation_hit_progress));
+            prog_bar_ev.send(ProgressBarCountUpEvent::new(
+                *id,
+                CONFIG.foundation_hit_progress,
+            ));
             points_ev.send(PointsEvent::FoundationHit);
         }
     }

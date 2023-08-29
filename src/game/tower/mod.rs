@@ -255,7 +255,7 @@ fn progress_system(
         .iter()
         .for_each(|CollisionWithBallEvent(id, flag)| {
             if *flag != CollisionEventFlags::SENSOR && q_tower.contains(*id) {
-                prog_bar_ev.send(ProgressBarCountUpEvent(*id, CONFIG.tower_hit_progress));
+                prog_bar_ev.send(ProgressBarCountUpEvent::new(*id, CONFIG.tower_hit_progress));
                 points_ev.send(PointsEvent::TowerHit);
                 sound_ev.send(SoundEvent::TowerHit);
             }
@@ -297,7 +297,7 @@ fn upgrade_system(
             tower_level.0 as u32,
         ));
         points_ev.send(PointsEvent::TowerUpgrade);
-        prog_bar_ev.send(ProgressBarCountUpEvent(ev.tower_id, -1.));
+        prog_bar_ev.send(ProgressBarCountUpEvent::new(ev.tower_id, -1.));
         match ev.upgrade {
             TowerUpgrade::Damage => damage_upgrade_ev.send(DamageUpgradeEvent(ev.tower_id)),
             TowerUpgrade::Range => range_upgrade_ev.send(RangeUpgradeEvent(ev.tower_id)),
