@@ -1,5 +1,5 @@
 use super::Enemy;
-use crate::game::audio::PlaySoundEvent;
+use crate::game::audio::SoundEvent;
 use crate::game::player_life::LifeBar;
 use crate::game::progress_bar::ProgressBarCountUpEvent;
 use crate::prelude::*;
@@ -30,13 +30,13 @@ pub(super) struct RoadEndReachedEvent;
 pub(super) fn road_end_reached_system(
     mut evr: EventReader<RoadEndReachedEvent>,
     mut progress_ev: EventWriter<ProgressBarCountUpEvent>,
-    mut sound_ev: EventWriter<PlaySoundEvent>,
+    mut sound_ev: EventWriter<SoundEvent>,
     q_life_bar: Query<Entity, With<LifeBar>>,
 ) {
     for _ in evr.iter() {
         log!("🔚 Enemy reached road end");
         progress_ev.send(ProgressBarCountUpEvent(q_life_bar.single(), -0.1));
-        sound_ev.send(PlaySoundEvent::EnemyReachEnd);
+        sound_ev.send(SoundEvent::EnemyReachEnd);
     }
 }
 

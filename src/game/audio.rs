@@ -5,7 +5,7 @@ use bevy::audio::{PlaybackMode, Volume, VolumeLevel};
 pub struct AudioPlugin;
 impl Plugin for AudioPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<PlaySoundEvent>()
+        app.add_event::<SoundEvent>()
             .add_systems(OnEnter(GameState::Ingame), play_music)
             .add_systems(
                 Update,
@@ -15,7 +15,7 @@ impl Plugin for AudioPlugin {
 }
 
 #[derive(Event)]
-pub enum PlaySoundEvent {
+pub enum SoundEvent {
     BallSpawn,
     FlipperPress,
     FlipperRelease,
@@ -23,11 +23,12 @@ pub enum PlaySoundEvent {
     BallHitsEnd,
     EnemyDeath,
     EnemyReachEnd,
+    TowerBuild,
 }
 
-impl PlaySoundEvent {
+impl SoundEvent {
     fn sound_bundle<'a>(&self, assets: &'a PinballDefenseAudioAssets) -> SoundHandle<'a> {
-        use PlaySoundEvent::*;
+        use SoundEvent::*;
         match *self {
             BallSpawn => SoundHandle::Single(&assets.ball_release),
             FlipperPress => SoundHandle::Various(&assets.flipper_press),
@@ -36,13 +37,14 @@ impl PlaySoundEvent {
             BallHitsEnd => SoundHandle::Single(&assets.ball_hits_end),
             EnemyDeath => SoundHandle::Single(&assets.enemy_death),
             EnemyReachEnd => SoundHandle::Single(&assets.enemy_reach_end),
+            TowerBuild => SoundHandle::Single(&assets.tower_build),
         }
     }
 }
 
 fn play_sound_system(
     mut cmds: Commands,
-    mut evr: EventReader<PlaySoundEvent>,
+    mut evr: EventReader<SoundEvent>,
     assets: Res<PinballDefenseAudioAssets>,
 ) {
     for ev in evr.iter() {

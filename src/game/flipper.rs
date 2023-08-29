@@ -1,4 +1,4 @@
-use super::audio::PlaySoundEvent;
+use super::audio::SoundEvent;
 use super::ball::CollisionWithBallEvent;
 use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 use super::level::PointsEvent;
@@ -171,13 +171,13 @@ fn flipper_system(
 }
 
 fn sound_system(
-    mut sound_ev: EventWriter<PlaySoundEvent>,
+    mut sound_ev: EventWriter<SoundEvent>,
     q_flipper: Query<&FlipperStatus, Changed<FlipperStatus>>,
 ) {
     for status in q_flipper.iter() {
         match status {
-            FlipperStatus::Idle => sound_ev.send(PlaySoundEvent::FlipperRelease),
-            FlipperStatus::Pushed => sound_ev.send(PlaySoundEvent::FlipperPress),
+            FlipperStatus::Idle => sound_ev.send(SoundEvent::FlipperRelease),
+            FlipperStatus::Pushed => sound_ev.send(SoundEvent::FlipperPress),
         }
     }
 }
