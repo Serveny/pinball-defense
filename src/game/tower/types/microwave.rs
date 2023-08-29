@@ -16,7 +16,7 @@ pub fn spawn(
     g_sett: &GraphicsSettings,
     pos: Vec3,
 ) {
-    let sight_radius = 0.15;
+    let sight_radius = 0.3;
     let tower_mat = mats.add(tower_material());
     super::spawn(
         pb_world,

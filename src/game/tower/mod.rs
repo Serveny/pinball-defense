@@ -3,6 +3,7 @@ use self::light::{contact_light_bundle, FlashLight, LightOnCollision};
 use self::target::{EnemiesWithinReach, SightRadius, TargetPos};
 use super::audio::SoundEvent;
 use super::ball::CollisionWithBallEvent;
+use super::cfg::CONFIG;
 use super::events::collision::{COLLIDE_ONLY_WITH_BALL, COLLIDE_ONLY_WITH_ENEMY};
 use super::level::{Level, PointsEvent};
 use super::pinball_menu::{PinballMenuTrigger, UpgradeMenuExecuteEvent};
@@ -254,7 +255,7 @@ fn progress_system(
         .iter()
         .for_each(|CollisionWithBallEvent(id, flag)| {
             if *flag != CollisionEventFlags::SENSOR && q_tower.contains(*id) {
-                prog_bar_ev.send(ProgressBarCountUpEvent(*id, 0.05));
+                prog_bar_ev.send(ProgressBarCountUpEvent(*id, CONFIG.tower_hit_progress));
                 points_ev.send(PointsEvent::TowerHit);
                 sound_ev.send(SoundEvent::TowerHit);
             }

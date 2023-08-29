@@ -35,12 +35,20 @@
 - generate some flipper test sound files ✅
 - audio asset loading system ✅
 - audio player system ✅
+- menu elements always in same order
+- enemy life points
+- pinball enemy hit takes 100 life points
+- pinball hits end makes damage
+- initial only 3 foundations
+- one foundation spawn with one level
+- level up light fx
 - sounds:
   - enemy hit sound ✅
   - ball hits road end sound ✅
   - enemy reached road end sound ✅
   - tower build sound ✅
   - tower upgrade sound ✅
+  - foundation hit sound
   - analog counter sound
   - ball charger/starter sound
   - pinball menu element fade in sound

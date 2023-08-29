@@ -24,6 +24,7 @@ mod audio;
 mod ball;
 mod ball_starter;
 mod camera;
+mod cfg;
 mod colliders;
 mod controls;
 mod enemy;
