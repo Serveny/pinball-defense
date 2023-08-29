@@ -4,6 +4,7 @@ use ball::BallPlugin;
 use self::analog_counter::AnalogCounterPlugin;
 use self::audio::AudioPlugin;
 use self::camera::PinballCameraPlugin;
+use self::health::HealthPlugin;
 use self::level::LevelPlugin;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
@@ -30,6 +31,7 @@ mod controls;
 mod enemy;
 mod events;
 mod flipper;
+mod health;
 mod level;
 mod pinball_menu;
 mod player_life;
@@ -65,11 +67,11 @@ impl Plugin for GamePlugin {
                 ProgressBarPlugin,
                 EnemyPlugin,
                 WavePlugin,
-                PlayerLifePlugin,
                 LevelPlugin,
                 AnalogCounterPlugin,
                 AudioPlugin,
             ))
+            .add_plugins((HealthPlugin, PlayerLifePlugin))
             .add_systems(
                 OnEnter(AppState::Game),
                 (setup_ambient_lights, set_game_state_ingame),
