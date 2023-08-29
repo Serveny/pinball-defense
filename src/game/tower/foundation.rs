@@ -1,6 +1,7 @@
 use super::light::{contact_light_bundle, disable_flash_light, FlashLight, LightOnCollision};
 use super::tower_material;
 use crate::game::ball::CollisionWithBallEvent;
+use crate::game::cfg::CONFIG;
 use crate::game::events::collision::COLLIDE_ONLY_WITH_BALL;
 use crate::game::events::tween_completed::DESPAWN_ENTITY_EVENT_ID;
 use crate::game::level::PointsEvent;
@@ -184,7 +185,7 @@ pub(super) fn progress_system(
 ) {
     for CollisionWithBallEvent(id, flag) in ball_coll_ev.iter() {
         if *flag == CollisionEventFlags::SENSOR && q_tower_foundation.contains(*id) {
-            prog_bar_ev.send(ProgressBarCountUpEvent(*id, 1.));
+            prog_bar_ev.send(ProgressBarCountUpEvent(*id, CONFIG.foundation_hit_progress));
             points_ev.send(PointsEvent::FoundationHit);
         }
     }
