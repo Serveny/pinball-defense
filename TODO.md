@@ -35,7 +35,7 @@
 - generate some flipper test sound files ✅
 - audio asset loading system ✅
 - audio player system ✅
-- menu elements always in same order
+- menu elements always in same order ✅
 - enemy life points
 - pinball enemy hit takes 100 life points
 - pinball hits end makes damage

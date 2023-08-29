@@ -1,6 +1,13 @@
+#[cfg(not(debug_assertions))]
 pub const CONFIG: PinballDefenseConfig = PinballDefenseConfig {
     foundation_hit_progress: 1. / 30.,
     tower_hit_progress: 1. / 15.,
+};
+
+#[cfg(debug_assertions)]
+pub const CONFIG: PinballDefenseConfig = PinballDefenseConfig {
+    foundation_hit_progress: 1.,
+    tower_hit_progress: 1.,
 };
 
 pub struct PinballDefenseConfig {

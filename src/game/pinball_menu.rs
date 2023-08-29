@@ -533,10 +533,10 @@ fn set_selected(cmds: &mut Commands, ref_id: Entity) {
 }
 
 #[derive(Resource, Default)]
-struct UnlockedTowers(HashSet<TowerType>);
+struct UnlockedTowers(Vec<TowerType>);
 
 #[derive(Resource, Default)]
-struct UnlockedUpgrades(HashSet<TowerUpgrade>);
+struct UnlockedUpgrades(Vec<TowerUpgrade>);
 
 fn unlock_system(
     mut lvl_up_ev: EventReader<LevelUpEvent>,
@@ -545,10 +545,10 @@ fn unlock_system(
 ) {
     for ev in lvl_up_ev.iter() {
         if let Some(tower_type) = new_tower_unlock(ev.0) {
-            towers.0.insert(tower_type);
+            towers.0.push(tower_type);
         }
         if let Some(tower_upgrade) = new_tower_upgrade_unlock(ev.0) {
-            upgrades.0.insert(tower_upgrade);
+            upgrades.0.push(tower_upgrade);
         }
     }
 }
