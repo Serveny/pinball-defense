@@ -38,9 +38,9 @@
 - sounds:
   - enemy hit sound ✅
   - ball hits road end sound ✅
-  - enemy reached road end sound
-  - tower build sound
-  - tower upgrade sound
+  - enemy reached road end sound ✅
+  - tower build sound ✅
+  - tower upgrade sound ✅
   - analog counter sound
   - ball charger/starter sound
   - pinball menu element fade in sound
@@ -50,6 +50,7 @@
   - tower mg shoot sound
   - tower microwave sound
   - tower tesla sound
+  - level up sound
 - settings menu
 - camera option
 - textures

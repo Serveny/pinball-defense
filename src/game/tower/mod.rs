@@ -264,6 +264,15 @@ fn progress_system(
 #[derive(Component, Default)]
 struct TowerLevel(Level);
 
+impl SoundEvent {
+    fn upgrade_sound(upgrade: TowerUpgrade) -> Self {
+        match upgrade {
+            TowerUpgrade::Damage => Self::TowerUpgradeDamage,
+            TowerUpgrade::Range => Self::TowerUpgradeRange,
+        }
+    }
+}
+
 fn upgrade_system(
     mut cmds: Commands,
     mut upgrade_menu_exec_ev: EventReader<UpgradeMenuExecuteEvent>,
@@ -274,6 +283,7 @@ fn upgrade_system(
     mut ac_set_ev: EventWriter<AnalogCounterSetEvent>,
     mut range_upgrade_ev: EventWriter<RangeUpgradeEvent>,
     mut damage_upgrade_ev: EventWriter<DamageUpgradeEvent>,
+    mut sound_ev: EventWriter<SoundEvent>,
 ) {
     for ev in upgrade_menu_exec_ev.iter() {
         let mut tower_level = q_tower
@@ -291,6 +301,7 @@ fn upgrade_system(
             TowerUpgrade::Damage => damage_upgrade_ev.send(DamageUpgradeEvent(ev.tower_id)),
             TowerUpgrade::Range => range_upgrade_ev.send(RangeUpgradeEvent(ev.tower_id)),
         }
+        sound_ev.send(SoundEvent::upgrade_sound(ev.upgrade));
         log!(
             "🐱 Upgrade tower {:?} to level {:?}",
             ev.tower_id,

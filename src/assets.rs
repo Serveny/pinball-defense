@@ -81,9 +81,11 @@ pub struct PinballDefenseAudioAssets {
     pub ball_release: Handle<AudioSource>,
     pub tower_hit: Handles<AudioSource>,
     pub ball_hits_end: Handle<AudioSource>,
-    pub enemy_death: Handle<AudioSource>,
+    pub ball_hits_enemy: Handle<AudioSource>,
     pub enemy_reach_end: Handle<AudioSource>,
     pub tower_build: Handle<AudioSource>,
+    pub tower_upgrade_range: Handle<AudioSource>,
+    pub tower_upgrade_damage: Handle<AudioSource>,
 }
 
 #[derive(Resource, Reflect, Default)]
