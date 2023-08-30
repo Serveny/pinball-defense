@@ -42,7 +42,7 @@
 - pinball hits end makes damage ✅
 - build markings ✅
 - one foundation spawn with one level ✅
-- level up light fx
+- level up light fx ✅
 - tower light size to sight range
 - pause function
 - sounds:

@@ -32,7 +32,6 @@ pub enum PointsEvent {
     FoundationHit = 10,
     BallEnemyHit = 15,
     TowerHit = 20,
-    BallSpawned = 50,
     EnemyDied = 85,
     TowerUpgrade = 500,
     TowerBuild = 1000,
@@ -71,7 +70,7 @@ impl LevelHub {
     fn level_up(&mut self) -> Level {
         self.level += 1;
         let factor = self.level as Points * 10;
-        self.points_level_up = factor.pow(2) + (factor as f32).log10() as Points;
+        self.points_level_up = factor.pow(2) + factor * 100;
         self.level
     }
 }
