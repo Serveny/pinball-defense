@@ -37,7 +37,7 @@
 - audio player system ✅
 - menu elements always in same order ✅
 - enemy life points ✅
-- fix recovery system
+- fix recovery system ✅
 - pinball enemy hit takes 100 life points
 - pinball hits end makes damage
 - initial only 3 foundations
