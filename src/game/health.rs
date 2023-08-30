@@ -133,6 +133,11 @@ fn health_recovery_system(
     mut health_ev: EventWriter<ChangeHealthEvent>,
 ) {
     for (id, health, rec) in q_recovery.iter() {
+        //log!(
+        //"full: {}, can_recover: {}",
+        //health.is_full(),
+        //rec.can_recover(ig_time.0)
+        //);
         if !health.is_full() && rec.can_recover(ig_time.0) {
             health_ev.send(ChangeHealthEvent::new(id, rec.health(time.delta_seconds())));
         }
