@@ -6,7 +6,7 @@ pub struct AudioPlugin;
 impl Plugin for AudioPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<SoundEvent>()
-            .add_systems(OnEnter(GameState::Ingame), play_music)
+            //.add_systems(OnEnter(GameState::Ingame), play_music)
             .add_systems(
                 Update,
                 (play_sound_system, clean_up_sound_system).run_if(in_state(GameState::Ingame)),

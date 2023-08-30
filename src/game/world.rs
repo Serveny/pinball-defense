@@ -77,7 +77,7 @@ fn spawn_pinball_world(
         let fr_pos = Transform::from_xyz(0.83, 0.246, -0.043);
         super::flipper::spawn_right(fr_pos, p, assets);
 
-        spawn_foundations(p, &mut mats, assets, &g_sett);
+        spawn_build_marks(p, assets);
         spawn_road(p, &mut mats, &mut meshes, assets);
 
         let life_bar_trans = Transform {
@@ -97,7 +97,7 @@ fn spawn_pinball_world(
     //}
 }
 
-const TOWER_POSIS: [Vec3; 12] = [
+const TOWER_POSIS: [Vec3; 20] = [
     Vec3::new(-0.89, -0.49, -0.04),
     Vec3::new(-0.71, -0.49, -0.04),
     Vec3::new(-0.89, -0.21, -0.04),
@@ -108,17 +108,20 @@ const TOWER_POSIS: [Vec3; 12] = [
     Vec3::new(0.1, -0.51, -0.04),
     Vec3::new(-0.904, -0.0, -0.04),
     Vec3::new(0.01, 0.4, -0.04),
-    Vec3::new(-0.275, 0.4, -0.04),
-    Vec3::new(-0.5, -0.26, -0.04),
+    Vec3::new(-0.24, 0.4, -0.04),
+    Vec3::new(-0.5, 0.4, -0.04),
+    Vec3::new(-0.1, -0.26, -0.04),
+    Vec3::new(-0.5, -0.4, -0.04),
+    Vec3::new(-0.3, -0.17, -0.04),
+    Vec3::new(-0.3, 0.17, -0.04),
+    Vec3::new(-1.1, -0.55, -0.04),
+    Vec3::new(-1.035, 0., -0.04),
+    Vec3::new(-0.71, -0.35, -0.04),
+    Vec3::new(0.11, 0.17, -0.04),
 ];
 
-fn spawn_foundations(
-    parent: &mut ChildBuilder,
-    mats: &mut Assets<StandardMaterial>,
-    assets: &PinballDefenseGltfAssets,
-    g_sett: &GraphicsSettings,
-) {
-    for pos in TOWER_POSIS {
-        foundation::spawn(parent, mats, assets, g_sett, pos);
+fn spawn_build_marks(parent: &mut ChildBuilder, assets: &PinballDefenseGltfAssets) {
+    for (i, pos) in TOWER_POSIS.iter().enumerate() {
+        parent.spawn(foundation::build_mark(assets, *pos, i));
     }
 }

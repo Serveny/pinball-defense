@@ -3,10 +3,11 @@ use crate::game::ball::CollisionWithBallEvent;
 use crate::game::cfg::CONFIG;
 use crate::game::events::collision::COLLIDE_ONLY_WITH_BALL;
 use crate::game::events::tween_completed::DESPAWN_ENTITY_EVENT_ID;
-use crate::game::level::PointsEvent;
+use crate::game::level::{LevelUpEvent, PointsEvent};
 use crate::game::pinball_menu::{PinballMenuTrigger, TowerMenuExecuteEvent};
 use crate::game::progress_bar;
 use crate::game::progress_bar::ProgressBarCountUpEvent;
+use crate::game::world::PinballWorld;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
@@ -28,7 +29,33 @@ pub(super) struct TowerFoundationTop;
 #[derive(Component)]
 pub(super) struct TowerFoundationBottom;
 
-pub fn spawn(
+pub(super) fn spawn_system(
+    mut cmds: Commands,
+    mut on_level_up: EventReader<LevelUpEvent>,
+    mut q_mark: Query<(Entity, &mut FoundationBuildMark, &Transform)>,
+    mut mats: ResMut<Assets<StandardMaterial>>,
+    assets: Res<PinballDefenseGltfAssets>,
+    q_pb_word: Query<Entity, With<PinballWorld>>,
+    g_sett: Res<GraphicsSettings>,
+) {
+    for _ in on_level_up.iter() {
+        if let Some((mark_id, mut mark, trans)) = q_mark.iter_mut().find(|mark| mark.1.is_available)
+        {
+            let pos = trans.translation;
+
+            // Despawn mark
+            mark.is_available = false;
+            set_despawn_animation(&mut cmds, mark_id, pos, 1.);
+
+            // Spawn foundation
+            cmds.entity(q_pb_word.single()).with_children(|p| {
+                spawn(p, &mut mats, &assets, &g_sett, pos);
+            });
+        }
+    }
+}
+
+fn spawn(
     parent: &mut ChildBuilder,
     mats: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseGltfAssets,
@@ -63,6 +90,18 @@ fn ring(assets: &PinballDefenseGltfAssets, pos: Vec3) -> impl Bundle {
         TowerFoundation,
         LightOnCollision,
         PinballMenuTrigger::Tower,
+        Animator::new(spawn_animation(pos)),
+    )
+}
+
+fn spawn_animation(pos: Vec3) -> Tween<Transform> {
+    Tween::new(
+        EaseFunction::QuadraticIn,
+        std::time::Duration::from_secs(2),
+        TransformPositionLens {
+            start: Vec3::new(pos.x, pos.y, pos.z - 0.02),
+            end: pos,
+        },
     )
 }
 
@@ -114,8 +153,8 @@ fn set_lid_open_animation(
     }
 }
 
-fn set_foundation_despawn_animation(cmds: &mut Commands, foundation_id: Entity, pos: Vec3) {
-    let delay = Delay::new(Duration::from_secs(3));
+fn set_despawn_animation(cmds: &mut Commands, foundation_id: Entity, pos: Vec3, time_secs: f32) {
+    let delay = Delay::new(Duration::from_secs_f32(time_secs));
     let tween = Tween::new(
         EaseFunction::QuadraticIn,
         std::time::Duration::from_secs(2),
@@ -156,7 +195,7 @@ pub(super) fn despawn_system(
         // Despawn foundation
         log!("🥲 Despawn foundation {:?}", foundation_id);
         cmds.entity(foundation_id).remove::<Collider>();
-        set_foundation_despawn_animation(&mut cmds, foundation_id, pos);
+        set_despawn_animation(&mut cmds, foundation_id, pos, 3.);
 
         // Disable selected tower light
         disable_flash_light(&mut cmds, &mut q_light, foundation_id);
@@ -178,4 +217,42 @@ pub(super) fn progress_system(
             points_ev.send(PointsEvent::FoundationHit);
         }
     }
+}
+
+#[derive(Component)]
+pub struct FoundationBuildMark {
+    i: usize,
+    is_available: bool,
+}
+
+impl FoundationBuildMark {
+    pub fn new(i: usize) -> Self {
+        Self {
+            i,
+            is_available: true,
+        }
+    }
+}
+
+impl std::fmt::Display for FoundationBuildMark {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(
+            f,
+            "Build Mark {} - available: {}",
+            self.i, self.is_available
+        )
+    }
+}
+
+pub fn build_mark(assets: &PinballDefenseGltfAssets, pos: Vec3, i: usize) -> impl Bundle {
+    (
+        Name::new(format!("Build Mark {i}")),
+        FoundationBuildMark::new(i),
+        PbrBundle {
+            mesh: assets.build_mark.clone(),
+            material: assets.build_mark_material.clone(),
+            transform: Transform::from_translation(pos),
+            ..default()
+        },
+    )
 }

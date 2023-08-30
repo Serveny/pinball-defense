@@ -40,7 +40,7 @@ pub fn spawn(
             Name::new(" Gun Tower"),
             GunTower,
             AimFirstEnemy(None),
-            DamageOverTime(0.1),
+            DamageOverTime(10.),
         ),
         |tower| {
             let rel_id = tower.parent_entity();

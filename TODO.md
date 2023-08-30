@@ -40,9 +40,11 @@
 - fix recovery system ✅
 - pinball enemy hit takes 100 life points ✅
 - pinball hits end makes damage ✅
-- initial only 3 foundations
-- one foundation spawn with one level
+- build markings ✅
+- one foundation spawn with one level ✅
 - level up light fx
+- tower light size to sight range
+- pause function
 - sounds:
   - enemy hit sound ✅
   - ball hits road end sound ✅
