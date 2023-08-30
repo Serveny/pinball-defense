@@ -68,9 +68,13 @@ pub struct PinballDefenseGltfAssets {
     pub tower_mg_head: Handle<Mesh>,
     pub tower_mg_barrel: Handle<Mesh>,
     pub tower_tesla_top: Handle<Mesh>,
+
+    // Foundation
     pub foundation_lid_bottom: Handle<Mesh>,
     pub foundation_lid_top: Handle<Mesh>,
     pub foundation_ring: Handle<Mesh>,
+    pub foundation_lid_material: Handle<StandardMaterial>,
+    pub foundation_ring_material: Handle<StandardMaterial>,
 }
 
 #[derive(Resource, Reflect, Default)]
