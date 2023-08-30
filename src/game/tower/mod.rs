@@ -56,6 +56,7 @@ impl Plugin for TowerPlugin {
                     animations::rotate_to_target_system,
                     damage::afe_damage_over_time_system,
                     damage::datir_damage_over_time_system,
+                    foundation::spawn_system,
                     foundation::despawn_system,
                     foundation::progress_system,
                     light::contact_light_on_system,
