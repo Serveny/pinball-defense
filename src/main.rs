@@ -12,6 +12,7 @@ use settings::GraphicsSettings;
 
 mod assets;
 mod game;
+mod generated;
 mod loading;
 mod prelude;
 mod settings;

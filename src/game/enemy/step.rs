@@ -1,4 +1,4 @@
-use crate::game::road::points::{ROAD_DISTS, ROAD_POINTS};
+use crate::generated::world_1::road_points::{ROAD_DISTS, ROAD_POINTS};
 use crate::prelude::*;
 
 pub(super) struct Step {
