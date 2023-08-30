@@ -1,5 +1,4 @@
 use super::light::{contact_light_bundle, disable_flash_light, FlashLight, LightOnCollision};
-use super::tower_material;
 use crate::game::ball::CollisionWithBallEvent;
 use crate::game::cfg::CONFIG;
 use crate::game::events::collision::COLLIDE_ONLY_WITH_BALL;
@@ -36,33 +35,23 @@ pub fn spawn(
     g_sett: &GraphicsSettings,
     pos: Vec3,
 ) {
-    parent.spawn(ring(mats, assets, pos)).with_children(|p| {
+    parent.spawn(ring(assets, pos)).with_children(|p| {
         let rel_id = p.parent_entity();
         p.spawn(contact_light_bundle(g_sett, Color::GREEN));
-        p.spawn(lid_top(mats, assets));
-        p.spawn(lid_bottom(mats, assets)).with_children(|p| {
+        p.spawn(lid_top(assets));
+        p.spawn(lid_bottom(assets)).with_children(|p| {
             let bar_trans = Transform::from_translation(Vec3::new(-0.06, 0., 0.));
             progress_bar::spawn(p, assets, mats, rel_id, bar_trans, Color::GREEN, 0.);
         });
     });
 }
 
-fn ring(
-    mats: &mut Assets<StandardMaterial>,
-    assets: &PinballDefenseGltfAssets,
-    pos: Vec3,
-) -> impl Bundle {
+fn ring(assets: &PinballDefenseGltfAssets, pos: Vec3) -> impl Bundle {
     (
         Name::new("Tower Foundation"),
         PbrBundle {
             mesh: assets.foundation_ring.clone(),
-            material: mats.add(StandardMaterial {
-                base_color: Color::BLACK,
-                perceptual_roughness: 1.,
-                metallic: 0.0,
-                reflectance: 0.0,
-                ..default()
-            }),
+            material: assets.foundation_ring_material.clone(),
             transform: Transform::from_translation(pos),
             ..default()
         },
@@ -77,12 +66,12 @@ fn ring(
     )
 }
 
-fn lid_top(mats: &mut Assets<StandardMaterial>, assets: &PinballDefenseGltfAssets) -> impl Bundle {
+fn lid_top(assets: &PinballDefenseGltfAssets) -> impl Bundle {
     (
         Name::new("Tower Foundation Top"),
         PbrBundle {
             mesh: assets.foundation_lid_top.clone(),
-            material: mats.add(tower_material()),
+            material: assets.foundation_lid_material.clone(),
             transform: Transform::from_translation(Vec3::new(-0.06, 0., 0.)),
             ..default()
         },
@@ -91,15 +80,12 @@ fn lid_top(mats: &mut Assets<StandardMaterial>, assets: &PinballDefenseGltfAsset
     )
 }
 
-fn lid_bottom(
-    mats: &mut Assets<StandardMaterial>,
-    assets: &PinballDefenseGltfAssets,
-) -> impl Bundle {
+fn lid_bottom(assets: &PinballDefenseGltfAssets) -> impl Bundle {
     (
         Name::new("Tower Foundation Bottom"),
         PbrBundle {
             mesh: assets.foundation_lid_bottom.clone(),
-            material: mats.add(tower_material()),
+            material: assets.foundation_lid_material.clone(),
             transform: Transform::from_translation(Vec3::new(0.06, 0., 0.)),
             ..default()
         },
