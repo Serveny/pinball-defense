@@ -1,7 +1,5 @@
-use self::points::ROAD_POINTS;
+use crate::generated::world_1::road_points::ROAD_POINTS;
 use crate::prelude::*;
-
-pub mod points;
 
 #[derive(Resource)]
 struct RoadAnimations(Vec<Handle<AnimationClip>>);

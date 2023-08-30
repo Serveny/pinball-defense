@@ -4,8 +4,9 @@ import bpy
 from bpy.types import MeshPolygon, MeshVertex, MeshEdge
 from mathutils import Vector
 
+world_name = "world_1"
 dir_name = Path(__file__).parent.parent
-file_name = os.path.join(dir_name, "../../src/game/colliders.rs")
+file_name = os.path.join(dir_name, f"../../src/generated/{world_name}/colliders.rs")
 face_thickness = 0.001
 
 print("\n-------------------------------------\n")

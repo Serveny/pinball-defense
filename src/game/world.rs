@@ -8,6 +8,7 @@ use super::road::spawn_road;
 use super::tower::foundation;
 use super::{analog_counter, GameState};
 use crate::assets::PinballDefenseGltfAssets;
+use crate::generated::world_1::*;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 
@@ -57,7 +58,7 @@ fn spawn_pinball_world(
         },));
 
         // Map colliders
-        for coll in super::colliders::colliders() {
+        for coll in colliders::colliders() {
             p.spawn((
                 SpatialBundle::default(),
                 coll,
@@ -125,3 +126,5 @@ fn spawn_build_marks(parent: &mut ChildBuilder, assets: &PinballDefenseGltfAsset
         parent.spawn(foundation::build_mark(assets, *pos, i));
     }
 }
+
+fn spawn_level_up_lights(parent: &mut ChildBuilder, g_sett: &GraphicsSettings) {}
