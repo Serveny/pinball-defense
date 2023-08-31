@@ -43,8 +43,11 @@
 - build markings ✅
 - one foundation spawn with one level ✅
 - level up light fx ✅
-- tower light size to sight range
+- tower muzzle lights size to sight range ✅
+- sight radius light ✅
+- update sight radius light range at upgrade
 - pause function
+- replace level up lights through turning red level up alarm light at level counter
 - sounds:
   - enemy hit sound ✅
   - ball hits road end sound ✅
