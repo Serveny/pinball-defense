@@ -1,9 +1,9 @@
-use super::light::{contact_light_bundle, disable_flash_light, FlashLight, LightOnCollision};
 use crate::game::ball::CollisionWithBallEvent;
 use crate::game::cfg::CONFIG;
 use crate::game::events::collision::COLLIDE_ONLY_WITH_BALL;
 use crate::game::events::tween_completed::DESPAWN_ENTITY_EVENT_ID;
 use crate::game::level::{LevelUpEvent, PointsEvent};
+use crate::game::light::{contact_light_bundle, disable_flash_light, FlashLight, LightOnCollision};
 use crate::game::pinball_menu::{PinballMenuTrigger, TowerMenuExecuteEvent};
 use crate::game::progress_bar;
 use crate::game::progress_bar::ProgressBarCountUpEvent;

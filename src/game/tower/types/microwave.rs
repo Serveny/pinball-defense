@@ -36,7 +36,7 @@ pub fn spawn(
             tower
                 .spawn(head(tower_mat.clone(), assets, rel_id))
                 .with_children(|head| {
-                    head.spawn(slow_down_flash_light(g_sett, rel_id));
+                    head.spawn(slow_down_flash_light(g_sett, rel_id, sight_radius));
                 });
         },
     );
@@ -63,17 +63,17 @@ fn head(
 #[derive(Component)]
 pub struct SlowDownFlashLight;
 
-fn slow_down_flash_light(g_sett: &GraphicsSettings, rel_id: Entity) -> impl Bundle {
+fn slow_down_flash_light(g_sett: &GraphicsSettings, rel_id: Entity, range: f32) -> impl Bundle {
     (
         Name::new("Slow Down Flash"),
         SpotLightBundle {
             transform: Transform::from_xyz(0., 0.04, 0.)
                 .looking_at(Vec3::new(0.0, 1.0, 0.0), Vec3::Z),
             spot_light: SpotLight {
-                intensity: 0., // lumens - roughly a 100W non-halogen incandescent bulb
+                intensity: 0.,
                 color: Color::ORANGE_RED,
                 shadows_enabled: g_sett.is_shadows,
-                range: 0.4,
+                range,
                 inner_angle: 0.02,
                 outer_angle: 0.8,
                 ..default()

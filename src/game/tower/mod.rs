@@ -1,16 +1,16 @@
 use self::damage::DamageOverTime;
-use self::light::{contact_light_bundle, FlashLight, LightOnCollision};
 use self::target::{EnemiesWithinReach, SightRadius, TargetPos};
 use super::audio::SoundEvent;
 use super::ball::CollisionWithBallEvent;
 use super::cfg::CONFIG;
 use super::events::collision::{COLLIDE_ONLY_WITH_BALL, COLLIDE_ONLY_WITH_ENEMY};
 use super::level::{Level, PointsEvent};
+use super::light::{contact_light_bundle, sight_radius_light, FlashLight, LightOnCollision};
 use super::pinball_menu::{PinballMenuTrigger, UpgradeMenuExecuteEvent};
 use super::progress_bar::{self, ProgressBarCountUpEvent};
 use super::{analog_counter, GameState};
 use crate::game::analog_counter::AnalogCounterSetEvent;
-use crate::game::tower::light::disable_flash_light;
+use crate::game::light::disable_flash_light;
 use crate::game::world::QueryWorld;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
@@ -24,7 +24,6 @@ use types::*;
 mod animations;
 mod damage;
 pub mod foundation;
-pub mod light;
 mod speed;
 mod target;
 mod types;
@@ -59,10 +58,6 @@ impl Plugin for TowerPlugin {
                     foundation::spawn_system,
                     foundation::despawn_system,
                     foundation::progress_system,
-                    light::contact_light_on_system,
-                    light::add_flashlight_system.after(light::disable_contact_light_system),
-                    light::flash_light_system,
-                    light::disable_contact_light_system,
                     speed::afe_slow_down_system,
                     target::aim_first_enemy_system,
                     target::enemy_within_reach_system,
@@ -183,7 +178,7 @@ fn spawn(
             p.spawn(tower_base_bundle(assets, mats));
             p.spawn(contact_light_bundle(g_sett, color));
             p.spawn(tower_sight_sensor_bundle(sight_radius));
-
+            p.spawn(sight_radius_light(sight_radius));
             progress_bar::spawn(p, assets, mats, tower_id, bar_trans, color, 0.);
             analog_counter::spawn_2_digit(p, assets, counter_trans, Some(p.parent_entity()));
 
