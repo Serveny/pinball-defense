@@ -47,7 +47,7 @@ pub fn spawn(
 
             // Children of tower
             let muzzle_flash_light = |parent: &mut ChildBuilder| {
-                parent.spawn(muzzle_flash_light(g_sett, rel_id));
+                parent.spawn(muzzle_flash_light(g_sett, rel_id, sight_radius));
             };
             let mg_barrel = |parent: &mut ChildBuilder| {
                 parent
@@ -73,7 +73,7 @@ pub fn spawn(
 #[derive(Component)]
 pub struct MuzzleFlashLight;
 
-fn muzzle_flash_light(g_sett: &GraphicsSettings, rel_id: Entity) -> impl Bundle {
+fn muzzle_flash_light(g_sett: &GraphicsSettings, rel_id: Entity, range: f32) -> impl Bundle {
     (
         Name::new("Muzzle Flash"),
         SpotLightBundle {
@@ -83,7 +83,7 @@ fn muzzle_flash_light(g_sett: &GraphicsSettings, rel_id: Entity) -> impl Bundle 
                 intensity: 0., // lumens - roughly a 100W non-halogen incandescent bulb
                 color: Color::rgba_u8(215, 205, 117, 255),
                 shadows_enabled: g_sett.is_shadows,
-                range: 0.4,
+                range,
                 inner_angle: 0.02,
                 outer_angle: 0.8,
                 ..default()

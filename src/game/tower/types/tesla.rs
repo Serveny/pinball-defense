@@ -33,7 +33,11 @@ pub fn spawn(
         ),
         |tower| {
             tower.spawn(top(tower_mat.clone(), assets));
-            tower.spawn(shot_flash_light(g_sett, tower.parent_entity()));
+            tower.spawn(shot_flash_light(
+                g_sett,
+                tower.parent_entity(),
+                sight_radius,
+            ));
         },
     );
 }
@@ -54,16 +58,16 @@ fn top(material: Handle<StandardMaterial>, assets: &PinballDefenseGltfAssets) ->
 #[derive(Component)]
 pub struct ShotFlashLight;
 
-fn shot_flash_light(g_sett: &GraphicsSettings, rel_id: Entity) -> impl Bundle {
+fn shot_flash_light(g_sett: &GraphicsSettings, rel_id: Entity, range: f32) -> impl Bundle {
     (
         Name::new("Shot Flash"),
         PointLightBundle {
             transform: Transform::from_xyz(0., 0., 0.1),
             point_light: PointLight {
-                intensity: 0., // lumens - roughly a 100W non-halogen incandescent bulb
+                intensity: 0.,
                 color: Color::BLUE,
                 shadows_enabled: g_sett.is_shadows,
-                range: 0.2,
+                range,
                 ..default()
             },
             visibility: Visibility::Hidden,

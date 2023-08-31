@@ -43,9 +43,15 @@ impl PointsEvent {
     }
 }
 
+#[cfg(debug_assertions)]
+const POINT_FACTOR: u32 = 100;
+
+#[cfg(not(debug_assertions))]
+const POINT_FACTOR: u32 = 1;
+
 fn add_points_system(mut points_ev: EventReader<PointsEvent>, mut points: ResMut<PointHub>) {
     for ev in points_ev.iter() {
-        points.0 += ev.points();
+        points.0 += ev.points() * POINT_FACTOR;
     }
 }
 
@@ -70,7 +76,7 @@ impl LevelHub {
     fn level_up(&mut self) -> Level {
         self.level += 1;
         let factor = self.level as Points * 10;
-        self.points_level_up = factor.pow(2) + factor * 100;
+        self.points_level_up = factor.pow(2) + factor * 200;
         self.level
     }
 }
