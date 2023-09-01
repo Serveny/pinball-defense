@@ -63,6 +63,7 @@ enum SoundHandle<'a> {
 
 const VOLUME: f32 = 0.6;
 
+#[allow(dead_code)]
 fn play_music(mut cmds: Commands, assets: Res<PinballDefenseAudioAssets>) {
     cmds.spawn(AudioBundle {
         source: assets.background_music.clone(),

@@ -5,7 +5,9 @@ use super::ball::CollisionWithBallEvent;
 use super::cfg::CONFIG;
 use super::events::collision::{COLLIDE_ONLY_WITH_BALL, COLLIDE_ONLY_WITH_ENEMY};
 use super::level::{Level, PointsEvent};
-use super::light::{contact_light_bundle, sight_radius_light, FlashLight, LightOnCollision};
+use super::light::{
+    contact_light_bundle, sight_radius_light, FlashLight, LightOnCollision, SightRadiusLight,
+};
 use super::pinball_menu::{PinballMenuTrigger, UpgradeMenuExecuteEvent};
 use super::progress_bar::{self, ProgressBarCountUpEvent};
 use super::{analog_counter, GameState};
@@ -14,6 +16,7 @@ use crate::game::light::disable_flash_light;
 use crate::game::world::QueryWorld;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
+use crate::utils::RelEntity;
 use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use bevy_tweening::lens::TransformPositionLens;
 use bevy_tweening::{Animator, Delay, EaseFunction, Sequence, Tween};
@@ -310,22 +313,71 @@ fn upgrade_system(
 #[derive(Event)]
 struct RangeUpgradeEvent(Entity);
 
+type QShotLight<'w, 's, 'a> = Query<
+    'w,
+    's,
+    (
+        Option<&'a mut SpotLight>,
+        Option<&'a mut PointLight>,
+        &'a RelEntity,
+    ),
+    (With<ShotLight>, Without<SightRadiusLight>),
+>;
+
 fn range_upgrade_system(
     mut range_upgrade_ev: EventReader<RangeUpgradeEvent>,
     mut q_tower: Query<(Entity, &mut SightRadius), With<Tower>>,
     mut q_coll: Query<(&mut Transform, &Parent), With<TowerSightSensor>>,
+    mut q_sr_light: Query<(&mut SpotLight, &Parent), With<SightRadiusLight>>,
+    mut q_shot_light: QShotLight,
 ) {
     for ev in range_upgrade_ev.iter() {
         if let Ok((tower_id, mut sight_radius)) = q_tower.get_mut(ev.0) {
             let upgrade_factor = 0.01;
             sight_radius.0 += upgrade_factor;
-            q_coll
-                .iter_mut()
-                .find(|(_, parent)| parent.get() == tower_id)
-                .expect("No tower sight radius for tower found")
-                .0
-                .scale += 0.1;
+            update_collider_size(&mut q_coll, upgrade_factor, tower_id);
+            update_sight_radius_light_size(&mut q_sr_light, sight_radius.0, tower_id);
+            update_shot_light_size(&mut q_shot_light, sight_radius.0, tower_id);
         }
+    }
+}
+
+fn update_collider_size(
+    q_coll: &mut Query<(&mut Transform, &Parent), With<TowerSightSensor>>,
+    upgrade_factor: f32,
+    tower_id: Entity,
+) {
+    q_coll
+        .iter_mut()
+        .find(|(_, parent)| parent.get() == tower_id)
+        .expect("No tower sight radius for tower found")
+        .0
+        .scale += upgrade_factor;
+}
+
+fn update_sight_radius_light_size(
+    q_sr_light: &mut Query<(&mut SpotLight, &Parent), With<SightRadiusLight>>,
+    sight_radius: f32,
+    tower_id: Entity,
+) {
+    let (mut light, _) = q_sr_light
+        .iter_mut()
+        .find(|(_, parent)| parent.get() == tower_id)
+        .expect("No tower sight radius light for tower found");
+    light.inner_angle = sight_radius;
+    light.outer_angle = sight_radius;
+}
+
+fn update_shot_light_size(q_shot_light: &mut QShotLight, sight_radius: f32, tower_id: Entity) {
+    let (spot, point, _) = q_shot_light
+        .iter_mut()
+        .find(|(_, _, rel_id)| rel_id.0 == tower_id)
+        .expect("No shot light for tower found");
+
+    if let Some(mut light) = spot {
+        light.outer_angle = sight_radius;
+    } else if let Some(mut light) = point {
+        light.range = sight_radius;
     }
 }
 
@@ -342,3 +394,6 @@ fn damage_upgrade_system(
         }
     }
 }
+
+#[derive(Component)]
+struct ShotLight;

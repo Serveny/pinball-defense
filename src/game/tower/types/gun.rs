@@ -1,7 +1,7 @@
 use super::animations::RotateToTarget;
 use super::target::AimFirstEnemy;
 use crate::game::tower::damage::DamageOverTime;
-use crate::game::tower::{tower_material, TowerHead};
+use crate::game::tower::{tower_material, ShotLight, TowerHead};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::RelEntity;
@@ -92,6 +92,7 @@ fn muzzle_flash_light(g_sett: &GraphicsSettings, rel_id: Entity, range: f32) -> 
             ..default()
         },
         MuzzleFlashLight,
+        ShotLight,
         RelEntity(rel_id),
     )
 }

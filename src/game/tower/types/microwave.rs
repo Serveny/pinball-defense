@@ -2,6 +2,7 @@ use super::{tower_material, TowerHead};
 use crate::game::tower::animations::RotateToTarget;
 use crate::game::tower::speed::SlowDownFactor;
 use crate::game::tower::target::AimFirstEnemy;
+use crate::game::tower::ShotLight;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::RelEntity;
@@ -82,6 +83,7 @@ fn slow_down_flash_light(g_sett: &GraphicsSettings, rel_id: Entity, range: f32) 
             ..default()
         },
         SlowDownFlashLight,
+        ShotLight,
         RelEntity(rel_id),
     )
 }
