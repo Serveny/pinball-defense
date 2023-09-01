@@ -1,12 +1,14 @@
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 pub use bevy_asset_loader::prelude::*;
 use bevy_framepace::Limiter;
+use bevy_inspector_egui::bevy_egui::EguiPlugin;
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_tweening::TweeningPlugin;
 use bevy_window_title_diagnostics::WindowTitleLoggerDiagnosticsPlugin;
 use game::GamePlugin;
 use loading::LoadingScreenPlugin;
+use menu::MenuPlugin;
 use prelude::*;
 use settings::GraphicsSettings;
 
@@ -14,6 +16,7 @@ mod assets;
 mod game;
 mod generated;
 mod loading;
+mod menu;
 mod prelude;
 mod settings;
 mod utils;
@@ -38,6 +41,7 @@ fn main() {
             FrameTimeDiagnosticsPlugin,
             TweeningPlugin,
             WindowTitleLoggerDiagnosticsPlugin::default(),
+            EguiPlugin,
         ))
         .insert_resource(FixedTime::new_from_secs(TICK_TIME))
         .add_systems(Startup, set_framerate);
@@ -54,7 +58,8 @@ fn main() {
     #[cfg(not(debug_assertions))]
     app.insert_resource(GraphicsSettings::high());
 
-    app.add_plugins((LoadingScreenPlugin, GamePlugin)).run();
+    app.add_plugins((LoadingScreenPlugin, GamePlugin, MenuPlugin))
+        .run();
 }
 
 fn set_framerate(mut settings: ResMut<bevy_framepace::FramepaceSettings>) {

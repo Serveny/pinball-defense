@@ -17,6 +17,9 @@ pub struct PinballDefenseAssets {
 
     #[asset(path = "fonts/PressStart2P-Regular.ttf")]
     pub digital_font: Handle<Font>,
+
+    #[asset(path = "fonts/hemi_head.otf")]
+    pub menu_font: Handle<Font>,
 }
 
 #[derive(Resource, Reflect, Default)]
