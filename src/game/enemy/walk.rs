@@ -29,7 +29,7 @@ pub(super) fn walk_system(
 #[derive(Event)]
 pub(super) struct RoadEndReachedEvent;
 
-pub(super) fn road_end_reached_system(
+pub(super) fn on_road_end_reached_system(
     mut evr: EventReader<RoadEndReachedEvent>,
     mut health_ev: EventWriter<ChangeHealthEvent>,
     mut sound_ev: EventWriter<SoundEvent>,

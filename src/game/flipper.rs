@@ -2,7 +2,7 @@ use super::audio::SoundEvent;
 use super::ball::CollisionWithBallEvent;
 use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 use super::level::PointsEvent;
-use super::GameState;
+use super::{EventState, GameState};
 use crate::prelude::*;
 use std::f32::consts::PI;
 
@@ -12,8 +12,11 @@ impl Plugin for FlipperPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (flipper_system, on_collision_with_ball_system, sound_system)
-                .run_if(in_state(GameState::Ingame)),
+            (flipper_system, sound_system).run_if(in_state(GameState::Ingame)),
+        )
+        .add_systems(
+            Update,
+            (on_collision_with_ball_system).run_if(in_state(EventState::Active)),
         );
     }
 }

@@ -10,7 +10,7 @@ use super::light::{
 };
 use super::pinball_menu::{PinballMenuTrigger, UpgradeMenuExecuteEvent};
 use super::progress_bar::{self, ProgressBarCountUpEvent};
-use super::{analog_counter, GameState};
+use super::{analog_counter, EventState, GameState};
 use crate::game::analog_counter::AnalogCounterSetEvent;
 use crate::game::light::disable_flash_light;
 use crate::game::world::QueryWorld;
@@ -38,19 +38,6 @@ impl Plugin for TowerPlugin {
         app.add_event::<SpawnTowerEvent>()
             .add_event::<DamageUpgradeEvent>()
             .add_event::<RangeUpgradeEvent>()
-            // Tower systems
-            .add_systems(
-                Update,
-                (
-                    progress_system,
-                    spawn_tower_system,
-                    upgrade_system,
-                    damage_upgrade_system,
-                    range_upgrade_system,
-                )
-                    .run_if(in_state(GameState::Ingame)),
-            )
-            // Child systems
             .add_systems(
                 Update,
                 (
@@ -58,19 +45,30 @@ impl Plugin for TowerPlugin {
                     animations::rotate_to_target_system,
                     damage::afe_damage_over_time_system,
                     damage::datir_damage_over_time_system,
-                    foundation::spawn_system,
-                    foundation::despawn_system,
-                    foundation::progress_system,
                     speed::afe_slow_down_system,
                     target::aim_first_enemy_system,
-                    target::enemy_within_reach_system,
-                    target::remove_despawned_enemies_from_ewr_system,
                     target::target_pos_by_afe_system,
                     types::gun::shoot_animation_system,
                     types::microwave::shot_animation_system,
                     types::tesla::shot_animation_system,
                 )
                     .run_if(in_state(GameState::Ingame)),
+            )
+            .add_systems(
+                Update,
+                (
+                    on_progress_system,
+                    on_spawn_tower_system,
+                    on_upgrade_system,
+                    on_damage_upgrade_system,
+                    on_range_upgrade_system,
+                    foundation::on_spawn_system,
+                    foundation::on_despawn_system,
+                    foundation::on_progress_system,
+                    target::on_enemy_within_reach_system,
+                    target::on_remove_despawned_enemies_from_ewr_system,
+                )
+                    .run_if(in_state(EventState::Active)),
             );
     }
 }
@@ -219,7 +217,7 @@ fn tower_start_pos(pos: Vec3) -> Vec3 {
 #[derive(Event)]
 pub struct SpawnTowerEvent(pub TowerType, pub Vec3);
 
-fn spawn_tower_system(
+fn on_spawn_tower_system(
     mut cmds: Commands,
     mut evs: EventReader<SpawnTowerEvent>,
     mut mats: ResMut<Assets<StandardMaterial>>,
@@ -243,7 +241,7 @@ fn spawn_tower_system(
     }
 }
 
-fn progress_system(
+fn on_progress_system(
     mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
     mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
     mut points_ev: EventWriter<PointsEvent>,
@@ -273,7 +271,7 @@ impl SoundEvent {
     }
 }
 
-fn upgrade_system(
+fn on_upgrade_system(
     mut cmds: Commands,
     mut upgrade_menu_exec_ev: EventReader<UpgradeMenuExecuteEvent>,
     mut q_light: Query<(Entity, &Parent, &mut Visibility), With<FlashLight>>,
@@ -324,7 +322,7 @@ type QShotLight<'w, 's, 'a> = Query<
     (With<ShotLight>, Without<SightRadiusLight>),
 >;
 
-fn range_upgrade_system(
+fn on_range_upgrade_system(
     mut range_upgrade_ev: EventReader<RangeUpgradeEvent>,
     mut q_tower: Query<(Entity, &mut SightRadius), With<Tower>>,
     mut q_coll: Query<(&mut Transform, &Parent), With<TowerSightSensor>>,
@@ -384,7 +382,7 @@ fn update_shot_light_size(q_shot_light: &mut QShotLight, sight_radius: f32, towe
 #[derive(Event)]
 struct DamageUpgradeEvent(Entity);
 
-fn damage_upgrade_system(
+fn on_damage_upgrade_system(
     mut damage_upgrade_ev: EventReader<DamageUpgradeEvent>,
     mut q_tower: Query<&mut DamageOverTime, With<Tower>>,
 ) {

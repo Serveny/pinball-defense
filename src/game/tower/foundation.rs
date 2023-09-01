@@ -29,7 +29,7 @@ pub(super) struct TowerFoundationTop;
 #[derive(Component)]
 pub(super) struct TowerFoundationBottom;
 
-pub(super) fn spawn_system(
+pub(super) fn on_spawn_system(
     mut cmds: Commands,
     mut on_level_up: EventReader<LevelUpEvent>,
     mut q_mark: Query<(Entity, &mut FoundationBuildMark, &Transform)>,
@@ -169,7 +169,7 @@ fn set_despawn_animation(cmds: &mut Commands, foundation_id: Entity, pos: Vec3, 
     cmds.entity(foundation_id).insert(Animator::new(sequence));
 }
 
-pub(super) fn despawn_system(
+pub(super) fn on_despawn_system(
     mut cmds: Commands,
     mut tower_menu_execute_ev: EventReader<TowerMenuExecuteEvent>,
     mut q_light: Query<(Entity, &Parent, &mut Visibility), With<FlashLight>>,
@@ -202,7 +202,7 @@ pub(super) fn despawn_system(
     }
 }
 
-pub(super) fn progress_system(
+pub(super) fn on_progress_system(
     mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
     mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
     mut points_ev: EventWriter<PointsEvent>,

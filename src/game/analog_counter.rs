@@ -1,4 +1,4 @@
-use super::GameState;
+use super::{EventState, GameState};
 use crate::prelude::*;
 extern crate digits_iterator;
 use crate::utils::RelEntity;
@@ -9,10 +9,12 @@ pub struct AnalogCounterPlugin;
 
 impl Plugin for AnalogCounterPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<AnalogCounterSetEvent>().add_systems(
-            Update,
-            (on_set_system, turn_digit_system).run_if(in_state(GameState::Ingame)),
-        );
+        app.add_event::<AnalogCounterSetEvent>()
+            .add_systems(
+                Update,
+                (turn_digit_system).run_if(in_state(GameState::Ingame)),
+            )
+            .add_systems(Update, (on_set_system).run_if(in_state(EventState::Active)));
     }
 }
 

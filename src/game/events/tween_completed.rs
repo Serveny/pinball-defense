@@ -6,7 +6,7 @@ pub const DESPAWN_ENTITY_EVENT_ID: u64 = 0;
 pub const ACTIVATE_PINBALL_MENU_EVENT_ID: u64 = 1;
 pub const DESPAWN_PINBALL_MENU_EVENT_ID: u64 = 2;
 
-pub(super) fn tween_completed_system(
+pub(super) fn on_tween_completed_system(
     mut evr: EventReader<TweenCompleted>,
     mut cmds: Commands,
     mut pm_status_ev: EventWriter<PinballMenuEvent>,
