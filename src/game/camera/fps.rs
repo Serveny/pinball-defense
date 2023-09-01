@@ -145,10 +145,9 @@ pub(super) fn setup_camera(
                 ..default()
             },
             tonemapping: Tonemapping::TonyMcMapface,
-
             ..default()
         },
-        UiCameraConfig { show_ui: false },
+        //UiCameraConfig { show_ui: false },
         g_setting.bloom.clone(),
         Skybox(assets.skybox.clone()),
         EnvironmentMapLight {

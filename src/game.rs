@@ -137,7 +137,7 @@ fn setup_ambient_lights(mut cmds: Commands, g_sett: Res<GraphicsSettings>) {
 }
 
 #[derive(Event)]
-struct PauseGameEvent;
+pub struct PauseGameEvent;
 
 fn on_set_pause_system(
     evr: EventReader<PauseGameEvent>,
@@ -152,7 +152,7 @@ fn on_set_pause_system(
 }
 
 #[derive(Event)]
-struct ResumeGameEvent;
+pub struct ResumeGameEvent;
 
 fn on_resume_game_system(
     evr: EventReader<ResumeGameEvent>,
