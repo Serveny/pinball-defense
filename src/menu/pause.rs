@@ -62,19 +62,29 @@ fn spawn_pause_menu_buttons(p: &mut ChildBuilder, assets: &PinballDefenseAssets)
         ..default()
     },))
         .with_children(|p| {
-            spawn_menu_button(ButtonAction::Continue, p, assets);
-            spawn_menu_button(ButtonAction::Controls, p, assets);
-            spawn_menu_button(ButtonAction::Settings, p, assets);
+            let margin = UiRect::default();
+            let con_margin = UiRect::bottom(Val::Px(10.));
+            spawn_menu_button(ButtonAction::Continue, p, assets, con_margin);
+            spawn_menu_button(ButtonAction::Controls, p, assets, margin);
+            spawn_menu_button(ButtonAction::Graphics, p, assets, margin);
+            spawn_menu_button(ButtonAction::Sound, p, assets, margin);
+            spawn_menu_button(ButtonAction::Quit, p, assets, UiRect::top(Val::Px(10.)));
         });
 }
 
-fn spawn_menu_button(action: ButtonAction, p: &mut ChildBuilder, assets: &PinballDefenseAssets) {
+fn spawn_menu_button(
+    action: ButtonAction,
+    p: &mut ChildBuilder,
+    assets: &PinballDefenseAssets,
+    margin: UiRect,
+) {
     p.spawn((
         ButtonBundle {
             style: Style {
                 width: Val::Percent(100.),
-                height: Val::Px(65.0),
+                height: Val::Px(65.),
                 border: UiRect::bottom(Val::Px(2.0)),
+                margin,
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
                 ..default()

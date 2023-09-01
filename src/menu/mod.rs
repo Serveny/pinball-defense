@@ -1,6 +1,7 @@
 use self::pause::pause_menu_layout;
 use crate::game::ResumeGameEvent;
 use crate::prelude::*;
+use bevy::app::AppExit;
 use std::fmt;
 
 mod pause;
@@ -41,7 +42,9 @@ const GOLD: Color = Color::rgb(188. / 255., 148. / 255., 87. / 255.);
 enum ButtonAction {
     Continue,
     Controls,
-    Settings,
+    Graphics,
+    Sound,
+    Quit,
 }
 
 impl fmt::Display for ButtonAction {
@@ -58,6 +61,7 @@ fn button_system(
     >,
     mut menu_state: ResMut<NextState<MenuState>>,
     mut resume_ev: EventWriter<ResumeGameEvent>,
+    mut exit_ev: EventWriter<AppExit>,
 ) {
     for (interaction, mut border_color, action) in &mut interaction_query {
         match *interaction {
@@ -67,7 +71,9 @@ fn button_system(
                     resume_ev.send(ResumeGameEvent);
                 }
                 ButtonAction::Controls => todo!("controls menu"),
-                ButtonAction::Settings => todo!("settings menu"),
+                ButtonAction::Graphics => todo!("graphics menu"),
+                ButtonAction::Sound => todo!("sound menu"),
+                ButtonAction::Quit => exit_ev.send(AppExit),
             },
             Interaction::Hovered => {
                 *border_color = WHITE.into();
