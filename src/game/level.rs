@@ -44,7 +44,7 @@ impl PointsEvent {
 }
 
 #[cfg(debug_assertions)]
-const POINT_FACTOR: u32 = 100;
+const POINT_FACTOR: u32 = 10;
 
 #[cfg(not(debug_assertions))]
 const POINT_FACTOR: u32 = 1;
