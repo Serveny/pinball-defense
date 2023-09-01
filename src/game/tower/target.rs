@@ -40,7 +40,7 @@ pub(super) fn aim_first_enemy_system(mut q_afe: Query<(&mut AimFirstEnemy, &Enem
 #[derive(Component, Default)]
 pub(super) struct EnemiesWithinReach(pub HashSet<Entity>);
 
-pub(super) fn enemy_within_reach_system(
+pub(super) fn on_enemy_within_reach_system(
     mut col_events: EventReader<CollisionEvent>,
     mut q_ewr: Query<&mut EnemiesWithinReach>,
     q_tower_sight: Query<&Parent, With<TowerSightSensor>>,
@@ -85,7 +85,7 @@ fn edit_eir<F: FnOnce(&mut EnemiesWithinReach, Entity)>(
     }
 }
 
-pub(super) fn remove_despawned_enemies_from_ewr_system(
+pub(super) fn on_remove_despawned_enemies_from_ewr_system(
     mut on_enemy_despawn: EventReader<OnEnemyDespawnEvent>,
     mut q_ewr: Query<&mut EnemiesWithinReach>,
 ) {

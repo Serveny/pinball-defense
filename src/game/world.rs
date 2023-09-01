@@ -21,7 +21,7 @@ impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(FlipperPlugin)
             .add_plugins(BallStarterPlugin)
-            .add_systems(OnEnter(GameState::Ingame), spawn_pinball_world);
+            .add_systems(OnEnter(GameState::Init), spawn_pinball_world);
     }
 }
 

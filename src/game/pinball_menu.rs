@@ -5,7 +5,7 @@ use super::level::{Level, LevelUpEvent};
 use super::progress_bar::ProgressBarFullEvent;
 use super::tower::{SpawnTowerEvent, TowerType, TowerUpgrade};
 use super::world::QueryWorld;
-use super::GameState;
+use super::{EventState, GameState};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
@@ -25,16 +25,18 @@ impl Plugin for PinballMenuPlugin {
             .init_resource::<UnlockedUpgrades>()
             .add_systems(
                 Update,
-                (
-                    menu_event_system,
-                    spawn_system,
-                    execute_system,
-                    de_activate_system,
-                    ready_system,
-                    selected_system,
-                    unlock_system,
-                )
+                (spawn_system, de_activate_system, selected_system)
                     .run_if(in_state(GameState::Ingame)),
+            )
+            .add_systems(
+                Update,
+                (
+                    on_menu_event_system,
+                    on_execute_system,
+                    on_ready_system,
+                    on_unlock_system,
+                )
+                    .run_if(in_state(EventState::Active)),
             );
     }
 }
@@ -95,7 +97,7 @@ enum PinballMenuStatus {
     Activated,
 }
 
-fn menu_event_system(
+fn on_menu_event_system(
     mut evr: EventReader<PinballMenuEvent>,
     mut q_pb_menu: Query<(Entity, &mut PinballMenuStatus), With<PinballMenu>>,
     cmds: Commands,
@@ -393,7 +395,7 @@ fn despawn_animation(angle: f32, duration: Duration) -> Sequence<Transform> {
 type QueryUpgradeMenuEls<'w, 's, 'a> =
     Query<'w, 's, (Entity, &'a TowerUpgrade), (With<PinballMenuElement>, Without<TowerType>)>;
 
-fn execute_system(
+fn on_execute_system(
     mut cmds: Commands,
     mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
     mut on_tower_el_selected: EventWriter<TowerMenuExecuteEvent>,
@@ -480,7 +482,7 @@ pub fn pinball_menu_glass(
 #[derive(Component)]
 struct PinballMenuReady;
 
-fn ready_system(
+fn on_ready_system(
     mut cmds: Commands,
     mut on_progress_full_ev: EventReader<ProgressBarFullEvent>,
     q_trigger: Query<&PinballMenuTrigger>,
@@ -537,7 +539,7 @@ struct UnlockedTowers(Vec<TowerType>);
 #[derive(Resource, Default)]
 struct UnlockedUpgrades(Vec<TowerUpgrade>);
 
-fn unlock_system(
+fn on_unlock_system(
     mut lvl_up_ev: EventReader<LevelUpEvent>,
     mut towers: ResMut<UnlockedTowers>,
     mut upgrades: ResMut<UnlockedUpgrades>,

@@ -6,6 +6,7 @@ use super::health::ChangeHealthEvent;
 use super::level::PointsEvent;
 use super::pinball_menu::PinballMenuEvent;
 use super::player_life::LifeBar;
+use super::EventState;
 use super::GameState;
 use crate::prelude::*;
 use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
@@ -19,13 +20,12 @@ impl Plugin for BallPlugin {
             .add_event::<CollisionWithBallEvent>()
             .add_systems(
                 Update,
-                (
-                    ball_reset_system,
-                    on_ball_despawn_system,
-                    max_speed_system,
-                    collision_with_ball_system,
-                )
-                    .run_if(in_state(GameState::Ingame)),
+                (ball_reset_system, max_speed_system).run_if(in_state(GameState::Ingame)),
+            )
+            .add_systems(
+                Update,
+                (on_ball_despawn_system, on_collision_with_ball_system)
+                    .run_if(in_state(EventState::Active)),
             );
     }
 }
@@ -160,7 +160,7 @@ impl CollisionWithBallEvent {
     }
 }
 
-fn collision_with_ball_system(
+fn on_collision_with_ball_system(
     coll_ev: EventReader<CollisionEvent>,
     mut coll_with_ball_ev: EventWriter<CollisionWithBallEvent>,
     mut points_ev: EventWriter<PointsEvent>,

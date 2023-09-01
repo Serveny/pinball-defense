@@ -1,5 +1,5 @@
 use super::health::{Health, HealthEmptyEvent, HealthRecovery};
-use super::GameState;
+use super::EventState;
 use crate::prelude::*;
 
 pub struct PlayerLifePlugin;
@@ -8,7 +8,7 @@ impl Plugin for PlayerLifePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (game_over_system).run_if(in_state(GameState::Ingame)),
+            (on_game_over_system).run_if(in_state(EventState::Active)),
         );
     }
 }
@@ -43,7 +43,7 @@ pub fn spawn_life_bar(
         });
 }
 
-fn game_over_system(mut evr: EventReader<HealthEmptyEvent>, q_life_bar: Query<With<LifeBar>>) {
+fn on_game_over_system(mut evr: EventReader<HealthEmptyEvent>, q_life_bar: Query<With<LifeBar>>) {
     for ev in evr.iter() {
         let rel_id = ev.0;
         if q_life_bar.contains(rel_id) {

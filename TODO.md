@@ -46,7 +46,7 @@
 - tower muzzle lights size to sight range ✅
 - sight radius light ✅
 - update sight radius light range at upgrade ✅
-- pause function
+- pause function ✅
 - replace level up lights through turning red level up alarm light at level counter
 - sounds:
   - enemy hit sound ✅

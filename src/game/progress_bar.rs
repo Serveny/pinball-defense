@@ -1,4 +1,4 @@
-use super::GameState;
+use super::{EventState, GameState};
 use crate::prelude::*;
 use crate::utils::RelEntity;
 
@@ -12,13 +12,12 @@ impl Plugin for ProgressBarPlugin {
             .add_event::<ProgressBarEmptyEvent>()
             .add_systems(
                 Update,
-                (
-                    count_up_system,
-                    scale_system,
-                    bar_empty_system,
-                    bar_full_system,
-                )
+                (scale_system, bar_empty_system, bar_full_system)
                     .run_if(in_state(GameState::Ingame)),
+            )
+            .add_systems(
+                Update,
+                (on_count_up_system).run_if(in_state(EventState::Active)),
             );
     }
 }
@@ -116,7 +115,7 @@ impl ProgressBarCountUpEvent {
     }
 }
 
-fn count_up_system(
+fn on_count_up_system(
     mut evr: EventReader<ProgressBarCountUpEvent>,
     mut q_progress: QueryProgressBar,
 ) {

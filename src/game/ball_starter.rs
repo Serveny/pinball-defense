@@ -1,4 +1,5 @@
 use super::audio::SoundEvent;
+use super::{EventState, GameState};
 use crate::game::ball::{self, PinBall};
 use crate::game::events::collision::COLLIDE_ONLY_WITH_BALL;
 use crate::prelude::*;
@@ -13,16 +14,26 @@ impl Plugin for BallStarterPlugin {
             .add_systems(OnEnter(BallStarterState::Charge), spawn_ball_at_charge)
             .add_systems(
                 Update,
-                (charge_system, spawn_ball_system).run_if(in_state(BallStarterState::Charge)),
+                (charge_system).run_if(
+                    in_state(BallStarterState::Charge).and_then(in_state(GameState::Ingame)),
+                ),
             )
-            .add_systems(Update, fire_system.run_if(in_state(BallStarterState::Fire)));
+            .add_systems(
+                Update,
+                (on_spawn_ball_system).run_if(in_state(EventState::Active)),
+            )
+            .add_systems(
+                Update,
+                fire_system
+                    .run_if(in_state(BallStarterState::Fire).and_then(in_state(GameState::Ingame))),
+            );
     }
 }
 
 #[derive(Event)]
 pub struct SpawnBallEvent;
 
-fn spawn_ball_system(
+fn on_spawn_ball_system(
     mut cmds: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,

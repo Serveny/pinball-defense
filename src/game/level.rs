@@ -1,4 +1,4 @@
-use super::{analog_counter::AnalogCounterSetEvent, GameState};
+use super::{analog_counter::AnalogCounterSetEvent, EventState, GameState};
 use crate::prelude::*;
 
 pub struct LevelPlugin;
@@ -14,12 +14,15 @@ impl Plugin for LevelPlugin {
             .add_systems(
                 Update,
                 (
-                    add_points_system,
                     level_up_system,
                     update_points_counter_system,
                     update_level_counter_system,
                 )
                     .run_if(in_state(GameState::Ingame)),
+            )
+            .add_systems(
+                Update,
+                (on_add_points_system).run_if(in_state(EventState::Active)),
             );
     }
 }
@@ -49,7 +52,7 @@ const POINT_FACTOR: u32 = 10;
 #[cfg(not(debug_assertions))]
 const POINT_FACTOR: u32 = 1;
 
-fn add_points_system(mut points_ev: EventReader<PointsEvent>, mut points: ResMut<PointHub>) {
+fn on_add_points_system(mut points_ev: EventReader<PointsEvent>, mut points: ResMut<PointHub>) {
     for ev in points_ev.iter() {
         points.0 += ev.points() * POINT_FACTOR;
     }

@@ -12,7 +12,7 @@ use bevy::input::gamepad::{GamepadButtonChangedEvent, GamepadConnectionEvent};
 #[derive(Resource)]
 pub struct MyGamepad(pub Gamepad);
 
-pub(super) fn gamepad_connections(
+pub(super) fn on_gamepad_connections(
     mut cmds: Commands,
     my_gamepad: Option<Res<MyGamepad>>,
     mut gamepad_evr: EventReader<GamepadConnectionEvent>,
@@ -43,7 +43,7 @@ pub(super) fn gamepad_connections(
     }
 }
 
-pub(super) fn gamepad_controls(
+pub(super) fn on_gamepad_btn_changed(
     mut evr: EventReader<GamepadButtonChangedEvent>,
     mut spawn_ball_ev: EventWriter<SpawnBallEvent>,
     mut ball_starter_state: ResMut<NextState<BallStarterState>>,

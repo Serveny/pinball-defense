@@ -1,8 +1,8 @@
 use self::{
     collision::{PinballEnemyHitEvent, TowerMenuElementCollisionStartEvent},
-    tween_completed::tween_completed_system,
+    tween_completed::on_tween_completed_system,
 };
-use crate::game::GameState;
+use super::EventState;
 use crate::prelude::*;
 pub mod collision;
 pub mod tween_completed;
@@ -16,7 +16,7 @@ impl Plugin for PinballEventsPlugin {
             .add_event::<PinballEnemyHitEvent>()
             .add_systems(
                 Update,
-                (tween_completed_system).run_if(in_state(GameState::Ingame)),
+                (on_tween_completed_system).run_if(in_state(EventState::Active)),
             );
     }
 }
