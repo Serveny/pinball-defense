@@ -47,6 +47,8 @@
 - sight radius light ✅
 - update sight radius light range at upgrade ✅
 - pause function ✅
+- pause menu ✅
+- settings menu
 - replace level up lights through turning red level up alarm light at level counter
 - sounds:
   - enemy hit sound ✅
@@ -65,7 +67,6 @@
   - tower microwave sound
   - tower tesla sound
   - level up sound
-- settings menu
 - camera option
 - textures
 - design enemy

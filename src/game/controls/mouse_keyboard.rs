@@ -3,6 +3,7 @@ use crate::game::ball_starter::{BallStarterState, SpawnBallEvent};
 use crate::game::camera::CameraState;
 use crate::game::flipper::{FlipperStatus, FlipperType};
 use crate::game::{PauseGameEvent, ResumeGameEvent};
+use crate::menu::MenuState;
 use crate::prelude::*;
 use bevy::window::{CursorGrabMode, PrimaryWindow};
 
@@ -15,6 +16,7 @@ pub(super) fn key_system(
     mut cam_state: ResMut<NextState<CameraState>>,
     mut ball_starter_state: ResMut<NextState<BallStarterState>>,
     mut q_flipper: Query<(&mut FlipperStatus, &FlipperType)>,
+    mut menu_state: ResMut<NextState<MenuState>>,
 ) {
     if key.just_pressed(KeyCode::Escape) {
         let mut window = q_window.get_single_mut().unwrap();
@@ -50,6 +52,10 @@ pub(super) fn key_system(
     if key.just_pressed(KeyCode::P) {
         pause_ev.send(PauseGameEvent);
     }
+    if key.just_pressed(KeyCode::Escape) {
+        pause_ev.send(PauseGameEvent);
+        menu_state.set(MenuState::PauseMenu);
+    }
 }
 
 pub(super) fn pause_key_system(
@@ -57,10 +63,8 @@ pub(super) fn pause_key_system(
     mut q_flipper: Query<(&mut FlipperStatus, &FlipperType)>,
     mut ball_starter_state: ResMut<NextState<BallStarterState>>,
     mut resume_ev: EventWriter<ResumeGameEvent>,
+    mut menu_state: ResMut<NextState<MenuState>>,
 ) {
-    if key.just_pressed(KeyCode::P) {
-        resume_ev.send(ResumeGameEvent);
-    }
     if key.just_released(KeyCode::Y) {
         set_flipper_status(FlipperType::Left, FlipperStatus::Idle, &mut q_flipper);
     }
@@ -69,6 +73,10 @@ pub(super) fn pause_key_system(
     }
     if key.just_released(KeyCode::Space) {
         ball_starter_state.set(BallStarterState::Fire);
+    }
+    if key.just_pressed(KeyCode::Escape) || key.just_pressed(KeyCode::P) {
+        menu_state.set(MenuState::None);
+        resume_ev.send(ResumeGameEvent);
     }
 }
 
