@@ -2,6 +2,7 @@ use super::animations::RotateAlways;
 use super::{tower_material, TowerHead};
 use crate::game::tower::damage::{DamageAllTargetsInReach, DamageOverTime};
 use crate::game::tower::target::EnemiesWithinReach;
+use crate::game::tower::ShotLight;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::RelEntity;
@@ -74,6 +75,7 @@ fn shot_flash_light(g_sett: &GraphicsSettings, rel_id: Entity, range: f32) -> im
             ..default()
         },
         ShotFlashLight,
+        ShotLight,
         RelEntity(rel_id),
     )
 }

@@ -63,14 +63,14 @@ fn on_set_system(
     for ev in on_set_ev.iter() {
         if let Some((counter_id, _)) = q_counter.iter().find(|(_, rel_id)| rel_id.0 == ev.rel_id) {
             for (i, number) in ev.number.digits().rev().enumerate() {
-                q_digit
+                if let Some((mut digit, _)) = q_digit
                     .iter_mut()
                     .find(|(digit_comp, p)| p.get() == counter_id && digit_comp.position == i as u8)
-                    .unwrap_or_else(|| {
-                        panic!("😥 No digit component for i ({i}) with given parent!")
-                    })
-                    .0
-                    .set_number(number);
+                {
+                    digit.set_number(number);
+                } else {
+                    warn!("😥 No digit component for i ({i}) with given parent!");
+                }
             }
         }
     }
