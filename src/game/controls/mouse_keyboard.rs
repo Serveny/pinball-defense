@@ -2,6 +2,7 @@ use super::set_flipper_status;
 use crate::game::ball_starter::{BallStarterState, SpawnBallEvent};
 use crate::game::camera::CameraState;
 use crate::game::flipper::{FlipperStatus, FlipperType};
+use crate::game::{PauseGameEvent, ResumeGameEvent};
 use crate::prelude::*;
 use bevy::window::{CursorGrabMode, PrimaryWindow};
 
@@ -9,6 +10,7 @@ use bevy::window::{CursorGrabMode, PrimaryWindow};
 pub(super) fn key_system(
     key: Res<Input<KeyCode>>,
     mut spawn_ball_ev: EventWriter<SpawnBallEvent>,
+    mut pause_ev: EventWriter<PauseGameEvent>,
     mut q_window: Query<&mut Window, With<PrimaryWindow>>,
     mut cam_state: ResMut<NextState<CameraState>>,
     mut ball_starter_state: ResMut<NextState<BallStarterState>>,
@@ -44,6 +46,29 @@ pub(super) fn key_system(
     }
     if key.just_released(KeyCode::C) {
         set_flipper_status(FlipperType::Right, FlipperStatus::Idle, &mut q_flipper);
+    }
+    if key.just_pressed(KeyCode::P) {
+        pause_ev.send(PauseGameEvent);
+    }
+}
+
+pub(super) fn pause_key_system(
+    key: Res<Input<KeyCode>>,
+    mut q_flipper: Query<(&mut FlipperStatus, &FlipperType)>,
+    mut ball_starter_state: ResMut<NextState<BallStarterState>>,
+    mut resume_ev: EventWriter<ResumeGameEvent>,
+) {
+    if key.just_pressed(KeyCode::P) {
+        resume_ev.send(ResumeGameEvent);
+    }
+    if key.just_released(KeyCode::Y) {
+        set_flipper_status(FlipperType::Left, FlipperStatus::Idle, &mut q_flipper);
+    }
+    if key.just_released(KeyCode::C) {
+        set_flipper_status(FlipperType::Right, FlipperStatus::Idle, &mut q_flipper);
+    }
+    if key.just_released(KeyCode::Space) {
+        ball_starter_state.set(BallStarterState::Fire);
     }
 }
 

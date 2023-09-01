@@ -1,6 +1,6 @@
 use super::level::LevelUpEvent;
 use super::world::PinballWorld;
-use super::GameState;
+use super::{EventState, GameState};
 use crate::game::ball::CollisionWithBallEvent;
 use crate::game::pinball_menu::PinballMenuOnSetSelectedEvent;
 use crate::generated::world_1::light_posis::level_up_light_posis;
@@ -16,14 +16,20 @@ impl Plugin for LightPlugin {
         app.add_systems(
             Update,
             (
-                level_up_light_system,
-                contact_light_on_system,
-                add_flashlight_system.after(fade_out_point_light_system),
                 flash_light_system,
                 fade_out_point_light_system,
                 fade_out_spot_light_system,
             )
                 .run_if(in_state(GameState::Ingame)),
+        )
+        .add_systems(
+            Update,
+            (
+                on_level_up_light_system,
+                on_contact_light_on_system,
+                on_add_flashlight_system.after(fade_out_point_light_system),
+            )
+                .run_if(in_state(EventState::Active)),
         )
         .add_systems(
             Update,
@@ -68,7 +74,7 @@ fn level_up_light(transform: Transform, g_sett: &GraphicsSettings, i: usize) -> 
 #[derive(Component, Default)]
 pub struct LevelUpLightAnimation(usize);
 
-fn level_up_light_system(
+fn on_level_up_light_system(
     mut cmds: Commands,
     mut level_up_ev: EventReader<LevelUpEvent>,
     q_pb_world: Query<Entity, With<PinballWorld>>,
@@ -122,7 +128,7 @@ pub(super) fn contact_light_bundle(g_sett: &GraphicsSettings, color: Color) -> i
     )
 }
 
-fn contact_light_on_system(
+fn on_contact_light_on_system(
     mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
     mut q_light: QueryContactLight,
     q_light_on_coll: Query<Entity, With<LightOnCollision>>,
@@ -147,7 +153,7 @@ fn light_on_by_parent(parent_id: Entity, q_light: &mut QueryContactLight) {
 #[derive(Component)]
 pub(super) struct FlashLight;
 
-fn add_flashlight_system(
+fn on_add_flashlight_system(
     mut cmds: Commands,
     mut pb_menu_open_ev: EventReader<PinballMenuOnSetSelectedEvent>,
     mut q_light: Query<(&mut Visibility, &Parent, Entity), With<ContactLight>>,

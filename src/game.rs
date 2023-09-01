@@ -43,18 +43,28 @@ mod wave;
 mod world;
 
 #[derive(States, PartialEq, Eq, Clone, Copy, Debug, Hash, Default)]
-pub enum GameState {
+enum GameState {
     #[default]
     None,
+    Init,
     Ingame,
     Pause,
 }
 
+#[derive(States, PartialEq, Eq, Clone, Copy, Debug, Hash, Default)]
+enum EventState {
+    #[default]
+    Inactive,
+    Active,
+}
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.add_state::<GameState>()
+            .add_state::<EventState>()
+            .add_event::<PauseGameEvent>()
+            .add_event::<ResumeGameEvent>()
             .init_resource::<IngameTime>()
             .add_plugins((
                 AssetsPlugin,
@@ -74,22 +84,32 @@ impl Plugin for GamePlugin {
             ))
             .add_plugins((HealthPlugin, PlayerLifePlugin, LightPlugin))
             .add_systems(
-                OnEnter(AppState::Game),
-                (setup_ambient_lights, set_game_state_ingame),
+                Update,
+                (tick_ingame_timer_system, on_set_pause_system).run_if(in_state(GameState::Ingame)),
             )
             .add_systems(
                 Update,
-                tick_ingame_timer_system.run_if(in_state(GameState::Ingame)),
-            );
+                (on_resume_game_system).run_if(in_state(GameState::Pause)),
+            )
+            .add_systems(OnEnter(AppState::Game), init_game)
+            .add_systems(OnEnter(GameState::Init), (setup_ambient_lights, start_game));
     }
 }
 
-fn set_game_state_ingame(mut game_state: ResMut<NextState<GameState>>) {
+fn init_game(mut game_state: ResMut<NextState<GameState>>) {
+    game_state.set(GameState::Init);
+}
+
+fn start_game(
+    mut game_state: ResMut<NextState<GameState>>,
+    mut ev_state: ResMut<NextState<EventState>>,
+) {
     game_state.set(GameState::Ingame);
+    ev_state.set(EventState::Active);
 }
 
 #[derive(Resource, Deref, DerefMut, Default)]
-pub struct IngameTime(f32);
+struct IngameTime(f32);
 
 fn tick_ingame_timer_system(mut ig_time: ResMut<IngameTime>, time: Res<Time>) {
     **ig_time += time.delta_seconds();
@@ -114,4 +134,34 @@ fn setup_ambient_lights(mut cmds: Commands, g_sett: Res<GraphicsSettings>) {
             .with_rotation(Quat::from_rotation_x(-PI / 4.)),
         ..default()
     });
+}
+
+#[derive(Event)]
+struct PauseGameEvent;
+
+fn on_set_pause_system(
+    evr: EventReader<PauseGameEvent>,
+    mut set_game_state: ResMut<NextState<GameState>>,
+    mut rapier_cfg: ResMut<RapierConfiguration>,
+) {
+    if !evr.is_empty() {
+        log!("⏸️ Pause Game");
+        set_game_state.set(GameState::Pause);
+        rapier_cfg.physics_pipeline_active = false;
+    }
+}
+
+#[derive(Event)]
+struct ResumeGameEvent;
+
+fn on_resume_game_system(
+    evr: EventReader<ResumeGameEvent>,
+    mut set_game_state: ResMut<NextState<GameState>>,
+    mut rapier_cfg: ResMut<RapierConfiguration>,
+) {
+    if !evr.is_empty() {
+        log!("️⏯️ Resume Game");
+        set_game_state.set(GameState::Ingame);
+        rapier_cfg.physics_pipeline_active = true;
+    }
 }

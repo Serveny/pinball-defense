@@ -1,4 +1,4 @@
-use super::GameState;
+use super::{EventState, GameState};
 use crate::prelude::*;
 use bevy::audio::{PlaybackMode, Volume, VolumeLevel};
 
@@ -6,10 +6,14 @@ pub struct AudioPlugin;
 impl Plugin for AudioPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<SoundEvent>()
-            //.add_systems(OnEnter(GameState::Ingame), play_music)
+            //.add_systems(OnEnter(GameState::Init), play_music)
             .add_systems(
                 Update,
-                (play_sound_system, clean_up_sound_system).run_if(in_state(GameState::Ingame)),
+                (clean_up_sound_system).run_if(in_state(GameState::Ingame)),
+            )
+            .add_systems(
+                Update,
+                (on_play_sound_system).run_if(in_state(EventState::Active)),
             );
     }
 }
@@ -46,7 +50,7 @@ impl SoundEvent {
     }
 }
 
-fn play_sound_system(
+fn on_play_sound_system(
     mut cmds: Commands,
     mut evr: EventReader<SoundEvent>,
     assets: Res<PinballDefenseAudioAssets>,

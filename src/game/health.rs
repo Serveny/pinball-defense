@@ -1,4 +1,4 @@
-use super::{progress_bar::ProgressBarCountUpEvent, GameState, IngameTime};
+use super::{progress_bar::ProgressBarCountUpEvent, EventState, GameState, IngameTime};
 use crate::prelude::*;
 
 pub struct HealthPlugin;
@@ -9,12 +9,11 @@ impl Plugin for HealthPlugin {
             .add_event::<HealthEmptyEvent>()
             .add_systems(
                 Update,
-                (
-                    change_health_system,
-                    health_empty_system,
-                    health_recovery_system,
-                )
-                    .run_if(in_state(GameState::Ingame)),
+                (health_empty_system, health_recovery_system).run_if(in_state(GameState::Ingame)),
+            )
+            .add_systems(
+                Update,
+                (on_change_health_system).run_if(in_state(EventState::Active)),
             );
     }
 }
@@ -58,7 +57,7 @@ impl Health {
     }
 }
 
-fn change_health_system(
+fn on_change_health_system(
     ig_time: Res<IngameTime>,
     mut evr: EventReader<ChangeHealthEvent>,
     mut q_health: Query<(&mut Health, Option<&mut HealthRecovery>)>,

@@ -1,10 +1,11 @@
 use self::step::Step;
 use self::walk::{
-    recover_speed_system, road_end_reached_system, walk_system, RoadEndReachedEvent, WALK_SPEED,
+    on_road_end_reached_system, recover_speed_system, walk_system, RoadEndReachedEvent, WALK_SPEED,
 };
 use super::audio::SoundEvent;
 use super::health::{ChangeHealthEvent, Health, HealthEmptyEvent};
 use super::level::PointsEvent;
+use super::EventState;
 use crate::game::ball::CollisionWithBallEvent;
 use crate::game::events::collision::{ENEMY, INTERACT_WITH_BALL, INTERACT_WITH_ENEMY};
 use crate::game::progress_bar;
@@ -27,15 +28,17 @@ impl Plugin for EnemyPlugin {
             .add_event::<OnEnemyDespawnEvent>()
             .add_systems(
                 Update,
+                (walk_system, recover_speed_system).run_if(in_state(GameState::Ingame)),
+            )
+            .add_systems(
+                Update,
                 (
-                    pinball_hit_system,
-                    spawn_system,
-                    walk_system,
-                    road_end_reached_system,
-                    death_system,
-                    recover_speed_system,
+                    on_pinball_hit_system,
+                    on_spawn_system,
+                    on_health_empty_system,
+                    on_road_end_reached_system,
                 )
-                    .run_if(in_state(GameState::Ingame)),
+                    .run_if(in_state(EventState::Active)),
             );
     }
 }
@@ -77,7 +80,7 @@ impl Enemy {
 #[derive(Event)]
 pub struct SpawnEnemyEvent;
 
-fn spawn_system(
+fn on_spawn_system(
     mut cmds: Commands,
     mut evr: EventReader<SpawnEnemyEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -148,7 +151,7 @@ fn enemy(meshes: &mut Assets<Mesh>, mats: &mut Assets<StandardMaterial>) -> impl
     )
 }
 
-fn pinball_hit_system(
+fn on_pinball_hit_system(
     mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
     mut points_ev: EventWriter<PointsEvent>,
     mut sound_ev: EventWriter<SoundEvent>,
@@ -168,7 +171,7 @@ fn pinball_hit_system(
 #[derive(Event)]
 pub struct OnEnemyDespawnEvent(pub Entity);
 
-fn death_system(
+fn on_health_empty_system(
     mut cmds: Commands,
     mut health_empty_ev: EventReader<HealthEmptyEvent>,
     mut despawn_ev: EventWriter<OnEnemyDespawnEvent>,

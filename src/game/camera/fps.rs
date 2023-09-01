@@ -39,7 +39,7 @@ impl Default for FirstPersonCameraSettings {
     }
 }
 
-pub(super) fn keyboard_mouse_motion_system(
+pub(super) fn on_keyboard_mouse_motion_system(
     mut mouse_motion: EventReader<MouseMotion>,
     mut query: Query<(&mut Transform, &mut LookDirection)>,
     key_input: Res<Input<KeyCode>>,

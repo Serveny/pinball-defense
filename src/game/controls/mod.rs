@@ -1,5 +1,5 @@
-use self::gamepad::{gamepad_connections, gamepad_controls};
-use self::mouse_keyboard::{key_system, mouse_btn_system};
+use self::gamepad::{on_gamepad_btn_changed, on_gamepad_connections};
+use self::mouse_keyboard::{key_system, mouse_btn_system, pause_key_system};
 use crate::game::flipper::{FlipperStatus, FlipperType};
 use crate::game::GameState;
 use crate::prelude::*;
@@ -13,9 +13,11 @@ impl Plugin for ControlsPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (key_system, mouse_btn_system, gamepad_controls).run_if(in_state(GameState::Ingame)),
+            (key_system, mouse_btn_system, on_gamepad_btn_changed)
+                .run_if(in_state(GameState::Ingame)),
         )
-        .add_systems(Update, gamepad_connections);
+        .add_systems(Update, on_gamepad_connections)
+        .add_systems(Update, pause_key_system.run_if(in_state(GameState::Pause)));
     }
 }
 
