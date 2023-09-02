@@ -10,7 +10,7 @@ use game::GamePlugin;
 use loading::LoadingScreenPlugin;
 use menu::MenuPlugin;
 use prelude::*;
-use settings::GraphicsSettings;
+use settings::{GraphicsSettings, SoundSettings};
 
 mod assets;
 mod game;
@@ -58,6 +58,7 @@ fn main() {
     #[cfg(not(debug_assertions))]
     app.insert_resource(GraphicsSettings::high());
 
+    app.insert_resource(SoundSettings::default());
     app.add_plugins((LoadingScreenPlugin, GamePlugin, MenuPlugin))
         .run();
 }

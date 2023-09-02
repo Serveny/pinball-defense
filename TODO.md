@@ -48,7 +48,9 @@
 - update sight radius light range at upgrade ✅
 - pause function ✅
 - pause menu ✅
-- settings menu
+- audio settings menu ✅
+- graphics settings menu
+- controls menu
 - hit count of foundation depends on which level they got spawned
 - replace level up lights through turning red level up alarm light at level counter
 - sounds:

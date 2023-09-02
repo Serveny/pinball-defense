@@ -1,19 +1,24 @@
 use super::{EventState, GameState};
 use crate::prelude::*;
+use crate::settings::SoundSettings;
 use bevy::audio::{PlaybackMode, Volume, VolumeLevel};
 
 pub struct AudioPlugin;
 impl Plugin for AudioPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<SoundEvent>()
-            //.add_systems(OnEnter(GameState::Init), play_music)
+            .add_systems(OnEnter(GameState::Init), play_music)
             .add_systems(
                 Update,
                 (clean_up_sound_system).run_if(in_state(GameState::Ingame)),
             )
             .add_systems(
                 Update,
-                (on_play_sound_system).run_if(in_state(EventState::Active)),
+                (on_changed_sound_settings).run_if(in_state(GameState::Pause)),
+            )
+            .add_systems(
+                Update,
+                (on_play_sound_fx_system).run_if(in_state(EventState::Active)),
             );
     }
 }
@@ -50,13 +55,14 @@ impl SoundEvent {
     }
 }
 
-fn on_play_sound_system(
+fn on_play_sound_fx_system(
     mut cmds: Commands,
     mut evr: EventReader<SoundEvent>,
     assets: Res<PinballDefenseAudioAssets>,
+    sound_sett: Res<SoundSettings>,
 ) {
     for ev in evr.iter() {
-        cmds.spawn(sound(ev.sound_bundle(&assets)));
+        cmds.spawn(sound(ev.sound_bundle(&assets), sound_sett.fx_volume));
     }
 }
 
@@ -65,25 +71,32 @@ enum SoundHandle<'a> {
     Various(&'a Handles<AudioSource>),
 }
 
-const VOLUME: f32 = 0.6;
+#[derive(Component)]
+struct Music;
 
-#[allow(dead_code)]
-fn play_music(mut cmds: Commands, assets: Res<PinballDefenseAudioAssets>) {
-    cmds.spawn(AudioBundle {
-        source: assets.background_music.clone(),
-        settings: PlaybackSettings {
-            mode: PlaybackMode::Loop,
-            volume: Volume::Absolute(VolumeLevel::new(VOLUME)),
-            speed: 1.,
-            paused: false,
+fn play_music(
+    mut cmds: Commands,
+    assets: Res<PinballDefenseAudioAssets>,
+    sound_sett: Res<SoundSettings>,
+) {
+    cmds.spawn((
+        AudioBundle {
+            source: assets.background_music.clone(),
+            settings: PlaybackSettings {
+                mode: PlaybackMode::Loop,
+                volume: Volume::Absolute(VolumeLevel::new(sound_sett.music_volume)),
+                speed: 1.,
+                paused: false,
+            },
         },
-    });
+        Music,
+    ));
 }
 
 #[derive(Component)]
 struct Sound;
 
-fn sound(handle: SoundHandle) -> impl Bundle {
+fn sound(handle: SoundHandle, vol: f32) -> impl Bundle {
     (
         Name::new("Sound"),
         Sound,
@@ -94,7 +107,7 @@ fn sound(handle: SoundHandle) -> impl Bundle {
             },
             settings: PlaybackSettings {
                 mode: PlaybackMode::Once,
-                volume: Volume::Absolute(VolumeLevel::new(VOLUME)),
+                volume: Volume::Absolute(VolumeLevel::new(vol)),
                 speed: 1.,
                 paused: false,
             },
@@ -106,6 +119,21 @@ fn clean_up_sound_system(mut cmds: Commands, q_sound: Query<(Entity, &AudioSink)
     for (id, sound) in q_sound.iter() {
         if sound.empty() {
             cmds.entity(id).despawn();
+        }
+    }
+}
+
+fn on_changed_sound_settings(
+    sound_sett: Res<SoundSettings>,
+    mut q_sound: Query<&mut AudioSink, (With<Sound>, Without<Music>)>,
+    mut q_music: Query<&mut AudioSink, (With<Music>, Without<Sound>)>,
+) {
+    if sound_sett.is_changed() {
+        for sound in q_sound.iter_mut() {
+            sound.set_volume(sound_sett.fx_volume);
+        }
+        for music in q_music.iter_mut() {
+            music.set_volume(sound_sett.music_volume);
         }
     }
 }
