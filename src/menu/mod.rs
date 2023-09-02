@@ -1,11 +1,15 @@
-use self::pause::pause_menu_layout;
-use crate::game::ResumeGameEvent;
+use self::{actions::MenuAction, settings::SettingsMenuState};
 use crate::prelude::*;
-use bevy::app::AppExit;
-use std::fmt;
 
+mod actions;
 mod pause;
+mod settings;
+mod tools;
 
+const WHITE: Color = Color::rgb(1., 254. / 255., 236. / 255.);
+const GRAY: Color = Color::rgb(65. / 255., 69. / 255., 72. / 255.);
+const GOLD: Color = Color::rgb(188. / 255., 148. / 255., 87. / 255.);
+const BACKGROUND: Color = Color::rgba(23. / 255., 24. / 255., 26. / 255., 120. / 255.);
 // State used for the current menu screen
 #[derive(States, Clone, Eq, PartialEq, Debug, Hash, Default)]
 pub enum MenuState {
@@ -19,69 +23,31 @@ pub struct MenuPlugin;
 impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_state::<MenuState>()
-            .add_systems(OnEnter(MenuState::PauseMenu), pause_menu_layout)
+            .add_state::<SettingsMenuState>()
+            .add_event::<MenuAction>()
+            .add_systems(OnEnter(MenuState::PauseMenu), pause::layout)
             .add_systems(
                 Update,
-                (button_system).run_if(in_state(MenuState::PauseMenu)),
+                (
+                    actions::on_menu_action,
+                    tools::buttons::button_system,
+                    tools::sliders::slider_system,
+                )
+                    .run_if(in_state(MenuState::PauseMenu)),
             )
-            .add_systems(OnEnter(MenuState::None), clean_up);
+            .add_systems(OnEnter(MenuState::None), clean_up)
+            .add_systems(OnEnter(SettingsMenuState::Sound), settings::sound::layout);
     }
 }
 
-fn clean_up(mut cmds: Commands, q_layout: Query<Entity, With<MenuLayout>>) {
+fn clean_up(
+    mut cmds: Commands,
+    mut settings_state: ResMut<NextState<SettingsMenuState>>,
+    q_layout: Query<Entity, With<MenuLayout>>,
+) {
+    settings_state.set(SettingsMenuState::None);
     for id in q_layout.iter() {
         cmds.entity(id).despawn_recursive();
-    }
-}
-
-//const NORMAL_BUTTON: Color = Color::rgb(57. / 255., 61. / 255., 64. / 255.);
-const WHITE: Color = Color::rgb(1., 254. / 255., 236. / 255.);
-const GOLD: Color = Color::rgb(188. / 255., 148. / 255., 87. / 255.);
-
-#[derive(Component, Debug, Clone, Copy)]
-enum ButtonAction {
-    Continue,
-    Controls,
-    Graphics,
-    Sound,
-    Quit,
-}
-
-impl fmt::Display for ButtonAction {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
-
-#[allow(clippy::type_complexity)]
-fn button_system(
-    mut interaction_query: Query<
-        (&Interaction, &mut BorderColor, &ButtonAction),
-        (Changed<Interaction>, With<Button>),
-    >,
-    mut menu_state: ResMut<NextState<MenuState>>,
-    mut resume_ev: EventWriter<ResumeGameEvent>,
-    mut exit_ev: EventWriter<AppExit>,
-) {
-    for (interaction, mut border_color, action) in &mut interaction_query {
-        match *interaction {
-            Interaction::Pressed => match action {
-                ButtonAction::Continue => {
-                    menu_state.set(MenuState::None);
-                    resume_ev.send(ResumeGameEvent);
-                }
-                ButtonAction::Controls => todo!("controls menu"),
-                ButtonAction::Graphics => todo!("graphics menu"),
-                ButtonAction::Sound => todo!("sound menu"),
-                ButtonAction::Quit => exit_ev.send(AppExit),
-            },
-            Interaction::Hovered => {
-                *border_color = WHITE.into();
-            }
-            Interaction::None => {
-                *border_color = GOLD.into();
-            }
-        }
     }
 }
 
