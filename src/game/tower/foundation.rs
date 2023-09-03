@@ -1,8 +1,7 @@
 use crate::game::ball::CollisionWithBallEvent;
-use crate::game::cfg::CONFIG;
 use crate::game::events::collision::COLLIDE_ONLY_WITH_BALL;
 use crate::game::events::tween_completed::DESPAWN_ENTITY_EVENT_ID;
-use crate::game::level::{LevelUpEvent, PointsEvent};
+use crate::game::level::{LevelHub, LevelUpEvent, PointsEvent};
 use crate::game::light::{contact_light_bundle, disable_flash_light, FlashLight, LightOnCollision};
 use crate::game::pinball_menu::{PinballMenuTrigger, TowerMenuExecuteEvent};
 use crate::game::progress_bar;
@@ -18,7 +17,15 @@ use bevy_tweening::{
 use std::{f32::consts::PI, time::Duration};
 
 #[derive(Component)]
-pub(super) struct TowerFoundation;
+pub(super) struct TowerFoundation {
+    hit_progress: f32,
+}
+
+impl TowerFoundation {
+    pub(super) fn new(hit_progress: f32) -> Self {
+        Self { hit_progress }
+    }
+}
 
 #[derive(Component)]
 pub(super) struct TowerFoundationLid;
@@ -37,6 +44,7 @@ pub(super) fn on_spawn_system(
     assets: Res<PinballDefenseGltfAssets>,
     q_pb_word: Query<Entity, With<PinballWorld>>,
     g_sett: Res<GraphicsSettings>,
+    level: Res<LevelHub>,
 ) {
     for _ in on_level_up.iter() {
         if let Some((mark_id, mut mark, trans)) = q_mark.iter_mut().find(|mark| mark.1.is_available)
@@ -49,7 +57,8 @@ pub(super) fn on_spawn_system(
 
             // Spawn foundation
             cmds.entity(q_pb_word.single()).with_children(|p| {
-                spawn(p, &mut mats, &assets, &g_sett, pos);
+                let hit_progress = level.foundation_hit_progress();
+                spawn(p, &mut mats, &assets, &g_sett, pos, hit_progress);
             });
         }
     }
@@ -61,19 +70,22 @@ fn spawn(
     assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
     pos: Vec3,
+    hit_progress: f32,
 ) {
-    parent.spawn(ring(assets, pos)).with_children(|p| {
-        let rel_id = p.parent_entity();
-        p.spawn(contact_light_bundle(g_sett, Color::GREEN));
-        p.spawn(lid_top(assets));
-        p.spawn(lid_bottom(assets)).with_children(|p| {
-            let bar_trans = Transform::from_translation(Vec3::new(-0.06, 0., 0.));
-            progress_bar::spawn(p, assets, mats, rel_id, bar_trans, Color::GREEN, 0.);
+    parent
+        .spawn(ring(assets, pos, hit_progress))
+        .with_children(|p| {
+            let rel_id = p.parent_entity();
+            p.spawn(contact_light_bundle(g_sett, Color::GREEN));
+            p.spawn(lid_top(assets));
+            p.spawn(lid_bottom(assets)).with_children(|p| {
+                let bar_trans = Transform::from_translation(Vec3::new(-0.06, 0., 0.));
+                progress_bar::spawn(p, assets, mats, rel_id, bar_trans, Color::GREEN, 0.);
+            });
         });
-    });
 }
 
-fn ring(assets: &PinballDefenseGltfAssets, pos: Vec3) -> impl Bundle {
+fn ring(assets: &PinballDefenseGltfAssets, pos: Vec3, hit_progress: f32) -> impl Bundle {
     (
         Name::new("Tower Foundation"),
         PbrBundle {
@@ -87,7 +99,7 @@ fn ring(assets: &PinballDefenseGltfAssets, pos: Vec3) -> impl Bundle {
         ColliderDebugColor(Color::GREEN),
         COLLIDE_ONLY_WITH_BALL,
         ActiveEvents::COLLISION_EVENTS,
-        TowerFoundation,
+        TowerFoundation::new(hit_progress),
         LightOnCollision,
         PinballMenuTrigger::Tower,
         Animator::new(spawn_animation(pos)),
@@ -206,15 +218,14 @@ pub(super) fn on_progress_system(
     mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
     mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
     mut points_ev: EventWriter<PointsEvent>,
-    q_tower_foundation: Query<Entity, With<TowerFoundation>>,
+    q_tower_foundation: Query<&TowerFoundation, With<TowerFoundation>>,
 ) {
     for CollisionWithBallEvent(id, flag) in ball_coll_ev.iter() {
-        if *flag == CollisionEventFlags::SENSOR && q_tower_foundation.contains(*id) {
-            prog_bar_ev.send(ProgressBarCountUpEvent::new(
-                *id,
-                CONFIG.foundation_hit_progress,
-            ));
-            points_ev.send(PointsEvent::FoundationHit);
+        if *flag == CollisionEventFlags::SENSOR {
+            if let Ok(foundation) = q_tower_foundation.get(*id) {
+                prog_bar_ev.send(ProgressBarCountUpEvent::new(*id, foundation.hit_progress));
+                points_ev.send(PointsEvent::FoundationHit);
+            }
         }
     }
 }
