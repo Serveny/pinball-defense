@@ -17,7 +17,7 @@ pub enum MenuAction {
     Quit,
 }
 
-#[allow(dead_code, clippy::single_match)]
+#[allow(clippy::single_match, clippy::collapsible_match)]
 impl MenuAction {
     pub fn set_val_f32(&mut self, val: f32) {
         match self {
@@ -25,7 +25,10 @@ impl MenuAction {
                 SoundAction::MusicVolume(v) => *v = val,
                 SoundAction::FxVolume(v) => *v = val,
             },
-            MenuAction::Continue => (),
+            MenuAction::EditGraphics(graphics) => match graphics {
+                GraphicsAction::BloomIntensity(v) => *v = val,
+                _ => (),
+            },
             _ => (),
         }
     }
@@ -35,22 +38,20 @@ impl MenuAction {
                 SoundAction::MusicVolume(v) => *v,
                 SoundAction::FxVolume(v) => *v,
             },
-            MenuAction::Continue => 0.,
+            MenuAction::EditGraphics(graphics) => match graphics {
+                GraphicsAction::BloomIntensity(v) => *v,
+                _ => 0.,
+            },
             _ => 0.,
         }
     }
-    pub fn set_val_bool(&mut self, val: bool) {
-        match self {
-            MenuAction::EditGraphics(graphics) => match graphics {
-                GraphicsAction::IsShadows(v) => *v = val,
-            },
-            _ => (),
-        }
-    }
+
     pub fn val_bool(&self) -> bool {
         match self {
             MenuAction::EditGraphics(graphics) => match graphics {
                 GraphicsAction::IsShadows(v) => *v,
+                GraphicsAction::IsHdr(v) => *v,
+                _ => false,
             },
             _ => false,
         }
@@ -59,6 +60,8 @@ impl MenuAction {
         match self {
             MenuAction::EditGraphics(graphics) => match graphics {
                 GraphicsAction::IsShadows(v) => *v = !*v,
+                GraphicsAction::IsHdr(v) => *v = !*v,
+                _ => (),
             },
             _ => (),
         }
@@ -79,6 +82,8 @@ pub enum SoundAction {
 #[derive(Debug, Clone, Copy)]
 pub enum GraphicsAction {
     IsShadows(bool),
+    IsHdr(bool),
+    BloomIntensity(f32),
 }
 
 pub fn on_menu_action(
@@ -110,6 +115,8 @@ pub fn on_menu_action(
 
             MA::EditGraphics(graphics_action) => match graphics_action {
                 GraphicsAction::IsShadows(val) => graphics_settings.is_shadows = *val,
+                GraphicsAction::IsHdr(val) => graphics_settings.is_hdr = *val,
+                GraphicsAction::BloomIntensity(val) => graphics_settings.bloom.intensity = *val,
             },
         }
     }

@@ -1,3 +1,4 @@
+use super::PinballCamera;
 use crate::game::controls::gamepad::MyGamepad;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
@@ -136,6 +137,7 @@ pub(super) fn setup_camera(
     g_setting: Res<GraphicsSettings>,
 ) {
     cmds.spawn((
+        Name::new("FPS Camera"),
         Camera3dBundle {
             transform: Transform::from_translation(Vec3::new(1.7, 0., 1.7))
                 .looking_at(Vec3::ZERO, Vec3::Z),
@@ -154,8 +156,9 @@ pub(super) fn setup_camera(
             diffuse_map: assets.skybox.clone(),
             specular_map: assets.skybox.clone(),
         },
-    ))
-    .insert(LookDirection::default());
+        LookDirection::default(),
+        PinballCamera,
+    ));
     cmds.init_resource::<FirstPersonCameraSettings>();
     place_skybox(assets, images)
 }
