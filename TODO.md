@@ -50,7 +50,7 @@
 - pause menu ✅
 - audio settings menu ✅
 - hit count of foundation depends on which level they got spawned ✅
-- graphics settings menu
+- graphics settings menu ✅
 - controls menu
 - replace level up lights through turning red level up alarm light at level counter
 - sounds:
