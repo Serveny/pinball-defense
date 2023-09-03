@@ -33,6 +33,7 @@ mod enemy;
 mod events;
 mod flipper;
 mod health;
+mod lamp;
 mod level;
 mod light;
 mod pinball_menu;

@@ -1,8 +1,9 @@
 use super::ball_starter::BallStarterPlugin;
 use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 use super::flipper::FlipperPlugin;
+use super::lamp::spawn_lamp;
 use super::level::{LevelCounterId, PointCounterId};
-use super::light::spawn_level_up_lights;
+use super::light::{spawn_level_up_lights, LevelUpLamp};
 use super::pinball_menu::pinball_menu_glass;
 use super::player_life::spawn_life_bar;
 use super::road::spawn_road;
@@ -94,6 +95,16 @@ fn spawn_pinball_world(
         lc_id.0 =
             analog_counter::spawn_2_digit(p, assets, Transform::from_xyz(0.98, 0.41, 0.01), None);
         spawn_level_up_lights(p, &g_sett);
+        let level_lamp_pos = Vec3::new(1., 0.31, 0.06);
+        spawn_lamp(
+            p,
+            &mut mats,
+            assets,
+            &g_sett,
+            level_lamp_pos,
+            Color::TOMATO,
+            LevelUpLamp,
+        );
     });
     //if let Some(img) = img_handle {
     //spawn_point_display_ui_and_cam(&mut cmds, assets, img);
