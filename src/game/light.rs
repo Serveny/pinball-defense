@@ -71,6 +71,9 @@ fn level_up_light(transform: Transform, g_sett: &GraphicsSettings, i: usize) -> 
     )
 }
 
+#[derive(Component)]
+pub struct LevelUpLamp;
+
 #[derive(Component, Default)]
 pub struct LevelUpLightAnimation(usize);
 
@@ -78,10 +81,15 @@ fn on_level_up_light_system(
     mut cmds: Commands,
     mut level_up_ev: EventReader<LevelUpEvent>,
     q_pb_world: Query<Entity, With<PinballWorld>>,
+    mut q_lvl_up_lamp: Query<(Entity, &mut Visibility), With<LevelUpLamp>>,
 ) {
     for _ in level_up_ev.iter() {
         cmds.entity(q_pb_world.single())
             .insert(LevelUpLightAnimation::default());
+
+        let mut lvl_up_lamp = q_lvl_up_lamp.single_mut();
+        *lvl_up_lamp.1 = Visibility::Inherited;
+        cmds.entity(lvl_up_lamp.0).insert(FlashLight);
     }
 }
 
@@ -89,6 +97,7 @@ fn light_next(
     mut cmds: Commands,
     mut q_anim: Query<(Entity, &mut LevelUpLightAnimation)>,
     mut q_level_light: Query<(&mut Visibility, &mut SpotLight, &LevelUpLight)>,
+    mut q_lvl_up_lamp: Query<(Entity, &mut Visibility), (With<LevelUpLamp>, Without<LevelUpLight>)>,
 ) {
     for (anim_id, mut anim) in q_anim.iter_mut() {
         if let Some((mut visi, mut spot, _)) = q_level_light
@@ -100,6 +109,10 @@ fn light_next(
             anim.0 += 1;
         } else {
             cmds.entity(anim_id).remove::<LevelUpLightAnimation>();
+
+            let mut lvl_up_lamp = q_lvl_up_lamp.single_mut();
+            *lvl_up_lamp.1 = Visibility::Hidden;
+            cmds.entity(lvl_up_lamp.0).remove::<FlashLight>();
         }
     }
 }

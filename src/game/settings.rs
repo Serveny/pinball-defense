@@ -2,6 +2,7 @@ use super::audio::{Music, Sound};
 use super::GameState;
 use crate::prelude::*;
 use crate::settings::{GraphicsSettings, SoundSettings};
+use bevy::core_pipeline::bloom::BloomSettings;
 
 pub struct SettingsPlugin;
 
@@ -31,12 +32,16 @@ fn on_changed_sound_settings(
 }
 
 fn on_changed_graphics_settings(
-    graphics_sett: Res<GraphicsSettings>,
+    g_sett: Res<GraphicsSettings>,
     mut q_spot: Query<&mut SpotLight>,
     mut q_point: Query<&mut PointLight>,
+    mut q_cam: Query<&mut Camera>,
+    mut q_bloom: Query<&mut BloomSettings>,
 ) {
-    if graphics_sett.is_changed() {
-        q_point.for_each_mut(|mut light| light.shadows_enabled = graphics_sett.is_shadows);
-        q_spot.for_each_mut(|mut light| light.shadows_enabled = graphics_sett.is_shadows);
+    if g_sett.is_changed() {
+        q_point.for_each_mut(|mut light| light.shadows_enabled = g_sett.is_shadows);
+        q_spot.for_each_mut(|mut light| light.shadows_enabled = g_sett.is_shadows);
+        q_cam.for_each_mut(|mut cam| cam.hdr = g_sett.is_hdr);
+        q_bloom.for_each_mut(|mut bloom_sett| *bloom_sett = g_sett.bloom.clone());
     }
 }

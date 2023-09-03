@@ -29,3 +29,6 @@ pub enum CameraState {
     BallCamera,
     FpsCamera,
 }
+
+#[derive(Component)]
+pub struct PinballCamera;

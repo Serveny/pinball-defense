@@ -2,7 +2,15 @@ use crate::menu::{BACKGROUND, GRAY, WHITE};
 use crate::prelude::*;
 
 #[derive(Component)]
-pub struct Row;
+pub struct Row {
+    is_active: bool,
+}
+
+impl Row {
+    pub fn new(is_active: bool) -> Self {
+        Self { is_active }
+    }
+}
 
 pub fn row<F: FnOnce(&mut ChildBuilder)>(
     text: &str,
@@ -29,7 +37,7 @@ pub fn row<F: FnOnce(&mut ChildBuilder)>(
             },
             ..default()
         },
-        Row,
+        Row::new(true),
     ))
     .with_children(|p| {
         p.spawn(NodeBundle::default()).with_children(|p| {
@@ -39,7 +47,7 @@ pub fn row<F: FnOnce(&mut ChildBuilder)>(
                     TextStyle {
                         font: assets.menu_font.clone(),
                         font_size: 40.0,
-                        color: WHITE,
+                        color: row_text_color(true),
                     },
                 ),
                 style: Style {
@@ -51,4 +59,11 @@ pub fn row<F: FnOnce(&mut ChildBuilder)>(
         });
         p.spawn(NodeBundle::default()).with_children(spawn_inside);
     });
+}
+
+fn row_text_color(is_active: bool) -> Color {
+    match is_active {
+        true => WHITE,
+        false => WHITE.with_a(0.5),
+    }
 }
