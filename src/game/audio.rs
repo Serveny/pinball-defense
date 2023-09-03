@@ -61,8 +61,10 @@ fn on_play_sound_fx_system(
     assets: Res<PinballDefenseAudioAssets>,
     sound_sett: Res<SoundSettings>,
 ) {
-    for ev in evr.iter() {
-        cmds.spawn(sound(ev.sound_bundle(&assets), sound_sett.fx_volume));
+    if sound_sett.fx_volume > 0. {
+        for ev in evr.iter() {
+            cmds.spawn(sound(ev.sound_bundle(&assets), sound_sett.fx_volume));
+        }
     }
 }
 
