@@ -66,7 +66,7 @@ pub type Level = u8;
 struct PointHub(Points);
 
 #[derive(Resource, Default, Reflect)]
-struct LevelHub {
+pub struct LevelHub {
     level: Level,
     points_level_up: Points,
 }
@@ -81,6 +81,10 @@ impl LevelHub {
         let factor = self.level as Points * 10;
         self.points_level_up = factor.pow(2) + factor * 200;
         self.level
+    }
+
+    pub fn foundation_hit_progress(&self) -> f32 {
+        1. / (self.level as f32 * 3.)
     }
 }
 

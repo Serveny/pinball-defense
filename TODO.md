@@ -49,9 +49,9 @@
 - pause function ✅
 - pause menu ✅
 - audio settings menu ✅
+- hit count of foundation depends on which level they got spawned ✅
 - graphics settings menu
 - controls menu
-- hit count of foundation depends on which level they got spawned
 - replace level up lights through turning red level up alarm light at level counter
 - sounds:
   - enemy hit sound ✅
