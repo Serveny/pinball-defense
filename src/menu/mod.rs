@@ -32,11 +32,25 @@ impl Plugin for MenuPlugin {
                     actions::on_menu_action,
                     tools::buttons::button_system,
                     tools::sliders::slider_system,
+                    tools::checkbox::checkbox_system,
                 )
                     .run_if(in_state(MenuState::PauseMenu)),
             )
             .add_systems(OnEnter(MenuState::None), clean_up)
-            .add_systems(OnEnter(SettingsMenuState::Sound), settings::sound::layout);
+            .add_systems(
+                OnEnter(SettingsMenuState::Sound),
+                (
+                    settings::clean_up,
+                    settings::sound::layout.after(settings::clean_up),
+                ),
+            )
+            .add_systems(
+                OnEnter(SettingsMenuState::Graphics),
+                (
+                    settings::clean_up,
+                    settings::graphics::layout.after(settings::clean_up),
+                ),
+            );
     }
 }
 

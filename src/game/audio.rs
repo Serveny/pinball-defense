@@ -4,6 +4,7 @@ use crate::settings::SoundSettings;
 use bevy::audio::{PlaybackMode, Volume, VolumeLevel};
 
 pub struct AudioPlugin;
+
 impl Plugin for AudioPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<SoundEvent>()
@@ -11,10 +12,6 @@ impl Plugin for AudioPlugin {
             .add_systems(
                 Update,
                 (clean_up_sound_system).run_if(in_state(GameState::Ingame)),
-            )
-            .add_systems(
-                Update,
-                (on_changed_sound_settings).run_if(in_state(GameState::Pause)),
             )
             .add_systems(
                 Update,
@@ -74,7 +71,7 @@ enum SoundHandle<'a> {
 }
 
 #[derive(Component)]
-struct Music;
+pub struct Music;
 
 fn play_music(
     mut cmds: Commands,
@@ -96,7 +93,7 @@ fn play_music(
 }
 
 #[derive(Component)]
-struct Sound;
+pub struct Sound;
 
 fn sound(handle: SoundHandle, vol: f32) -> impl Bundle {
     (
@@ -121,21 +118,6 @@ fn clean_up_sound_system(mut cmds: Commands, q_sound: Query<(Entity, &AudioSink)
     for (id, sound) in q_sound.iter() {
         if sound.empty() {
             cmds.entity(id).despawn();
-        }
-    }
-}
-
-fn on_changed_sound_settings(
-    sound_sett: Res<SoundSettings>,
-    mut q_sound: Query<&mut AudioSink, (With<Sound>, Without<Music>)>,
-    mut q_music: Query<&mut AudioSink, (With<Music>, Without<Sound>)>,
-) {
-    if sound_sett.is_changed() {
-        for sound in q_sound.iter_mut() {
-            sound.set_volume(sound_sett.fx_volume);
-        }
-        for music in q_music.iter_mut() {
-            music.set_volume(sound_sett.music_volume);
         }
     }
 }

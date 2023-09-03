@@ -71,21 +71,7 @@ pub fn spawn(
         Velocity::default(),
         PinBall,
         Name::new("Ball"),
-    ))
-    .with_children(|parent| {
-        parent.spawn(PointLightBundle {
-            transform: Transform::from_xyz(0., 0., 0.),
-            point_light: PointLight {
-                intensity: 0.01,
-                color: Color::SILVER,
-                shadows_enabled: false,
-                radius: 0.001,
-                range: 0.1,
-                ..default()
-            },
-            ..default()
-        });
-    });
+    ));
 }
 
 #[derive(Event)]

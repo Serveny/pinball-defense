@@ -9,14 +9,17 @@ pub struct Slider;
 // init_val must be between 0 and 1
 pub fn spawn_slider(action: MenuAction, p: &mut ChildBuilder) {
     p.spawn((
+        Name::new("Slider"),
+        Slider,
         NodeBundle {
             style: Style {
                 position_type: PositionType::Relative,
+                width: Val::Percent(100.),
+                height: Val::Percent(100.),
                 ..default()
             },
             ..default()
         },
-        Slider,
         RelativeCursorPosition::default(),
     ))
     .with_children(|p| {
@@ -43,11 +46,14 @@ pub struct SliderKnob;
 fn knob(action: MenuAction) -> impl Bundle {
     let size_px = 40.;
     (
+        Name::new("Slider Knob"),
+        SliderKnob,
+        action,
         ButtonBundle {
             style: Style {
                 position_type: PositionType::Absolute,
                 top: Val::Px(0.),
-                left: Val::Percent(action.val() * 100.),
+                left: Val::Percent(action.val_f32() * 100.),
                 width: Val::Px(size_px),
                 height: Val::Px(size_px),
                 margin: UiRect {
@@ -63,8 +69,6 @@ fn knob(action: MenuAction) -> impl Bundle {
             background_color: WHITE.into(),
             ..default()
         },
-        SliderKnob,
-        action,
     )
 }
 #[allow(clippy::type_complexity)]
@@ -87,11 +91,10 @@ pub fn slider_system(
             Interaction::Pressed => {
                 if let Ok(rel_pos) = q_parent.get(parent.get()) {
                     if let Some(rel_pos) = rel_pos.normalized {
-                        if (0.0..1.0).contains(&rel_pos.x) {
-                            style.left = Val::Percent(rel_pos.x * 100.);
-                            action.set_val(rel_pos.x);
-                            action_ev.send(*action);
-                        }
+                        let val = rel_pos.x.clamp(0., 1.);
+                        style.left = Val::Percent(val * 100.);
+                        action.set_val_f32(val);
+                        action_ev.send(*action);
                     }
                 }
             }
