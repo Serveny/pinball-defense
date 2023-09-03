@@ -11,6 +11,7 @@ pub fn row<F: FnOnce(&mut ChildBuilder)>(
     spawn_inside: F,
 ) {
     p.spawn((
+        Name::new("UI Row"),
         NodeBundle {
             background_color: BACKGROUND.into(),
             border_color: GRAY.into(),
@@ -31,7 +32,7 @@ pub fn row<F: FnOnce(&mut ChildBuilder)>(
         Row,
     ))
     .with_children(|p| {
-        p.spawn(NodeBundle { ..default() }).with_children(|p| {
+        p.spawn(NodeBundle::default()).with_children(|p| {
             p.spawn(TextBundle {
                 text: Text::from_section(
                     text,
@@ -48,7 +49,6 @@ pub fn row<F: FnOnce(&mut ChildBuilder)>(
                 ..default()
             });
         });
-
-        spawn_inside(p);
+        p.spawn(NodeBundle::default()).with_children(spawn_inside);
     });
 }

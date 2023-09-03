@@ -3,7 +3,7 @@ use crate::menu::{GOLD, WHITE};
 use crate::prelude::*;
 
 #[derive(Component)]
-struct MenuButton;
+pub struct MenuButton;
 
 pub fn spawn_menu_button(
     action: MenuAction,
@@ -12,6 +12,9 @@ pub fn spawn_menu_button(
     margin: UiRect,
 ) {
     p.spawn((
+        Name::new("Button"),
+        MenuButton,
+        action,
         ButtonBundle {
             style: Style {
                 width: Val::Percent(100.),
@@ -26,8 +29,6 @@ pub fn spawn_menu_button(
             background_color: Color::NONE.into(),
             ..default()
         },
-        action,
-        MenuButton,
     ))
     .with_children(|p| {
         p.spawn(TextBundle::from_section(
@@ -45,7 +46,7 @@ pub fn spawn_menu_button(
 pub fn button_system(
     mut interaction_query: Query<
         (&Interaction, &mut BorderColor, &MenuAction),
-        (Changed<Interaction>, With<Button>),
+        (Changed<Interaction>, With<Button>, With<MenuButton>),
     >,
     mut action_ev: EventWriter<MenuAction>,
 ) {
