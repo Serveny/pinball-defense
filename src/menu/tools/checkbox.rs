@@ -1,6 +1,9 @@
-use crate::menu::actions::MenuAction;
+use super::PropIndex;
+use crate::menu::settings::SettingsMenuState;
 use crate::menu::{GOLD, WHITE};
 use crate::prelude::*;
+use crate::settings::{GraphicsSettings, SoundSettings};
+use crate::utils::reflect::toggle_field_bool;
 
 #[derive(Component)]
 pub struct Checkbox;
@@ -8,11 +11,10 @@ pub struct Checkbox;
 #[derive(Component)]
 pub struct CheckboxMark;
 
-pub fn spawn_checkbox(action: MenuAction, p: &mut ChildBuilder) {
+pub fn spawn(p: &mut ChildBuilder, prop_i: usize, init_val: bool) {
     p.spawn((
         Name::new("Checkbox"),
         Checkbox,
-        action,
         ButtonBundle {
             style: Style {
                 width: Val::Px(40.),
@@ -25,6 +27,7 @@ pub fn spawn_checkbox(action: MenuAction, p: &mut ChildBuilder) {
             background_color: Color::NONE.into(),
             ..default()
         },
+        PropIndex(prop_i),
     ))
     .with_children(|p| {
         p.spawn((
@@ -36,7 +39,7 @@ pub fn spawn_checkbox(action: MenuAction, p: &mut ChildBuilder) {
                     margin: UiRect::all(Val::Auto),
                     ..default()
                 },
-                visibility: match action.val_bool() {
+                visibility: match init_val {
                     true => Visibility::Inherited,
                     false => Visibility::Hidden,
                 },
@@ -50,25 +53,34 @@ pub fn spawn_checkbox(action: MenuAction, p: &mut ChildBuilder) {
 #[allow(clippy::type_complexity)]
 pub fn checkbox_system(
     mut interaction_query: Query<
-        (Entity, &Interaction, &mut BorderColor, &mut MenuAction),
-        (Changed<Interaction>, With<Button>, With<Checkbox>),
+        (Entity, &Interaction, &mut BorderColor, &PropIndex),
+        (Changed<Interaction>, With<Button>),
     >,
     mut q_mark: Query<(&mut Visibility, &mut BackgroundColor, &Parent), With<CheckboxMark>>,
-    mut action_ev: EventWriter<MenuAction>,
+    mut g_sett: ResMut<GraphicsSettings>,
+    mut s_sett: ResMut<SoundSettings>,
+    menu_state: Res<State<SettingsMenuState>>,
 ) {
-    for (checkbox_id, interaction, mut border_color, mut action) in &mut interaction_query {
+    for (checkbox_id, interaction, mut border_color, prop_i) in &mut interaction_query {
         if let Some((mut visi, mut bg_color, _)) = q_mark
             .iter_mut()
             .find(|(_, _, parent)| parent.get() == checkbox_id)
         {
             match *interaction {
                 Interaction::Pressed => {
-                    action.toggle_val_bool();
-                    *visi = match action.val_bool() {
+                    let val = match **menu_state {
+                        SettingsMenuState::Sound => {
+                            toggle_field_bool(&mut s_sett as &mut SoundSettings, prop_i.0)
+                        }
+                        SettingsMenuState::Graphics => {
+                            toggle_field_bool(&mut g_sett as &mut GraphicsSettings, prop_i.0)
+                        }
+                        _ => false,
+                    };
+                    *visi = match val {
                         true => Visibility::Inherited,
                         false => Visibility::Hidden,
                     };
-                    action_ev.send(*action);
                 }
                 Interaction::Hovered => {
                     *border_color = WHITE.into();

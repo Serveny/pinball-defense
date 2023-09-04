@@ -1,11 +1,10 @@
 use crate::prelude::*;
-use bevy::core_pipeline::bloom::{BloomCompositeMode, BloomSettings};
 
-#[derive(Resource)]
+#[derive(Resource, Reflect, Default)]
 pub struct GraphicsSettings {
     pub is_shadows: bool,
     pub is_hdr: bool,
-    pub bloom: BloomSettings,
+    pub bloom_intensity: f32,
 }
 
 impl GraphicsSettings {
@@ -14,7 +13,7 @@ impl GraphicsSettings {
         Self {
             is_shadows: false,
             is_hdr: false,
-            bloom: BloomSettings::default(),
+            bloom_intensity: 0.,
         }
     }
 
@@ -23,16 +22,12 @@ impl GraphicsSettings {
         Self {
             is_shadows: true,
             is_hdr: true,
-            bloom: BloomSettings {
-                intensity: 0.01,
-                composite_mode: BloomCompositeMode::Additive,
-                ..default()
-            },
+            bloom_intensity: 0.01,
         }
     }
 }
 
-#[derive(Resource, Default)]
+#[derive(Resource, Reflect, Default)]
 pub struct SoundSettings {
     pub music_volume: f32,
     pub fx_volume: f32,

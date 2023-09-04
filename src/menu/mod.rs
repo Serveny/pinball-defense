@@ -1,5 +1,6 @@
 use self::{actions::MenuAction, settings::SettingsMenuState};
 use crate::prelude::*;
+use crate::settings::{GraphicsSettings, SoundSettings};
 
 mod actions;
 mod pause;
@@ -41,14 +42,14 @@ impl Plugin for MenuPlugin {
                 OnEnter(SettingsMenuState::Sound),
                 (
                     settings::clean_up,
-                    settings::sound::layout.after(settings::clean_up),
+                    settings::layout::<SoundSettings>.after(settings::clean_up),
                 ),
             )
             .add_systems(
                 OnEnter(SettingsMenuState::Graphics),
                 (
                     settings::clean_up,
-                    settings::graphics::layout.after(settings::clean_up),
+                    settings::layout::<GraphicsSettings>.after(settings::clean_up),
                 ),
             );
     }

@@ -1,4 +1,7 @@
 use crate::prelude::*;
+use crate::utils::reflect::get_field_mut;
+use crate::utils::reflect::prop_name;
+use crate::utils::reflect::set_field;
 use crate::AppState;
 use bevy::asset::Asset;
 use bevy::asset::LoadState;
@@ -234,13 +237,6 @@ fn add_gltf_resource(
     state.set(AssetsInternalLoadState::Finished);
 }
 
-fn prop_name(assets: &impl Struct, i: usize) -> String {
-    assets
-        .name_at(i)
-        .unwrap_or_else(|| panic!("😭 No name at index {i}"))
-        .to_string()
-}
-
 fn mesh(mesh_name: &str, gltf: &Gltf, gltf_meshes: &Assets<GltfMesh>) -> Handle<Mesh> {
     gltf_meshes
         .get(
@@ -259,18 +255,6 @@ fn material(material_name: &str, gltf: &Gltf) -> Handle<StandardMaterial> {
         .get(material_name)
         .unwrap_or_else(|| panic!("😭 No material with name {material_name}"))
         .clone()
-}
-
-fn get_field(assets: &mut impl Struct, i: usize) -> &mut dyn Reflect {
-    assets
-        .field_at_mut(i)
-        .unwrap_or_else(|| panic!("😭 No object at position {i}"))
-}
-
-fn set_field(assets: &mut impl Struct, i: usize, obj: Box<dyn Reflect>) {
-    get_field(assets, i)
-        .set(obj)
-        .unwrap_or_else(|error| panic!("😭 Not able to set object at position {i}: {error:?}"));
 }
 
 fn audio_assets_path(sub_dir: Option<&str>) -> PathBuf {
@@ -305,7 +289,7 @@ fn add_audio_resource(mut cmds: Commands, ass: Res<AssetServer>) {
         match field.type_name() {
             "pinball_defense::assets::Handles<bevy_audio::audio_source::AudioSource>" => {
                 let audio_dir = audio_assets_path(Some(&prop_name));
-                let field: &mut Handles<AudioSource> = get_field(&mut audio_assets, i)
+                let field: &mut Handles<AudioSource> = get_field_mut(&mut audio_assets, i)
                     .downcast_mut()
                     .expect("😥 Unexpected: Handles type is no handles type.");
                 for (_, path) in file_paths(audio_dir) {

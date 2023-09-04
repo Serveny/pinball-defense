@@ -2,6 +2,7 @@ use super::PinballCamera;
 use crate::game::controls::gamepad::MyGamepad;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
+use bevy::core_pipeline::bloom::BloomSettings;
 use bevy::core_pipeline::tonemapping::Tonemapping;
 use bevy::core_pipeline::Skybox;
 use bevy::input::mouse::MouseMotion;
@@ -149,8 +150,11 @@ pub(super) fn setup_camera(
             tonemapping: Tonemapping::TonyMcMapface,
             ..default()
         },
+        BloomSettings {
+            intensity: g_setting.bloom_intensity,
+            ..default()
+        },
         //UiCameraConfig { show_ui: false },
-        g_setting.bloom.clone(),
         Skybox(assets.skybox.clone()),
         EnvironmentMapLight {
             diffuse_map: assets.skybox.clone(),

@@ -1,13 +1,16 @@
-use crate::menu::actions::MenuAction;
+use super::PropIndex;
+use crate::menu::settings::SettingsMenuState;
 use crate::menu::{GOLD, GRAY, WHITE};
 use crate::prelude::*;
+use crate::settings::{GraphicsSettings, SoundSettings};
+use crate::utils::reflect::set_field;
 use bevy::ui::RelativeCursorPosition;
 
 #[derive(Component)]
 pub struct Slider;
 
 // init_val must be between 0 and 1
-pub fn spawn_slider(action: MenuAction, p: &mut ChildBuilder) {
+pub fn spawn(p: &mut ChildBuilder, prop_i: usize, init_val: f32) {
     p.spawn((
         Name::new("Slider"),
         Slider,
@@ -36,24 +39,24 @@ pub fn spawn_slider(action: MenuAction, p: &mut ChildBuilder) {
             },
             ..default()
         });
-        p.spawn(knob(action));
+        p.spawn(knob(prop_i, init_val));
     });
 }
 
 #[derive(Component)]
 pub struct SliderKnob;
 
-fn knob(action: MenuAction) -> impl Bundle {
+fn knob(prop_i: usize, init_val: f32) -> impl Bundle {
     let size_px = 40.;
     (
         Name::new("Slider Knob"),
         SliderKnob,
-        action,
+        PropIndex(prop_i),
         ButtonBundle {
             style: Style {
                 position_type: PositionType::Absolute,
                 top: Val::Px(0.),
-                left: Val::Percent(action.val_f32() * 100.),
+                left: Val::Percent(init_val * 100.),
                 width: Val::Px(size_px),
                 height: Val::Px(size_px),
                 margin: UiRect {
@@ -79,22 +82,39 @@ pub fn slider_system(
             &Parent,
             &mut BorderColor,
             &mut Style,
-            &mut MenuAction,
+            &PropIndex,
         ),
         (With<Button>, With<SliderKnob>),
     >,
+    mut g_sett: ResMut<GraphicsSettings>,
+    mut s_sett: ResMut<SoundSettings>,
+    menu_state: Res<State<SettingsMenuState>>,
     q_parent: Query<&RelativeCursorPosition, With<Slider>>,
-    mut action_ev: EventWriter<MenuAction>,
 ) {
-    for (interaction, parent, mut border_color, mut style, mut action) in &mut interaction_query {
+    for (interaction, parent, mut border_color, mut style, prop_i) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
                 if let Ok(rel_pos) = q_parent.get(parent.get()) {
                     if let Some(rel_pos) = rel_pos.normalized {
                         let val = rel_pos.x.clamp(0., 1.);
                         style.left = Val::Percent(val * 100.);
-                        action.set_val_f32(val);
-                        action_ev.send(*action);
+                        match **menu_state {
+                            SettingsMenuState::Sound => {
+                                set_field(
+                                    &mut s_sett as &mut SoundSettings,
+                                    prop_i.0,
+                                    Box::new(val),
+                                );
+                            }
+                            SettingsMenuState::Graphics => {
+                                set_field(
+                                    &mut g_sett as &mut GraphicsSettings,
+                                    prop_i.0,
+                                    Box::new(val),
+                                );
+                            }
+                            _ => (),
+                        };
                     }
                 }
             }

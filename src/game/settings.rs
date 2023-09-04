@@ -42,6 +42,6 @@ fn on_changed_graphics_settings(
         q_point.for_each_mut(|mut light| light.shadows_enabled = g_sett.is_shadows);
         q_spot.for_each_mut(|mut light| light.shadows_enabled = g_sett.is_shadows);
         q_cam.for_each_mut(|mut cam| cam.hdr = g_sett.is_hdr);
-        q_bloom.for_each_mut(|mut bloom_sett| *bloom_sett = g_sett.bloom.clone());
+        q_bloom.for_each_mut(|mut bloom_sett| bloom_sett.intensity = g_sett.bloom_intensity);
     }
 }
