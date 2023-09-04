@@ -1,7 +1,6 @@
 use super::{MenuState, SettingsMenuState};
 use crate::game::ResumeGameEvent;
 use crate::prelude::*;
-use crate::settings::{GraphicsSettings, SoundSettings};
 use bevy::app::AppExit;
 use std::fmt;
 //const NORMAL_BUTTON: Color = Color::rgb(57. / 255., 61. / 255., 64. / 255.);
@@ -12,78 +11,13 @@ pub enum MenuAction {
     Controls,
     Graphics,
     Sound,
-    EditSound(SoundAction),
-    EditGraphics(GraphicsAction),
     Quit,
-}
-
-#[allow(clippy::single_match, clippy::collapsible_match)]
-impl MenuAction {
-    pub fn set_val_f32(&mut self, val: f32) {
-        match self {
-            MenuAction::EditSound(sound) => match sound {
-                SoundAction::MusicVolume(v) => *v = val,
-                SoundAction::FxVolume(v) => *v = val,
-            },
-            MenuAction::EditGraphics(graphics) => match graphics {
-                GraphicsAction::BloomIntensity(v) => *v = val,
-                _ => (),
-            },
-            _ => (),
-        }
-    }
-    pub fn val_f32(&self) -> f32 {
-        match self {
-            MenuAction::EditSound(sound) => match sound {
-                SoundAction::MusicVolume(v) => *v,
-                SoundAction::FxVolume(v) => *v,
-            },
-            MenuAction::EditGraphics(graphics) => match graphics {
-                GraphicsAction::BloomIntensity(v) => *v,
-                _ => 0.,
-            },
-            _ => 0.,
-        }
-    }
-
-    pub fn val_bool(&self) -> bool {
-        match self {
-            MenuAction::EditGraphics(graphics) => match graphics {
-                GraphicsAction::IsShadows(v) => *v,
-                GraphicsAction::IsHdr(v) => *v,
-                _ => false,
-            },
-            _ => false,
-        }
-    }
-    pub fn toggle_val_bool(&mut self) {
-        match self {
-            MenuAction::EditGraphics(graphics) => match graphics {
-                GraphicsAction::IsShadows(v) => *v = !*v,
-                GraphicsAction::IsHdr(v) => *v = !*v,
-                _ => (),
-            },
-            _ => (),
-        }
-    }
 }
 
 impl fmt::Display for MenuAction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{self:?}")
     }
-}
-#[derive(Debug, Clone, Copy)]
-pub enum SoundAction {
-    MusicVolume(f32),
-    FxVolume(f32),
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum GraphicsAction {
-    IsShadows(bool),
-    IsHdr(bool),
-    BloomIntensity(f32),
 }
 
 pub fn on_menu_action(
@@ -92,8 +26,6 @@ pub fn on_menu_action(
     mut exit_ev: EventWriter<AppExit>,
     mut settings_state: ResMut<NextState<SettingsMenuState>>,
     mut resume_ev: EventWriter<ResumeGameEvent>,
-    mut sound_settings: ResMut<SoundSettings>,
-    mut graphics_settings: ResMut<GraphicsSettings>,
 ) {
     for action in evr.iter() {
         use MenuAction as MA;
@@ -106,18 +38,6 @@ pub fn on_menu_action(
             MA::Graphics => settings_state.set(SettingsMenuState::Graphics),
             MA::Sound => settings_state.set(SettingsMenuState::Sound),
             MA::Quit => exit_ev.send(AppExit),
-
-            // Settings
-            MA::EditSound(sound_action) => match sound_action {
-                SoundAction::FxVolume(vol) => sound_settings.fx_volume = *vol,
-                SoundAction::MusicVolume(vol) => sound_settings.music_volume = *vol,
-            },
-
-            MA::EditGraphics(graphics_action) => match graphics_action {
-                GraphicsAction::IsShadows(val) => graphics_settings.is_shadows = *val,
-                GraphicsAction::IsHdr(val) => graphics_settings.is_hdr = *val,
-                GraphicsAction::BloomIntensity(val) => graphics_settings.bloom.intensity = *val,
-            },
         }
     }
 }

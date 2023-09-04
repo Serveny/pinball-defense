@@ -3,20 +3,22 @@ use crate::prelude::*;
 
 #[derive(Component)]
 pub struct Row {
+    i_sett: usize,
     is_active: bool,
 }
 
 impl Row {
-    pub fn new(is_active: bool) -> Self {
-        Self { is_active }
+    pub fn new(i_sett: usize, is_active: bool) -> Self {
+        Self { i_sett, is_active }
     }
 }
 
-pub fn row<F: FnOnce(&mut ChildBuilder)>(
+pub fn spawn(
+    i_sett: usize,
     text: &str,
     p: &mut ChildBuilder,
     assets: &PinballDefenseAssets,
-    spawn_inside: F,
+    spawn_inside: impl FnOnce(&mut ChildBuilder),
 ) {
     p.spawn((
         Name::new("UI Row"),
@@ -37,7 +39,7 @@ pub fn row<F: FnOnce(&mut ChildBuilder)>(
             },
             ..default()
         },
-        Row::new(true),
+        Row::new(i_sett, true),
     ))
     .with_children(|p| {
         p.spawn(NodeBundle::default()).with_children(|p| {
