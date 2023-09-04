@@ -1,4 +1,4 @@
-use super::PropIndex;
+use super::{Active, PropIndex};
 use crate::menu::settings::SettingsMenuState;
 use crate::menu::{GOLD, WHITE};
 use crate::prelude::*;
@@ -28,6 +28,7 @@ pub fn spawn(p: &mut ChildBuilder, prop_i: usize, init_val: bool) {
             ..default()
         },
         PropIndex(prop_i),
+        Active,
     ))
     .with_children(|p| {
         p.spawn((
@@ -54,7 +55,7 @@ pub fn spawn(p: &mut ChildBuilder, prop_i: usize, init_val: bool) {
 pub fn checkbox_system(
     mut interaction_query: Query<
         (Entity, &Interaction, &mut BorderColor, &PropIndex),
-        (Changed<Interaction>, With<Button>),
+        (Changed<Interaction>, With<Checkbox>, With<Active>),
     >,
     mut q_mark: Query<(&mut Visibility, &mut BackgroundColor, &Parent), With<CheckboxMark>>,
     mut g_sett: ResMut<GraphicsSettings>,

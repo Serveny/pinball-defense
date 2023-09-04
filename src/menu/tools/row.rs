@@ -2,19 +2,9 @@ use crate::menu::{BACKGROUND, GRAY, WHITE};
 use crate::prelude::*;
 
 #[derive(Component)]
-pub struct Row {
-    i_sett: usize,
-    is_active: bool,
-}
-
-impl Row {
-    pub fn new(i_sett: usize, is_active: bool) -> Self {
-        Self { i_sett, is_active }
-    }
-}
+pub struct Row;
 
 pub fn spawn(
-    i_sett: usize,
     text: &str,
     p: &mut ChildBuilder,
     assets: &PinballDefenseAssets,
@@ -39,7 +29,7 @@ pub fn spawn(
             },
             ..default()
         },
-        Row::new(i_sett, true),
+        Row,
     ))
     .with_children(|p| {
         p.spawn(NodeBundle::default()).with_children(|p| {

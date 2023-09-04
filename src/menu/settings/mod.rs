@@ -20,7 +20,7 @@ pub fn layout<TSettings: Resource + Struct>(
     cmds.spawn(settings_menu_layout()).with_children(|p| {
         for (i, field) in settings.iter_fields().enumerate() {
             let prop_name = prop_name(settings.as_ref(), i);
-            row::spawn(i, &prop_name, p, &assets, |p| match field.type_name() {
+            row::spawn(&prop_name, p, &assets, |p| match field.type_name() {
                 "bool" => {
                     let val = *field
                         .downcast_ref::<bool>()

@@ -93,6 +93,7 @@ fn on_level_up_light_system(
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn light_next(
     mut cmds: Commands,
     mut q_anim: Query<(Entity, &mut LevelUpLightAnimation)>,
