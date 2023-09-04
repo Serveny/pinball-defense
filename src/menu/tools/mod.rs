@@ -7,3 +7,6 @@ pub mod sliders;
 
 #[derive(Component)]
 pub struct PropIndex(usize);
+
+#[derive(Component)]
+pub struct Active;

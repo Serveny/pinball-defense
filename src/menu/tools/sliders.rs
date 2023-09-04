@@ -1,4 +1,4 @@
-use super::PropIndex;
+use super::{Active, PropIndex};
 use crate::menu::settings::SettingsMenuState;
 use crate::menu::{GOLD, GRAY, WHITE};
 use crate::prelude::*;
@@ -52,6 +52,7 @@ fn knob(prop_i: usize, init_val: f32) -> impl Bundle {
         Name::new("Slider Knob"),
         SliderKnob,
         PropIndex(prop_i),
+        Active,
         ButtonBundle {
             style: Style {
                 position_type: PositionType::Absolute,
@@ -84,7 +85,7 @@ pub fn slider_system(
             &mut Style,
             &PropIndex,
         ),
-        (With<Button>, With<SliderKnob>),
+        (With<SliderKnob>, With<Active>),
     >,
     mut g_sett: ResMut<GraphicsSettings>,
     mut s_sett: ResMut<SoundSettings>,
