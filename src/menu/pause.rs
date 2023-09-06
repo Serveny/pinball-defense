@@ -1,4 +1,4 @@
-use super::{actions::MenuAction, tools::buttons::spawn_menu_button, MenuLayout, BACKGROUND};
+use super::{actions::MenuAction, tools::menu_btn, MenuLayout, BACKGROUND};
 use crate::prelude::*;
 
 pub fn layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
@@ -64,10 +64,10 @@ fn spawn_buttons(p: &mut ChildBuilder, assets: &PinballDefenseAssets) {
         .with_children(|p| {
             let margin = UiRect::default();
             let con_margin = UiRect::bottom(Val::Px(10.));
-            spawn_menu_button(MenuAction::Continue, p, assets, con_margin);
-            spawn_menu_button(MenuAction::Controls, p, assets, margin);
-            spawn_menu_button(MenuAction::Graphics, p, assets, margin);
-            spawn_menu_button(MenuAction::Sound, p, assets, margin);
-            spawn_menu_button(MenuAction::Quit, p, assets, UiRect::top(Val::Px(10.)));
+            menu_btn::spawn(MenuAction::Continue, p, assets, con_margin);
+            menu_btn::spawn(MenuAction::Controls, p, assets, margin);
+            menu_btn::spawn(MenuAction::Graphics, p, assets, margin);
+            menu_btn::spawn(MenuAction::Sound, p, assets, margin);
+            menu_btn::spawn(MenuAction::Quit, p, assets, UiRect::top(Val::Px(10.)));
         });
 }

@@ -5,7 +5,7 @@ use crate::prelude::*;
 #[derive(Component)]
 pub struct MenuButton;
 
-pub fn spawn_menu_button(
+pub fn spawn(
     action: MenuAction,
     p: &mut ChildBuilder,
     assets: &PinballDefenseAssets,
@@ -36,14 +36,14 @@ pub fn spawn_menu_button(
             TextStyle {
                 font: assets.menu_font.clone(),
                 font_size: 40.0,
-                color: Color::rgb_u8(255, 254, 236),
+                color: WHITE,
             },
         ));
     });
 }
 
 #[allow(clippy::type_complexity)]
-pub fn button_system(
+pub fn system(
     mut interaction_query: Query<
         (&Interaction, &mut BorderColor, &MenuAction),
         (Changed<Interaction>, With<Button>, With<MenuButton>),
