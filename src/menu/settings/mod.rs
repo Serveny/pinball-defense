@@ -1,4 +1,4 @@
-use super::tools::{checkbox, row};
+use super::tools::{checkbox, keybox, row};
 use super::{tools::sliders, MenuLayout};
 use crate::prelude::*;
 use crate::utils::reflect::prop_name;
@@ -7,10 +7,12 @@ use crate::utils::reflect::prop_name;
 pub enum SettingsMenuState {
     #[default]
     None,
-    Controls,
+    KeyboardControls,
     Sound,
     Graphics,
 }
+
+const KEY_CODE: &str = "bevy_input::keyboard::KeyCode";
 
 pub fn layout<TSettings: Resource + Struct>(
     mut cmds: Commands,
@@ -21,22 +23,19 @@ pub fn layout<TSettings: Resource + Struct>(
         for (i, field) in settings.iter_fields().enumerate() {
             let prop_name = prop_name(settings.as_ref(), i);
             row::spawn(&prop_name, p, &assets, |p| match field.type_name() {
-                "bool" => {
-                    let val = *field
-                        .downcast_ref::<bool>()
-                        .expect("😥 Can't downcast to bool");
-                    checkbox::spawn(p, i, val);
-                }
-                "f32" => {
-                    let val = *field
-                        .downcast_ref::<f32>()
-                        .expect("😥 Can't downcast to f32");
-                    sliders::spawn(p, i, val);
-                }
+                "bool" => checkbox::spawn(p, i, cast::<bool>(field)),
+                "f32" => sliders::spawn(p, i, cast::<f32>(field)),
+                KEY_CODE => keybox::spawn(p, &assets, i, cast::<KeyCode>(field)),
                 type_name => println!("🐱 Unknown type in asset struct: {}", type_name),
             })
         }
     });
+}
+
+fn cast<T: Reflect + Copy>(field: &dyn Reflect) -> T {
+    *field
+        .downcast_ref::<T>()
+        .unwrap_or_else(|| panic!("😥 Can't downcast to {}", field.type_name()))
 }
 
 #[derive(Component)]

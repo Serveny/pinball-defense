@@ -12,6 +12,7 @@ use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::AppState;
 use controls::ControlsPlugin;
+pub use controls::KeyboardControls;
 use enemy::EnemyPlugin;
 use events::PinballEventsPlugin;
 use pinball_menu::PinballMenuPlugin;
