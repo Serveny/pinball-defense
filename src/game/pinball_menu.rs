@@ -465,7 +465,7 @@ pub fn pinball_menu_glass(
         PbrBundle {
             mesh: assets.world_1_menu_glass.clone(),
             material: mats.add(StandardMaterial {
-                base_color: Color::ANTIQUE_WHITE,
+                base_color: Color::WHITE,
                 perceptual_roughness: 0.,
                 metallic: 0.,
                 reflectance: 0.6,
