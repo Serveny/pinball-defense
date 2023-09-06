@@ -1,4 +1,4 @@
-use super::set_flipper_status;
+use super::{set_flipper_status, KeyboardControls};
 use crate::game::ball_starter::{BallStarterState, SpawnBallEvent};
 use crate::game::camera::CameraState;
 use crate::game::flipper::{FlipperStatus, FlipperType};
@@ -10,6 +10,7 @@ use bevy::window::{CursorGrabMode, PrimaryWindow};
 #[allow(clippy::too_many_arguments)]
 pub(super) fn key_system(
     key: Res<Input<KeyCode>>,
+    controls: Res<KeyboardControls>,
     mut spawn_ball_ev: EventWriter<SpawnBallEvent>,
     mut pause_ev: EventWriter<PauseGameEvent>,
     mut q_window: Query<&mut Window, With<PrimaryWindow>>,
@@ -23,38 +24,36 @@ pub(super) fn key_system(
         window.cursor.grab_mode = CursorGrabMode::None;
         window.cursor.visible = true;
         cam_state.set(CameraState::None);
+        pause_ev.send(PauseGameEvent);
+        menu_state.set(MenuState::PauseMenu);
     }
 
     if key.just_pressed(KeyCode::ControlLeft) {
         spawn_ball_ev.send(SpawnBallEvent);
     }
 
-    if key.just_pressed(KeyCode::Space) {
+    if key.just_pressed(controls.charge_ball_starter) {
         ball_starter_state.set(BallStarterState::Charge);
     }
 
-    if key.just_released(KeyCode::Space) {
+    if key.just_released(controls.charge_ball_starter) {
         ball_starter_state.set(BallStarterState::Fire);
     }
 
-    if key.just_pressed(KeyCode::Y) {
+    if key.just_pressed(controls.flipper_left) {
         set_flipper_status(FlipperType::Left, FlipperStatus::Pushed, &mut q_flipper);
     }
-    if key.just_pressed(KeyCode::C) {
+    if key.just_pressed(controls.flipper_right) {
         set_flipper_status(FlipperType::Right, FlipperStatus::Pushed, &mut q_flipper);
     }
-    if key.just_released(KeyCode::Y) {
+    if key.just_released(controls.flipper_left) {
         set_flipper_status(FlipperType::Left, FlipperStatus::Idle, &mut q_flipper);
     }
-    if key.just_released(KeyCode::C) {
+    if key.just_released(controls.flipper_right) {
         set_flipper_status(FlipperType::Right, FlipperStatus::Idle, &mut q_flipper);
     }
-    if key.just_pressed(KeyCode::P) {
+    if key.just_pressed(controls.pause) {
         pause_ev.send(PauseGameEvent);
-    }
-    if key.just_pressed(KeyCode::Escape) {
-        pause_ev.send(PauseGameEvent);
-        menu_state.set(MenuState::PauseMenu);
     }
 }
 

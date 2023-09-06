@@ -52,7 +52,7 @@ pub fn spawn(p: &mut ChildBuilder, prop_i: usize, init_val: bool) {
 }
 
 #[allow(clippy::type_complexity)]
-pub fn checkbox_system(
+pub fn system(
     mut interaction_query: Query<
         (Entity, &Interaction, &mut BorderColor, &PropIndex),
         (Changed<Interaction>, With<Checkbox>, With<Active>),

@@ -1,4 +1,5 @@
 use self::{actions::MenuAction, settings::SettingsMenuState};
+use crate::game::KeyboardControls;
 use crate::prelude::*;
 use crate::settings::{GraphicsSettings, SoundSettings};
 
@@ -31,9 +32,10 @@ impl Plugin for MenuPlugin {
                 Update,
                 (
                     actions::on_menu_action,
-                    tools::buttons::button_system,
-                    tools::sliders::slider_system,
-                    tools::checkbox::checkbox_system,
+                    tools::menu_btn::system,
+                    tools::sliders::system,
+                    tools::checkbox::system,
+                    tools::keybox::system,
                 )
                     .run_if(in_state(MenuState::PauseMenu)),
             )
@@ -50,6 +52,13 @@ impl Plugin for MenuPlugin {
                 (
                     settings::clean_up,
                     settings::layout::<GraphicsSettings>.after(settings::clean_up),
+                ),
+            )
+            .add_systems(
+                OnEnter(SettingsMenuState::KeyboardControls),
+                (
+                    settings::clean_up,
+                    settings::layout::<KeyboardControls>.after(settings::clean_up),
                 ),
             );
     }
