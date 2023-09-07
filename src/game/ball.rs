@@ -137,7 +137,7 @@ pub fn limit_velocity(mut velocity: Mut<Velocity>) {
     }
 }
 
-#[derive(Event)]
+#[derive(Event, Debug)]
 pub struct CollisionWithBallEvent(pub Entity, pub CollisionEventFlags);
 
 impl CollisionWithBallEvent {
