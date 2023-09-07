@@ -1,3 +1,5 @@
+use super::audio::SoundEvent;
+use super::ball::CollisionWithBallEvent;
 use super::ball_starter::BallStarterPlugin;
 use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 use super::flipper::FlipperPlugin;
@@ -8,7 +10,7 @@ use super::pinball_menu::pinball_menu_glass;
 use super::player_life::spawn_life_bar;
 use super::road::spawn_road;
 use super::tower::foundation;
-use super::{analog_counter, GameState};
+use super::{analog_counter, EventState, GameState};
 use crate::assets::PinballDefenseGltfAssets;
 use crate::generated::world_1::*;
 use crate::prelude::*;
@@ -22,15 +24,16 @@ impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(FlipperPlugin)
             .add_plugins(BallStarterPlugin)
-            .add_systems(OnEnter(GameState::Init), spawn_pinball_world);
+            .add_systems(OnEnter(GameState::Init), spawn_pinball_world)
+            .add_systems(
+                Update,
+                on_ball_coll_wall_system.run_if(in_state(EventState::Active)),
+            );
     }
 }
 
 #[derive(Component)]
 pub struct PinballWorld;
-
-#[derive(Component)]
-struct WorldGround;
 
 #[derive(Component)]
 struct WorldFrame;
@@ -62,10 +65,13 @@ fn spawn_pinball_world(
         // Map colliders
         for coll in colliders::colliders() {
             p.spawn((
+                Name::new("World Frame Collider"),
+                WorldFrame,
                 SpatialBundle::default(),
                 coll,
                 ColliderDebugColor(Color::RED),
                 COLLIDE_ONLY_WITH_BALL,
+                ActiveEvents::COLLISION_EVENTS,
             ));
         }
         // Ball starter
@@ -145,5 +151,17 @@ const TOWER_POSIS: [Vec3; 3] = [
 fn spawn_build_marks(parent: &mut ChildBuilder, assets: &PinballDefenseGltfAssets) {
     for (i, pos) in TOWER_POSIS.iter().enumerate() {
         parent.spawn(foundation::build_mark(assets, *pos, i));
+    }
+}
+
+fn on_ball_coll_wall_system(
+    mut evr: EventReader<CollisionWithBallEvent>,
+    mut sound_ev: EventWriter<SoundEvent>,
+    q_wall: Query<With<WorldFrame>>,
+) {
+    for ev in evr.iter() {
+        if q_wall.contains(ev.0) {
+            sound_ev.send(SoundEvent::BallHitsWall);
+        }
     }
 }
