@@ -41,6 +41,7 @@ pub enum SoundEvent {
     TowerBuild,
     TowerUpgradeRange,
     TowerUpgradeDamage,
+    CounterTick,
 }
 
 impl SoundEvent {
@@ -53,12 +54,13 @@ impl SoundEvent {
             TowerHit => SoundHandle::Various(&assets.tower_hit),
             BallHitsEnd => SoundHandle::Single(&assets.ball_hits_end),
             BallHitsEnemy => SoundHandle::Single(&assets.ball_hits_enemy),
-            BallHitsFoundation => SoundHandle::Single(&assets.ball_hits_foundation),
+            BallHitsFoundation => SoundHandle::Various(&assets.ball_hits_foundation),
             BallHitsWall => SoundHandle::Various(&assets.ball_hits_wall),
             EnemyReachEnd => SoundHandle::Single(&assets.enemy_reach_end),
             TowerBuild => SoundHandle::Single(&assets.tower_build),
             TowerUpgradeRange => SoundHandle::Single(&assets.tower_upgrade_range),
             TowerUpgradeDamage => SoundHandle::Single(&assets.tower_upgrade_damage),
+            CounterTick => SoundHandle::Various(&assets.analog_counter_tick),
         };
         let speed = match handle {
             SoundHandle::Single(_) => 1.,

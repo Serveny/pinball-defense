@@ -60,8 +60,9 @@
   - enemy reached road end sound ✅
   - tower build sound ✅
   - tower upgrade sound ✅
-  - foundation hit sound
-  - analog counter sound
+  - foundation hit sound ✅
+  - multiple foundation hit sounds ✅
+  - analog counter sound ✅
   - ball charger/starter sound
   - pinball menu element fade in sound
   - pinball menu active sound
