@@ -13,6 +13,8 @@ impl Plugin for AudioPlugin {
                 OnEnter(GameState::Init),
                 (play_music, play_ball_rolling_sound),
             )
+            .add_systems(OnEnter(GameState::Pause), pause_sounds)
+            .add_systems(OnEnter(GameState::Ingame), resume_sounds)
             .add_systems(
                 Update,
                 (clean_up_sound_system, ball_rolling_sound_system)
@@ -63,6 +65,18 @@ impl SoundEvent {
             SoundHandle::Various(_) => rand::thread_rng().gen_range(0.9..1.1),
         };
         (handle, speed)
+    }
+}
+
+fn pause_sounds(q_sound: Query<&AudioSink, With<Sound>>) {
+    for sound in &q_sound {
+        sound.pause();
+    }
+}
+
+fn resume_sounds(q_sound: Query<&AudioSink, With<Sound>>) {
+    for sound in &q_sound {
+        sound.play();
     }
 }
 
@@ -153,6 +167,7 @@ fn play_ball_rolling_sound(mut cmds: Commands, assets: Res<PinballDefenseAudioAs
             },
         },
         BallRollingSound,
+        Sound,
     ));
 }
 
@@ -162,9 +177,9 @@ fn ball_rolling_sound_system(
 ) {
     if let Ok(sound) = q_rolling_sound.get_single_mut() {
         if let Some(vel) = q_ball.iter().next() {
-            let linvel = vel.linvel.length().abs() / 2.;
+            let linvel = vel.linvel.length().abs() / 16.;
             sound.set_volume(linvel);
-            let speed = 0.9 + linvel / 20.;
+            let speed = 0.9 + linvel / 2.;
             sound.set_speed(speed);
         } else {
             sound.set_volume(0.);
