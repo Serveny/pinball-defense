@@ -1,4 +1,4 @@
-use super::{EventState, GameState};
+use super::{audio::SoundEvent, EventState, GameState};
 use crate::prelude::*;
 extern crate digits_iterator;
 use crate::utils::RelEntity;
@@ -25,16 +25,21 @@ struct AnalogCounter;
 struct Digit {
     number: u8,
     position: u8,
-    current_rot_rad10: f32,
+    current_rot: f32,
     is_active: bool,
 }
+
+const TURN_SPEED_RADIANS_PER_SECOND: f32 = PI;
+const NUMBER_ROT: f32 = TAU / 10.;
+const ROT_TOLERANCE: f32 = 0.05;
+const ROT_TOLERANCE_MAX: f32 = TAU - ROT_TOLERANCE;
 
 impl Digit {
     fn new(place: u8) -> Self {
         Self {
             number: 0,
             position: place,
-            current_rot_rad10: 0.,
+            current_rot: 0.,
             is_active: false,
         }
     }
@@ -42,6 +47,27 @@ impl Digit {
     fn set_number(&mut self, number: u8) {
         self.number = number;
         self.is_active = true;
+    }
+
+    fn set_rot_to(&mut self, number: u8) -> f32 {
+        let target_rot = (number as f32 * NUMBER_ROT).rem_euclid(TAU);
+        self.current_rot = target_rot;
+        self.is_active = false;
+        TAU - target_rot
+    }
+
+    fn rotate(&mut self, delta_secs: f32) -> f32 {
+        let rotation_to_add = TURN_SPEED_RADIANS_PER_SECOND * delta_secs;
+        self.current_rot = (self.current_rot + rotation_to_add).rem_euclid(TAU);
+        -rotation_to_add
+    }
+
+    fn is_on_number(&self) -> Option<u8> {
+        let num_rot = self.current_rot.rem_euclid(NUMBER_ROT);
+        if !(ROT_TOLERANCE..=ROT_TOLERANCE_MAX).contains(&num_rot) {
+            return Some((self.current_rot / NUMBER_ROT).floor() as u8);
+        }
+        None
     }
 }
 
@@ -173,25 +199,24 @@ pub fn spawn_2_digit(
     }));
     counter_id
 }
-const TURN_SPEED_RADIANS_PER_SECOND: f32 = PI;
 
-fn turn_digit_system(mut q_digit: Query<(&mut Transform, &mut Digit)>, time: Res<Time>) {
+fn turn_digit_system(
+    mut q_digit: Query<(&mut Transform, &mut Digit)>,
+    mut sound_ev: EventWriter<SoundEvent>,
+    time: Res<Time>,
+) {
     for (mut trans, mut digit) in q_digit.iter_mut() {
         if digit.is_active {
-            let current_rot = digit.current_rot_rad10.floor();
-            let target_rot = (-TAU * digit.number as f32).rem_euclid(TAU * 10.).floor();
-            //log!("{current_rot} == {target_rot}");
-            if target_rot != current_rot {
-                let rotation_to_add = -TURN_SPEED_RADIANS_PER_SECOND * time.delta_seconds();
-                trans.rotate_y(rotation_to_add);
-                digit.current_rot_rad10 += rotation_to_add * 10.;
-                digit.current_rot_rad10 = digit.current_rot_rad10.rem_euclid(TAU * 10.);
-            } else {
-                let angle = (-TAU * digit.number as f32).rem_euclid(TAU * 10.).floor();
-                *trans = trans.with_rotation(Quat::from_rotation_y(angle / 10.));
-                digit.current_rot_rad10 = angle;
-                digit.is_active = false;
+            if let Some(number) = digit.is_on_number() {
+                if number == digit.number {
+                    let target_rot = digit.set_rot_to(number);
+                    *trans = trans.with_rotation(Quat::from_rotation_y(target_rot));
+                    return;
+                }
+                sound_ev.send(SoundEvent::CounterTick);
             }
+
+            trans.rotate_y(digit.rotate(time.delta_seconds()));
         }
     }
 }
