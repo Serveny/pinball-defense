@@ -21,7 +21,9 @@ pub fn layout<TSettings: Resource + Struct>(
 ) {
     cmds.spawn(settings_menu_layout()).with_children(|p| {
         for (i, field) in settings.iter_fields().enumerate() {
-            let prop_name = prop_name(settings.as_ref(), i);
+            let prop_name = prop_name(settings.as_ref(), i)
+                .replace('_', " ")
+                .replace("is", "");
             row::spawn(&prop_name, p, &assets, |p| match field.type_name() {
                 "bool" => checkbox::spawn(p, i, cast::<bool>(field)),
                 "f32" => sliders::spawn(p, i, cast::<f32>(field)),
