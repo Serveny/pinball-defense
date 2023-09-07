@@ -1,3 +1,4 @@
+use crate::game::audio::SoundEvent;
 use crate::game::ball::CollisionWithBallEvent;
 use crate::game::events::collision::COLLIDE_ONLY_WITH_BALL;
 use crate::game::events::tween_completed::DESPAWN_ENTITY_EVENT_ID;
@@ -218,6 +219,7 @@ pub(super) fn on_progress_system(
     mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
     mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
     mut points_ev: EventWriter<PointsEvent>,
+    mut sound_ev: EventWriter<SoundEvent>,
     q_tower_foundation: Query<&TowerFoundation, With<TowerFoundation>>,
 ) {
     for CollisionWithBallEvent(id, flag) in ball_coll_ev.iter() {
@@ -225,6 +227,7 @@ pub(super) fn on_progress_system(
             if let Ok(foundation) = q_tower_foundation.get(*id) {
                 prog_bar_ev.send(ProgressBarCountUpEvent::new(*id, foundation.hit_progress));
                 points_ev.send(PointsEvent::FoundationHit);
+                sound_ev.send(SoundEvent::BallHitsFoundation);
             }
         }
     }
