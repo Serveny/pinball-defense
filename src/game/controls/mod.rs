@@ -1,4 +1,3 @@
-use self::gamepad::{on_gamepad_btn_changed, on_gamepad_connections};
 use self::mouse_keyboard::{key_system, mouse_btn_system, pause_key_system};
 use crate::game::flipper::{FlipperStatus, FlipperType};
 use crate::game::GameState;
@@ -33,11 +32,14 @@ impl Plugin for ControlsPlugin {
         app.init_resource::<KeyboardControls>()
             .add_systems(
                 Update,
-                (key_system, mouse_btn_system, on_gamepad_btn_changed)
+                (key_system, mouse_btn_system, gamepad::on_btn_changed)
                     .run_if(in_state(GameState::Ingame)),
             )
-            .add_systems(Update, on_gamepad_connections)
-            .add_systems(Update, pause_key_system.run_if(in_state(GameState::Pause)));
+            .add_systems(Update, gamepad::on_dis_connect)
+            .add_systems(
+                Update,
+                (pause_key_system, gamepad::pause_btn_changed).run_if(in_state(GameState::Pause)),
+            );
     }
 }
 
