@@ -1,5 +1,10 @@
-use super::{analog_counter::AnalogCounterSetEvent, EventState, GameState};
+use super::{
+    analog_counter::AnalogCounterSetEvent,
+    light::{FlashLight, LevelUpLamp},
+    EventState, GameState,
+};
 use crate::prelude::*;
+use std::time::Duration;
 
 pub struct LevelPlugin;
 
@@ -17,12 +22,13 @@ impl Plugin for LevelPlugin {
                     level_up_system,
                     update_points_counter_system,
                     update_level_counter_system,
+                    level_up_animation_system,
                 )
                     .run_if(in_state(GameState::Ingame)),
             )
             .add_systems(
                 Update,
-                (on_add_points_system).run_if(in_state(EventState::Active)),
+                (on_add_points_system, on_level_up_lamp).run_if(in_state(EventState::Active)),
             );
     }
 }
@@ -140,6 +146,44 @@ fn update_level_counter_system(
         ac_set_ev.send(AnalogCounterSetEvent::new(lc_id.0, level.level as u32));
     }
 }
+
+#[derive(Component)]
+struct LevelUpAnimation(Timer);
+
+fn on_level_up_lamp(
+    mut cmds: Commands,
+    mut q_lvl_up_lamp: Query<(Entity, &mut Visibility), With<LevelUpLamp>>,
+    level_up_ev: EventReader<LevelUpEvent>,
+) {
+    if !level_up_ev.is_empty() {
+        let (lamp_id, mut visi) = q_lvl_up_lamp.single_mut();
+        *visi = Visibility::Inherited;
+        cmds.entity(lamp_id)
+            .insert(FlashLight)
+            .insert(LevelUpAnimation(Timer::new(
+                Duration::from_secs(4),
+                TimerMode::Once,
+            )));
+    }
+}
+
+fn level_up_animation_system(
+    mut cmds: Commands,
+    mut q_anim: Query<(Entity, &mut Visibility, &mut LevelUpAnimation)>,
+    time: Res<Time>,
+) {
+    for (lamp_id, mut visi, mut anim) in &mut q_anim {
+        if anim.0.finished() {
+            *visi = Visibility::Hidden;
+            cmds.entity(lamp_id)
+                .remove::<FlashLight>()
+                .remove::<LevelUpAnimation>();
+        } else {
+            anim.0.tick(time.delta());
+        }
+    }
+}
+
 //#[derive(Component)]
 //struct PointDisplay;
 

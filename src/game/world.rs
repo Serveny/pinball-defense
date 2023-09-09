@@ -5,7 +5,7 @@ use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 use super::flipper::FlipperPlugin;
 use super::lamp::spawn_lamp;
 use super::level::{LevelCounterId, PointCounterId};
-use super::light::{spawn_level_up_lights, LevelUpLamp};
+use super::light::LevelUpLamp;
 use super::pinball_menu::pinball_menu_glass;
 use super::player_life::spawn_life_bar;
 use super::road::spawn_road;
@@ -100,7 +100,6 @@ fn spawn_pinball_world(
         pc_id.0 = analog_counter::spawn_10_digit(p, assets, Vec3::new(0.98, -0.563958, 0.01), None);
         lc_id.0 =
             analog_counter::spawn_2_digit(p, assets, Transform::from_xyz(0.98, 0.41, 0.01), None);
-        spawn_level_up_lights(p, &g_sett);
         let level_lamp_pos = Vec3::new(1., 0.31, 0.06);
         spawn_lamp(
             p,
