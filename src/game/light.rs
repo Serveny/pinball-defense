@@ -1,13 +1,8 @@
-use super::level::LevelUpEvent;
-use super::world::PinballWorld;
 use super::{EventState, GameState};
 use crate::game::ball::CollisionWithBallEvent;
 use crate::game::pinball_menu::PinballMenuOnSetSelectedEvent;
-use crate::generated::world_1::light_posis::level_up_light_posis;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
-use bevy::time::common_conditions::on_fixed_timer;
-use std::time::Duration;
 
 pub struct LightPlugin;
 
@@ -25,98 +20,16 @@ impl Plugin for LightPlugin {
         .add_systems(
             Update,
             (
-                on_level_up_light_system,
                 on_contact_light_on_system,
                 on_add_flashlight_system.after(fade_out_point_light_system),
             )
                 .run_if(in_state(EventState::Active)),
-        )
-        .add_systems(
-            Update,
-            (light_next).run_if(
-                in_state(GameState::Ingame).and_then(on_fixed_timer(Duration::from_secs_f32(0.07))),
-            ),
         );
     }
 }
 
 #[derive(Component)]
-pub struct LevelUpLight(usize);
-
-pub fn spawn_level_up_lights(parent: &mut ChildBuilder, g_sett: &GraphicsSettings) {
-    for (i, trans) in level_up_light_posis().iter().enumerate() {
-        parent.spawn(level_up_light(*trans, g_sett, i));
-    }
-}
-fn level_up_light(transform: Transform, g_sett: &GraphicsSettings, i: usize) -> impl Bundle {
-    (
-        Name::new("Level Up Light"),
-        SpotLightBundle {
-            transform,
-            spot_light: SpotLight {
-                intensity: LIGHT_INTENSITY,
-                color: Color::BISQUE,
-                shadows_enabled: g_sett.is_shadows,
-                range: 2.,
-                radius: 1.,
-                inner_angle: 0.2,
-                outer_angle: 1.3,
-                ..default()
-            },
-            visibility: Visibility::Hidden,
-            ..default()
-        },
-        LevelUpLight(i),
-        FadeOutLight,
-    )
-}
-
-#[derive(Component)]
 pub struct LevelUpLamp;
-
-#[derive(Component, Default)]
-pub struct LevelUpLightAnimation(usize);
-
-fn on_level_up_light_system(
-    mut cmds: Commands,
-    mut level_up_ev: EventReader<LevelUpEvent>,
-    q_pb_world: Query<Entity, With<PinballWorld>>,
-    mut q_lvl_up_lamp: Query<(Entity, &mut Visibility), With<LevelUpLamp>>,
-) {
-    for _ in level_up_ev.iter() {
-        cmds.entity(q_pb_world.single())
-            .insert(LevelUpLightAnimation::default());
-
-        let mut lvl_up_lamp = q_lvl_up_lamp.single_mut();
-        *lvl_up_lamp.1 = Visibility::Inherited;
-        cmds.entity(lvl_up_lamp.0).insert(FlashLight);
-    }
-}
-
-#[allow(clippy::type_complexity)]
-fn light_next(
-    mut cmds: Commands,
-    mut q_anim: Query<(Entity, &mut LevelUpLightAnimation)>,
-    mut q_level_light: Query<(&mut Visibility, &mut SpotLight, &LevelUpLight)>,
-    mut q_lvl_up_lamp: Query<(Entity, &mut Visibility), (With<LevelUpLamp>, Without<LevelUpLight>)>,
-) {
-    for (anim_id, mut anim) in q_anim.iter_mut() {
-        if let Some((mut visi, mut spot, _)) = q_level_light
-            .iter_mut()
-            .find(|(_, _, lvl_up_light)| lvl_up_light.0 == anim.0)
-        {
-            *visi = Visibility::Inherited;
-            spot.intensity = LIGHT_INTENSITY;
-            anim.0 += 1;
-        } else {
-            cmds.entity(anim_id).remove::<LevelUpLightAnimation>();
-
-            let mut lvl_up_lamp = q_lvl_up_lamp.single_mut();
-            *lvl_up_lamp.1 = Visibility::Hidden;
-            cmds.entity(lvl_up_lamp.0).remove::<FlashLight>();
-        }
-    }
-}
 
 #[derive(Component)]
 pub(super) struct ContactLight;
