@@ -1,3 +1,4 @@
+use self::settings::{on_changed_graphics_settings, on_changed_sound_settings};
 use self::{actions::MenuAction, settings::SettingsMenuState};
 use crate::game::KeyboardControls;
 use crate::prelude::*;
@@ -60,6 +61,14 @@ impl Plugin for MenuPlugin {
                     settings::clean_up,
                     settings::layout::<KeyboardControls>.after(settings::clean_up),
                 ),
+            )
+            .add_systems(
+                Update,
+                on_changed_graphics_settings.run_if(in_state(SettingsMenuState::Graphics)),
+            )
+            .add_systems(
+                Update,
+                on_changed_sound_settings.run_if(in_state(SettingsMenuState::Sound)),
             );
     }
 }

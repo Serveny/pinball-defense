@@ -77,3 +77,4 @@
 - camera option
 - textures
 - design enemy
+- enemies have color codings, more darker means more life/better enemies

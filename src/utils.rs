@@ -3,6 +3,12 @@ use crate::prelude::*;
 #[derive(Component, Deref, DerefMut)]
 pub struct RelEntity(pub Entity);
 
+#[derive(Component)]
+pub struct Music;
+
+#[derive(Component)]
+pub struct Sound;
+
 pub mod reflect {
     use bevy::reflect::{Reflect, Struct};
 
