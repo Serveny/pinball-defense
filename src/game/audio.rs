@@ -1,6 +1,7 @@
 use super::{ball::PinBall, EventState, GameState};
 use crate::prelude::*;
-use crate::settings::SoundSettings;
+use crate::utils::Music;
+use crate::{settings::SoundSettings, utils::Sound};
 use bevy::audio::{PlaybackMode, Volume, VolumeLevel};
 use rand::Rng;
 
@@ -101,9 +102,6 @@ enum SoundHandle<'a> {
     Various(&'a Handles<AudioSource>),
 }
 
-#[derive(Component)]
-pub struct Music;
-
 fn play_music(
     mut cmds: Commands,
     assets: Res<PinballDefenseAudioAssets>,
@@ -122,9 +120,6 @@ fn play_music(
         Music,
     ));
 }
-
-#[derive(Component)]
-pub struct Sound;
 
 fn sound(handle: SoundHandle, vol: f32, speed: f32) -> impl Bundle {
     (
