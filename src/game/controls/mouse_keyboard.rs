@@ -23,7 +23,7 @@ pub(super) fn key_system(
         let mut window = q_window.get_single_mut().unwrap();
         window.cursor.grab_mode = CursorGrabMode::None;
         window.cursor.visible = true;
-        cam_state.set(CameraState::None);
+        cam_state.set(CameraState::Dynamic);
         pause_ev.send(PauseGameEvent);
         menu_state.set(MenuState::PauseMenu);
     }

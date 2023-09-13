@@ -10,8 +10,13 @@ impl Plugin for BallStarterPlugin {
     fn build(&self, app: &mut App) {
         app.add_state::<BallStarterState>()
             .add_event::<SpawnBallEvent>()
+            .add_event::<BallStarterChargeStartedEvent>()
+            .add_event::<BallStarterFireEndEvent>()
             .add_systems(Startup, setup)
-            .add_systems(OnEnter(BallStarterState::Charge), spawn_ball_at_charge)
+            .add_systems(
+                OnEnter(BallStarterState::Charge),
+                (spawn_ball_at_charge, send_charge_started_ev),
+            )
             .add_systems(
                 Update,
                 (charge_system).run_if(
@@ -127,7 +132,7 @@ fn starter_rod(assets: &PinballDefenseGltfAssets) -> impl Bundle {
 }
 
 #[derive(Resource, Default)]
-struct BallSpawn(pub Vec3);
+pub struct BallSpawn(pub Vec3);
 
 fn setup(mut cmds: Commands) {
     cmds.insert_resource(BallSpawn(Vec3::new(0.96, 0.6, -0.02)));
@@ -159,6 +164,13 @@ fn spawn_ball_at_charge(
     }
 }
 
+#[derive(Event)]
+pub struct BallStarterChargeStartedEvent;
+
+fn send_charge_started_ev(mut evw: EventWriter<BallStarterChargeStartedEvent>) {
+    evw.send(BallStarterChargeStartedEvent);
+}
+
 const MAX_PLATE_TRANSFORM: f32 = 0.08;
 
 fn charge_system(
@@ -182,16 +194,21 @@ fn starter_add(pos_x: f32, plate_pos: &mut Vec3, spring_scale: &mut Vec3) -> f32
     x
 }
 
+#[derive(Event)]
+pub struct BallStarterFireEndEvent;
+
 fn fire_system(
     mut q_plate: Query<&mut Transform, (With<StarterPlate>, Without<StarterSpring>)>,
     mut q_spring: Query<&mut Transform, (With<StarterSpring>, Without<StarterPlate>)>,
     mut state: ResMut<NextState<BallStarterState>>,
+    mut leave_ev: EventWriter<BallStarterFireEndEvent>,
     time: Res<Time>,
 ) {
     let plate_pos = &mut q_plate.single_mut().translation;
     let spring_scale = &mut q_spring.single_mut().scale;
     let x_add = -time.delta_seconds() * 1.4;
-    if starter_add(x_add, plate_pos, spring_scale) >= MAX_PLATE_TRANSFORM {
+    if starter_add(x_add, plate_pos, spring_scale) <= 0. {
         state.set(BallStarterState::Idle);
+        leave_ev.send(BallStarterFireEndEvent);
     }
 }
