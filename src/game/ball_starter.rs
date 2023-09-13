@@ -47,6 +47,85 @@ fn on_spawn_ball_system(
     }
 }
 
+pub fn spawn(parent: &mut ChildBuilder, pos: Vec3, assets: &PinballDefenseGltfAssets) {
+    let collider = |p: &mut ChildBuilder| {
+        p.spawn(collider_bundle());
+    };
+    parent
+        .spawn((
+            spatial_from_pos(pos),
+            BallStarter,
+            Name::new("Ball Starter"),
+        ))
+        .with_children(|p| {
+            p.spawn(starter_plate(assets))
+                // Long cube collider to prevent clipping ball
+                .with_children(collider);
+            p.spawn(starter_spring(assets));
+            p.spawn(starter_rod(assets));
+        });
+}
+
+fn collider_bundle() -> impl Bundle {
+    (
+        Name::new("Ball Starter Collider"),
+        TransformBundle::from(Transform::from_xyz(-0.107, 0., 0.)),
+        Collider::cuboid(HALF_SIZE.x, HALF_SIZE.z),
+        RigidBody::KinematicPositionBased,
+        Restitution {
+            coefficient: 0.,
+            combine_rule: CoefficientCombineRule::Multiply,
+        },
+        ColliderDebugColor(Color::GOLD),
+        COLLIDE_ONLY_WITH_BALL,
+    )
+}
+
+#[derive(Component)]
+struct StarterPlate;
+
+fn starter_plate(assets: &PinballDefenseGltfAssets) -> impl Bundle {
+    (
+        Name::new("Starter Plate"),
+        StarterPlate,
+        PbrBundle {
+            mesh: assets.starter_plate.clone(),
+            material: assets.starter_plate_material.clone(),
+            ..default()
+        },
+    )
+}
+
+#[derive(Component)]
+struct StarterSpring;
+
+fn starter_spring(assets: &PinballDefenseGltfAssets) -> impl Bundle {
+    (
+        Name::new("Starter Spring"),
+        StarterSpring,
+        PbrBundle {
+            mesh: assets.starter_spring.clone(),
+            material: assets.starter_spring_material.clone(),
+            ..default()
+        },
+    )
+}
+
+#[derive(Component)]
+struct StarterRod;
+
+fn starter_rod(assets: &PinballDefenseGltfAssets) -> impl Bundle {
+    (
+        Name::new("Starter Rod"),
+        StarterRod,
+        PbrBundle {
+            mesh: assets.starter_balance_rod.clone(),
+            material: assets.starter_balance_rod_material.clone(),
+            ..default()
+        },
+    )
+}
+
 #[derive(Resource, Default)]
 struct BallSpawn(pub Vec3);
 
@@ -62,12 +141,6 @@ const HALF_SIZE: Vec3 = Vec3 {
 #[derive(Component)]
 struct BallStarter;
 
-#[derive(Component)]
-struct BallStarterPlate;
-
-#[derive(Component)]
-struct Speed(f32);
-
 // The number is the signum for the direction
 #[derive(States, PartialEq, Eq, Clone, Copy, Debug, Hash, Default, SystemSet)]
 pub enum BallStarterState {
@@ -75,53 +148,6 @@ pub enum BallStarterState {
     Idle = 0,
     Charge = -1,
     Fire = 1,
-}
-
-pub fn spawn(
-    parent: &mut ChildBuilder,
-    pos: Vec3,
-    meshes: &mut ResMut<Assets<Mesh>>,
-    materials: &mut ResMut<Assets<StandardMaterial>>,
-) {
-    let collider = |p: &mut ChildBuilder| {
-        p.spawn((
-            TransformBundle::from(Transform::from_xyz(0.09, 0., 0.)),
-            Collider::cuboid(HALF_SIZE.x, HALF_SIZE.z),
-            RigidBody::KinematicPositionBased,
-            Restitution {
-                coefficient: 0.,
-                combine_rule: CoefficientCombineRule::Multiply,
-            },
-            ColliderDebugColor(Color::GOLD),
-            COLLIDE_ONLY_WITH_BALL,
-        ));
-    };
-    let plate = |p: &mut ChildBuilder| {
-        p.spawn((
-            PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::Box::new(
-                    HALF_SIZE.x / 4.,
-                    HALF_SIZE.y * 2.,
-                    HALF_SIZE.z * 2.,
-                ))),
-                material: materials.add(Color::ORANGE.into()),
-                transform: Transform::from_translation(Vec3::new(-HALF_SIZE.x, 0., 0.)),
-                ..default()
-            },
-            BallStarterPlate,
-            Speed(1.),
-            //Ccd::enabled(),
-        ))
-        // Long cube collider to prevent clipping ball
-        .with_children(collider);
-    };
-    parent
-        .spawn((
-            spatial_from_pos(pos),
-            BallStarter,
-            Name::new("Ball Starter"),
-        ))
-        .with_children(plate);
 }
 
 fn spawn_ball_at_charge(
@@ -133,29 +159,39 @@ fn spawn_ball_at_charge(
     }
 }
 
+const MAX_PLATE_TRANSFORM: f32 = 0.08;
+
 fn charge_system(
-    mut q_ball_starter: Query<&mut Transform, With<BallStarterPlate>>,
+    mut q_plate: Query<&mut Transform, (With<StarterPlate>, Without<StarterSpring>)>,
+    mut q_spring: Query<&mut Transform, (With<StarterSpring>, Without<StarterPlate>)>,
+    mut state: ResMut<NextState<BallStarterState>>,
     time: Res<Time>,
 ) {
-    q_ball_starter.for_each_mut(|mut transform| {
-        transform.translation.x =
-            (transform.translation.x + time.delta_seconds() * 0.2).clamp(-HALF_SIZE.x, HALF_SIZE.x)
-    });
+    let plate_pos = &mut q_plate.single_mut().translation;
+    let spring_scale = &mut q_spring.single_mut().scale;
+    let x_add = time.delta_seconds() * 0.14;
+    if starter_add(x_add, plate_pos, spring_scale) >= MAX_PLATE_TRANSFORM {
+        state.set(BallStarterState::Idle);
+    }
+}
+
+fn starter_add(pos_x: f32, plate_pos: &mut Vec3, spring_scale: &mut Vec3) -> f32 {
+    let x = (plate_pos.x + pos_x).clamp(0., MAX_PLATE_TRANSFORM);
+    plate_pos.x = x;
+    spring_scale.x = 1. - (x / MAX_PLATE_TRANSFORM / 2.6);
+    x
 }
 
 fn fire_system(
-    mut ball_starter_state: ResMut<NextState<BallStarterState>>,
-    mut q_ball_starter: Query<(&mut Speed, &mut Transform)>,
+    mut q_plate: Query<&mut Transform, (With<StarterPlate>, Without<StarterSpring>)>,
+    mut q_spring: Query<&mut Transform, (With<StarterSpring>, Without<StarterPlate>)>,
+    mut state: ResMut<NextState<BallStarterState>>,
     time: Res<Time>,
 ) {
-    q_ball_starter.for_each_mut(|(mut speed, mut transform)| {
-        speed.0 += speed.0 * time.delta_seconds() * 32.;
-        transform.translation.x -= time.delta_seconds() * speed.0;
-
-        if transform.translation.x <= -HALF_SIZE.x {
-            transform.translation.x = -HALF_SIZE.x;
-            speed.0 = 1.;
-            ball_starter_state.set(BallStarterState::Idle);
-        }
-    });
+    let plate_pos = &mut q_plate.single_mut().translation;
+    let spring_scale = &mut q_spring.single_mut().scale;
+    let x_add = -time.delta_seconds() * 1.4;
+    if starter_add(x_add, plate_pos, spring_scale) >= MAX_PLATE_TRANSFORM {
+        state.set(BallStarterState::Idle);
+    }
 }

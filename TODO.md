@@ -52,10 +52,10 @@
 - hit count of foundation depends on which level they got spawned ✅
 - graphics settings menu ✅
 - bloom setting ✅
+- ball charger model ✅
 - replace level up lights through red level up alarm light at level counter ✅
 - controls menu
 - controller controls menu
-- ball charger model
 - sounds:
   - enemy hit sound ✅
   - ball hits road end sound ✅

@@ -75,8 +75,8 @@ fn spawn_pinball_world(
             ));
         }
         // Ball starter
-        let bs_pos = Vec3::new(1.175, 0.657, -0.018);
-        super::ball_starter::spawn(p, bs_pos, &mut meshes, &mut mats);
+        let bs_pos = Vec3::new(1.284, 0.657, -0.018);
+        super::ball_starter::spawn(p, bs_pos, assets);
 
         // Flipper left
         let fl_pos = Transform::from_xyz(0.83, -0.32, -0.043);
