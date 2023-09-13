@@ -88,6 +88,14 @@ pub struct PinballDefenseGltfAssets {
     pub lamp_bulb: Handle<Mesh>,
     pub lamp_thread: Handle<Mesh>,
     pub lamp_thread_material: Handle<StandardMaterial>,
+
+    // ball starter
+    pub starter_plate: Handle<Mesh>,
+    pub starter_spring: Handle<Mesh>,
+    pub starter_balance_rod: Handle<Mesh>,
+    pub starter_plate_material: Handle<StandardMaterial>,
+    pub starter_spring_material: Handle<StandardMaterial>,
+    pub starter_balance_rod_material: Handle<StandardMaterial>,
 }
 
 #[derive(Resource, Reflect, Default)]
