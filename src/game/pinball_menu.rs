@@ -533,8 +533,14 @@ fn set_selected(cmds: &mut Commands, ref_id: Entity) {
         .insert(PinballMenuSelected);
 }
 
-#[derive(Resource, Default)]
+#[derive(Resource)]
 struct UnlockedTowers(Vec<TowerType>);
+
+impl Default for UnlockedTowers {
+    fn default() -> Self {
+        Self(vec![TowerType::Gun])
+    }
+}
 
 #[derive(Resource, Default)]
 struct UnlockedUpgrades(Vec<TowerUpgrade>);
@@ -556,16 +562,15 @@ fn on_unlock_system(
 
 fn new_tower_unlock(level: Level) -> Option<TowerType> {
     match level {
-        2 => Some(TowerType::Gun),
         3 => Some(TowerType::Tesla),
-        4 => Some(TowerType::Microwave),
+        5 => Some(TowerType::Microwave),
         _ => None,
     }
 }
 
 fn new_tower_upgrade_unlock(level: Level) -> Option<TowerUpgrade> {
     match level {
-        5 => Some(TowerUpgrade::Range),
+        4 => Some(TowerUpgrade::Range),
         6 => Some(TowerUpgrade::Damage),
         _ => None,
     }

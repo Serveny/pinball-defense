@@ -54,6 +54,7 @@
 - bloom setting ✅
 - ball charger model ✅
 - replace level up lights through red level up alarm light at level counter ✅
+- combo counter: point multiplier until ball falls into end, the longer the streak, the higher the multipier
 - controls menu
 - controller controls menu
 - sounds:
@@ -78,3 +79,7 @@
 - textures
 - design enemy
 - enemies have color codings, more darker means more life/better enemies
+- enemy types:
+- normal: no collision
+- tanks: collision, slow
+- speeder: no collision, very fast, less life points
