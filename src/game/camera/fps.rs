@@ -1,13 +1,6 @@
-use super::PinballCamera;
 use crate::game::controls::gamepad::MyGamepad;
 use crate::prelude::*;
-use crate::settings::GraphicsSettings;
-use bevy::core_pipeline::bloom::BloomSettings;
-use bevy::core_pipeline::tonemapping::Tonemapping;
-use bevy::core_pipeline::Skybox;
 use bevy::input::mouse::MouseMotion;
-use bevy::render::render_resource::TextureViewDescriptor;
-use bevy::render::render_resource::TextureViewDimension;
 
 #[derive(Component)]
 pub(super) struct LookDirection {
@@ -25,15 +18,15 @@ impl Default for LookDirection {
 }
 
 #[derive(Resource)]
-pub(super) struct FirstPersonCameraSettings {
+pub(super) struct FpsCamSettings {
     pub move_speed: f32,
     pub mouse_sensitivity: f32,
     pub stick_sensitivity: f32,
 }
 
-impl Default for FirstPersonCameraSettings {
+impl Default for FpsCamSettings {
     fn default() -> Self {
-        FirstPersonCameraSettings {
+        FpsCamSettings {
             move_speed: 1.,
             mouse_sensitivity: 0.1,
             stick_sensitivity: 1.,
@@ -46,7 +39,7 @@ pub(super) fn on_keyboard_mouse_motion_system(
     mut query: Query<(&mut Transform, &mut LookDirection)>,
     key_input: Res<Input<KeyCode>>,
     time: Res<Time>,
-    settings: Res<FirstPersonCameraSettings>,
+    settings: Res<FpsCamSettings>,
 ) {
     // Handle mouse movement to rotate the camera
     let mut delta_look = Vec2::default();
@@ -78,7 +71,7 @@ pub(super) fn gamepad_input(
     my_gamepad: Option<Res<MyGamepad>>,
     mut query: Query<(&mut Transform, &mut LookDirection)>,
     time: Res<Time>,
-    settings: Res<FirstPersonCameraSettings>,
+    settings: Res<FpsCamSettings>,
 ) {
     if let Some(gp) = my_gamepad {
         // a gamepad is connected, we have the id
@@ -128,56 +121,5 @@ fn look_and_move_in_direction(
         let direction =
             transform.rotation * Vec3::new(-delta_move.y, 0., -delta_move.x).normalize();
         transform.translation += direction * move_speed * delta_seconds;
-    }
-}
-
-pub(super) fn setup_camera(
-    mut cmds: Commands,
-    assets: Res<PinballDefenseAssets>,
-    images: ResMut<Assets<Image>>,
-    g_setting: Res<GraphicsSettings>,
-) {
-    cmds.spawn((
-        Name::new("FPS Camera"),
-        Camera3dBundle {
-            transform: Transform::from_translation(Vec3::new(1.7, 0., 1.7))
-                .looking_at(Vec3::ZERO, Vec3::Z),
-            camera: Camera {
-                order: 1,
-                hdr: g_setting.is_hdr,
-                ..default()
-            },
-            tonemapping: Tonemapping::TonyMcMapface,
-            ..default()
-        },
-        BloomSettings {
-            intensity: g_setting.bloom_intensity,
-            ..default()
-        },
-        //UiCameraConfig { show_ui: false },
-        Skybox(assets.skybox.clone()),
-        EnvironmentMapLight {
-            diffuse_map: assets.skybox.clone(),
-            specular_map: assets.skybox.clone(),
-        },
-        LookDirection::default(),
-        PinballCamera,
-    ));
-    cmds.init_resource::<FirstPersonCameraSettings>();
-    place_skybox(assets, images)
-}
-
-// NOTE: PNGs do not have any metadata that could indicate they contain a cubemap texture,
-// so they appear as one texture. The following code reconfigures the texture as necessary.
-fn place_skybox(assets: Res<PinballDefenseAssets>, mut images: ResMut<Assets<Image>>) {
-    let image = images.get_mut(&assets.skybox).unwrap();
-    if image.texture_descriptor.array_layer_count() == 1 {
-        image.reinterpret_stacked_2d_as_array(
-            image.texture_descriptor.size.height / image.texture_descriptor.size.width,
-        );
-        image.texture_view_descriptor = Some(TextureViewDescriptor {
-            dimension: Some(TextureViewDimension::Cube),
-            ..default()
-        });
     }
 }
