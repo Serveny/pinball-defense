@@ -54,7 +54,7 @@
 - bloom setting ✅
 - ball charger model ✅
 - replace level up lights through red level up alarm light at level counter ✅
-- combo counter: point multiplier until ball falls into end, the longer the streak, the higher the multipier
+- combo counter: extra points until ball falls into end, the longer the streak, the higher the amount of extra points per second
 - controls menu
 - controller controls menu
 - sounds:
