@@ -54,6 +54,7 @@
 - bloom setting ✅
 - ball charger model ✅
 - replace level up lights through red level up alarm light at level counter ✅
+- towers get also upgrade points, when killing an enemy
 - combo counter: extra points until ball falls into end, the longer the streak, the higher the amount of extra points per second
 - controls menu
 - controller controls menu

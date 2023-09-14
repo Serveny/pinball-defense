@@ -114,15 +114,12 @@ fn background_bundle(
             mesh: assets.progress_bar.clone(),
             material: mats.add(StandardMaterial {
                 base_color: color,
-                perceptual_roughness: 0.4,
+                perceptual_roughness: 0.2,
                 metallic: 0.6,
-                reflectance: 0.5,
+                reflectance: 0.1,
                 ..default()
             }),
-            transform: Transform {
-                translation: Vec3::new(0.003, -0.034, 0.002),
-                ..default()
-            },
+            transform: Transform::from_xyz(0.003, -0.034, 0.002),
             ..default()
         },
         Name::new("Progress Bar Background"),

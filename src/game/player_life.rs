@@ -31,13 +31,14 @@ pub fn spawn_life_bar(
             HealthRecovery::new(4., 6.),
         ))
         .with_children(|parent| {
+            let color = Color::rgb_u8(156, 217, 26);
             super::progress_bar::spawn(
                 parent,
                 assets,
                 materials,
                 parent.parent_entity(),
                 Transform::default(),
-                Color::GREEN,
+                color,
                 1.,
             )
         });

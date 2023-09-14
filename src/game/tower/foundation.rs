@@ -73,15 +73,16 @@ fn spawn(
     pos: Vec3,
     hit_progress: f32,
 ) {
+    let color = Color::rgb_u8(134, 166, 86);
     parent
         .spawn(ring(assets, pos, hit_progress))
         .with_children(|p| {
             let rel_id = p.parent_entity();
-            p.spawn(contact_light_bundle(g_sett, Color::GREEN));
+            p.spawn(contact_light_bundle(g_sett, color));
             p.spawn(lid_top(assets));
             p.spawn(lid_bottom(assets)).with_children(|p| {
                 let bar_trans = Transform::from_translation(Vec3::new(-0.06, 0., 0.));
-                progress_bar::spawn(p, assets, mats, rel_id, bar_trans, Color::GREEN, 0.);
+                progress_bar::spawn(p, assets, mats, rel_id, bar_trans, color, 0.);
             });
         });
 }

@@ -169,7 +169,7 @@ fn spawn(
         .insert(tower_type_bundle)
         .with_children(|p| {
             let tower_id = p.parent_entity();
-            let color = Color::RED;
+            let color = Color::rgb_u8(115, 27, 7);
             let bar_trans =
                 Transform::from_xyz(0.034, 0., -0.007).with_scale(Vec3::new(0.5, 0.5, 1.));
             let counter_trans = Transform::from_xyz(0.016, 0., 0.004)
