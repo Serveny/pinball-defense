@@ -37,6 +37,9 @@ pub struct PinballDefenseGltfAssets {
     pub analog_counter_casing_2_digit_material: Handle<StandardMaterial>,
     pub points_sign_material: Handle<StandardMaterial>,
     pub level_sign_material: Handle<StandardMaterial>,
+    pub analog_counter_10_digit_cover: Handle<Mesh>,
+    pub analog_counter_2_digit_cover: Handle<Mesh>,
+    pub analog_counter_cover_material: Handle<StandardMaterial>,
 
     // Flipper
     pub flipper_left: Handle<Mesh>,
@@ -62,6 +65,7 @@ pub struct PinballDefenseGltfAssets {
     // Progress bar
     pub progress_bar: Handle<Mesh>,
     pub progress_bar_frame: Handle<Mesh>,
+    pub progress_bar_background: Handle<Mesh>,
 
     // Road
     pub road_mesh: Handle<Mesh>,

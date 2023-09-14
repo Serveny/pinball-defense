@@ -127,7 +127,7 @@ pub fn spawn_10_digit(
                 PbrBundle {
                     mesh: assets.analog_counter_cylinder.clone(),
                     material: assets.analog_counter_cylinder_material.clone(),
-                    transform: Transform::from_xyz(0., i as f32 * -0.0242 + 0.096, 0.),
+                    transform: Transform::from_xyz(0., i as f32 * -0.0242 + 0.096, -0.005),
                     ..default()
                 },
                 Digit::new(i),
@@ -139,6 +139,15 @@ pub fn spawn_10_digit(
                 mesh: assets.point_sign.clone(),
                 material: assets.points_sign_material.clone(),
                 transform: Transform::from_xyz(-0.055, 0., 0.047),
+                ..default()
+            },
+        ));
+        parent.spawn((
+            Name::new("Cover"),
+            PbrBundle {
+                mesh: assets.analog_counter_10_digit_cover.clone(),
+                material: assets.analog_counter_cover_material.clone(),
+                transform: Transform::from_xyz(-0.01, 0.004, 0.005),
                 ..default()
             },
         ));
@@ -175,7 +184,7 @@ pub fn spawn_2_digit(
                 PbrBundle {
                     mesh: assets.analog_counter_cylinder.clone(),
                     material: assets.analog_counter_cylinder_material.clone(),
-                    transform: Transform::from_xyz(0., i as f32 * -0.022 + 0.012, 0.),
+                    transform: Transform::from_xyz(0., i as f32 * -0.022 + 0.012, -0.005),
                     ..default()
                 },
                 Digit::new(i),
@@ -187,6 +196,15 @@ pub fn spawn_2_digit(
                 mesh: assets.level_sign.clone(),
                 material: assets.level_sign_material.clone(),
                 transform: Transform::from_xyz(-0.055, 0., 0.047),
+                ..default()
+            },
+        ));
+        parent.spawn((
+            Name::new("Cover"),
+            PbrBundle {
+                mesh: assets.analog_counter_2_digit_cover.clone(),
+                material: assets.analog_counter_cover_material.clone(),
+                transform: Transform::from_xyz(-0.01, 0., 0.005),
                 ..default()
             },
         ));
