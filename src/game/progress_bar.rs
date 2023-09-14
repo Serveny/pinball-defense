@@ -48,6 +48,7 @@ pub fn spawn(
         .spawn(frame_bundle(assets, mats, transform))
         .with_children(|parent| {
             parent.spawn(bar_bundle(assets, mats, init_val, rel_id, color));
+            parent.spawn(background_bundle(assets, mats, Color::ANTIQUE_WHITE));
         });
 }
 
@@ -100,6 +101,31 @@ fn bar_bundle(
         ProgressBar(init_val),
         RelEntity(rel_id),
         Name::new("Progress Bar"),
+    )
+}
+
+fn background_bundle(
+    assets: &PinballDefenseGltfAssets,
+    mats: &mut Assets<StandardMaterial>,
+    color: Color,
+) -> impl Bundle {
+    (
+        PbrBundle {
+            mesh: assets.progress_bar.clone(),
+            material: mats.add(StandardMaterial {
+                base_color: color,
+                perceptual_roughness: 0.4,
+                metallic: 0.6,
+                reflectance: 0.5,
+                ..default()
+            }),
+            transform: Transform {
+                translation: Vec3::new(0.003, -0.034, 0.002),
+                ..default()
+            },
+            ..default()
+        },
+        Name::new("Progress Bar Background"),
     )
 }
 
