@@ -65,7 +65,6 @@ pub struct PinballDefenseGltfAssets {
     // Progress bar
     pub progress_bar: Handle<Mesh>,
     pub progress_bar_frame: Handle<Mesh>,
-    pub progress_bar_background: Handle<Mesh>,
 
     // Road
     pub road_mesh: Handle<Mesh>,

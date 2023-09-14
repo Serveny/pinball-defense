@@ -102,6 +102,7 @@ fn spawn(
     mats: &mut Assets<StandardMaterial>,
 ) {
     parent.spawn(enemy(meshes, mats)).with_children(|parent| {
+        let color = Color::ORANGE_RED;
         progress_bar::spawn(
             parent,
             assets,
@@ -112,7 +113,7 @@ fn spawn(
                 rotation: Quat::from_rotation_y(f32::to_radians(90.)),
                 scale: Vec3::new(0.5, 0.5, 1.),
             },
-            Color::ORANGE_RED,
+            color,
             1.,
         )
     });
