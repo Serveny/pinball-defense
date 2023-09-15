@@ -119,11 +119,15 @@ fn spawn(
     });
 }
 
+#[derive(Component)]
+pub struct LastDamager(pub Option<Entity>);
+
 fn enemy(meshes: &mut Assets<Mesh>, mats: &mut Assets<StandardMaterial>) -> impl Bundle {
     (
         Name::new("Enemy"),
         Enemy::new(),
         Health::new(100.),
+        LastDamager(None),
         PbrBundle {
             mesh: meshes.add(Mesh::from(shape::UVSphere {
                 radius: 0.03,
@@ -162,7 +166,7 @@ fn on_pinball_hit_system(
     for CollisionWithBallEvent(id, flag) in ball_coll_ev.iter() {
         if *flag == CollisionEventFlags::SENSOR && q_enemy.contains(*id) {
             log!("😵 Pinball hits enemy {:?}", *id);
-            health_ev.send(ChangeHealthEvent::new(*id, -100.));
+            health_ev.send(ChangeHealthEvent::new(*id, -100., None));
             points_ev.send(PointsEvent::BallEnemyHit);
             sound_ev.send(SoundEvent::BallHitsEnemy);
         }

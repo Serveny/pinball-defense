@@ -1,4 +1,7 @@
-use super::{progress_bar::ProgressBarCountUpEvent, EventState, GameState, IngameTime};
+use super::{
+    cfg::CONFIG, enemy::LastDamager, progress_bar::ProgressBarCountUpEvent, EventState, GameState,
+    IngameTime,
+};
 use crate::prelude::*;
 
 pub struct HealthPlugin;
@@ -25,13 +28,18 @@ pub struct Health {
 
 #[derive(Event)]
 pub struct ChangeHealthEvent {
-    id: Entity,
+    health_id: Entity,
     amount: f32,
+    damager_id: Option<Entity>,
 }
 
 impl ChangeHealthEvent {
-    pub fn new(id: Entity, amount: f32) -> Self {
-        Self { id, amount }
+    pub fn new(health_id: Entity, amount: f32, damager_id: Option<Entity>) -> Self {
+        Self {
+            health_id,
+            amount,
+            damager_id,
+        }
     }
 }
 
@@ -60,14 +68,18 @@ impl Health {
 fn on_change_health_system(
     ig_time: Res<IngameTime>,
     mut evr: EventReader<ChangeHealthEvent>,
-    mut q_health: Query<(&mut Health, Option<&mut HealthRecovery>)>,
+    mut q_health: Query<(
+        &mut Health,
+        Option<&mut HealthRecovery>,
+        Option<&mut LastDamager>,
+    )>,
     mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
 ) {
     for ev in evr.iter() {
-        if let Ok((mut health, recovery)) = q_health.get_mut(ev.id) {
+        if let Ok((mut health, recovery, damager)) = q_health.get_mut(ev.health_id) {
             health.add(ev.amount);
             prog_bar_ev.send(ProgressBarCountUpEvent::new(
-                ev.id,
+                ev.health_id,
                 health.to_progress(ev.amount),
             ));
 
@@ -75,6 +87,13 @@ fn on_change_health_system(
             if let Some(mut recovery) = recovery {
                 if ev.amount.is_sign_negative() {
                     recovery.set_time(ig_time.0);
+                }
+            }
+
+            // Last damager
+            if let Some(mut last_damager) = damager {
+                if let Some(damager_id) = ev.damager_id {
+                    last_damager.0 = Some(damager_id);
                 }
             }
         }
@@ -87,11 +106,22 @@ pub struct HealthEmptyEvent(pub Entity);
 
 fn health_empty_system(
     mut empty_ev: EventWriter<HealthEmptyEvent>,
-    q_health: Query<(Entity, &Health), Changed<Health>>,
+    mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
+    q_health: Query<(Entity, &Health, Option<&LastDamager>), Changed<Health>>,
 ) {
-    for (id, health) in q_health.iter() {
+    for (id, health, last_damager) in q_health.iter() {
         if health.is_empty() {
             empty_ev.send(HealthEmptyEvent(id));
+
+            // Upgrade points for towers
+            if let Some(damager) = last_damager {
+                if let Some(damager_id) = damager.0 {
+                    prog_bar_ev.send(ProgressBarCountUpEvent::new(
+                        damager_id,
+                        CONFIG.tower_enemy_killed_progress,
+                    ));
+                }
+            }
         }
     }
 }
@@ -138,7 +168,11 @@ fn health_recovery_system(
         //rec.can_recover(ig_time.0)
         //);
         if !health.is_full() && rec.can_recover(ig_time.0) {
-            health_ev.send(ChangeHealthEvent::new(id, rec.health(time.delta_seconds())));
+            health_ev.send(ChangeHealthEvent::new(
+                id,
+                rec.health(time.delta_seconds()),
+                None,
+            ));
         }
     }
 }

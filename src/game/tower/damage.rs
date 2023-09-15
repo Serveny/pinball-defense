@@ -9,14 +9,15 @@ pub(super) struct DamageOverTime(pub DamagePerSecond);
 
 pub(super) fn afe_damage_over_time_system(
     time: Res<Time>,
-    q_tower: Query<(&AimFirstEnemy, &DamageOverTime)>,
+    q_tower: Query<(Entity, &AimFirstEnemy, &DamageOverTime)>,
     mut health_ev: EventWriter<ChangeHealthEvent>,
 ) {
-    for (target, damage) in q_tower.iter() {
+    for (tower_id, target, damage) in q_tower.iter() {
         if let Some(enemy_id) = target.0 {
             health_ev.send(ChangeHealthEvent::new(
                 enemy_id,
                 -damage.0 * time.delta_seconds(),
+                Some(tower_id),
             ));
         }
     }
@@ -27,14 +28,15 @@ pub struct DamageAllTargetsInReach;
 
 pub(super) fn datir_damage_over_time_system(
     time: Res<Time>,
-    q_tower: Query<(&EnemiesWithinReach, &DamageOverTime), With<DamageAllTargetsInReach>>,
+    q_tower: Query<(Entity, &EnemiesWithinReach, &DamageOverTime), With<DamageAllTargetsInReach>>,
     mut health_ev: EventWriter<ChangeHealthEvent>,
 ) {
-    for (targets, damage) in q_tower.iter() {
+    for (tower_id, targets, damage) in q_tower.iter() {
         for enemy_id in targets.0.iter() {
             health_ev.send(ChangeHealthEvent::new(
                 *enemy_id,
                 -damage.0 * time.delta_seconds(),
+                Some(tower_id),
             ));
         }
     }

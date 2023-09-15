@@ -92,7 +92,7 @@ fn ball_reset_system(
         let ball_pos = transform.translation;
         if !X_RANGE.contains(&ball_pos.x) || !Y_RANGE.contains(&ball_pos.y) {
             if ball_pos.x > 1.2 && HIT_Y_RANGE.contains(&ball_pos.y) {
-                health_ev.send(ChangeHealthEvent::new(q_life_bar.single(), -5.));
+                health_ev.send(ChangeHealthEvent::new(q_life_bar.single(), -5., None));
             }
             log!("🎱 Despawn ball");
             cmds.get_entity(entity).unwrap().despawn_recursive();

@@ -38,7 +38,7 @@ pub(super) fn on_road_end_reached_system(
     for _ in evr.iter() {
         log!("🔚 Enemy reached road end");
 
-        health_ev.send(ChangeHealthEvent::new(q_life_bar.single(), -10.));
+        health_ev.send(ChangeHealthEvent::new(q_life_bar.single(), -10., None));
         sound_ev.send(SoundEvent::EnemyReachEnd);
     }
 }
