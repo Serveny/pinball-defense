@@ -55,7 +55,7 @@
 - ball charger model ✅
 - replace level up lights through red level up alarm light at level counter ✅
 - towers get also upgrade points, when killing an enemy ✅
-- damage upgrades on microwave tower makes enemies much more slower
+- damage upgrades on microwave tower makes enemies slightly more slower ✅
 - combo counter: extra points until ball falls into end, the longer the streak, the higher the amount of extra points per second
 - controls menu
 - controller controls menu
@@ -85,3 +85,5 @@
 - normal: no collision
 - tanks: collision, slow
 - speeder: no collision, very fast, less life points
+- main menu
+- load/save system
