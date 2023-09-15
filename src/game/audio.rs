@@ -43,6 +43,8 @@ pub enum SoundEvent {
     TowerUpgradeRange,
     TowerUpgradeDamage,
     CounterTick,
+    BallStarterCharge,
+    BallStarterFire,
 }
 
 impl SoundEvent {
@@ -62,6 +64,8 @@ impl SoundEvent {
             TowerUpgradeRange => SoundHandle::Single(&assets.tower_upgrade_range),
             TowerUpgradeDamage => SoundHandle::Single(&assets.tower_upgrade_damage),
             CounterTick => SoundHandle::Various(&assets.analog_counter_tick),
+            BallStarterCharge => SoundHandle::Single(&assets.ball_starter_charge),
+            BallStarterFire => SoundHandle::Single(&assets.ball_starter_fire),
         };
         let speed = match handle {
             SoundHandle::Single(_) => 1.,
