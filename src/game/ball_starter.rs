@@ -15,8 +15,9 @@ impl Plugin for BallStarterPlugin {
             .add_systems(Startup, setup)
             .add_systems(
                 OnEnter(BallStarterState::Charge),
-                (spawn_ball_at_charge, send_charge_started_ev),
+                (spawn_ball_at_charge, on_charge_started),
             )
+            .add_systems(OnEnter(BallStarterState::Fire), on_fire_started)
             .add_systems(
                 Update,
                 (charge_system).run_if(
@@ -167,8 +168,12 @@ fn spawn_ball_at_charge(
 #[derive(Event)]
 pub struct BallStarterChargeStartedEvent;
 
-fn send_charge_started_ev(mut evw: EventWriter<BallStarterChargeStartedEvent>) {
-    evw.send(BallStarterChargeStartedEvent);
+fn on_charge_started(
+    mut charge_started_ev: EventWriter<BallStarterChargeStartedEvent>,
+    mut sound_ev: EventWriter<SoundEvent>,
+) {
+    charge_started_ev.send(BallStarterChargeStartedEvent);
+    sound_ev.send(SoundEvent::BallStarterCharge);
 }
 
 const MAX_PLATE_TRANSFORM: f32 = 0.08;
@@ -211,4 +216,8 @@ fn fire_system(
         state.set(BallStarterState::Idle);
         leave_ev.send(BallStarterFireEndEvent);
     }
+}
+
+fn on_fire_started(mut sound_ev: EventWriter<SoundEvent>) {
+    sound_ev.send(SoundEvent::BallStarterFire);
 }

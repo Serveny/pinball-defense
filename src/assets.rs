@@ -118,6 +118,8 @@ pub struct PinballDefenseAudioAssets {
     pub ball_hits_wall: Handles<AudioSource>,
     pub ball_rolling: Handle<AudioSource>,
     pub analog_counter_tick: Handles<AudioSource>,
+    pub ball_starter_charge: Handle<AudioSource>,
+    pub ball_starter_fire: Handle<AudioSource>,
 }
 
 #[derive(Resource, Reflect, Default)]
