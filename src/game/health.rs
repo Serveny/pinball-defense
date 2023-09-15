@@ -92,9 +92,7 @@ fn on_change_health_system(
 
             // Last damager
             if let Some(mut last_damager) = damager {
-                if let Some(damager_id) = ev.damager_id {
-                    last_damager.0 = Some(damager_id);
-                }
+                last_damager.0 = ev.damager_id;
             }
         }
     }

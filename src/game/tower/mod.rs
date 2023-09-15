@@ -1,4 +1,5 @@
 use self::damage::DamageOverTime;
+use self::speed::SlowDownFactor;
 use self::target::{EnemiesWithinReach, SightRadius, TargetPos};
 use super::audio::SoundEvent;
 use super::ball::CollisionWithBallEvent;
@@ -331,9 +332,8 @@ fn on_range_upgrade_system(
 ) {
     for ev in range_upgrade_ev.iter() {
         if let Ok((tower_id, mut sight_radius)) = q_tower.get_mut(ev.0) {
-            let upgrade_factor = 0.01;
-            sight_radius.0 += upgrade_factor;
-            update_collider_size(&mut q_coll, upgrade_factor, tower_id);
+            sight_radius.0 += CONFIG.range_upgade_factor;
+            update_collider_size(&mut q_coll, CONFIG.range_upgade_factor, tower_id);
             update_sight_radius_light_size(&mut q_sr_light, sight_radius.0, tower_id);
             update_shot_light_size(&mut q_shot_light, sight_radius.0, tower_id);
         }
@@ -384,11 +384,16 @@ struct DamageUpgradeEvent(Entity);
 
 fn on_damage_upgrade_system(
     mut damage_upgrade_ev: EventReader<DamageUpgradeEvent>,
-    mut q_tower: Query<&mut DamageOverTime, With<Tower>>,
+    mut q_tower: Query<(Option<&mut DamageOverTime>, Option<&mut SlowDownFactor>), With<Tower>>,
 ) {
     for ev in damage_upgrade_ev.iter() {
-        if let Ok(mut damage) = q_tower.get_mut(ev.0) {
-            damage.0 *= 2.;
+        if let Ok((dmg_over_time, slow_down_factor)) = q_tower.get_mut(ev.0) {
+            if let Some(mut dmg_over_time) = dmg_over_time {
+                dmg_over_time.0 *= CONFIG.damage_upgrade_factor;
+            }
+            if let Some(mut slow_down_factor) = slow_down_factor {
+                slow_down_factor.0 *= 0.98;
+            }
         }
     }
 }
