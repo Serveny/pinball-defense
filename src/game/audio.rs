@@ -45,6 +45,8 @@ pub enum SoundEvent {
     CounterTick,
     BallStarterCharge,
     BallStarterFire,
+    PbMenuFadeIn,
+    PbMenuFadeOut,
 }
 
 impl SoundEvent {
@@ -66,6 +68,8 @@ impl SoundEvent {
             CounterTick => SoundHandle::Various(&assets.analog_counter_tick),
             BallStarterCharge => SoundHandle::Single(&assets.ball_starter_charge),
             BallStarterFire => SoundHandle::Single(&assets.ball_starter_fire),
+            PbMenuFadeIn => SoundHandle::Single(&assets.pb_menu_fade_in),
+            PbMenuFadeOut => SoundHandle::Single(&assets.pb_menu_fade_out),
         };
         let speed = match handle {
             SoundHandle::Single(_) => 1.,

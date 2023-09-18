@@ -69,7 +69,7 @@
   - multiple foundation hit sounds ✅
   - analog counter sound ✅
   - ball charger/starter sound ✅
-  - pinball menu element fade in sound
+  - pinball menu fade in/out sound ✅
   - pinball menu active sound
   - pinball menu selected sound
   - ball rolling sound
@@ -82,8 +82,9 @@
 - design enemy
 - enemies have color codings, more darker means more life/better enemies
 - enemy types:
-- normal: no collision
-- tanks: collision, slow
-- speeder: no collision, very fast, less life points
+  - normal: no collision
+  - tanks: collision, slow
+  - speeder: no collision, very fast, less life points
+- enemy type spawn system
 - main menu
 - load/save system

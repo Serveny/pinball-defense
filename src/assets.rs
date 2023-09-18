@@ -120,6 +120,8 @@ pub struct PinballDefenseAudioAssets {
     pub analog_counter_tick: Handles<AudioSource>,
     pub ball_starter_charge: Handle<AudioSource>,
     pub ball_starter_fire: Handle<AudioSource>,
+    pub pb_menu_fade_in: Handle<AudioSource>,
+    pub pb_menu_fade_out: Handle<AudioSource>,
 }
 
 #[derive(Resource, Reflect, Default)]
