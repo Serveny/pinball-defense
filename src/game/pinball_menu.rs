@@ -116,7 +116,7 @@ fn on_menu_event_system(
                 }
                 (SetReady, Disabled) => Some(Ready),
                 (Deactivate, Activated) => Some(deactivate(cmds, q_lights, q_pbm_el)),
-                (Activate, Ready) => Some(activate(cmds, q_lights, q_pbm_el)),
+                (Activate, Ready) => Some(activate(cmds, q_lights, q_pbm_el, sound_ev)),
                 _ => None,
             } {
                 *status = new_status;
@@ -335,11 +335,13 @@ fn activate(
     mut cmds: Commands,
     mut q_lights: Query<&mut Visibility, With<PinballMenuElementLight>>,
     q_pbm_el: QueryPinballMenuElements,
+    mut sound_ev: EventWriter<SoundEvent>,
 ) -> PinballMenuStatus {
     q_pbm_el.for_each(|(entity, _)| {
         cmds.entity(entity).insert(active_collider());
     });
     q_lights.for_each_mut(|mut visi| *visi = Visibility::Inherited);
+    sound_ev.send(SoundEvent::PbMenuActive);
     PinballMenuStatus::Activated
 }
 

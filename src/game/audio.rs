@@ -47,6 +47,7 @@ pub enum SoundEvent {
     BallStarterFire,
     PbMenuFadeIn,
     PbMenuFadeOut,
+    PbMenuActive,
 }
 
 impl SoundEvent {
@@ -70,6 +71,7 @@ impl SoundEvent {
             BallStarterFire => SoundHandle::Single(&assets.ball_starter_fire),
             PbMenuFadeIn => SoundHandle::Single(&assets.pb_menu_fade_in),
             PbMenuFadeOut => SoundHandle::Single(&assets.pb_menu_fade_out),
+            PbMenuActive => SoundHandle::Single(&assets.pb_menu_active),
         };
         let speed = match handle {
             SoundHandle::Single(_) => 1.,
