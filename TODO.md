@@ -70,7 +70,7 @@
   - analog counter sound ✅
   - ball charger/starter sound ✅
   - pinball menu fade in/out sound ✅
-  - pinball menu active sound
+  - pinball menu active sound ✅
   - pinball menu selected sound
   - ball rolling sound
   - tower mg shoot sound
