@@ -6,6 +6,7 @@ use super::progress_bar::ProgressBarFullEvent;
 use super::tower::{SpawnTowerEvent, TowerType, TowerUpgrade};
 use super::world::QueryWorld;
 use super::{EventState, GameState};
+use crate::game::audio::SoundEvent;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
@@ -103,13 +104,16 @@ fn on_menu_event_system(
     cmds: Commands,
     q_pbm_el: QueryPinballMenuElements,
     q_lights: Query<&mut Visibility, With<PinballMenuElementLight>>,
+    sound_ev: EventWriter<SoundEvent>,
 ) {
     if let Some(ev) = evr.iter().next() {
         if let Ok((menu_entity, mut status)) = q_pb_menu.get_single_mut() {
             use PinballMenuEvent::*;
             use PinballMenuStatus::*;
             if let Some(new_status) = match (ev, *status) {
-                (Disable, Activated) => Some(despawn(cmds, q_lights, q_pbm_el, menu_entity)),
+                (Disable, Activated) => {
+                    Some(despawn(cmds, q_lights, q_pbm_el, menu_entity, sound_ev))
+                }
                 (SetReady, Disabled) => Some(Ready),
                 (Deactivate, Activated) => Some(deactivate(cmds, q_lights, q_pbm_el)),
                 (Activate, Ready) => Some(activate(cmds, q_lights, q_pbm_el)),
@@ -126,6 +130,7 @@ type QueryPinballMenuElements<'w, 's, 'a> =
 
 fn spawn_system(
     mut cmds: Commands,
+    mut sound_ev: EventWriter<SoundEvent>,
     assets: Res<PinballDefenseGltfAssets>,
     q_pbw: QueryWorld,
     q_pb_menu: Query<&PinballMenu>,
@@ -146,6 +151,7 @@ fn spawn_system(
                         spawn_upgrade_menu(p, &assets, &g_sett, &unlocked_tower_upgrades, MENU_POS)
                     }
                 });
+            sound_ev.send(SoundEvent::PbMenuFadeIn)
         }
     }
 }
@@ -274,6 +280,7 @@ fn despawn(
     q_lights: Query<&mut Visibility, With<PinballMenuElementLight>>,
     q_pbm_el: QueryPinballMenuElements,
     menu_entity: Entity,
+    mut sound_ev: EventWriter<SoundEvent>,
 ) -> PinballMenuStatus {
     // Despawn menu
     let delay: Delay<Transform> =
@@ -288,6 +295,7 @@ fn despawn(
         )));
     });
     deactivate(cmds, q_lights, q_pbm_el);
+    sound_ev.send(SoundEvent::PbMenuFadeOut);
     PinballMenuStatus::Disabled
 }
 
