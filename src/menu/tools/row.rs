@@ -18,7 +18,7 @@ pub fn spawn(
             style: Style {
                 display: Display::Grid,
                 grid_template_columns: vec![
-                    GridTrack::px(300.),
+                    GridTrack::px(400.),
                     GridTrack::auto(),
                     GridTrack::px(20.),
                 ],
