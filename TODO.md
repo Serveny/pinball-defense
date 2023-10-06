@@ -56,6 +56,8 @@
 - replace level up lights through red level up alarm light at level counter ✅
 - towers get also upgrade points, when killing an enemy ✅
 - damage upgrades on microwave tower makes enemies slightly more slower ✅
+- towers get darker texture color, the higher they are upgraded
+- camera flips only to ball starter, when ball is in starter area
 - combo counter: extra points until ball falls into end, the longer the streak, the higher the amount of extra points per second
 - controls menu
 - controller controls menu
@@ -88,3 +90,8 @@
 - enemy type spawn system
 - main menu
 - load/save system
+
+Important things, to make it playable:
+
+- Game over mechanic/screen
+- Controls UI
