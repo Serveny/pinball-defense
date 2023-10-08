@@ -1,10 +1,11 @@
-use super::{actions::MenuAction, tools::menu_btn, MenuLayout, BACKGROUND};
+use super::{actions::MenuAction, tools::menu_btn, MenuLayout};
 use crate::prelude::*;
+use crate::utils::GameColor;
 
 pub fn layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
     cmds.spawn((
         NodeBundle {
-            background_color: BACKGROUND.into(),
+            background_color: GameColor::BACKGROUND.into(),
             style: Style {
                 display: Display::Grid,
                 width: Val::Percent(100.),

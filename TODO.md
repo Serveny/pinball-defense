@@ -93,5 +93,5 @@
 
 Important things, to make it playable:
 
-- Game over mechanic/screen
+- Game over mechanic/screen ✅
 - Controls UI
