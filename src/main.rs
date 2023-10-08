@@ -29,7 +29,6 @@ pub enum AppState {
 }
 
 const MAX_FRAME_RATE: f32 = 144.;
-const TICK_TIME: f32 = 1. / MAX_FRAME_RATE;
 
 fn main() {
     let mut app = App::new();
