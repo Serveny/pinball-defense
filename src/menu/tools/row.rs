@@ -1,5 +1,5 @@
-use crate::menu::{BACKGROUND, GRAY, WHITE};
 use crate::prelude::*;
+use crate::utils::GameColor;
 
 #[derive(Component)]
 pub struct Row;
@@ -13,8 +13,8 @@ pub fn spawn(
     p.spawn((
         Name::new("UI Row"),
         NodeBundle {
-            background_color: BACKGROUND.into(),
-            border_color: GRAY.into(),
+            background_color: GameColor::BACKGROUND.into(),
+            border_color: GameColor::GRAY.into(),
             style: Style {
                 display: Display::Grid,
                 grid_template_columns: vec![
@@ -55,7 +55,7 @@ pub fn spawn(
 
 fn row_text_color(is_active: bool) -> Color {
     match is_active {
-        true => WHITE,
-        false => WHITE.with_a(0.5),
+        true => GameColor::WHITE,
+        false => GameColor::WHITE.with_a(0.5),
     }
 }

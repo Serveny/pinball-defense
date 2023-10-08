@@ -18,36 +18,22 @@ use crate::settings::GraphicsSettings;
 
 pub type QueryWorld<'w, 's> = Query<'w, 's, Entity, With<PinballWorld>>;
 
-pub struct WorldPlugin;
-
-impl Plugin for WorldPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_plugins(FlipperPlugin)
-            .add_plugins(BallStarterPlugin)
-            .add_systems(OnEnter(GameState::Init), spawn_pinball_world)
-            .add_systems(
-                Update,
-                on_ball_coll_wall_system.run_if(in_state(EventState::Active)),
-            );
-    }
-}
-
 #[derive(Component)]
 pub struct PinballWorld;
 
 #[derive(Component)]
-struct WorldFrame;
+pub struct WorldFrame;
 
-fn spawn_pinball_world(
+pub fn spawn_pinball_world(
     mut cmds: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut mats: ResMut<Assets<StandardMaterial>>,
-    mut pc_id: ResMut<PointCounterId>,
-    mut lc_id: ResMut<LevelCounterId>,
     assets: Res<PinballDefenseGltfAssets>,
     g_sett: Res<GraphicsSettings>,
 ) {
     let assets = assets.as_ref();
+    let mut pc_id = None;
+    let mut lc_id = None;
     //let mut img_handle: Option<Handle<Image>> = None;
     cmds.spawn((
         SpatialBundle { ..default() },
@@ -97,9 +83,18 @@ fn spawn_pinball_world(
         spawn_life_bar(p, assets, &mut mats, life_bar_trans);
         p.spawn(pinball_menu_glass(assets, &mut mats));
         //img_handle = Some(spawn_point_display(p, &mut mats, &mut images, assets));
-        pc_id.0 = analog_counter::spawn_10_digit(p, assets, Vec3::new(0.98, -0.563958, 0.01), None);
-        lc_id.0 =
-            analog_counter::spawn_2_digit(p, assets, Transform::from_xyz(0.98, 0.41, 0.01), None);
+        pc_id = Some(analog_counter::spawn_10_digit(
+            p,
+            assets,
+            Vec3::new(0.98, -0.563958, 0.01),
+            None,
+        ));
+        lc_id = Some(analog_counter::spawn_2_digit(
+            p,
+            assets,
+            Transform::from_xyz(0.98, 0.41, 0.01),
+            None,
+        ));
         let level_lamp_pos = Vec3::new(1., 0.31, 0.06);
         spawn_lamp(
             p,
@@ -111,6 +106,13 @@ fn spawn_pinball_world(
             LevelUpLamp,
         );
     });
+
+    cmds.insert_resource(PointCounterId(
+        pc_id.expect("Point Counter Id can not be None here!"),
+    ));
+    cmds.insert_resource(LevelCounterId(
+        lc_id.expect("Level Counter Id can not be None here!"),
+    ));
     //if let Some(img) = img_handle {
     //spawn_point_display_ui_and_cam(&mut cmds, assets, img);
     //}
@@ -150,17 +152,5 @@ const TOWER_POSIS: [Vec3; 3] = [
 fn spawn_build_marks(parent: &mut ChildBuilder, assets: &PinballDefenseGltfAssets) {
     for (i, pos) in TOWER_POSIS.iter().enumerate() {
         parent.spawn(foundation::build_mark(assets, *pos, i));
-    }
-}
-
-fn on_ball_coll_wall_system(
-    mut evr: EventReader<CollisionWithBallEvent>,
-    mut sound_ev: EventWriter<SoundEvent>,
-    q_wall: Query<With<WorldFrame>>,
-) {
-    for ev in evr.iter() {
-        if q_wall.contains(ev.0) {
-            sound_ev.send(SoundEvent::BallHitsWall);
-        }
     }
 }

@@ -1,9 +1,9 @@
 use super::{Active, PropIndex};
 use crate::menu::settings::SettingsMenuState;
-use crate::menu::{GOLD, GRAY, WHITE};
 use crate::prelude::*;
 use crate::settings::{GraphicsSettings, SoundSettings};
 use crate::utils::reflect::set_field;
+use crate::utils::GameColor;
 use bevy::ui::RelativeCursorPosition;
 
 #[derive(Component)]
@@ -27,7 +27,7 @@ pub fn spawn(p: &mut ChildBuilder, prop_i: usize, init_val: f32) {
     ))
     .with_children(|p| {
         p.spawn(NodeBundle {
-            background_color: GOLD.into(),
+            background_color: GameColor::GOLD.into(),
             style: Style {
                 position_type: PositionType::Absolute,
                 top: Val::Px(0.),
@@ -69,8 +69,8 @@ fn knob(prop_i: usize, init_val: f32) -> impl Bundle {
                 border: UiRect::all(Val::Px(4.0)),
                 ..default()
             },
-            border_color: GOLD.into(),
-            background_color: WHITE.into(),
+            border_color: GameColor::GOLD.into(),
+            background_color: GameColor::WHITE.into(),
             ..default()
         },
     )
@@ -120,10 +120,10 @@ pub fn system(
                 }
             }
             Interaction::Hovered => {
-                *border_color = GRAY.into();
+                *border_color = GameColor::GRAY.into();
             }
             Interaction::None => {
-                *border_color = GOLD.into();
+                *border_color = GameColor::GOLD.into();
             }
         }
     }

@@ -3,10 +3,18 @@ use ball::BallPlugin;
 //use bevy_debug_grid::*;
 use self::analog_counter::AnalogCounterPlugin;
 use self::audio::AudioPlugin;
+use self::ball::PinBall;
+use self::ball_starter::BallStarterPlugin;
 use self::camera::PinballCameraPlugin;
+use self::enemy::Enemy;
+use self::flipper::FlipperPlugin;
+use self::game_over::GameOverScreen;
 use self::health::HealthPlugin;
 use self::level::LevelPlugin;
 use self::light::LightPlugin;
+use self::tower::foundation::{FoundationBuildMark, TowerFoundation};
+use self::tower::Tower;
+use self::world::{spawn_pinball_world, PinballWorld};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::AppState;
@@ -20,7 +28,6 @@ use progress_bar::ProgressBarPlugin;
 use std::f32::consts::PI;
 use tower::TowerPlugin;
 use wave::WavePlugin;
-use world::WorldPlugin;
 
 mod analog_counter;
 mod audio;
@@ -32,6 +39,7 @@ mod controls;
 mod enemy;
 mod events;
 mod flipper;
+mod game_over;
 mod health;
 mod level;
 mod light;
@@ -50,6 +58,7 @@ enum GameState {
     Init,
     Ingame,
     Pause,
+    GameOver,
 }
 
 #[derive(States, PartialEq, Eq, Clone, Copy, Debug, Hash, Default)]
@@ -69,7 +78,6 @@ impl Plugin for GamePlugin {
             .init_resource::<IngameTime>()
             .add_plugins((
                 AssetsPlugin,
-                WorldPlugin,
                 BallPlugin,
                 PinballCameraPlugin,
                 TowerPlugin,
@@ -83,7 +91,17 @@ impl Plugin for GamePlugin {
                 AnalogCounterPlugin,
                 AudioPlugin,
             ))
-            .add_plugins((HealthPlugin, PlayerLifePlugin, LightPlugin))
+            .add_plugins((
+                HealthPlugin,
+                PlayerLifePlugin,
+                LightPlugin,
+                FlipperPlugin,
+                BallStarterPlugin,
+            ))
+            .add_systems(
+                OnEnter(GameState::Init),
+                (setup_ambient_lights, spawn_pinball_world, start_game),
+            )
             .add_systems(
                 Update,
                 (tick_ingame_timer_system, on_set_pause_system).run_if(in_state(GameState::Ingame)),
@@ -93,7 +111,12 @@ impl Plugin for GamePlugin {
                 (on_resume_game_system).run_if(in_state(GameState::Pause)),
             )
             .add_systems(OnEnter(AppState::Game), init_game)
-            .add_systems(OnEnter(GameState::Init), (setup_ambient_lights, start_game));
+            .add_systems(OnEnter(GameState::GameOver), game_over::spawn)
+            .add_systems(
+                Update,
+                (game_over::btn_system).run_if(in_state(GameState::GameOver)),
+            )
+            .add_systems(OnExit(GameState::GameOver), reset);
     }
 }
 
@@ -115,9 +138,6 @@ struct IngameTime(f32);
 fn tick_ingame_timer_system(mut ig_time: ResMut<IngameTime>, time: Res<Time>) {
     **ig_time += time.delta_seconds();
 }
-
-#[derive(Component)]
-struct Camera;
 
 fn setup_ambient_lights(mut cmds: Commands, g_sett: Res<GraphicsSettings>) {
     cmds.insert_resource(AmbientLight {
@@ -165,4 +185,21 @@ fn on_resume_game_system(
         set_game_state.set(GameState::Ingame);
         rapier_cfg.physics_pipeline_active = true;
     }
+}
+
+fn reset(
+    mut cmds: Commands,
+    q_game_over_screen: Query<
+        Entity,
+        Or<(
+            With<GameOverScreen>,
+            With<PinBall>,
+            With<PinballWorld>,
+            With<Camera>,
+            With<DirectionalLight>,
+        )>,
+    >,
+) {
+    cmds.init_resource::<IngameTime>();
+    q_game_over_screen.for_each(|entity| cmds.entity(entity).despawn_recursive());
 }

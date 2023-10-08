@@ -1,6 +1,6 @@
 use super::super::actions::MenuAction;
-use crate::menu::{GOLD, WHITE};
 use crate::prelude::*;
+use crate::utils::GameColor;
 
 #[derive(Component)]
 pub struct MenuButton;
@@ -36,7 +36,7 @@ pub fn spawn(
             TextStyle {
                 font: assets.menu_font.clone(),
                 font_size: 40.0,
-                color: WHITE,
+                color: GameColor::WHITE,
             },
         ));
     });
@@ -54,10 +54,10 @@ pub fn system(
         match *interaction {
             Interaction::Pressed => action_ev.send(*action),
             Interaction::Hovered => {
-                *border_color = WHITE.into();
+                *border_color = GameColor::WHITE.into();
             }
             Interaction::None => {
-                *border_color = GOLD.into();
+                *border_color = GameColor::GOLD.into();
             }
         }
     }

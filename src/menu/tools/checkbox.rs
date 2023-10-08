@@ -1,9 +1,9 @@
 use super::{Active, PropIndex};
 use crate::menu::settings::SettingsMenuState;
-use crate::menu::{GOLD, WHITE};
 use crate::prelude::*;
 use crate::settings::{GraphicsSettings, SoundSettings};
 use crate::utils::reflect::toggle_field_bool;
+use crate::utils::GameColor;
 
 #[derive(Component)]
 pub struct Checkbox;
@@ -23,7 +23,7 @@ pub fn spawn(p: &mut ChildBuilder, prop_i: usize, init_val: bool) {
                 margin: UiRect::all(Val::Auto),
                 ..default()
             },
-            border_color: GOLD.into(),
+            border_color: GameColor::GOLD.into(),
             background_color: Color::NONE.into(),
             ..default()
         },
@@ -33,7 +33,7 @@ pub fn spawn(p: &mut ChildBuilder, prop_i: usize, init_val: bool) {
     .with_children(|p| {
         p.spawn((
             NodeBundle {
-                background_color: GOLD.into(),
+                background_color: GameColor::GOLD.into(),
                 style: Style {
                     width: Val::Px(20.),
                     height: Val::Px(20.),
@@ -84,12 +84,12 @@ pub fn system(
                     };
                 }
                 Interaction::Hovered => {
-                    *border_color = WHITE.into();
-                    *bg_color = WHITE.into();
+                    *border_color = GameColor::WHITE.into();
+                    *bg_color = GameColor::WHITE.into();
                 }
                 Interaction::None => {
-                    *border_color = GOLD.into();
-                    *bg_color = GOLD.into();
+                    *border_color = GameColor::GOLD.into();
+                    *bg_color = GameColor::GOLD.into();
                 }
             }
         }

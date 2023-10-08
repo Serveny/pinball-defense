@@ -22,8 +22,7 @@ impl Plugin for PinballMenuPlugin {
             .add_event::<TowerMenuExecuteEvent>()
             .add_event::<UpgradeMenuExecuteEvent>()
             .add_event::<PinballMenuOnSetSelectedEvent>()
-            .init_resource::<UnlockedTowers>()
-            .init_resource::<UnlockedUpgrades>()
+            .add_systems(OnEnter(GameState::Ingame), init_resources)
             .add_systems(
                 Update,
                 (spawn_system, de_activate_system, selected_system)
@@ -89,6 +88,11 @@ impl UpgradeMenuExecuteEvent {
 }
 
 // --- Private Area ---
+
+fn init_resources(mut cmds: Commands) {
+    cmds.init_resource::<UnlockedTowers>();
+    cmds.init_resource::<UnlockedUpgrades>();
+}
 
 #[derive(Component, Debug, Clone, Copy, Default)]
 enum PinballMenuStatus {

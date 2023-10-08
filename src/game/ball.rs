@@ -6,6 +6,7 @@ use super::health::ChangeHealthEvent;
 use super::level::PointsEvent;
 use super::pinball_menu::PinballMenuEvent;
 use super::player_life::LifeBar;
+use super::world::WorldFrame;
 use super::EventState;
 use super::GameState;
 use crate::prelude::*;
@@ -24,7 +25,11 @@ impl Plugin for BallPlugin {
             )
             .add_systems(
                 Update,
-                (on_ball_despawn_system, on_collision_with_ball_system)
+                (
+                    on_ball_despawn_system,
+                    on_collision_with_ball_system,
+                    on_wall_collision_system,
+                )
                     .run_if(in_state(EventState::Active)),
             );
     }
@@ -175,4 +180,16 @@ fn get_ball_collisions_start_only(
             CollisionEvent::Stopped(_, _, _) => None,
         })
         .collect()
+}
+
+fn on_wall_collision_system(
+    mut evr: EventReader<CollisionWithBallEvent>,
+    mut sound_ev: EventWriter<SoundEvent>,
+    q_wall: Query<With<WorldFrame>>,
+) {
+    for ev in evr.iter() {
+        if q_wall.contains(ev.0) {
+            sound_ev.send(SoundEvent::BallHitsWall);
+        }
+    }
 }

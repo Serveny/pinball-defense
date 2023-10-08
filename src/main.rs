@@ -43,7 +43,6 @@ fn main() {
             WindowTitleLoggerDiagnosticsPlugin::default(),
             EguiPlugin,
         ))
-        .insert_resource(FixedTime::new_from_secs(TICK_TIME))
         .add_systems(Startup, set_framerate);
 
     add_rapier(&mut app);

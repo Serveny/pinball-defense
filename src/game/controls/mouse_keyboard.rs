@@ -2,7 +2,7 @@ use super::{set_flipper_status, KeyboardControls};
 use crate::game::ball_starter::{BallStarterState, SpawnBallEvent};
 use crate::game::camera::CameraState;
 use crate::game::flipper::{FlipperStatus, FlipperType};
-use crate::game::{PauseGameEvent, ResumeGameEvent};
+use crate::game::{self, GameState, PauseGameEvent, ResumeGameEvent};
 use crate::menu::MenuState;
 use crate::prelude::*;
 use bevy::window::{CursorGrabMode, PrimaryWindow};
@@ -18,7 +18,12 @@ pub(super) fn key_system(
     mut ball_starter_state: ResMut<NextState<BallStarterState>>,
     mut q_flipper: Query<(&mut FlipperStatus, &FlipperType)>,
     mut menu_state: ResMut<NextState<MenuState>>,
+    mut game_state: ResMut<NextState<GameState>>,
 ) {
+    if key.just_pressed(KeyCode::U) {
+        game_state.set(GameState::GameOver);
+    }
+
     if key.just_pressed(KeyCode::Escape) {
         let mut window = q_window.get_single_mut().unwrap();
         window.cursor.grab_mode = CursorGrabMode::None;

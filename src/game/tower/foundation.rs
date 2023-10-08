@@ -18,7 +18,7 @@ use bevy_tweening::{
 use std::{f32::consts::PI, time::Duration};
 
 #[derive(Component)]
-pub(super) struct TowerFoundation {
+pub struct TowerFoundation {
     hit_progress: f32,
 }
 
