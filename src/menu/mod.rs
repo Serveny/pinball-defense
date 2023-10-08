@@ -9,10 +9,6 @@ mod pause;
 mod settings;
 mod tools;
 
-const WHITE: Color = Color::rgb(1., 254. / 255., 236. / 255.);
-const GRAY: Color = Color::rgb(65. / 255., 69. / 255., 72. / 255.);
-const GOLD: Color = Color::rgb(188. / 255., 148. / 255., 87. / 255.);
-const BACKGROUND: Color = Color::rgba(23. / 255., 24. / 255., 26. / 255., 120. / 255.);
 // State used for the current menu screen
 #[derive(States, Clone, Eq, PartialEq, Debug, Hash, Default)]
 pub enum MenuState {

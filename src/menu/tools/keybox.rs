@@ -1,6 +1,6 @@
 use super::{Active, PropIndex};
-use crate::menu::{GOLD, WHITE};
 use crate::prelude::*;
+use crate::utils::GameColor;
 
 #[derive(Component)]
 pub struct Keybox;
@@ -26,7 +26,7 @@ pub fn spawn(
                 justify_content: JustifyContent::Center,
                 ..default()
             },
-            border_color: GOLD.into(),
+            border_color: GameColor::GOLD.into(),
             background_color: Color::GRAY.into(),
             ..default()
         },
@@ -39,7 +39,7 @@ pub fn spawn(
             TextStyle {
                 font: assets.menu_font.clone(),
                 font_size: 40.0,
-                color: WHITE,
+                color: GameColor::WHITE,
             },
         ));
     });
@@ -56,10 +56,10 @@ pub fn system(
         match *interaction {
             Interaction::Pressed => (),
             Interaction::Hovered => {
-                *border_color = WHITE.into();
+                *border_color = GameColor::WHITE.into();
             }
             Interaction::None => {
-                *border_color = GOLD.into();
+                *border_color = GameColor::GOLD.into();
             }
         }
     }

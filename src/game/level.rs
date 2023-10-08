@@ -10,12 +10,9 @@ pub struct LevelPlugin;
 
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<PointHub>()
-            .init_resource::<LevelHub>()
-            .init_resource::<PointCounterId>()
-            .init_resource::<LevelCounterId>()
-            .add_event::<PointsEvent>()
+        app.add_event::<PointsEvent>()
             .add_event::<LevelUpEvent>()
+            .add_systems(OnEnter(GameState::Ingame), init_resources)
             .add_systems(
                 Update,
                 (
@@ -31,6 +28,11 @@ impl Plugin for LevelPlugin {
                 (on_add_points_system, on_level_up_lamp).run_if(in_state(EventState::Active)),
             );
     }
+}
+
+fn init_resources(mut cmds: Commands) {
+    cmds.init_resource::<PointHub>();
+    cmds.init_resource::<LevelHub>();
 }
 
 #[derive(Event, Clone, Copy)]

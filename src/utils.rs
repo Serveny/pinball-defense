@@ -9,8 +9,20 @@ pub struct Music;
 #[derive(Component)]
 pub struct Sound;
 
+pub struct GameColor;
+
+impl GameColor {
+    pub const WHITE: Color = Color::rgb(1., 254. / 255., 236. / 255.);
+    pub const GRAY: Color = Color::rgb(65. / 255., 69. / 255., 72. / 255.);
+    pub const GOLD: Color = Color::rgb(188. / 255., 148. / 255., 87. / 255.);
+    pub const BACKGROUND: Color = Color::rgba(23. / 255., 24. / 255., 26. / 255., 120. / 255.);
+}
+
 pub mod reflect {
-    use bevy::reflect::{Reflect, Struct};
+    use bevy::{
+        prelude::Color,
+        reflect::{Reflect, Struct},
+    };
 
     pub fn prop_name(obj: &impl Struct, i: usize) -> String {
         obj.name_at(i)
