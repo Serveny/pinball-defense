@@ -7,13 +7,13 @@ pub struct WavePlugin;
 
 impl Plugin for WavePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Ingame), init_resources)
+        app.add_systems(OnEnter(GameState::Init), init_resources)
             .add_systems(Update, (wave_system).run_if(in_state(GameState::Ingame)));
     }
 }
 
 fn init_resources(mut cmds: Commands) {
-    cmds.init_resource::<Wave>();
+    cmds.insert_resource(Wave::default());
 }
 
 #[derive(Debug, States, Hash, PartialEq, Eq, Clone, Copy, Default)]
