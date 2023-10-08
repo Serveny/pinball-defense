@@ -1,8 +1,6 @@
-use super::audio::SoundEvent;
-use super::ball::CollisionWithBallEvent;
-use super::ball_starter::BallStarterPlugin;
 use super::events::collision::COLLIDE_ONLY_WITH_BALL;
-use super::flipper::FlipperPlugin;
+
+use super::analog_counter;
 use super::level::{LevelCounterId, PointCounterId};
 use super::light::spawn_lamp;
 use super::light::LevelUpLamp;
@@ -10,7 +8,6 @@ use super::pinball_menu::pinball_menu_glass;
 use super::player_life::spawn_life_bar;
 use super::road::spawn_road;
 use super::tower::foundation;
-use super::{analog_counter, EventState, GameState};
 use crate::assets::PinballDefenseGltfAssets;
 use crate::generated::world_1::*;
 use crate::prelude::*;
