@@ -6,14 +6,11 @@ use self::audio::AudioPlugin;
 use self::ball::PinBall;
 use self::ball_starter::BallStarterPlugin;
 use self::camera::PinballCameraPlugin;
-use self::enemy::Enemy;
 use self::flipper::FlipperPlugin;
 use self::game_over::GameOverScreen;
 use self::health::HealthPlugin;
 use self::level::LevelPlugin;
 use self::light::LightPlugin;
-use self::tower::foundation::{FoundationBuildMark, TowerFoundation};
-use self::tower::Tower;
 use self::world::{spawn_pinball_world, PinballWorld};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
@@ -187,6 +184,7 @@ fn on_resume_game_system(
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn reset(
     mut cmds: Commands,
     q_game_over_screen: Query<
