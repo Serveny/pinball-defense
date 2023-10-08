@@ -12,7 +12,7 @@ impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<PointsEvent>()
             .add_event::<LevelUpEvent>()
-            .add_systems(OnEnter(GameState::Ingame), init_resources)
+            .add_systems(OnEnter(GameState::Init), init_resources)
             .add_systems(
                 Update,
                 (
@@ -30,9 +30,10 @@ impl Plugin for LevelPlugin {
     }
 }
 
+// Using insert_resource to reset previous resources of same type
 fn init_resources(mut cmds: Commands) {
-    cmds.init_resource::<PointHub>();
-    cmds.init_resource::<LevelHub>();
+    cmds.insert_resource(PointHub::default());
+    cmds.insert_resource(LevelHub::default());
 }
 
 #[derive(Event, Clone, Copy)]
@@ -98,7 +99,7 @@ impl LevelHub {
 
 #[derive(Event, Clone, Copy)]
 pub struct LevelUpEvent(pub Level);
-// WIP
+
 fn level_up_system(
     mut lvl_up_ev: EventWriter<LevelUpEvent>,
     mut level: ResMut<LevelHub>,

@@ -122,11 +122,13 @@ fn init_game(mut game_state: ResMut<NextState<GameState>>) {
 }
 
 fn start_game(
+    mut cmds: Commands,
     mut game_state: ResMut<NextState<GameState>>,
     mut ev_state: ResMut<NextState<EventState>>,
 ) {
     game_state.set(GameState::Ingame);
     ev_state.set(EventState::Active);
+    cmds.insert_resource(IngameTime::default());
 }
 
 #[derive(Resource, Deref, DerefMut, Default)]
@@ -198,6 +200,5 @@ fn reset(
         )>,
     >,
 ) {
-    cmds.init_resource::<IngameTime>();
     q_game_over_screen.for_each(|entity| cmds.entity(entity).despawn_recursive());
 }
