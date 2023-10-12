@@ -173,17 +173,11 @@ fn spawn(
             let color = Color::rgb_u8(115, 27, 7);
             let bar_trans =
                 Transform::from_xyz(0.034, 0., -0.007).with_scale(Vec3::new(0.5, 0.5, 1.));
-            let counter_trans = Transform::from_xyz(0.016, 0., 0.004)
-                .with_scale(Vec3::new(0.25, 0.25, 0.25))
-                .with_rotation(Quat::from_rotation_y(1.05));
-
             p.spawn(tower_base_bundle(assets, mats));
             p.spawn(contact_light_bundle(g_sett, color));
             p.spawn(tower_sight_sensor_bundle(sight_radius));
             p.spawn(sight_radius_light(sight_radius));
             progress_bar::spawn(p, assets, mats, tower_id, bar_trans, color, 0.);
-            analog_counter::spawn_2_digit(p, assets, counter_trans, Some(p.parent_entity()));
-
             add_to_tower(p);
         });
 }
