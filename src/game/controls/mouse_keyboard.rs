@@ -2,6 +2,7 @@ use super::{set_flipper_status, KeyboardControls};
 use crate::game::ball_starter::{BallStarterState, SpawnBallEvent};
 use crate::game::camera::CameraState;
 use crate::game::flipper::{FlipperStatus, FlipperType};
+use crate::game::ui::UiState;
 use crate::game::{GameState, PauseGameEvent, ResumeGameEvent};
 use crate::menu::MenuState;
 use crate::prelude::*;
@@ -19,7 +20,16 @@ pub(super) fn key_system(
     mut q_flipper: Query<(&mut FlipperStatus, &FlipperType)>,
     mut menu_state: ResMut<NextState<MenuState>>,
     mut game_state: ResMut<NextState<GameState>>,
+    ui_state: Res<State<UiState>>,
+    mut set_ui_state: ResMut<NextState<UiState>>,
 ) {
+    if key.just_pressed(KeyCode::T) {
+        if *ui_state == UiState::None {
+            set_ui_state.set(UiState::Controls);
+        } else {
+            set_ui_state.set(UiState::None);
+        }
+    }
     if key.just_pressed(KeyCode::U) {
         game_state.set(GameState::GameOver);
     }
