@@ -8,10 +8,10 @@ mod mouse_keyboard;
 
 #[derive(Resource, Reflect)]
 pub struct KeyboardControls {
-    flipper_left: KeyCode,
-    flipper_right: KeyCode,
-    charge_ball_starter: KeyCode,
-    pause: KeyCode,
+    pub flipper_left: KeyCode,
+    pub flipper_right: KeyCode,
+    pub charge_ball_starter: KeyCode,
+    pub pause: KeyCode,
 }
 
 impl Default for KeyboardControls {
