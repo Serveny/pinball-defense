@@ -48,6 +48,6 @@ pub mod reflect {
     pub fn cast<T: Reflect + Copy>(field: &dyn Reflect) -> T {
         *field
             .downcast_ref::<T>()
-            .unwrap_or_else(|| panic!("😥 Can't downcast to {}", field.type_name()))
+            .unwrap_or_else(|| panic!("😥 Can't downcast to {}", field.reflect_type_path()))
     }
 }

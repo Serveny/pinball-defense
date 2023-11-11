@@ -110,7 +110,7 @@ fn on_menu_event_system(
     q_lights: Query<&mut Visibility, With<PinballMenuElementLight>>,
     sound_ev: EventWriter<SoundEvent>,
 ) {
-    if let Some(ev) = evr.iter().next() {
+    if let Some(ev) = evr.read().next() {
         if let Ok((menu_entity, mut status)) = q_pb_menu.get_single_mut() {
             use PinballMenuEvent::*;
             use PinballMenuStatus::*;
@@ -411,7 +411,7 @@ type QueryUpgradeMenuEls<'w, 's, 'a> =
 
 fn on_execute_system(
     mut cmds: Commands,
-    mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
+    mut evr: EventReader<CollisionWithBallEvent>,
     mut on_tower_el_selected: EventWriter<TowerMenuExecuteEvent>,
     mut on_upgrade_el_selected: EventWriter<UpgradeMenuExecuteEvent>,
     mut pb_menu_ev: EventWriter<PinballMenuEvent>,
@@ -421,7 +421,7 @@ fn on_execute_system(
     q_upgrade_menu_els: QueryUpgradeMenuEls,
     q_selected: Query<(Entity, &Transform), With<PinballMenuSelected>>,
 ) {
-    for CollisionWithBallEvent(id, flag) in ball_coll_ev.iter() {
+    for CollisionWithBallEvent(id, flag) in evr.read() {
         if *flag == CollisionEventFlags::SENSOR {
             if let Ok(pb_menu) = q_pb_menu.get_single() {
                 match pb_menu {
@@ -498,10 +498,10 @@ struct PinballMenuReady;
 
 fn on_ready_system(
     mut cmds: Commands,
-    mut on_progress_full_ev: EventReader<ProgressBarFullEvent>,
+    mut evr: EventReader<ProgressBarFullEvent>,
     q_trigger: Query<&PinballMenuTrigger>,
 ) {
-    for ev in on_progress_full_ev.iter() {
+    for ev in evr.read() {
         if q_trigger.contains(ev.0) {
             cmds.entity(ev.0).insert(PinballMenuReady);
         }
@@ -560,11 +560,11 @@ impl Default for UnlockedTowers {
 struct UnlockedUpgrades(Vec<TowerUpgrade>);
 
 fn on_unlock_system(
-    mut lvl_up_ev: EventReader<LevelUpEvent>,
+    mut evr: EventReader<LevelUpEvent>,
     mut towers: ResMut<UnlockedTowers>,
     mut upgrades: ResMut<UnlockedUpgrades>,
 ) {
-    for ev in lvl_up_ev.iter() {
+    for ev in evr.read() {
         if let Some(tower_type) = new_tower_unlock(ev.0) {
             towers.0.push(tower_type);
         }

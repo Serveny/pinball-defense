@@ -19,7 +19,7 @@ pub(super) fn on_dis_connect(
     my_gamepad: Option<Res<MyGamepad>>,
     mut gamepad_evr: EventReader<GamepadConnectionEvent>,
 ) {
-    for ev in gamepad_evr.iter() {
+    for ev in gamepad_evr.read() {
         let id = ev.gamepad;
         match ev.connected() {
             true => {
@@ -53,7 +53,7 @@ pub(super) fn on_btn_changed(
     mut menu_state: ResMut<NextState<MenuState>>,
     mut pause_ev: EventWriter<PauseGameEvent>,
 ) {
-    for ev in evr.iter() {
+    for ev in evr.read() {
         match ev.button_type {
             GamepadButtonType::East if ev.value > 0. => {
                 spawn_ball_ev.send(SpawnBallEvent);
@@ -86,7 +86,7 @@ pub(super) fn pause_btn_changed(
     mut menu_state: ResMut<NextState<MenuState>>,
     mut resume_ev: EventWriter<ResumeGameEvent>,
 ) {
-    for ev in evr.iter() {
+    for ev in evr.read() {
         match ev.button_type {
             GamepadButtonType::Start => {
                 menu_state.set(MenuState::None);

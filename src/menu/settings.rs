@@ -27,11 +27,13 @@ pub fn layout<TSettings: Resource + Struct>(
             let prop_name = prop_name(settings.as_ref(), i)
                 .replace('_', " ")
                 .replace("is", "");
-            row::spawn(&prop_name, p, &assets, |p| match field.type_name() {
-                "bool" => checkbox::spawn(p, i, cast::<bool>(field)),
-                "f32" => sliders::spawn(p, i, cast::<f32>(field)),
-                KEY_CODE => keybox::spawn(p, &assets, i, cast::<KeyCode>(field)),
-                type_name => println!("🐱 Unknown type in asset struct: {}", type_name),
+            row::spawn(&prop_name, p, &assets, |p| {
+                match field.reflect_type_path() {
+                    "bool" => checkbox::spawn(p, i, cast::<bool>(field)),
+                    "f32" => sliders::spawn(p, i, cast::<f32>(field)),
+                    KEY_CODE => keybox::spawn(p, &assets, i, cast::<KeyCode>(field)),
+                    type_name => println!("🐱 Unknown type in asset struct: {}", type_name),
+                }
             })
         }
     });

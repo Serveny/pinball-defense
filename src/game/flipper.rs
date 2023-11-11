@@ -187,10 +187,10 @@ fn sound_system(
 
 fn on_collision_with_ball_system(
     mut points_ev: EventWriter<PointsEvent>,
-    mut coll_ev: EventReader<CollisionWithBallEvent>,
+    mut evr: EventReader<CollisionWithBallEvent>,
     q_flipper: Query<With<FlipperCollider>>,
 ) {
-    for ev in coll_ev.iter() {
+    for ev in evr.read() {
         if q_flipper.contains(ev.0) {
             points_ev.send(PointsEvent::FlipperHit);
         }

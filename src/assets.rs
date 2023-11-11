@@ -217,7 +217,7 @@ fn check_assets_ready(
     server: Res<AssetServer>,
     loading: Res<GltfHandle>,
 ) {
-    match server.get_group_load_state(vec![loading.0.id()]) {
+    match server.load_state(loading.0.id()) {
         LoadState::Failed => panic!("😭 Failed loading asset"),
         LoadState::Loaded => state.set(AssetsInternalLoadState::AssetServerFinished),
         _ => (),
@@ -241,7 +241,7 @@ fn add_gltf_resource(
         .enumerate()
     {
         let prop_name = prop_name(&assets, i);
-        match field.type_name() {
+        match field.reflect_type_path() {
             "bevy_asset::handle::Handle<bevy_render::mesh::mesh::Mesh>" => {
                 let mesh = mesh(&prop_name, gltf, &gltf_meshes);
                 set_field(&mut assets, i, Box::new(mesh));
@@ -306,7 +306,7 @@ fn add_audio_resource(mut cmds: Commands, ass: Res<AssetServer>) {
         .enumerate()
     {
         let prop_name = prop_name(&audio_assets, i);
-        match field.type_name() {
+        match field.reflect_type_path() {
             "pinball_defense::assets::Handles<bevy_audio::audio_source::AudioSource>" => {
                 let audio_dir = audio_assets_path(Some(&prop_name));
                 let field: &mut Handles<AudioSource> = get_field_mut(&mut audio_assets, i)

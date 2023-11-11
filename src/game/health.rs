@@ -75,7 +75,7 @@ fn on_change_health_system(
     )>,
     mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
 ) {
-    for ev in evr.iter() {
+    for ev in evr.read() {
         if let Ok((mut health, recovery, damager)) = q_health.get_mut(ev.health_id) {
             health.add(ev.amount);
             prog_bar_ev.send(ProgressBarCountUpEvent::new(

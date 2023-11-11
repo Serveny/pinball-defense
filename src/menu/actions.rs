@@ -27,7 +27,7 @@ pub fn on_menu_action(
     mut settings_state: ResMut<NextState<SettingsMenuState>>,
     mut resume_ev: EventWriter<ResumeGameEvent>,
 ) {
-    for action in evr.iter() {
+    for action in evr.read() {
         use MenuAction as MA;
         match action {
             MA::Continue => {

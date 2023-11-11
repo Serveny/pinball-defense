@@ -35,7 +35,7 @@ pub(super) fn on_road_end_reached_system(
     mut sound_ev: EventWriter<SoundEvent>,
     q_life_bar: Query<Entity, With<LifeBar>>,
 ) {
-    for _ in evr.iter() {
+    for _ in evr.read() {
         log!("🔚 Enemy reached road end");
 
         health_ev.send(ChangeHealthEvent::new(q_life_bar.single(), -10., None));
