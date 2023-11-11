@@ -2,7 +2,7 @@ use super::tools::{checkbox, keybox, row};
 use super::{tools::sliders, MenuLayout};
 use crate::prelude::*;
 use crate::settings::{GraphicsSettings, SoundSettings};
-use crate::utils::reflect::prop_name;
+use crate::utils::reflect::{cast, prop_name};
 use crate::utils::{Music, Sound};
 use bevy::core_pipeline::bloom::BloomSettings;
 
@@ -35,12 +35,6 @@ pub fn layout<TSettings: Resource + Struct>(
             })
         }
     });
-}
-
-fn cast<T: Reflect + Copy>(field: &dyn Reflect) -> T {
-    *field
-        .downcast_ref::<T>()
-        .unwrap_or_else(|| panic!("😥 Can't downcast to {}", field.type_name()))
 }
 
 #[derive(Component)]

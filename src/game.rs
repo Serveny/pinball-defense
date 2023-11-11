@@ -15,6 +15,7 @@ use self::world::{spawn_pinball_world, PinballWorld};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::AppState;
+use bevy::ui::UiPlugin;
 use controls::ControlsPlugin;
 pub use controls::KeyboardControls;
 use enemy::EnemyPlugin;
@@ -45,6 +46,7 @@ mod player_life;
 mod progress_bar;
 mod road;
 mod tower;
+mod ui;
 mod wave;
 mod world;
 
@@ -94,6 +96,7 @@ impl Plugin for GamePlugin {
                 LightPlugin,
                 FlipperPlugin,
                 BallStarterPlugin,
+                self::ui::UiPlugin,
             ))
             .add_systems(
                 OnEnter(GameState::Init),

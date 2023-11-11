@@ -45,4 +45,9 @@ pub mod reflect {
         *val = !*val;
         *val
     }
+    pub fn cast<T: Reflect + Copy>(field: &dyn Reflect) -> T {
+        *field
+            .downcast_ref::<T>()
+            .unwrap_or_else(|| panic!("😥 Can't downcast to {}", field.type_name()))
+    }
 }
