@@ -43,11 +43,11 @@ fn on_spawn_ball_system(
     mut cmds: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut spawn_ball_ev: EventReader<SpawnBallEvent>,
+    mut evr: EventReader<SpawnBallEvent>,
     mut sound_ev: EventWriter<SoundEvent>,
     ball_spawn: Res<BallSpawn>,
 ) {
-    for _ in spawn_ball_ev.iter() {
+    for _ in evr.read() {
         ball::spawn(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
         sound_ev.send(SoundEvent::BallSpawn);
     }

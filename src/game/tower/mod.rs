@@ -11,7 +11,7 @@ use super::light::{
 };
 use super::pinball_menu::{PinballMenuTrigger, UpgradeMenuExecuteEvent};
 use super::progress_bar::{self, ProgressBarCountUpEvent};
-use super::{analog_counter, EventState, GameState};
+use super::{EventState, GameState};
 use crate::game::analog_counter::AnalogCounterSetEvent;
 use crate::game::light::disable_flash_light;
 use crate::game::world::QueryWorld;
@@ -214,7 +214,7 @@ pub struct SpawnTowerEvent(pub TowerType, pub Vec3);
 
 fn on_spawn_tower_system(
     mut cmds: Commands,
-    mut evs: EventReader<SpawnTowerEvent>,
+    mut evr: EventReader<SpawnTowerEvent>,
     mut mats: ResMut<Assets<StandardMaterial>>,
     mut points_ev: EventWriter<PointsEvent>,
     mut sound_ev: EventWriter<SoundEvent>,
@@ -222,7 +222,7 @@ fn on_spawn_tower_system(
     q_pbw: QueryWorld,
     g_sett: Res<GraphicsSettings>,
 ) {
-    for ev in evs.iter() {
+    for ev in evr.read() {
         cmds.entity(q_pbw.single()).with_children(|parent| {
             let pos = ev.1;
             match ev.0 {
@@ -238,20 +238,18 @@ fn on_spawn_tower_system(
 
 fn on_progress_system(
     mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
-    mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
+    mut evr: EventReader<CollisionWithBallEvent>,
     mut points_ev: EventWriter<PointsEvent>,
     mut sound_ev: EventWriter<SoundEvent>,
     q_tower: Query<With<Tower>>,
 ) {
-    ball_coll_ev
-        .iter()
-        .for_each(|CollisionWithBallEvent(id, flag)| {
-            if *flag != CollisionEventFlags::SENSOR && q_tower.contains(*id) {
-                prog_bar_ev.send(ProgressBarCountUpEvent::new(*id, CONFIG.tower_hit_progress));
-                points_ev.send(PointsEvent::TowerHit);
-                sound_ev.send(SoundEvent::TowerHit);
-            }
-        });
+    evr.read().for_each(|CollisionWithBallEvent(id, flag)| {
+        if *flag != CollisionEventFlags::SENSOR && q_tower.contains(*id) {
+            prog_bar_ev.send(ProgressBarCountUpEvent::new(*id, CONFIG.tower_hit_progress));
+            points_ev.send(PointsEvent::TowerHit);
+            sound_ev.send(SoundEvent::TowerHit);
+        }
+    });
 }
 
 #[derive(Component, Default)]
@@ -268,7 +266,7 @@ impl SoundEvent {
 
 fn on_upgrade_system(
     mut cmds: Commands,
-    mut upgrade_menu_exec_ev: EventReader<UpgradeMenuExecuteEvent>,
+    mut evr: EventReader<UpgradeMenuExecuteEvent>,
     mut q_light: Query<(Entity, &Parent, &mut Visibility), With<FlashLight>>,
     mut points_ev: EventWriter<PointsEvent>,
     mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
@@ -278,7 +276,7 @@ fn on_upgrade_system(
     mut damage_upgrade_ev: EventWriter<DamageUpgradeEvent>,
     mut sound_ev: EventWriter<SoundEvent>,
 ) {
-    for ev in upgrade_menu_exec_ev.iter() {
+    for ev in evr.read() {
         let mut tower_level = q_tower
             .get_mut(ev.tower_id)
             .unwrap_or_else(|_| panic!("😥 No tower level for id {:?} found", ev.tower_id));
@@ -318,13 +316,13 @@ type QShotLight<'w, 's, 'a> = Query<
 >;
 
 fn on_range_upgrade_system(
-    mut range_upgrade_ev: EventReader<RangeUpgradeEvent>,
+    mut evr: EventReader<RangeUpgradeEvent>,
     mut q_tower: Query<(Entity, &mut SightRadius), With<Tower>>,
     mut q_coll: Query<(&mut Transform, &Parent), With<TowerSightSensor>>,
     mut q_sr_light: Query<(&mut SpotLight, &Parent), With<SightRadiusLight>>,
     mut q_shot_light: QShotLight,
 ) {
-    for ev in range_upgrade_ev.iter() {
+    for ev in evr.read() {
         if let Ok((tower_id, mut sight_radius)) = q_tower.get_mut(ev.0) {
             sight_radius.0 += CONFIG.range_upgade_factor;
             update_collider_size(&mut q_coll, CONFIG.range_upgade_factor, tower_id);
@@ -377,10 +375,10 @@ fn update_shot_light_size(q_shot_light: &mut QShotLight, sight_radius: f32, towe
 struct DamageUpgradeEvent(Entity);
 
 fn on_damage_upgrade_system(
-    mut damage_upgrade_ev: EventReader<DamageUpgradeEvent>,
+    mut evr: EventReader<DamageUpgradeEvent>,
     mut q_tower: Query<(Option<&mut DamageOverTime>, Option<&mut SlowDownFactor>), With<Tower>>,
 ) {
-    for ev in damage_upgrade_ev.iter() {
+    for ev in evr.read() {
         if let Ok((dmg_over_time, slow_down_factor)) = q_tower.get_mut(ev.0) {
             if let Some(mut dmg_over_time) = dmg_over_time {
                 dmg_over_time.0 *= CONFIG.damage_upgrade_factor;

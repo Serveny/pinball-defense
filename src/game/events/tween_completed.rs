@@ -11,7 +11,7 @@ pub(super) fn on_tween_completed_system(
     mut cmds: Commands,
     mut pm_status_ev: EventWriter<PinballMenuEvent>,
 ) {
-    for ev in evr.iter() {
+    for ev in evr.read() {
         match ev.user_data {
             DESPAWN_ENTITY_EVENT_ID => cmds.entity(ev.entity).despawn_recursive(),
             ACTIVATE_PINBALL_MENU_EVENT_ID => pm_status_ev.send(PinballMenuEvent::SetReady),

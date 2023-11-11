@@ -142,7 +142,7 @@ fn on_count_up_system(
     mut evr: EventReader<ProgressBarCountUpEvent>,
     mut q_progress: QueryProgressBar,
 ) {
-    for ev in evr.iter() {
+    for ev in evr.read() {
         if let Some((_, mut progress)) = q_progress.iter_mut().find(|(p, _)| p.0 == ev.rel_id) {
             let old = progress.0;
             let new = (old + ev.amount).clamp(0., 1.);

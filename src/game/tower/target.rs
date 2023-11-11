@@ -41,11 +41,11 @@ pub(super) fn aim_first_enemy_system(mut q_afe: Query<(&mut AimFirstEnemy, &Enem
 pub(super) struct EnemiesWithinReach(pub HashSet<Entity>);
 
 pub(super) fn on_enemy_within_reach_system(
-    mut col_events: EventReader<CollisionEvent>,
+    mut evr: EventReader<CollisionEvent>,
     mut q_ewr: Query<&mut EnemiesWithinReach>,
     q_tower_sight: Query<&Parent, With<TowerSightSensor>>,
 ) {
-    for ev in col_events.iter() {
+    for ev in evr.read() {
         match ev {
             CollisionEvent::Started(id_1, id_2, flag) => {
                 if *flag == CollisionEventFlags::SENSOR {
@@ -86,10 +86,10 @@ fn edit_eir<F: FnOnce(&mut EnemiesWithinReach, Entity)>(
 }
 
 pub(super) fn on_remove_despawned_enemies_from_ewr_system(
-    mut on_enemy_despawn: EventReader<OnEnemyDespawnEvent>,
+    mut evr: EventReader<OnEnemyDespawnEvent>,
     mut q_ewr: Query<&mut EnemiesWithinReach>,
 ) {
-    for ev in on_enemy_despawn.iter() {
+    for ev in evr.read() {
         for mut ewr in q_ewr.iter_mut() {
             ewr.0.remove(&ev.0);
         }
