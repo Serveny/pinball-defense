@@ -56,11 +56,11 @@ pub(super) fn contact_light_bundle(g_sett: &GraphicsSettings, color: Color) -> i
 }
 
 fn on_contact_light_on_system(
-    mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
+    mut evr: EventReader<CollisionWithBallEvent>,
     mut q_light: QueryContactLight,
     q_light_on_coll: Query<Entity, With<LightOnCollision>>,
 ) {
-    for CollisionWithBallEvent(id, _) in ball_coll_ev.iter() {
+    for CollisionWithBallEvent(id, _) in evr.read() {
         if q_light_on_coll.contains(*id) {
             light_on_by_parent(*id, &mut q_light);
         }
@@ -82,10 +82,10 @@ pub(super) struct FlashLight;
 
 fn on_add_flashlight_system(
     mut cmds: Commands,
-    mut pb_menu_open_ev: EventReader<PinballMenuOnSetSelectedEvent>,
+    mut evr: EventReader<PinballMenuOnSetSelectedEvent>,
     mut q_light: Query<(&mut Visibility, &Parent, Entity), With<ContactLight>>,
 ) {
-    for ev in pb_menu_open_ev.iter() {
+    for ev in evr.read() {
         let (mut visi, _, light_id) = q_light
             .iter_mut()
             .find(|(_, parent, _)| parent.get() == ev.0)

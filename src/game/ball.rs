@@ -111,7 +111,7 @@ fn on_ball_despawn_system(
     mut pm_status_ev: EventWriter<PinballMenuEvent>,
     mut sound_ev: EventWriter<SoundEvent>,
 ) {
-    if evr.iter().next().is_some() {
+    if evr.read().next().is_some() {
         pm_status_ev.send(PinballMenuEvent::Deactivate);
         sound_ev.send(SoundEvent::BallHitsEnd);
     }
@@ -164,11 +164,10 @@ fn on_collision_with_ball_system(
 }
 
 fn get_ball_collisions_start_only(
-    mut coll_ev: EventReader<CollisionEvent>,
+    mut evr: EventReader<CollisionEvent>,
     q_ball: Query<With<PinBall>>,
 ) -> Vec<(Entity, CollisionEventFlags)> {
-    coll_ev
-        .iter()
+    evr.read()
         .filter_map(|ev| match ev {
             CollisionEvent::Started(id_1, id_2, flag) => match q_ball.contains(*id_1) {
                 true => Some((*id_2, *flag)),
@@ -187,7 +186,7 @@ fn on_wall_collision_system(
     mut sound_ev: EventWriter<SoundEvent>,
     q_wall: Query<With<WorldFrame>>,
 ) {
-    for ev in evr.iter() {
+    for ev in evr.read() {
         if q_wall.contains(ev.0) {
             sound_ev.send(SoundEvent::BallHitsWall);
         }

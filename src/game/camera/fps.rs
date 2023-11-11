@@ -35,7 +35,7 @@ impl Default for FpsCamSettings {
 }
 
 pub(super) fn on_keyboard_mouse_motion_system(
-    mut mouse_motion: EventReader<MouseMotion>,
+    mut evr: EventReader<MouseMotion>,
     mut query: Query<(&mut Transform, &mut LookDirection)>,
     key_input: Res<Input<KeyCode>>,
     time: Res<Time>,
@@ -43,8 +43,7 @@ pub(super) fn on_keyboard_mouse_motion_system(
 ) {
     // Handle mouse movement to rotate the camera
     let mut delta_look = Vec2::default();
-    mouse_motion
-        .iter()
+    evr.read()
         .for_each(|ev| delta_look += Vec2::new(ev.delta.x, ev.delta.y));
 
     // Handle keyboard input to move the camera

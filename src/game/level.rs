@@ -61,8 +61,8 @@ const POINT_FACTOR: u32 = 10;
 #[cfg(not(debug_assertions))]
 const POINT_FACTOR: u32 = 1;
 
-fn on_add_points_system(mut points_ev: EventReader<PointsEvent>, mut points: ResMut<PointHub>) {
-    for ev in points_ev.iter() {
+fn on_add_points_system(mut evr: EventReader<PointsEvent>, mut points: ResMut<PointHub>) {
+    for ev in evr.read() {
         points.0 += ev.points() * POINT_FACTOR;
     }
 }

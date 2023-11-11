@@ -84,11 +84,11 @@ impl AnalogCounterSetEvent {
 }
 
 fn on_set_system(
-    mut on_set_ev: EventReader<AnalogCounterSetEvent>,
+    mut evr: EventReader<AnalogCounterSetEvent>,
     mut q_digit: Query<(&mut Digit, &Parent)>,
     q_counter: Query<(Entity, &RelEntity), With<AnalogCounter>>,
 ) {
-    for ev in on_set_ev.iter() {
+    for ev in evr.read() {
         if let Some((counter_id, _)) = q_counter.iter().find(|(_, rel_id)| rel_id.0 == ev.rel_id) {
             for (i, number) in ev.number.digits().rev().enumerate() {
                 if let Some((mut digit, _)) = q_digit

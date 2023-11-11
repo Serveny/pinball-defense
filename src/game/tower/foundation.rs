@@ -39,7 +39,7 @@ pub(super) struct TowerFoundationBottom;
 
 pub(super) fn on_spawn_system(
     mut cmds: Commands,
-    mut on_level_up: EventReader<LevelUpEvent>,
+    mut evr: EventReader<LevelUpEvent>,
     mut q_mark: Query<(Entity, &mut FoundationBuildMark, &Transform)>,
     mut mats: ResMut<Assets<StandardMaterial>>,
     assets: Res<PinballDefenseGltfAssets>,
@@ -47,7 +47,7 @@ pub(super) fn on_spawn_system(
     g_sett: Res<GraphicsSettings>,
     level: Res<LevelHub>,
 ) {
-    for _ in on_level_up.iter() {
+    for _ in evr.read() {
         if let Some((mark_id, mut mark, trans)) = q_mark.iter_mut().find(|mark| mark.1.is_available)
         {
             let pos = trans.translation;
@@ -185,13 +185,13 @@ fn set_despawn_animation(cmds: &mut Commands, foundation_id: Entity, pos: Vec3, 
 
 pub(super) fn on_despawn_system(
     mut cmds: Commands,
-    mut tower_menu_execute_ev: EventReader<TowerMenuExecuteEvent>,
+    mut evr: EventReader<TowerMenuExecuteEvent>,
     mut q_light: Query<(Entity, &Parent, &mut Visibility), With<FlashLight>>,
     q_foundation: Query<&Transform, With<TowerFoundation>>,
     q_lids_bottom: Query<(Entity, &Parent), With<TowerFoundationBottom>>,
     q_lids_top: Query<(Entity, &Parent), With<TowerFoundationTop>>,
 ) {
-    for ev in tower_menu_execute_ev.iter() {
+    for ev in evr.read() {
         let foundation_id = ev.foundation_id;
         let pos = q_foundation
             .get(foundation_id)
@@ -218,12 +218,12 @@ pub(super) fn on_despawn_system(
 
 pub(super) fn on_progress_system(
     mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
-    mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
+    mut evr: EventReader<CollisionWithBallEvent>,
     mut points_ev: EventWriter<PointsEvent>,
     mut sound_ev: EventWriter<SoundEvent>,
     q_tower_foundation: Query<&TowerFoundation, With<TowerFoundation>>,
 ) {
-    for CollisionWithBallEvent(id, flag) in ball_coll_ev.iter() {
+    for CollisionWithBallEvent(id, flag) in evr.read() {
         if *flag == CollisionEventFlags::SENSOR {
             if let Ok(foundation) = q_tower_foundation.get(*id) {
                 prog_bar_ev.send(ProgressBarCountUpEvent::new(*id, foundation.hit_progress));

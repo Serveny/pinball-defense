@@ -88,7 +88,7 @@ fn on_spawn_system(
     assets: Res<PinballDefenseGltfAssets>,
     q_pqw: QueryWorld,
 ) {
-    for _ in evr.iter() {
+    for _ in evr.read() {
         cmds.entity(q_pqw.single()).with_children(|parent| {
             spawn(parent, &assets, &mut meshes, &mut mats);
         });
@@ -157,13 +157,13 @@ fn enemy(meshes: &mut Assets<Mesh>, mats: &mut Assets<StandardMaterial>) -> impl
 }
 
 fn on_pinball_hit_system(
-    mut ball_coll_ev: EventReader<CollisionWithBallEvent>,
+    mut evr: EventReader<CollisionWithBallEvent>,
     mut points_ev: EventWriter<PointsEvent>,
     mut sound_ev: EventWriter<SoundEvent>,
     mut health_ev: EventWriter<ChangeHealthEvent>,
     q_enemy: Query<With<Enemy>>,
 ) {
-    for CollisionWithBallEvent(id, flag) in ball_coll_ev.iter() {
+    for CollisionWithBallEvent(id, flag) in evr.read() {
         if *flag == CollisionEventFlags::SENSOR && q_enemy.contains(*id) {
             log!("😵 Pinball hits enemy {:?}", *id);
             health_ev.send(ChangeHealthEvent::new(*id, -100., None));
@@ -178,12 +178,12 @@ pub struct OnEnemyDespawnEvent(pub Entity);
 
 fn on_health_empty_system(
     mut cmds: Commands,
-    mut health_empty_ev: EventReader<HealthEmptyEvent>,
+    mut evr: EventReader<HealthEmptyEvent>,
     mut despawn_ev: EventWriter<OnEnemyDespawnEvent>,
     mut points_ev: EventWriter<PointsEvent>,
     q_enemy: Query<With<Enemy>>,
 ) {
-    for ev in health_empty_ev.iter() {
+    for ev in evr.read() {
         if q_enemy.contains(ev.0) {
             cmds.entity(ev.0).despawn_recursive();
             despawn_ev.send(OnEnemyDespawnEvent(ev.0));

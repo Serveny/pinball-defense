@@ -100,7 +100,7 @@ fn on_play_sound_fx_system(
     sound_sett: Res<SoundSettings>,
 ) {
     if sound_sett.fx_volume > 0. {
-        for ev in evr.iter() {
+        for ev in evr.read() {
             let s = ev.sound_bundle(&assets);
             cmds.spawn(sound(s.0, sound_sett.fx_volume, s.1));
         }
@@ -125,6 +125,7 @@ fn play_music(
                 volume: Volume::Absolute(VolumeLevel::new(sound_sett.music_volume)),
                 speed: 1.,
                 paused: false,
+                spatial: false,
             },
         },
         Music,
@@ -145,6 +146,7 @@ fn sound(handle: SoundHandle, vol: f32, speed: f32) -> impl Bundle {
                 volume: Volume::Absolute(VolumeLevel::new(vol)),
                 speed,
                 paused: false,
+                spatial: false,
             },
         },
     )
@@ -171,6 +173,7 @@ fn play_ball_rolling_sound(mut cmds: Commands, assets: Res<PinballDefenseAudioAs
                 volume: Volume::Absolute(VolumeLevel::new(0.)),
                 speed: 1.,
                 paused: false,
+                spatial: false,
             },
         },
         BallRollingSound,
