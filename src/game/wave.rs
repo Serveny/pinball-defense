@@ -16,13 +16,6 @@ fn init_resources(mut cmds: Commands) {
     cmds.insert_resource(Wave::default());
 }
 
-#[derive(Debug, States, Hash, PartialEq, Eq, Clone, Copy, Default)]
-enum WaveStatus {
-    #[default]
-    None,
-    Active,
-}
-
 #[derive(Resource)]
 struct Wave {
     number: usize,
