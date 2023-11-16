@@ -77,7 +77,6 @@ fn spawn_restart_btn(p: &mut ChildBuilder, assets: &PinballDefenseAssets) {
     });
 }
 
-#[allow(clippy::type_complexity)]
 pub(super) fn btn_system(
     mut interaction_query: Query<
         (&Interaction, &mut BorderColor, &ActionBtn),

@@ -75,7 +75,7 @@ fn knob(prop_i: usize, init_val: f32) -> impl Bundle {
         },
     )
 }
-#[allow(clippy::type_complexity)]
+
 pub fn system(
     mut interaction_query: Query<
         (

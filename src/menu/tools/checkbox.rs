@@ -51,7 +51,6 @@ pub fn spawn(p: &mut ChildBuilder, prop_i: usize, init_val: bool) {
     });
 }
 
-#[allow(clippy::type_complexity)]
 pub fn system(
     mut interaction_query: Query<
         (Entity, &Interaction, &mut BorderColor, &PropIndex),
