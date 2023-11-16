@@ -8,7 +8,6 @@ use crate::menu::MenuState;
 use crate::prelude::*;
 use bevy::window::{CursorGrabMode, PrimaryWindow};
 
-#[allow(clippy::too_many_arguments)]
 pub(super) fn key_system(
     key: Res<Input<KeyCode>>,
     controls: Res<KeyboardControls>,

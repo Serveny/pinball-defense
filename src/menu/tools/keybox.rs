@@ -45,7 +45,6 @@ pub fn spawn(
     });
 }
 
-#[allow(clippy::type_complexity)]
 pub fn system(
     mut interaction_query: Query<
         (&Interaction, &mut BorderColor),
