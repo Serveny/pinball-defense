@@ -188,7 +188,6 @@ fn on_resume_game_system(
     }
 }
 
-#[allow(clippy::type_complexity)]
 fn reset(
     mut cmds: Commands,
     q_game_over_screen: Query<

@@ -131,7 +131,6 @@ type QueryContactLight<'w, 's, 'a> = Query<
 #[derive(Component)]
 pub(super) struct FadeOutLight;
 
-#[allow(clippy::type_complexity)]
 fn fade_out_point_light_system(
     mut q_light: Query<
         (&mut Visibility, &mut PointLight),
@@ -151,7 +150,6 @@ fn fade_out_point_light_system(
     }
 }
 
-#[allow(clippy::type_complexity)]
 fn fade_out_spot_light_system(
     mut q_light: Query<
         (&mut Visibility, &mut SpotLight),
