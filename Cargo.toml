@@ -19,16 +19,12 @@ log = []
 
 [dependencies]
 bevy = "0.12"
-bevy-inspector-egui = "0.21"
-bevy_asset_loader = "0.18"
+bevy-inspector-egui = "0.22"
+bevy_asset_loader = "0.19"
 bevy_rapier2d = { version = "0.23", features = ["parallel"]}
-bevy_window_title_diagnostics = "0.6.0"
+bevy_window_title_diagnostics = "0.12.0"
 bevy_tweening = "0.9"
 digits_iterator = "0.1"
 bevy_framepace = "0.14"
 rand = "0.8.5"
 #bevy_debug_grid = "0.1"
-
-[lints.rust]
-type_complexity = "allow"
-too_many_arguments = "allow"

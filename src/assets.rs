@@ -157,9 +157,9 @@ impl Plugin for AssetsPlugin {
             .init_resource::<GltfHandle>()
             .add_loading_state(
                 LoadingState::new(AssetsLoadState::Loading)
-                    .continue_to_state(AssetsLoadState::Finished),
+                    .continue_to_state(AssetsLoadState::Finished)
+                    .load_collection::<PinballDefenseAssets>(),
             )
-            .add_collection_to_loading_state::<_, PinballDefenseAssets>(AssetsLoadState::Loading)
             .add_systems(Startup, (init_gltf_load, add_audio_resource))
             .add_systems(
                 Update,
