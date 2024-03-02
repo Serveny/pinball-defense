@@ -13,6 +13,7 @@ use crate::game::world::QueryWorld;
 use crate::game::GameState;
 use crate::generated::world_1::road_points::ROAD_POINTS;
 use crate::prelude::*;
+use bevy::math::primitives::Sphere;
 use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use std::time::Duration;
 
@@ -129,7 +130,7 @@ fn enemy(meshes: &mut Assets<Mesh>, mats: &mut Assets<StandardMaterial>) -> impl
         Health::new(100.),
         LastDamager(None),
         PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::UVSphere {
+            mesh: meshes.add(Mesh::from(Sphere {
                 radius: 0.03,
                 ..default()
             })),
@@ -161,7 +162,7 @@ fn on_pinball_hit_system(
     mut points_ev: EventWriter<PointsEvent>,
     mut sound_ev: EventWriter<SoundEvent>,
     mut health_ev: EventWriter<ChangeHealthEvent>,
-    q_enemy: Query<With<Enemy>>,
+    q_enemy: Query<Entity, With<Enemy>>,
 ) {
     for CollisionWithBallEvent(id, flag) in evr.read() {
         if *flag == CollisionEventFlags::SENSOR && q_enemy.contains(*id) {
@@ -181,7 +182,7 @@ fn on_health_empty_system(
     mut evr: EventReader<HealthEmptyEvent>,
     mut despawn_ev: EventWriter<OnEnemyDespawnEvent>,
     mut points_ev: EventWriter<PointsEvent>,
-    q_enemy: Query<With<Enemy>>,
+    q_enemy: Query<Entity, With<Enemy>>,
 ) {
     for ev in evr.read() {
         if q_enemy.contains(ev.0) {

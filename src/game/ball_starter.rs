@@ -8,7 +8,7 @@ pub struct BallStarterPlugin;
 
 impl Plugin for BallStarterPlugin {
     fn build(&self, app: &mut App) {
-        app.add_state::<BallStarterState>()
+        app.init_state::<BallStarterState>()
             .add_event::<SpawnBallEvent>()
             .add_event::<BallStarterChargeStartedEvent>()
             .add_event::<BallStarterFireEndEvent>()
@@ -158,7 +158,7 @@ pub enum BallStarterState {
 
 fn spawn_ball_at_charge(
     mut spawn_ball_ev: EventWriter<SpawnBallEvent>,
-    q_ball: Query<With<PinBall>>,
+    q_ball: Query<Entity, With<PinBall>>,
 ) {
     if q_ball.is_empty() {
         spawn_ball_ev.send(SpawnBallEvent);

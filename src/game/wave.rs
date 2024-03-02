@@ -74,7 +74,9 @@ fn wave_system(
     if wave.is_time_to_spawn_enemy(now) {
         match wave.is_wave_end() {
             true => wave.prepare_next_wave(now),
-            false => spawn_enemy_ev.send(wave.next_enemy(now)),
+            false => {
+                spawn_enemy_ev.send(wave.next_enemy(now));
+            }
         }
     }
 }

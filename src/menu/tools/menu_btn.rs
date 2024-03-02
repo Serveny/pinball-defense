@@ -51,7 +51,9 @@ pub fn system(
 ) {
     for (interaction, mut border_color, action) in &mut interaction_query {
         match *interaction {
-            Interaction::Pressed => action_ev.send(*action),
+            Interaction::Pressed => {
+                action_ev.send(*action);
+            }
             Interaction::Hovered => {
                 *border_color = GameColor::WHITE.into();
             }

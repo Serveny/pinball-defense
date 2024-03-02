@@ -16,7 +16,7 @@ pub struct PinballCameraPlugin;
 
 impl Plugin for PinballCameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_state::<CameraState>()
+        app.init_state::<CameraState>()
             .init_resource::<FpsCamSettings>()
             .add_systems(OnEnter(GameState::Init), spawn)
             .add_systems(
@@ -70,10 +70,14 @@ fn spawn(
             ..default()
         },
         //UiCameraConfig { show_ui: false },
-        Skybox(assets.skybox.clone()),
+        Skybox {
+            image: assets.skybox.clone(),
+            brightness: 1600.,
+        },
         EnvironmentMapLight {
             diffuse_map: assets.skybox.clone(),
             specular_map: assets.skybox.clone(),
+            intensity: 3200.,
         },
         LookDirection::default(),
         PinballCamera,

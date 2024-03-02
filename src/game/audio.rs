@@ -2,7 +2,7 @@ use super::{ball::PinBall, EventState, GameState};
 use crate::prelude::*;
 use crate::utils::Music;
 use crate::{settings::SoundSettings, utils::Sound};
-use bevy::audio::{PlaybackMode, Volume, VolumeLevel};
+use bevy::audio::Volume;
 use rand::Rng;
 
 pub struct AudioPlugin;
@@ -120,13 +120,7 @@ fn play_music(
     cmds.spawn((
         AudioBundle {
             source: assets.background_music.clone(),
-            settings: PlaybackSettings {
-                mode: PlaybackMode::Loop,
-                volume: Volume::Absolute(VolumeLevel::new(sound_sett.music_volume)),
-                speed: 1.,
-                paused: false,
-                spatial: false,
-            },
+            settings: PlaybackSettings::LOOP.with_volume(Volume::new(sound_sett.music_volume)),
         },
         Music,
     ));
@@ -141,13 +135,9 @@ fn sound(handle: SoundHandle, vol: f32, speed: f32) -> impl Bundle {
                 SoundHandle::Single(handle) => handle.clone(),
                 SoundHandle::Various(handles) => handles.choose().clone(),
             },
-            settings: PlaybackSettings {
-                mode: PlaybackMode::Once,
-                volume: Volume::Absolute(VolumeLevel::new(vol)),
-                speed,
-                paused: false,
-                spatial: false,
-            },
+            settings: PlaybackSettings::ONCE
+                .with_volume(Volume::new(vol))
+                .with_speed(speed),
         },
     )
 }
@@ -168,13 +158,7 @@ fn play_ball_rolling_sound(mut cmds: Commands, assets: Res<PinballDefenseAudioAs
         Name::new("Ball Rolling Sound"),
         AudioBundle {
             source: assets.ball_rolling.clone(),
-            settings: PlaybackSettings {
-                mode: PlaybackMode::Loop,
-                volume: Volume::Absolute(VolumeLevel::new(0.)),
-                speed: 1.,
-                paused: false,
-                spatial: false,
-            },
+            settings: PlaybackSettings::LOOP.with_volume(Volume::new(0.)),
         },
         BallRollingSound,
         Sound,

@@ -1,5 +1,6 @@
 use crate::generated::world_1::road_points::ROAD_POINTS;
 use crate::prelude::*;
+use bevy::math::primitives::Sphere;
 
 #[derive(Resource)]
 struct RoadAnimations(Vec<Handle<AnimationClip>>);
@@ -33,7 +34,7 @@ fn spawn_road_milestones(
 ) {
     for pos in ROAD_POINTS {
         parent.spawn(PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::UVSphere {
+            mesh: meshes.add(Mesh::from(Sphere {
                 radius: 0.005,
                 ..default()
             })),

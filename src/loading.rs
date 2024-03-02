@@ -49,7 +49,7 @@ fn spawn_layout(mut cmds: Commands) {
                 height: Val::Percent(100.),
                 ..default()
             })
-            .with_text_alignment(TextAlignment::Center), // Set the style of the TextBundle itself.
+            .with_text_justify(JustifyText::Center), // Set the style of the TextBundle itself.
         ));
     });
 }

@@ -199,10 +199,10 @@ pub(super) fn on_despawn_system(
             .translation;
 
         // Open lids
-        q_lids_bottom.for_each(|(lid_id, lid_parent)| {
+        q_lids_bottom.iter().for_each(|(lid_id, lid_parent)| {
             set_lid_open_animation(&mut cmds, lid_id, lid_parent.get(), foundation_id, -1.);
         });
-        q_lids_top.for_each(|(lid_id, lid_parent)| {
+        q_lids_top.iter().for_each(|(lid_id, lid_parent)| {
             set_lid_open_animation(&mut cmds, lid_id, lid_parent.get(), foundation_id, 1.);
         });
 

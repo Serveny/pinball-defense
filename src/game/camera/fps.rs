@@ -37,7 +37,7 @@ impl Default for FpsCamSettings {
 pub(super) fn on_keyboard_mouse_motion_system(
     mut evr: EventReader<MouseMotion>,
     mut query: Query<(&mut Transform, &mut LookDirection)>,
-    key_input: Res<Input<KeyCode>>,
+    key_input: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
     settings: Res<FpsCamSettings>,
 ) {
@@ -48,8 +48,8 @@ pub(super) fn on_keyboard_mouse_motion_system(
 
     // Handle keyboard input to move the camera
     let delta_move = Vec2::new(
-        (key_input.pressed(KeyCode::W) as i8 - key_input.pressed(KeyCode::S) as i8) as f32,
-        (key_input.pressed(KeyCode::A) as i8 - key_input.pressed(KeyCode::D) as i8) as f32,
+        (key_input.pressed(KeyCode::KeyW) as i8 - key_input.pressed(KeyCode::KeyS) as i8) as f32,
+        (key_input.pressed(KeyCode::KeyA) as i8 - key_input.pressed(KeyCode::KeyD) as i8) as f32,
     );
 
     query.iter_mut().for_each(|(mut transform, mut cam)| {

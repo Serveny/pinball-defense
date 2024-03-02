@@ -37,24 +37,26 @@ pub fn keys_to_pos(
 ) {
     if let Ok(cam_trans) = q_cam.get_single() {
         let win = window.single();
-        q_flipper.for_each(|(obj_trans, f_type)| match f_type {
-            FlipperType::Left => set_projected_pos(
-                controls.flipper_left,
-                &mut q_keys,
-                obj_trans.compute_transform().translation,
-                cam_trans,
-                win,
-            ),
-            FlipperType::Right => {
-                set_projected_pos(
-                    controls.flipper_right,
+        q_flipper
+            .iter()
+            .for_each(|(obj_trans, f_type)| match f_type {
+                FlipperType::Left => set_projected_pos(
+                    controls.flipper_left,
                     &mut q_keys,
                     obj_trans.compute_transform().translation,
                     cam_trans,
                     win,
-                );
-            }
-        });
+                ),
+                FlipperType::Right => {
+                    set_projected_pos(
+                        controls.flipper_right,
+                        &mut q_keys,
+                        obj_trans.compute_transform().translation,
+                        cam_trans,
+                        win,
+                    );
+                }
+            });
         set_projected_pos(
             controls.charge_ball_starter,
             &mut q_keys,

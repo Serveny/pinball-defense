@@ -181,14 +181,14 @@ fn sound_system(
         match status {
             FlipperStatus::Idle => sound_ev.send(SoundEvent::FlipperRelease),
             FlipperStatus::Pushed => sound_ev.send(SoundEvent::FlipperPress),
-        }
+        };
     }
 }
 
 fn on_collision_with_ball_system(
     mut points_ev: EventWriter<PointsEvent>,
     mut evr: EventReader<CollisionWithBallEvent>,
-    q_flipper: Query<With<FlipperCollider>>,
+    q_flipper: Query<Entity, With<FlipperCollider>>,
 ) {
     for ev in evr.read() {
         if q_flipper.contains(ev.0) {

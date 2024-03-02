@@ -10,6 +10,7 @@ use super::world::WorldFrame;
 use super::EventState;
 use super::GameState;
 use crate::prelude::*;
+use bevy::math::primitives::Sphere;
 use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use std::ops::Range;
 
@@ -47,7 +48,7 @@ pub fn spawn(
     let radius = 0.02;
     cmds.spawn((
         PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::UVSphere {
+            mesh: meshes.add(Mesh::from(Sphere {
                 radius,
                 ..default()
             })),
@@ -122,7 +123,7 @@ const MAX_SQUARED_SPEED: f32 = 40.;
 const MAX_SQUARED_ANGLE_SPEED: f32 = 20_000.;
 
 fn max_speed_system(mut q_ball: Query<&mut Velocity, With<PinBall>>) {
-    q_ball.for_each_mut(limit_velocity);
+    q_ball.iter_mut().for_each(limit_velocity);
 }
 
 pub fn limit_velocity(mut velocity: Mut<Velocity>) {
@@ -155,7 +156,7 @@ fn on_collision_with_ball_system(
     coll_ev: EventReader<CollisionEvent>,
     mut coll_with_ball_ev: EventWriter<CollisionWithBallEvent>,
     mut points_ev: EventWriter<PointsEvent>,
-    q_ball: Query<With<PinBall>>,
+    q_ball: Query<Entity, With<PinBall>>,
 ) {
     for ev in get_ball_collisions_start_only(coll_ev, q_ball) {
         coll_with_ball_ev.send(CollisionWithBallEvent::new(ev));
@@ -165,7 +166,7 @@ fn on_collision_with_ball_system(
 
 fn get_ball_collisions_start_only(
     mut evr: EventReader<CollisionEvent>,
-    q_ball: Query<With<PinBall>>,
+    q_ball: Query<Entity, With<PinBall>>,
 ) -> Vec<(Entity, CollisionEventFlags)> {
     evr.read()
         .filter_map(|ev| match ev {
@@ -184,7 +185,7 @@ fn get_ball_collisions_start_only(
 fn on_wall_collision_system(
     mut evr: EventReader<CollisionWithBallEvent>,
     mut sound_ev: EventWriter<SoundEvent>,
-    q_wall: Query<With<WorldFrame>>,
+    q_wall: Query<Entity, With<WorldFrame>>,
 ) {
     for ev in evr.read() {
         if q_wall.contains(ev.0) {

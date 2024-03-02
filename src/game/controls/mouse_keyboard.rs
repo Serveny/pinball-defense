@@ -9,7 +9,7 @@ use crate::prelude::*;
 use bevy::window::{CursorGrabMode, PrimaryWindow};
 
 pub(super) fn key_system(
-    key: Res<Input<KeyCode>>,
+    key: Res<ButtonInput<KeyCode>>,
     controls: Res<KeyboardControls>,
     mut spawn_ball_ev: EventWriter<SpawnBallEvent>,
     mut pause_ev: EventWriter<PauseGameEvent>,
@@ -22,14 +22,14 @@ pub(super) fn key_system(
     ui_state: Res<State<UiState>>,
     mut set_ui_state: ResMut<NextState<UiState>>,
 ) {
-    if key.just_pressed(KeyCode::T) {
+    if key.just_pressed(KeyCode::KeyT) {
         if *ui_state == UiState::None {
             set_ui_state.set(UiState::Controls);
         } else {
             set_ui_state.set(UiState::None);
         }
     }
-    if key.just_pressed(KeyCode::U) {
+    if key.just_pressed(KeyCode::KeyU) {
         game_state.set(GameState::GameOver);
     }
 
@@ -72,29 +72,29 @@ pub(super) fn key_system(
 }
 
 pub(super) fn pause_key_system(
-    key: Res<Input<KeyCode>>,
+    key: Res<ButtonInput<KeyCode>>,
     mut q_flipper: Query<(&mut FlipperStatus, &FlipperType)>,
     mut ball_starter_state: ResMut<NextState<BallStarterState>>,
     mut resume_ev: EventWriter<ResumeGameEvent>,
     mut menu_state: ResMut<NextState<MenuState>>,
 ) {
-    if key.just_released(KeyCode::Y) {
+    if key.just_released(KeyCode::KeyZ) {
         set_flipper_status(FlipperType::Left, FlipperStatus::Idle, &mut q_flipper);
     }
-    if key.just_released(KeyCode::C) {
+    if key.just_released(KeyCode::KeyC) {
         set_flipper_status(FlipperType::Right, FlipperStatus::Idle, &mut q_flipper);
     }
     if key.just_released(KeyCode::Space) {
         ball_starter_state.set(BallStarterState::Fire);
     }
-    if key.just_pressed(KeyCode::Escape) || key.just_pressed(KeyCode::P) {
+    if key.just_pressed(KeyCode::Escape) || key.just_pressed(KeyCode::KeyP) {
         menu_state.set(MenuState::None);
         resume_ev.send(ResumeGameEvent);
     }
 }
 
 pub(super) fn mouse_btn_system(
-    btn: Res<Input<MouseButton>>,
+    btn: Res<ButtonInput<MouseButton>>,
     mut cam_state: ResMut<NextState<CameraState>>,
     mut q_window: Query<&mut Window, With<PrimaryWindow>>,
 ) {

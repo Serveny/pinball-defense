@@ -37,7 +37,9 @@ pub fn on_menu_action(
             MA::Controls => settings_state.set(SettingsMenuState::KeyboardControls),
             MA::Graphics => settings_state.set(SettingsMenuState::Graphics),
             MA::Sound => settings_state.set(SettingsMenuState::Sound),
-            MA::Quit => exit_ev.send(AppExit),
+            MA::Quit => {
+                exit_ev.send(AppExit);
+            }
         }
     }
 }
