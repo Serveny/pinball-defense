@@ -21,8 +21,8 @@ pub struct MenuPlugin;
 
 impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_state::<MenuState>()
-            .add_state::<SettingsMenuState>()
+        app.init_state::<MenuState>()
+            .init_state::<SettingsMenuState>()
             .add_event::<MenuAction>()
             .add_systems(OnEnter(MenuState::PauseMenu), pause::layout)
             .add_systems(

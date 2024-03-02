@@ -17,10 +17,10 @@ pub struct KeyboardControls {
 impl Default for KeyboardControls {
     fn default() -> Self {
         Self {
-            flipper_left: KeyCode::Y,
-            flipper_right: KeyCode::C,
+            flipper_left: KeyCode::KeyZ,
+            flipper_right: KeyCode::KeyC,
             charge_ball_starter: KeyCode::Space,
-            pause: KeyCode::P,
+            pause: KeyCode::KeyP,
         }
     }
 }

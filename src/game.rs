@@ -69,8 +69,8 @@ pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_state::<GameState>()
-            .add_state::<EventState>()
+        app.init_state::<GameState>()
+            .init_state::<EventState>()
             .add_event::<PauseGameEvent>()
             .add_event::<ResumeGameEvent>()
             .init_resource::<IngameTime>()
@@ -148,7 +148,7 @@ fn setup_ambient_lights(mut cmds: Commands, g_sett: Res<GraphicsSettings>) {
     // directional 'sun' light
     cmds.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
-            illuminance: 16000.0,
+            illuminance: 8000.0,
             shadows_enabled: g_sett.is_shadows,
             ..default()
         },
@@ -201,5 +201,7 @@ fn reset(
         )>,
     >,
 ) {
-    q_game_over_screen.for_each(|entity| cmds.entity(entity).despawn_recursive());
+    q_game_over_screen
+        .iter()
+        .for_each(|entity| cmds.entity(entity).despawn_recursive());
 }

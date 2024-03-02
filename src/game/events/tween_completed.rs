@@ -14,8 +14,12 @@ pub(super) fn on_tween_completed_system(
     for ev in evr.read() {
         match ev.user_data {
             DESPAWN_ENTITY_EVENT_ID => cmds.entity(ev.entity).despawn_recursive(),
-            ACTIVATE_PINBALL_MENU_EVENT_ID => pm_status_ev.send(PinballMenuEvent::SetReady),
-            DESPAWN_PINBALL_MENU_EVENT_ID => pm_status_ev.send(PinballMenuEvent::Disable),
+            ACTIVATE_PINBALL_MENU_EVENT_ID => {
+                pm_status_ev.send(PinballMenuEvent::SetReady);
+            }
+            DESPAWN_PINBALL_MENU_EVENT_ID => {
+                pm_status_ev.send(PinballMenuEvent::Disable);
+            }
             _ => panic!("😭 Unkown tween user event: {}", ev.user_data),
         }
     }
