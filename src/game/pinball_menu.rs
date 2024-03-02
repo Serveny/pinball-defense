@@ -155,7 +155,7 @@ fn spawn_system(
                         spawn_upgrade_menu(p, &assets, &g_sett, &unlocked_tower_upgrades, MENU_POS)
                     }
                 });
-            sound_ev.send(SoundEvent::PbMenuFadeIn)
+            sound_ev.send(SoundEvent::PbMenuFadeIn);
         }
     }
 }
@@ -291,7 +291,7 @@ fn despawn(
         Delay::new(Duration::from_secs(2)).with_completed_event(DESPAWN_ENTITY_EVENT_ID);
     cmds.entity(menu_entity).insert(Animator::new(delay));
     // Despawn animation
-    q_pbm_el.for_each(|(entity, trans)| {
+    q_pbm_el.iter().for_each(|(entity, trans)| {
         let secs = (trans.rotation.y + 0.2) * 2.;
         cmds.entity(entity).insert(Animator::new(despawn_animation(
             trans.rotation.y,
@@ -341,10 +341,12 @@ fn activate(
     q_pbm_el: QueryPinballMenuElements,
     mut sound_ev: EventWriter<SoundEvent>,
 ) -> PinballMenuStatus {
-    q_pbm_el.for_each(|(entity, _)| {
+    q_pbm_el.iter().for_each(|(entity, _)| {
         cmds.entity(entity).insert(active_collider());
     });
-    q_lights.for_each_mut(|mut visi| *visi = Visibility::Inherited);
+    q_lights
+        .iter_mut()
+        .for_each(|mut visi| *visi = Visibility::Inherited);
     sound_ev.send(SoundEvent::PbMenuActive);
     PinballMenuStatus::Activated
 }
@@ -370,10 +372,12 @@ fn deactivate(
     mut q_lights: Query<&mut Visibility, With<PinballMenuElementLight>>,
     q_pbm_el: QueryPinballMenuElements,
 ) -> PinballMenuStatus {
-    q_pbm_el.for_each(|(entity, _)| {
+    q_pbm_el.iter().for_each(|(entity, _)| {
         cmds.entity(entity).remove::<Collider>();
     });
-    q_lights.for_each_mut(|mut visi| *visi = Visibility::Hidden);
+    q_lights
+        .iter_mut()
+        .for_each(|mut visi| *visi = Visibility::Hidden);
     PinballMenuStatus::Ready
 }
 
@@ -515,7 +519,7 @@ fn selected_system(
     mut cmds: Commands,
     mut on_sel_ev: EventWriter<PinballMenuOnSetSelectedEvent>,
     q_ready: Query<(Entity, &PinballMenuTrigger), With<PinballMenuReady>>,
-    q_selected: Query<With<PinballMenuSelected>>,
+    q_selected: Query<Entity, With<PinballMenuSelected>>,
     unlocked_towers: Res<UnlockedTowers>,
     unlocked_tower_upgrades: Res<UnlockedUpgrades>,
 ) {

@@ -13,7 +13,7 @@ pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_state::<UiState>()
+        app.init_state::<UiState>()
             .add_systems(OnEnter(UiState::Controls), controls::spawn)
             .add_systems(
                 Update,

@@ -152,8 +152,8 @@ pub struct AssetsPlugin;
 
 impl Plugin for AssetsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_state::<AssetsInternalLoadState>()
-            .add_state::<AssetsLoadState>()
+        app.init_state::<AssetsInternalLoadState>()
+            .init_state::<AssetsLoadState>()
             .init_resource::<GltfHandle>()
             .add_loading_state(
                 LoadingState::new(AssetsLoadState::Loading)

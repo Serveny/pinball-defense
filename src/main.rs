@@ -33,7 +33,7 @@ const MAX_FRAME_RATE: f32 = 144.;
 fn main() {
     let mut app = App::new();
 
-    app.add_state::<AppState>()
+    app.init_state::<AppState>()
         .add_plugins((
             DefaultPlugins,
             bevy_framepace::FramepacePlugin,

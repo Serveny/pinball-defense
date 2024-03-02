@@ -241,7 +241,7 @@ fn on_progress_system(
     mut evr: EventReader<CollisionWithBallEvent>,
     mut points_ev: EventWriter<PointsEvent>,
     mut sound_ev: EventWriter<SoundEvent>,
-    q_tower: Query<With<Tower>>,
+    q_tower: Query<Entity, With<Tower>>,
 ) {
     evr.read().for_each(|CollisionWithBallEvent(id, flag)| {
         if *flag != CollisionEventFlags::SENSOR && q_tower.contains(*id) {
@@ -289,8 +289,12 @@ fn on_upgrade_system(
         points_ev.send(PointsEvent::TowerUpgrade);
         prog_bar_ev.send(ProgressBarCountUpEvent::new(ev.tower_id, -1.));
         match ev.upgrade {
-            TowerUpgrade::Damage => damage_upgrade_ev.send(DamageUpgradeEvent(ev.tower_id)),
-            TowerUpgrade::Range => range_upgrade_ev.send(RangeUpgradeEvent(ev.tower_id)),
+            TowerUpgrade::Damage => {
+                damage_upgrade_ev.send(DamageUpgradeEvent(ev.tower_id));
+            }
+            TowerUpgrade::Range => {
+                range_upgrade_ev.send(RangeUpgradeEvent(ev.tower_id));
+            }
         }
         sound_ev.send(SoundEvent::upgrade_sound(ev.upgrade));
         log!(

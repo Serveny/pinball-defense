@@ -93,9 +93,15 @@ pub fn on_changed_graphics_settings(
     mut q_bloom: Query<&mut BloomSettings>,
 ) {
     if g_sett.is_changed() {
-        q_point.for_each_mut(|mut light| light.shadows_enabled = g_sett.is_shadows);
-        q_spot.for_each_mut(|mut light| light.shadows_enabled = g_sett.is_shadows);
-        q_cam.for_each_mut(|mut cam| cam.hdr = g_sett.is_hdr);
-        q_bloom.for_each_mut(|mut bloom_sett| bloom_sett.intensity = g_sett.bloom_intensity);
+        q_point
+            .iter_mut()
+            .for_each(|mut light| light.shadows_enabled = g_sett.is_shadows);
+        q_spot
+            .iter_mut()
+            .for_each(|mut light| light.shadows_enabled = g_sett.is_shadows);
+        q_cam.iter_mut().for_each(|mut cam| cam.hdr = g_sett.is_hdr);
+        q_bloom
+            .iter_mut()
+            .for_each(|mut bloom_sett| bloom_sett.intensity = g_sett.bloom_intensity);
     }
 }
