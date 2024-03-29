@@ -90,6 +90,7 @@
 - enemy type spawn system
 - main menu
 - load/save system
+- ball collides with enemies until enemy has no life left
 
 Important things, to make it playable:
 
