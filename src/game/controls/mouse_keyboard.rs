@@ -22,18 +22,20 @@ pub(super) fn key_system(
     ui_state: Res<State<UiState>>,
     mut set_ui_state: ResMut<NextState<UiState>>,
 ) {
-    if key.just_pressed(KeyCode::KeyT) {
+    if key.just_pressed(controls.toggle_key_ui) {
         if *ui_state == UiState::None {
             set_ui_state.set(UiState::Controls);
         } else {
             set_ui_state.set(UiState::None);
         }
     }
+
+    // Only for testing
     if key.just_pressed(KeyCode::KeyU) {
         game_state.set(GameState::GameOver);
     }
 
-    if key.just_pressed(KeyCode::Escape) {
+    if key.just_pressed(controls.menu) {
         let mut window = q_window.get_single_mut().unwrap();
         window.cursor.grab_mode = CursorGrabMode::None;
         window.cursor.visible = true;
@@ -42,6 +44,7 @@ pub(super) fn key_system(
         menu_state.set(MenuState::PauseMenu);
     }
 
+    // Only for testing
     if key.just_pressed(KeyCode::ControlLeft) {
         spawn_ball_ev.send(SpawnBallEvent);
     }
@@ -77,17 +80,18 @@ pub(super) fn pause_key_system(
     mut ball_starter_state: ResMut<NextState<BallStarterState>>,
     mut resume_ev: EventWriter<ResumeGameEvent>,
     mut menu_state: ResMut<NextState<MenuState>>,
+    controls: Res<KeyboardControls>,
 ) {
-    if key.just_released(KeyCode::KeyZ) {
+    if key.just_released(controls.flipper_left) {
         set_flipper_status(FlipperType::Left, FlipperStatus::Idle, &mut q_flipper);
     }
-    if key.just_released(KeyCode::KeyC) {
+    if key.just_released(controls.flipper_right) {
         set_flipper_status(FlipperType::Right, FlipperStatus::Idle, &mut q_flipper);
     }
-    if key.just_released(KeyCode::Space) {
+    if key.just_released(controls.charge_ball_starter) {
         ball_starter_state.set(BallStarterState::Fire);
     }
-    if key.just_pressed(KeyCode::Escape) || key.just_pressed(KeyCode::KeyP) {
+    if key.just_pressed(controls.menu) || key.just_pressed(KeyCode::KeyP) {
         menu_state.set(MenuState::None);
         resume_ev.send(ResumeGameEvent);
     }
