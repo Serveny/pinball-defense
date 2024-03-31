@@ -10,7 +10,7 @@ use super::light::{
     contact_light_bundle, sight_radius_light, FlashLight, LightOnCollision, SightRadiusLight,
 };
 use super::pinball_menu::{PinballMenuTrigger, UpgradeMenuExecuteEvent};
-use super::progress_bar::{self, ProgressBarCountUpEvent};
+use super::progress::{self, ProgressBarCountUpEvent};
 use super::{EventState, GameState};
 use crate::game::analog_counter::AnalogCounterSetEvent;
 use crate::game::light::disable_flash_light;
@@ -177,7 +177,7 @@ fn spawn(
             p.spawn(contact_light_bundle(g_sett, color));
             p.spawn(tower_sight_sensor_bundle(sight_radius));
             p.spawn(sight_radius_light(sight_radius));
-            progress_bar::spawn(p, assets, mats, tower_id, bar_trans, color, 0.);
+            progress::spawn(p, assets, mats, tower_id, bar_trans, color, 0.);
             add_to_tower(p);
         });
 }
