@@ -2,10 +2,10 @@ use super::{EventState, GameState};
 use crate::prelude::*;
 use crate::utils::RelEntity;
 
-pub type QueryProgressBar<'w, 's, 'a> = Query<'w, 's, (&'a RelEntity, &'a mut ProgressBar)>;
-pub struct ProgressBarPlugin;
+pub type QueryProgressBar<'w, 's, 'a> = Query<'w, 's, (&'a RelEntity, &'a mut Progress)>;
+pub struct ProgressPlugin;
 
-impl Plugin for ProgressBarPlugin {
+impl Plugin for ProgressPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ProgressBarCountUpEvent>()
             .add_event::<ProgressBarFullEvent>()
@@ -23,9 +23,9 @@ impl Plugin for ProgressBarPlugin {
 }
 
 #[derive(Component, Default, Deref, DerefMut)]
-pub struct ProgressBar(pub f32);
+pub struct Progress(pub f32);
 
-impl ProgressBar {
+impl Progress {
     fn is_empty(&self) -> bool {
         self.0 <= 0.
     }
@@ -34,6 +34,65 @@ impl ProgressBar {
         self.0 >= 1.
     }
 }
+
+#[derive(Event)]
+pub struct ProgressBarCountUpEvent {
+    rel_id: Entity,
+    amount: f32,
+}
+
+impl ProgressBarCountUpEvent {
+    pub fn new(rel_id: Entity, amount: f32) -> Self {
+        Self { rel_id, amount }
+    }
+}
+
+fn on_count_up_system(
+    mut evr: EventReader<ProgressBarCountUpEvent>,
+    mut q_progress: QueryProgressBar,
+) {
+    for ev in evr.read() {
+        if let Some((_, mut progress)) = q_progress.iter_mut().find(|(p, _)| p.0 == ev.rel_id) {
+            let old = progress.0;
+            let new = (old + ev.amount).clamp(0., 1.);
+            if new != progress.0 {
+                progress.0 = new
+            }
+        }
+    }
+}
+
+#[derive(Event)]
+pub struct ProgressBarFullEvent(pub Entity);
+
+fn bar_full_system(
+    mut full_ev: EventWriter<ProgressBarFullEvent>,
+    q_bar: Query<(&RelEntity, &Progress), Changed<Progress>>,
+) {
+    for (rel_id, bar) in q_bar.iter() {
+        if bar.is_full() {
+            full_ev.send(ProgressBarFullEvent(rel_id.0));
+        }
+    }
+}
+
+#[derive(Event)]
+pub struct ProgressBarEmptyEvent(pub Entity);
+
+fn bar_empty_system(
+    mut full_ev: EventWriter<ProgressBarEmptyEvent>,
+    q_bar: Query<(&RelEntity, &Progress), Changed<Progress>>,
+) {
+    for (rel_id, bar) in q_bar.iter() {
+        if bar.is_empty() {
+            full_ev.send(ProgressBarEmptyEvent(rel_id.0));
+        }
+    }
+}
+
+// 3D Progress Bar
+#[derive(Component)]
+pub struct ProgressBar;
 
 pub fn spawn(
     parent: &mut ChildBuilder,
@@ -98,7 +157,8 @@ fn bar_bundle(
             },
             ..default()
         },
-        ProgressBar(init_val),
+        ProgressBar,
+        Progress(init_val),
         RelEntity(rel_id),
         Name::new("Progress Bar"),
     )
@@ -126,63 +186,11 @@ fn background_bundle(
     )
 }
 
-#[derive(Event)]
-pub struct ProgressBarCountUpEvent {
-    rel_id: Entity,
-    amount: f32,
-}
-
-impl ProgressBarCountUpEvent {
-    pub fn new(rel_id: Entity, amount: f32) -> Self {
-        Self { rel_id, amount }
-    }
-}
-
-fn on_count_up_system(
-    mut evr: EventReader<ProgressBarCountUpEvent>,
-    mut q_progress: QueryProgressBar,
-) {
-    for ev in evr.read() {
-        if let Some((_, mut progress)) = q_progress.iter_mut().find(|(p, _)| p.0 == ev.rel_id) {
-            let old = progress.0;
-            let new = (old + ev.amount).clamp(0., 1.);
-            if new != progress.0 {
-                progress.0 = new
-            }
-        }
-    }
-}
-
-#[derive(Event)]
-pub struct ProgressBarFullEvent(pub Entity);
-
-fn bar_full_system(
-    mut full_ev: EventWriter<ProgressBarFullEvent>,
-    q_bar: Query<(&RelEntity, &ProgressBar), Changed<ProgressBar>>,
-) {
-    for (rel_id, bar) in q_bar.iter() {
-        if bar.is_full() {
-            full_ev.send(ProgressBarFullEvent(rel_id.0));
-        }
-    }
-}
-
-#[derive(Event)]
-pub struct ProgressBarEmptyEvent(pub Entity);
-
-fn bar_empty_system(
-    mut full_ev: EventWriter<ProgressBarEmptyEvent>,
-    q_bar: Query<(&RelEntity, &ProgressBar), Changed<ProgressBar>>,
-) {
-    for (rel_id, bar) in q_bar.iter() {
-        if bar.is_empty() {
-            full_ev.send(ProgressBarEmptyEvent(rel_id.0));
-        }
-    }
-}
-
 // Makes progress visible
-fn scale_system(mut q_progress: Query<(&mut Transform, &ProgressBar)>, time: Res<Time>) {
+fn scale_system(
+    mut q_progress: Query<(&mut Transform, &Progress), With<ProgressBar>>,
+    time: Res<Time>,
+) {
     for (mut trans, progress) in q_progress.iter_mut() {
         let mut y = trans.scale.y;
         let p = progress.0;

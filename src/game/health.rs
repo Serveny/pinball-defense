@@ -1,5 +1,5 @@
 use super::{
-    cfg::CONFIG, enemy::LastDamager, progress_bar::ProgressBarCountUpEvent, EventState, GameState,
+    cfg::CONFIG, enemy::LastDamager, progress::ProgressBarCountUpEvent, EventState, GameState,
     IngameTime,
 };
 use crate::prelude::*;

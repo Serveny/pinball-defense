@@ -1,3 +1,4 @@
+use super::project_3d_to_2d_screen;
 use crate::game::ball_starter::BallSpawn;
 use crate::game::camera::PinballCamera;
 use crate::game::flipper::FlipperType;
@@ -77,10 +78,7 @@ fn set_projected_pos(
         .iter_mut()
         .find(|(_, ui_key)| ui_key.0 == key)
         .unwrap_or_else(|| panic!("UI key {:?} not found", key));
-    let screen_pos = cam.world_to_viewport(cam_trans, obj_pos);
-    let Some(screen_pos) = screen_pos else {
-        return;
-    };
+    let screen_pos = project_3d_to_2d_screen(obj_pos, cam_trans, cam);
     ui_style.left = Val::Px(screen_pos.x);
     ui_style.top = Val::Px(screen_pos.y);
 }

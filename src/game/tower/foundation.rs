@@ -5,8 +5,8 @@ use crate::game::events::tween_completed::DESPAWN_ENTITY_EVENT_ID;
 use crate::game::level::{LevelHub, LevelUpEvent, PointsEvent};
 use crate::game::light::{contact_light_bundle, disable_flash_light, FlashLight, LightOnCollision};
 use crate::game::pinball_menu::{PinballMenuTrigger, TowerMenuExecuteEvent};
-use crate::game::progress_bar;
-use crate::game::progress_bar::ProgressBarCountUpEvent;
+use crate::game::progress;
+use crate::game::progress::ProgressBarCountUpEvent;
 use crate::game::world::PinballWorld;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
@@ -82,7 +82,7 @@ fn spawn(
             p.spawn(lid_top(assets));
             p.spawn(lid_bottom(assets)).with_children(|p| {
                 let bar_trans = Transform::from_translation(Vec3::new(-0.06, 0., 0.));
-                progress_bar::spawn(p, assets, mats, rel_id, bar_trans, color, 0.);
+                progress::spawn(p, assets, mats, rel_id, bar_trans, color, 0.);
             });
         });
 }
