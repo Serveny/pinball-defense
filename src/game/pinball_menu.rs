@@ -264,7 +264,7 @@ fn active_light_bundle(g_sett: &GraphicsSettings) -> impl Bundle {
             transform: Transform::from_translation(Vec3::new(-0.79, -0., 0.))
                 .looking_at(Vec3::new(-1.0, -0.0, 0.0), Vec3::Z),
             spot_light: SpotLight {
-                intensity: 28., // lumens - roughly a 100W non-halogen incandescent bulb
+                intensity: 28000., // lumens - roughly a 100W non-halogen incandescent bulb
                 color: Color::BEIGE,
                 shadows_enabled: g_sett.is_shadows,
                 range: 0.2,
