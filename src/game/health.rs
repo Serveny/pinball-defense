@@ -26,6 +26,28 @@ pub struct Health {
     max: f32,
 }
 
+impl Health {
+    pub fn new(max: f32) -> Self {
+        Self { current: max, max }
+    }
+
+    pub fn to_progress(&self, amount: f32) -> f32 {
+        amount / self.max * 100.
+    }
+
+    pub fn add(&mut self, amount: f32) {
+        self.current = (self.current + amount).clamp(0., self.max);
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.current <= 0.
+    }
+
+    pub fn is_full(&self) -> bool {
+        self.current >= self.max
+    }
+}
+
 #[derive(Event)]
 pub struct ChangeHealthEvent {
     health_id: Entity,
@@ -40,28 +62,6 @@ impl ChangeHealthEvent {
             amount,
             damager_id,
         }
-    }
-}
-
-impl Health {
-    pub fn new(max: f32) -> Self {
-        Self { current: max, max }
-    }
-
-    pub fn to_progress(&self, amount: f32) -> f32 {
-        amount / self.max
-    }
-
-    pub fn add(&mut self, amount: f32) {
-        self.current = (self.current + amount).clamp(0., self.max);
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.current <= 0.
-    }
-
-    pub fn is_full(&self) -> bool {
-        self.current >= self.max
     }
 }
 
