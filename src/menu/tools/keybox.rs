@@ -35,7 +35,7 @@ pub fn spawn(
     ))
     .with_children(|p| {
         p.spawn(TextBundle::from_section(
-            format!("{init_val:?}"),
+            format!("{init_val:?}").replace("Key", ""),
             TextStyle {
                 font: assets.menu_font.clone(),
                 font_size: 40.0,

@@ -8,19 +8,23 @@ mod mouse_keyboard;
 
 #[derive(Resource, Reflect)]
 pub struct KeyboardControls {
+    pub menu: KeyCode,
     pub flipper_left: KeyCode,
     pub flipper_right: KeyCode,
     pub charge_ball_starter: KeyCode,
     pub pause: KeyCode,
+    pub toggle_key_ui: KeyCode,
 }
 
 impl Default for KeyboardControls {
     fn default() -> Self {
         Self {
-            flipper_left: KeyCode::KeyZ,
-            flipper_right: KeyCode::KeyC,
+            menu: KeyCode::Escape,
+            flipper_left: KeyCode::KeyA,
+            flipper_right: KeyCode::KeyD,
             charge_ball_starter: KeyCode::Space,
             pause: KeyCode::KeyP,
+            toggle_key_ui: KeyCode::KeyK,
         }
     }
 }

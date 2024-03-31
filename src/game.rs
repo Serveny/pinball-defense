@@ -11,6 +11,7 @@ use self::game_over::GameOverScreen;
 use self::health::HealthPlugin;
 use self::level::LevelPlugin;
 use self::light::LightPlugin;
+use self::ui::UiState;
 use self::world::{spawn_pinball_world, PinballWorld};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
@@ -127,9 +128,11 @@ fn start_game(
     mut cmds: Commands,
     mut game_state: ResMut<NextState<GameState>>,
     mut ev_state: ResMut<NextState<EventState>>,
+    mut ui_state: ResMut<NextState<UiState>>,
 ) {
     game_state.set(GameState::Ingame);
     ev_state.set(EventState::Active);
+    ui_state.set(UiState::Controls);
     cmds.insert_resource(IngameTime::default());
 }
 
