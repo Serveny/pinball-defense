@@ -5,10 +5,9 @@ use self::walk::{
 use super::audio::SoundEvent;
 use super::health::{ChangeHealthEvent, Health, HealthEmptyEvent};
 use super::level::PointsEvent;
-use super::EventState;
+use super::{ui, EventState};
 use crate::game::ball::CollisionWithBallEvent;
 use crate::game::events::collision::{ENEMY, INTERACT_WITH_BALL, INTERACT_WITH_ENEMY};
-use crate::game::progress_bar;
 use crate::game::world::QueryWorld;
 use crate::game::GameState;
 use crate::generated::world_1::road_points::ROAD_POINTS;
@@ -86,38 +85,17 @@ fn on_spawn_system(
     mut evr: EventReader<SpawnEnemyEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut mats: ResMut<Assets<StandardMaterial>>,
-    assets: Res<PinballDefenseGltfAssets>,
     q_pqw: QueryWorld,
 ) {
     for _ in evr.read() {
+        let mut enemy_id: Option<Entity> = None;
         cmds.entity(q_pqw.single()).with_children(|parent| {
-            spawn(parent, &assets, &mut meshes, &mut mats);
+            enemy_id = Some(parent.spawn(enemy(&mut meshes, &mut mats)).id());
         });
+        if let Some(enemy_id) = enemy_id {
+            ui::progress_bar::spawn(&mut cmds, enemy_id, 100.);
+        }
     }
-}
-
-fn spawn(
-    parent: &mut ChildBuilder,
-    assets: &PinballDefenseGltfAssets,
-    meshes: &mut Assets<Mesh>,
-    mats: &mut Assets<StandardMaterial>,
-) {
-    parent.spawn(enemy(meshes, mats)).with_children(|parent| {
-        let color = Color::ORANGE_RED;
-        progress_bar::spawn(
-            parent,
-            assets,
-            mats,
-            parent.parent_entity(),
-            Transform {
-                translation: Vec3::new(0., 0., 0.04),
-                rotation: Quat::from_rotation_y(f32::to_radians(90.)),
-                scale: Vec3::new(0.5, 0.5, 1.),
-            },
-            color,
-            1.,
-        )
-    });
 }
 
 #[derive(Component)]

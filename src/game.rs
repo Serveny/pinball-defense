@@ -22,7 +22,7 @@ use enemy::EnemyPlugin;
 use events::PinballEventsPlugin;
 use pinball_menu::PinballMenuPlugin;
 use player_life::PlayerLifePlugin;
-use progress_bar::ProgressBarPlugin;
+use progress::ProgressPlugin;
 use std::f32::consts::PI;
 use tower::TowerPlugin;
 use wave::WavePlugin;
@@ -43,7 +43,7 @@ mod level;
 mod light;
 mod pinball_menu;
 mod player_life;
-mod progress_bar;
+mod progress;
 mod road;
 mod tower;
 mod ui;
@@ -83,7 +83,7 @@ impl Plugin for GamePlugin {
                 ControlsPlugin,
                 PinballMenuPlugin,
                 PinballEventsPlugin,
-                ProgressBarPlugin,
+                ProgressPlugin,
                 EnemyPlugin,
                 WavePlugin,
                 LevelPlugin,

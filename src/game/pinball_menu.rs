@@ -2,7 +2,7 @@ use super::ball::{CollisionWithBallEvent, PinBall};
 use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 use super::events::tween_completed::{ACTIVATE_PINBALL_MENU_EVENT_ID, DESPAWN_ENTITY_EVENT_ID};
 use super::level::{Level, LevelUpEvent};
-use super::progress_bar::ProgressBarFullEvent;
+use super::progress::ProgressBarFullEvent;
 use super::tower::{SpawnTowerEvent, TowerType, TowerUpgrade};
 use super::world::QueryWorld;
 use super::{EventState, GameState};
