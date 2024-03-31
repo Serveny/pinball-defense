@@ -119,7 +119,7 @@ pub(super) fn disable_flash_light(
 #[derive(Component)]
 pub(super) struct LightOnCollision;
 
-const LIGHT_INTENSITY: f32 = 48.;
+const LIGHT_INTENSITY: f32 = 48000.;
 
 type QueryContactLight<'w, 's, 'a> = Query<
     'w,
@@ -140,7 +140,7 @@ fn fade_out_point_light_system(
 ) {
     for (mut visi, mut light) in q_light.iter_mut() {
         if *visi != Visibility::Hidden {
-            let time = time.delta_seconds() * 64.;
+            let time = time.delta_seconds() * LIGHT_INTENSITY;
             light.intensity -= time;
             if light.intensity <= 0. {
                 light.intensity = 0.;
@@ -159,7 +159,7 @@ fn fade_out_spot_light_system(
 ) {
     for (mut visi, mut light) in q_light.iter_mut() {
         if *visi != Visibility::Hidden {
-            let time = time.delta_seconds() * 64.;
+            let time = time.delta_seconds() * LIGHT_INTENSITY;
             light.intensity -= time;
             if light.intensity <= 0. {
                 light.intensity = 0.;
@@ -178,7 +178,7 @@ pub(super) fn sight_radius_light(range: f32) -> impl Bundle {
         SpotLightBundle {
             transform: Transform::from_xyz(0., 0., 1.).looking_to(Vec3::NEG_Z, Vec3::Z),
             spot_light: SpotLight {
-                intensity: 18.,
+                intensity: 18000.,
                 color: Color::ANTIQUE_WHITE,
                 shadows_enabled: false,
                 radius: 3.,
