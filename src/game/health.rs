@@ -3,6 +3,7 @@ use super::{
     IngameTime,
 };
 use crate::prelude::*;
+use crate::utils::PercentBw0And1;
 
 pub struct HealthPlugin;
 
@@ -31,8 +32,8 @@ impl Health {
         Self { current: max, max }
     }
 
-    pub fn to_progress(&self, amount: f32) -> f32 {
-        amount / self.max * 100.
+    pub fn to_progress(&self, amount: f32) -> PercentBw0And1 {
+        amount / self.max
     }
 
     pub fn add(&mut self, amount: f32) {
@@ -148,8 +149,8 @@ impl HealthRecovery {
         self.time_next_recover <= ig_time
     }
 
-    fn health(&self, delta_sec: f32) -> f32 {
-        self.amount_per_second * delta_sec
+    fn health(&self, delta_sec: f32) -> PercentBw0And1 {
+        self.amount_per_second * delta_sec * 0.01
     }
 }
 

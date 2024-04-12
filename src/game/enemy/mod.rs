@@ -93,7 +93,7 @@ fn on_spawn_system(
             enemy_id = Some(parent.spawn(enemy(&mut meshes, &mut mats)).id());
         });
         if let Some(enemy_id) = enemy_id {
-            ui::progress_bar::spawn(&mut cmds, enemy_id, 100.);
+            ui::progress_bar::spawn(&mut cmds, enemy_id, 1.);
         }
     }
 }

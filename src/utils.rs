@@ -11,6 +11,9 @@ pub struct Sound;
 
 pub struct GameColor;
 
+/// Percent value, 1 is 100%
+pub type PercentBw0And1 = f32;
+
 impl GameColor {
     pub const WHITE: Color = Color::rgb(1., 254. / 255., 236. / 255.);
     pub const GRAY: Color = Color::rgb(65. / 255., 69. / 255., 72. / 255.);
