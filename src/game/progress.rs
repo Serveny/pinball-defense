@@ -80,12 +80,12 @@ fn bar_full_system(
 pub struct ProgressBarEmptyEvent(pub Entity);
 
 fn bar_empty_system(
-    mut full_ev: EventWriter<ProgressBarEmptyEvent>,
+    mut empty_ev: EventWriter<ProgressBarEmptyEvent>,
     q_bar: Query<(&RelEntity, &Progress), Changed<Progress>>,
 ) {
     for (rel_id, bar) in q_bar.iter() {
         if bar.is_empty() {
-            full_ev.send(ProgressBarEmptyEvent(rel_id.0));
+            empty_ev.send(ProgressBarEmptyEvent(rel_id.0));
         }
     }
 }

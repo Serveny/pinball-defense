@@ -1,11 +1,14 @@
 use super::PosToRelEntity;
-use crate::{game::progress::Progress, utils::RelEntity};
+use crate::{
+    game::progress::Progress,
+    utils::{PercentBw0And1, RelEntity},
+};
 use bevy::prelude::*;
 
 #[derive(Component)]
 pub struct ProgressUiBar;
 
-pub fn spawn(cmds: &mut Commands, rel_id: Entity, start_percent: f32) {
+pub fn spawn(cmds: &mut Commands, rel_id: Entity, start_percent: PercentBw0And1) {
     cmds.spawn((
         Name::new("Progess UI Bar"),
         RelEntity(rel_id),
@@ -38,7 +41,7 @@ pub fn spawn(cmds: &mut Commands, rel_id: Entity, start_percent: f32) {
             RelEntity(rel_id),
             NodeBundle {
                 style: Style {
-                    width: Val::Percent(start_percent),
+                    width: Val::Percent(start_percent * 100.),
                     height: Val::Percent(100.),
                     ..default()
                 },
@@ -71,7 +74,7 @@ pub(super) fn show_progress_system(
         let Val::Percent(mut y) = style.width else {
             return;
         };
-        let p = progress.0;
+        let p = progress.0 * 100.;
         if y < p - 0.5 {
             y += time.delta_seconds() * 5.;
             style.width = Val::Percent(y.clamp(0., 100.));
