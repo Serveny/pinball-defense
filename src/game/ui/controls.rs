@@ -6,6 +6,7 @@ use crate::game::KeyboardControls;
 use crate::prelude::*;
 use crate::utils::GameColor;
 use bevy::prelude::default;
+use bevy::window::WindowResized;
 
 #[derive(Component)]
 pub struct ControlsUi;
@@ -29,42 +30,53 @@ pub fn despawn(mut cmds: Commands, q_ui: Query<Entity, With<ControlsUi>>) {
 
 type QKeys<'w, 's, 'a> = Query<'w, 's, (&'a mut Style, &'a UiKey)>;
 
-pub fn keys_to_pos(
-    mut q_keys: QKeys,
+pub fn keys_to_pos_system(
+    q_keys: QKeys,
     controls: Res<KeyboardControls>,
     q_cam: Query<(&GlobalTransform, &Camera), (With<PinballCamera>, Changed<Transform>)>,
     q_flipper: Query<(&GlobalTransform, &FlipperType)>,
     ball_spawn: Res<BallSpawn>,
 ) {
-    if let Ok((cam_trans, cam)) = q_cam.get_single() {
-        q_flipper
-            .iter()
-            .for_each(|(obj_trans, f_type)| match f_type {
-                FlipperType::Left => set_projected_pos(
-                    controls.flipper_left,
+    if let Ok(cam) = q_cam.get_single() {
+        keys_to_pos(q_keys, controls, cam, q_flipper, ball_spawn)
+    }
+}
+
+fn keys_to_pos(
+    mut q_keys: QKeys,
+    controls: Res<KeyboardControls>,
+    cam: (&GlobalTransform, &Camera),
+    q_flipper: Query<(&GlobalTransform, &FlipperType)>,
+    ball_spawn: Res<BallSpawn>,
+) {
+    let (cam_trans, cam) = cam;
+    q_flipper
+        .iter()
+        .for_each(|(obj_trans, f_type)| match f_type {
+            FlipperType::Left => set_projected_pos(
+                controls.flipper_left,
+                &mut q_keys,
+                obj_trans.compute_transform().translation,
+                cam_trans,
+                cam,
+            ),
+            FlipperType::Right => {
+                set_projected_pos(
+                    controls.flipper_right,
                     &mut q_keys,
                     obj_trans.compute_transform().translation,
                     cam_trans,
                     cam,
-                ),
-                FlipperType::Right => {
-                    set_projected_pos(
-                        controls.flipper_right,
-                        &mut q_keys,
-                        obj_trans.compute_transform().translation,
-                        cam_trans,
-                        cam,
-                    );
-                }
-            });
-        set_projected_pos(
-            controls.charge_ball_starter,
-            &mut q_keys,
-            ball_spawn.0,
-            cam_trans,
-            cam,
-        );
-    }
+                );
+            }
+        });
+    set_projected_pos(
+        controls.charge_ball_starter,
+        &mut q_keys,
+        ball_spawn.0,
+        cam_trans,
+        cam,
+    );
 }
 
 fn set_projected_pos(
@@ -171,4 +183,20 @@ fn field_style(pos: FieldPos) -> Style {
         }
     }
     style
+}
+
+pub(super) fn on_resize_system(
+    mut resize_reader: EventReader<WindowResized>,
+    q_keys: QKeys,
+    controls: Res<KeyboardControls>,
+    q_cam: Query<(&GlobalTransform, &Camera), With<PinballCamera>>,
+    q_flipper: Query<(&GlobalTransform, &FlipperType)>,
+    ball_spawn: Res<BallSpawn>,
+) {
+    for _ in resize_reader.read() {
+        if let Ok(cam) = q_cam.get_single() {
+            keys_to_pos(q_keys, controls, cam, q_flipper, ball_spawn);
+        }
+        return;
+    }
 }
