@@ -12,7 +12,12 @@ impl Plugin for ProgressPlugin {
             .add_event::<ProgressBarEmptyEvent>()
             .add_systems(
                 Update,
-                (scale_system, bar_empty_system, bar_full_system)
+                (
+                    scale_system,
+                    bar_empty_system,
+                    bar_full_system,
+                    activate_animation_system,
+                )
                     .run_if(in_state(GameState::Ingame)),
             )
             .add_systems(
@@ -91,8 +96,10 @@ fn bar_empty_system(
 }
 
 // 3D Progress Bar
-#[derive(Component)]
-pub struct ProgressBar;
+#[derive(Component, Default)]
+pub struct ProgressBar {
+    is_active_animation: bool,
+}
 
 pub fn spawn(
     parent: &mut ChildBuilder,
@@ -157,7 +164,7 @@ fn bar_bundle(
             },
             ..default()
         },
-        ProgressBar,
+        ProgressBar::default(),
         Progress(init_val),
         RelEntity(rel_id),
         Name::new("Progress Bar"),
@@ -186,20 +193,35 @@ fn background_bundle(
     )
 }
 
+fn activate_animation_system(mut q_progess: Query<&mut ProgressBar, Changed<Progress>>) {
+    for mut bar in q_progess.iter_mut() {
+        bar.is_active_animation = true;
+    }
+}
+
+const TOLERANCE: f32 = 0.01;
+fn is_almost_eq(a: f32, b: f32) -> bool {
+    return ((a - TOLERANCE)..(a + TOLERANCE)).contains(&b);
+}
+
 // Makes progress visible
 fn scale_system(
-    mut q_progress: Query<(&mut Transform, &Progress), With<ProgressBar>>,
+    mut q_progress: Query<(&mut Transform, &Progress, &mut ProgressBar)>,
     time: Res<Time>,
 ) {
-    for (mut trans, progress) in q_progress.iter_mut() {
-        let mut y = trans.scale.y;
+    for (mut trans, progress, mut bar) in q_progress
+        .iter_mut()
+        .filter(|(_, _, bar)| bar.is_active_animation)
+    {
         let p = progress.0;
-        if y < p - 0.005 {
-            y += time.delta_seconds() * 0.5;
-            trans.scale.y = y.clamp(0., 1.);
-        } else if y > p + 0.005 {
-            y -= time.delta_seconds() * 0.5;
-            trans.scale.y = y.clamp(0., 1.);
+        let mut y = trans.scale.y;
+        y += time.delta_seconds() * 0.5 * (p - y).signum();
+
+        if is_almost_eq(y, p) {
+            y = p;
+            bar.is_active_animation = false;
         }
+
+        trans.scale.y = y;
     }
 }
