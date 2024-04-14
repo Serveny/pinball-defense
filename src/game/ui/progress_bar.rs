@@ -5,8 +5,10 @@ use crate::{
 };
 use bevy::prelude::*;
 
-#[derive(Component)]
-pub struct ProgressUiBar;
+#[derive(Component, Default)]
+pub struct ProgressUiBar {
+    is_active_animation: bool,
+}
 
 pub fn spawn(cmds: &mut Commands, rel_id: Entity, start_percent: PercentBw0And1) {
     cmds.spawn((
@@ -15,14 +17,14 @@ pub fn spawn(cmds: &mut Commands, rel_id: Entity, start_percent: PercentBw0And1)
         PosToRelEntity,
         NodeBundle {
             style: Style {
-                width: Val::Percent(2.),
-                height: Val::Percent(1.),
+                width: Val::Percent(3.),
+                height: Val::Percent(1.5),
                 border: UiRect::all(Val::Percent(0.1)),
                 padding: UiRect::all(Val::Px(0.)),
                 position_type: PositionType::Absolute,
                 // Pos bar on middle top of rel entity
                 margin: UiRect::new(
-                    Val::Percent(-1.),
+                    Val::Percent(-1.5),
                     Val::DEFAULT,
                     Val::Percent(-1.5),
                     Val::DEFAULT,
@@ -36,7 +38,7 @@ pub fn spawn(cmds: &mut Commands, rel_id: Entity, start_percent: PercentBw0And1)
     ))
     .with_children(|p| {
         p.spawn((
-            ProgressUiBar,
+            ProgressUiBar::default(),
             Progress(start_percent),
             RelEntity(rel_id),
             NodeBundle {
@@ -65,22 +67,39 @@ pub(super) fn despawn_system(
     }
 }
 
+const TOLERANCE: f32 = 1.;
+fn is_almost_eq(a: f32, b: f32) -> bool {
+    return ((a - TOLERANCE)..(a + TOLERANCE)).contains(&b);
+}
+
+pub(super) fn activate_animation_system(
+    mut q_progess: Query<&mut ProgressUiBar, Changed<Progress>>,
+) {
+    for mut bar in q_progess.iter_mut() {
+        bar.is_active_animation = true;
+    }
+}
+
 // Makes progress visible
 pub(super) fn show_progress_system(
-    mut q_progress: Query<(&mut Style, &Progress), With<ProgressUiBar>>,
+    mut q_progress: Query<(&mut Style, &Progress, &mut ProgressUiBar)>,
     time: Res<Time>,
 ) {
-    for (mut style, progress) in q_progress.iter_mut() {
+    for (mut style, progress, mut bar) in q_progress
+        .iter_mut()
+        .filter(|(_, _, bar)| bar.is_active_animation)
+    {
         let Val::Percent(mut y) = style.width else {
             return;
         };
         let p = progress.0 * 100.;
-        if y < p - 0.5 {
-            y += time.delta_seconds() * 100.;
-            style.width = Val::Percent(y.clamp(0., 100.));
-        } else if y > p + 0.5 {
-            y -= time.delta_seconds() * 100.;
-            style.width = Val::Percent(y.clamp(0., 100.));
+        y += time.delta_seconds() * 100. * (p - y).signum();
+
+        if is_almost_eq(y, p) {
+            y = p;
+            bar.is_active_animation = false;
         }
+
+        style.width = Val::Percent(y.clamp(0., 100.));
     }
 }
