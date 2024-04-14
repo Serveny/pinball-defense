@@ -27,6 +27,7 @@ impl Plugin for UiPlugin {
                         update_pos_system,
                         progress_bar::despawn_system,
                         progress_bar::show_progress_system,
+                        progress_bar::activate_animation_system,
                     )
                         .run_if(in_state(GameState::Ingame)),
                 ),
