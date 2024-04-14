@@ -21,7 +21,8 @@ impl Plugin for UiPlugin {
             .add_systems(
                 Update,
                 (
-                    (controls::keys_to_pos).run_if(in_state(UiState::Controls)),
+                    (controls::keys_to_pos_system, controls::on_resize_system)
+                        .run_if(in_state(UiState::Controls)),
                     (
                         update_pos_system,
                         progress_bar::despawn_system,

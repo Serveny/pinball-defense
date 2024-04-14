@@ -149,8 +149,8 @@ impl HealthRecovery {
         self.time_next_recover <= ig_time
     }
 
-    fn health(&self, delta_sec: f32) -> PercentBw0And1 {
-        self.amount_per_second * delta_sec * 0.01
+    fn health(&self, delta_sec: f32) -> f32 {
+        self.amount_per_second * delta_sec
     }
 }
 
