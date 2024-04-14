@@ -76,10 +76,10 @@ pub(super) fn show_progress_system(
         };
         let p = progress.0 * 100.;
         if y < p - 0.5 {
-            y += time.delta_seconds() * 5.;
+            y += time.delta_seconds() * 100.;
             style.width = Val::Percent(y.clamp(0., 100.));
         } else if y > p + 0.5 {
-            y -= time.delta_seconds() * 0.5;
+            y -= time.delta_seconds() * 100.;
             style.width = Val::Percent(y.clamp(0., 100.));
         }
     }

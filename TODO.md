@@ -91,6 +91,7 @@
 - main menu
 - load/save system
 - ball collides with enemies until enemy has no life left
+- ui resize on window resize
 
 Important things, to make it playable:
 
