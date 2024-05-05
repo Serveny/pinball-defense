@@ -54,3 +54,7 @@ Upgrade System:
 - Hit foundation to fill progress bar, if full -> pinball menu tower selection (towers: gun, microwave, tesla, mortar)
 - Hit towers to fill progress bar, if full -> pinball menu upgrade selection (possible upgrades: more sight range, damage, faster rotate speed, bigger damgage range)
 - every action gives points, collect points to get on a higher level -> unlock more tower types and upgrades
+
+Mobile:
+
+- Extra: Gyroscope can control ball movement
