@@ -81,7 +81,10 @@ fn add_rapier(app: &mut App) {
             substeps: 3,
         },
         gravity: Vec2::X * 2.,
-        ..default()
+        force_update_from_transform_changes: false,
+        physics_pipeline_active: true,
+        query_pipeline_active: true,
+        scaled_shape_subdivision: 1,
     };
     app.insert_resource(rapier_cfg)
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
