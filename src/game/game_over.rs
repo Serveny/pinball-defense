@@ -1,6 +1,7 @@
 use super::GameState;
 use crate::prelude::*;
 use crate::utils::GameColor;
+use bevy::color::palettes::css::GOLD;
 
 pub fn spawn(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
     cmds.spawn(container()).with_children(|p| {
@@ -15,7 +16,7 @@ pub struct GameOverScreen;
 fn container() -> impl Bundle {
     (
         NodeBundle {
-            background_color: Color::rgba_u8(23, 24, 26, 120).into(),
+            background_color: Color::srgba_u8(23, 24, 26, 120).into(),
             style: Style {
                 width: Val::Percent(100.),
                 height: Val::Percent(100.),
@@ -38,7 +39,7 @@ fn headline(text: &str, assets: &PinballDefenseAssets) -> impl Bundle {
         TextStyle {
             font: assets.menu_font.clone(),
             font_size: 100.0,
-            color: Color::rgb_u8(255, 254, 236),
+            color: Color::srgb_u8(255, 254, 236),
         },
     )
 }
@@ -59,7 +60,7 @@ fn spawn_restart_btn(p: &mut ChildBuilder, assets: &PinballDefenseAssets) {
                 align_items: AlignItems::Center,
                 ..default()
             },
-            border_color: Color::GOLD.into(),
+            border_color: GOLD.into(),
             background_color: Color::NONE.into(),
             ..default()
         },

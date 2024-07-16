@@ -12,6 +12,7 @@ use crate::assets::PinballDefenseGltfAssets;
 use crate::generated::world_1::*;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
+use bevy::color::palettes::css::{RED, TOMATO};
 
 pub type QueryWorld<'w, 's> = Query<'w, 's, Entity, With<PinballWorld>>;
 
@@ -52,7 +53,7 @@ pub fn spawn_pinball_world(
                 WorldFrame,
                 SpatialBundle::default(),
                 coll,
-                ColliderDebugColor(Color::RED),
+                ColliderDebugColor(RED.into()),
                 COLLIDE_ONLY_WITH_BALL,
                 ActiveEvents::COLLISION_EVENTS,
             ));
@@ -99,7 +100,7 @@ pub fn spawn_pinball_world(
             assets,
             &g_sett,
             level_lamp_pos,
-            Color::TOMATO,
+            TOMATO.into(),
             LevelUpLamp,
         );
     });

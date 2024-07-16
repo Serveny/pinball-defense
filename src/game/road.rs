@@ -1,10 +1,13 @@
 use crate::generated::world_1::road_points::ROAD_POINTS;
 use crate::prelude::*;
+use bevy::color::palettes::css::GREEN;
 use bevy::math::primitives::Sphere;
 
+#[allow(dead_code)]
 #[derive(Resource)]
 struct RoadAnimations(Vec<Handle<AnimationClip>>);
 
+#[allow(dead_code)]
 #[derive(Resource)]
 struct RoadPath(Vec<Vec3>);
 
@@ -39,7 +42,7 @@ fn spawn_road_milestones(
                 ..default()
             })),
             material: materials.add(StandardMaterial {
-                base_color: Color::GREEN,
+                base_color: GREEN.into(),
                 perceptual_roughness: 0.8,
                 metallic: 0.,
                 reflectance: 0.8,

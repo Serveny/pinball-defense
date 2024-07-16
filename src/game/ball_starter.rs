@@ -3,6 +3,7 @@ use super::{EventState, GameState};
 use crate::game::ball::{self, PinBall};
 use crate::game::events::collision::COLLIDE_ONLY_WITH_BALL;
 use crate::prelude::*;
+use bevy::color::palettes::css::GOLD;
 
 pub struct BallStarterPlugin;
 
@@ -82,7 +83,7 @@ fn collider_bundle() -> impl Bundle {
             coefficient: 0.,
             combine_rule: CoefficientCombineRule::Multiply,
         },
-        ColliderDebugColor(Color::GOLD),
+        ColliderDebugColor(GOLD.into()),
         COLLIDE_ONLY_WITH_BALL,
     )
 }

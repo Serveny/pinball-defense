@@ -10,6 +10,7 @@ use crate::game::progress::ProgressBarCountUpEvent;
 use crate::game::world::PinballWorld;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
+use bevy::color::palettes::css::GREEN;
 use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use bevy_tweening::{
     lens::{TransformPositionLens, TransformRotationLens},
@@ -73,7 +74,7 @@ fn spawn(
     pos: Vec3,
     hit_progress: f32,
 ) {
-    let color = Color::rgb_u8(134, 166, 86);
+    let color = Color::srgb_u8(134, 166, 86);
     parent
         .spawn(ring(assets, pos, hit_progress))
         .with_children(|p| {
@@ -98,7 +99,7 @@ fn ring(assets: &PinballDefenseGltfAssets, pos: Vec3, hit_progress: f32) -> impl
         },
         Sensor,
         Collider::ball(0.07),
-        ColliderDebugColor(Color::GREEN),
+        ColliderDebugColor(GREEN.into()),
         COLLIDE_ONLY_WITH_BALL,
         ActiveEvents::COLLISION_EVENTS,
         TowerFoundation::new(hit_progress),

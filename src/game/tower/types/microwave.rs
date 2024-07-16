@@ -6,6 +6,7 @@ use crate::game::tower::ShotLight;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::RelEntity;
+use bevy::color::palettes::css::ORANGE_RED;
 
 #[derive(Component)]
 pub struct MicrowaveTower;
@@ -72,7 +73,7 @@ fn slow_down_flash_light(g_sett: &GraphicsSettings, rel_id: Entity, range: f32) 
                 .looking_at(Vec3::new(0.0, 1.0, 0.0), Vec3::Z),
             spot_light: SpotLight {
                 intensity: 0.,
-                color: Color::ORANGE_RED,
+                color: ORANGE_RED.into(),
                 shadows_enabled: g_sett.is_shadows,
                 range,
                 inner_angle: 0.02,

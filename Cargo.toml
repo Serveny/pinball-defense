@@ -18,13 +18,13 @@ opt-level = 3
 log = []
 
 [dependencies]
-bevy = "0.13"
-bevy-inspector-egui = "0.24"
-bevy_asset_loader = "0.20"
-bevy_rapier2d = { version = "0.26", features = ["parallel"]}
-bevy_window_title_diagnostics = "0.13"
-bevy_tweening = "0.10"
+bevy = "0.14"
+bevy-inspector-egui = "0.25"
+bevy_asset_loader = "0.21"
+bevy_rapier2d = { version = "0.27", features = ["parallel"]}
+bevy_window_title_diagnostics = "0.14"
+bevy_tweening = "0.11"
 digits_iterator = "0.1"
-bevy_framepace = "0.15"
+bevy_framepace = "0.17"
 rand = "0.8.5"
 #bevy_debug_grid = "0.1"

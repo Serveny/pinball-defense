@@ -41,7 +41,7 @@ fn spawn_headline(text: &str, p: &mut ChildBuilder, assets: &PinballDefenseAsset
                 TextStyle {
                     font: assets.menu_font.clone(),
                     font_size: 80.0,
-                    color: Color::rgb_u8(255, 254, 236),
+                    color: Color::srgb_u8(255, 254, 236),
                 },
             ));
         });

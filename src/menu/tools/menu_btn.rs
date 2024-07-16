@@ -1,6 +1,7 @@
 use super::super::actions::MenuAction;
 use crate::prelude::*;
 use crate::utils::GameColor;
+use bevy::color::palettes::css::GOLD;
 
 #[derive(Component)]
 pub struct MenuButton;
@@ -25,7 +26,7 @@ pub fn spawn(
                 align_items: AlignItems::Center,
                 ..default()
             },
-            border_color: Color::GOLD.into(),
+            border_color: GOLD.into(),
             background_color: Color::NONE.into(),
             ..default()
         },
