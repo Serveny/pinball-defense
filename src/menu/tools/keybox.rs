@@ -1,6 +1,7 @@
 use super::{Active, PropIndex};
 use crate::prelude::*;
 use crate::utils::GameColor;
+use bevy::color::palettes::css::GRAY;
 
 #[derive(Component)]
 pub struct Keybox;
@@ -27,7 +28,7 @@ pub fn spawn(
                 ..default()
             },
             border_color: GameColor::GOLD.into(),
-            background_color: Color::GRAY.into(),
+            background_color: GRAY.into(),
             ..default()
         },
         PropIndex(prop_i),

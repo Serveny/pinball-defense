@@ -6,6 +6,7 @@ use crate::game::tower::ShotLight;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::RelEntity;
+use bevy::color::palettes::css::BLUE;
 
 #[derive(Component)]
 pub struct TeslaTower;
@@ -66,7 +67,7 @@ fn shot_flash_light(g_sett: &GraphicsSettings, rel_id: Entity, range: f32) -> im
             transform: Transform::from_xyz(0., 0., 0.1),
             point_light: PointLight {
                 intensity: 0.,
-                color: Color::BLUE,
+                color: BLUE.into(),
                 shadows_enabled: g_sett.is_shadows,
                 range,
                 ..default()

@@ -10,6 +10,7 @@ use super::world::WorldFrame;
 use super::EventState;
 use super::GameState;
 use crate::prelude::*;
+use bevy::color::palettes::css::GOLD;
 use bevy::math::primitives::Sphere;
 use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use std::ops::Range;
@@ -53,7 +54,7 @@ pub fn spawn(
                 ..default()
             })),
             material: materials.add(StandardMaterial {
-                base_color: Color::GOLD,
+                base_color: GOLD.into(),
                 perceptual_roughness: 0.,
                 metallic: 1.,
                 reflectance: 1.,
@@ -65,7 +66,7 @@ pub fn spawn(
         Ccd::enabled(),
         RigidBody::Dynamic,
         Collider::ball(radius),
-        ColliderDebugColor(Color::GOLD),
+        ColliderDebugColor(GOLD.into()),
         CollisionGroups::new(
             BALL.union(INTERACT_WITH_ENEMY).union(INTERACT_WITH_BALL),
             INTERACT_WITH_BALL,

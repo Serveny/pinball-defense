@@ -3,6 +3,7 @@ use crate::game::ball::CollisionWithBallEvent;
 use crate::game::pinball_menu::PinballMenuOnSetSelectedEvent;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
+use bevy::color::palettes::css::ANTIQUE_WHITE;
 
 pub struct LightPlugin;
 
@@ -179,7 +180,7 @@ pub(super) fn sight_radius_light(range: f32) -> impl Bundle {
             transform: Transform::from_xyz(0., 0., 1.).looking_to(Vec3::NEG_Z, Vec3::Z),
             spot_light: SpotLight {
                 intensity: 18000.,
-                color: Color::ANTIQUE_WHITE,
+                color: ANTIQUE_WHITE.into(),
                 shadows_enabled: false,
                 radius: 3.,
                 range: 3.,

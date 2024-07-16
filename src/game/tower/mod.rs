@@ -18,6 +18,7 @@ use crate::game::world::QueryWorld;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::RelEntity;
+use bevy::color::palettes::css::{BEIGE, ORANGE, RED};
 use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use bevy_tweening::lens::TransformPositionLens;
 use bevy_tweening::{Animator, Delay, EaseFunction, Sequence, Tween};
@@ -113,7 +114,7 @@ fn tower_bundle(pos: Vec3, sight_radius: f32) -> impl Bundle {
             combine_rule: CoefficientCombineRule::Multiply,
         },
         ActiveEvents::COLLISION_EVENTS,
-        ColliderDebugColor(Color::RED),
+        ColliderDebugColor(RED.into()),
         Collider::ball(0.06),
         COLLIDE_ONLY_WITH_BALL,
         PinballMenuTrigger::Upgrade,
@@ -132,7 +133,7 @@ fn tower_sight_sensor_bundle(radius: f32) -> impl Bundle {
         PbrBundle::default(),
         Sensor,
         RigidBody::KinematicPositionBased,
-        ColliderDebugColor(Color::ORANGE),
+        ColliderDebugColor(ORANGE.into()),
         Collider::ball(radius),
         ActiveEvents::COLLISION_EVENTS,
         ActiveCollisionTypes::KINEMATIC_KINEMATIC,
@@ -170,7 +171,7 @@ fn spawn(
         .insert(tower_type_bundle)
         .with_children(|p| {
             let tower_id = p.parent_entity();
-            let color = Color::rgb_u8(115, 27, 7);
+            let color = Color::srgb_u8(115, 27, 7);
             let bar_trans =
                 Transform::from_xyz(0.034, 0., -0.007).with_scale(Vec3::new(0.5, 0.5, 1.));
             p.spawn(tower_base_bundle(assets, mats));
@@ -184,7 +185,7 @@ fn spawn(
 
 fn tower_material() -> StandardMaterial {
     StandardMaterial {
-        base_color: Color::BEIGE,
+        base_color: BEIGE.into(),
         perceptual_roughness: 0.6,
         metallic: 0.6,
         reflectance: 0.1,
