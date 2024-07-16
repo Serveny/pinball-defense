@@ -6,7 +6,7 @@ use bevy::core_pipeline::bloom::BloomSettings;
 use bevy::core_pipeline::tonemapping::Tonemapping;
 use bevy::core_pipeline::Skybox;
 use bevy::render::render_resource::{TextureViewDescriptor, TextureViewDimension};
-use bevy_tweening::{Animator, EaseFunction, Lens, Tween};
+use bevy_tweening::{Animator, EaseFunction, Lens, Targetable, Tween};
 
 mod ball;
 mod dynamic;
@@ -117,7 +117,7 @@ impl CamTransformLens {
 }
 
 impl Lens<Transform> for CamTransformLens {
-    fn lerp(&mut self, target: &mut Transform, ratio: f32) {
+    fn lerp(&mut self, target: &mut dyn Targetable<Transform>, ratio: f32) {
         target.translation = self.start + (self.end - self.start) * ratio;
         let look_at = self.look_at_start + (self.look_at_end - self.look_at_start) * ratio;
         target.look_at(look_at, Vec3::Z);

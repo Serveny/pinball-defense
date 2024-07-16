@@ -12,6 +12,7 @@ use crate::game::world::QueryWorld;
 use crate::game::GameState;
 use crate::generated::world_1::road_points::ROAD_POINTS;
 use crate::prelude::*;
+use bevy::color::palettes::css::RED;
 use bevy::math::primitives::Sphere;
 use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use std::time::Duration;
@@ -113,7 +114,7 @@ fn enemy(meshes: &mut Assets<Mesh>, mats: &mut Assets<StandardMaterial>) -> impl
                 ..default()
             })),
             material: mats.add(StandardMaterial {
-                base_color: Color::RED,
+                base_color: RED.into(),
                 perceptual_roughness: 0.,
                 metallic: 1.,
                 reflectance: 1.,
@@ -125,7 +126,7 @@ fn enemy(meshes: &mut Assets<Mesh>, mats: &mut Assets<StandardMaterial>) -> impl
         Sensor,
         RigidBody::KinematicPositionBased,
         Collider::ball(0.03),
-        ColliderDebugColor(Color::RED),
+        ColliderDebugColor(RED.into()),
         CollisionGroups::new(ENEMY.union(INTERACT_WITH_BALL), INTERACT_WITH_ENEMY),
         Restitution {
             coefficient: 2.,

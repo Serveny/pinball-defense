@@ -59,9 +59,6 @@ impl Wave {
     }
 }
 
-#[derive(Event)]
-struct SpawnNextWaveEvent;
-
 const TIME_BETWEEN_WAVES: f32 = 8.;
 
 fn wave_system(

@@ -1,6 +1,7 @@
 use super::{EventState, GameState};
 use crate::prelude::*;
 use crate::utils::RelEntity;
+use bevy::color::palettes::css::ANTIQUE_WHITE;
 
 pub type QueryProgressBar<'w, 's, 'a> = Query<'w, 's, (&'a RelEntity, &'a mut Progress)>;
 pub struct ProgressPlugin;
@@ -9,15 +10,9 @@ impl Plugin for ProgressPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<ProgressBarCountUpEvent>()
             .add_event::<ProgressBarFullEvent>()
-            .add_event::<ProgressBarEmptyEvent>()
             .add_systems(
                 Update,
-                (
-                    scale_system,
-                    bar_empty_system,
-                    bar_full_system,
-                    activate_animation_system,
-                )
+                (scale_system, bar_full_system, activate_animation_system)
                     .run_if(in_state(GameState::Ingame)),
             )
             .add_systems(
@@ -31,10 +26,6 @@ impl Plugin for ProgressPlugin {
 pub struct Progress(pub f32);
 
 impl Progress {
-    fn is_empty(&self) -> bool {
-        self.0 <= 0.
-    }
-
     fn is_full(&self) -> bool {
         self.0 >= 1.
     }
@@ -81,20 +72,6 @@ fn bar_full_system(
     }
 }
 
-#[derive(Event)]
-pub struct ProgressBarEmptyEvent(pub Entity);
-
-fn bar_empty_system(
-    mut empty_ev: EventWriter<ProgressBarEmptyEvent>,
-    q_bar: Query<(&RelEntity, &Progress), Changed<Progress>>,
-) {
-    for (rel_id, bar) in q_bar.iter() {
-        if bar.is_empty() {
-            empty_ev.send(ProgressBarEmptyEvent(rel_id.0));
-        }
-    }
-}
-
 // 3D Progress Bar
 #[derive(Component, Default)]
 pub struct ProgressBar {
@@ -114,7 +91,7 @@ pub fn spawn(
         .spawn(frame_bundle(assets, mats, transform))
         .with_children(|parent| {
             parent.spawn(bar_bundle(assets, mats, init_val, rel_id, color));
-            parent.spawn(background_bundle(assets, mats, Color::ANTIQUE_WHITE));
+            parent.spawn(background_bundle(assets, mats, ANTIQUE_WHITE.into()));
         });
 }
 

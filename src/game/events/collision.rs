@@ -1,11 +1,5 @@
 use crate::prelude::*;
 
-#[derive(Event)]
-pub struct TowerMenuElementCollisionStartEvent(pub Entity);
-
-#[derive(Event)]
-pub struct PinballEnemyHitEvent(pub Entity);
-
 // Collision Groups
 pub const BALL: Group = Group::GROUP_1;
 

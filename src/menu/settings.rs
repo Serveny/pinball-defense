@@ -45,7 +45,7 @@ pub struct SettingsMenuLayout;
 fn settings_menu_layout() -> impl Bundle {
     (
         NodeBundle {
-            background_color: Color::rgba_u8(23, 24, 26, 120).into(),
+            background_color: Color::srgba_u8(23, 24, 26, 120).into(),
             style: Style {
                 position_type: PositionType::Absolute,
                 left: Val::Px(300.),

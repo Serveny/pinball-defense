@@ -81,7 +81,7 @@ fn muzzle_flash_light(g_sett: &GraphicsSettings, rel_id: Entity, range: f32) -> 
                 .looking_at(Vec3::new(0.0, 1.0, 0.0), Vec3::Z),
             spot_light: SpotLight {
                 intensity: 0., // lumens - roughly a 100W non-halogen incandescent bulb
-                color: Color::rgba_u8(215, 205, 117, 255),
+                color: Color::srgba_u8(215, 205, 117, 255),
                 shadows_enabled: g_sett.is_shadows,
                 range,
                 inner_angle: 0.02,

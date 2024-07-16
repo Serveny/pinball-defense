@@ -1,4 +1,4 @@
-use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
+use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, state::app::StatesPlugin};
 pub use bevy_asset_loader::prelude::*;
 use bevy_framepace::Limiter;
 use bevy_inspector_egui::bevy_egui::EguiPlugin;
@@ -33,16 +33,16 @@ const MAX_FRAME_RATE: f32 = 144.;
 fn main() {
     let mut app = App::new();
 
-    app.init_state::<AppState>()
-        .add_plugins((
-            DefaultPlugins,
-            bevy_framepace::FramepacePlugin,
-            FrameTimeDiagnosticsPlugin,
-            TweeningPlugin,
-            WindowTitleLoggerDiagnosticsPlugin::default(),
-            EguiPlugin,
-        ))
-        .add_systems(Startup, set_framerate);
+    app.add_plugins((
+        DefaultPlugins,
+        bevy_framepace::FramepacePlugin,
+        FrameTimeDiagnosticsPlugin,
+        TweeningPlugin,
+        WindowTitleLoggerDiagnosticsPlugin::default(),
+        EguiPlugin,
+    ))
+    .init_state::<AppState>()
+    .add_systems(Startup, set_framerate);
 
     add_rapier(&mut app);
 

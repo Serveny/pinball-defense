@@ -15,10 +15,10 @@ pub struct GameColor;
 pub type PercentBw0And1 = f32;
 
 impl GameColor {
-    pub const WHITE: Color = Color::rgb(1., 254. / 255., 236. / 255.);
-    pub const GRAY: Color = Color::rgb(65. / 255., 69. / 255., 72. / 255.);
-    pub const GOLD: Color = Color::rgb(188. / 255., 148. / 255., 87. / 255.);
-    pub const BACKGROUND: Color = Color::rgba(23. / 255., 24. / 255., 26. / 255., 120. / 255.);
+    pub const WHITE: Color = Color::srgb(1., 254. / 255., 236. / 255.);
+    pub const GRAY: Color = Color::srgb(65. / 255., 69. / 255., 72. / 255.);
+    pub const GOLD: Color = Color::srgb(188. / 255., 148. / 255., 87. / 255.);
+    pub const BACKGROUND: Color = Color::srgba(23. / 255., 24. / 255., 26. / 255., 120. / 255.);
 }
 
 pub mod reflect {

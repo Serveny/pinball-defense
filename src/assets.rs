@@ -18,9 +18,6 @@ pub struct PinballDefenseAssets {
     #[asset(path = "textures/skybox.png")]
     pub skybox: Handle<Image>,
 
-    #[asset(path = "fonts/PressStart2P-Regular.ttf")]
-    pub digital_font: Handle<Font>,
-
     #[asset(path = "fonts/hemi_head.otf")]
     pub menu_font: Handle<Font>,
 }
@@ -218,7 +215,7 @@ fn check_assets_ready(
     loading: Res<GltfHandle>,
 ) {
     match server.load_state(loading.0.id()) {
-        LoadState::Failed => panic!("😭 Failed loading asset"),
+        LoadState::Failed(err) => panic!("😭 Failed loading asset: {err}"),
         LoadState::Loaded => state.set(AssetsInternalLoadState::AssetServerFinished),
         _ => (),
     }

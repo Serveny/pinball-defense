@@ -1,7 +1,4 @@
-use self::{
-    collision::{PinballEnemyHitEvent, TowerMenuElementCollisionStartEvent},
-    tween_completed::on_tween_completed_system,
-};
+use self::tween_completed::on_tween_completed_system;
 use super::EventState;
 use crate::prelude::*;
 pub mod collision;
@@ -12,11 +9,9 @@ pub struct PinballEventsPlugin;
 
 impl Plugin for PinballEventsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<TowerMenuElementCollisionStartEvent>()
-            .add_event::<PinballEnemyHitEvent>()
-            .add_systems(
-                Update,
-                (on_tween_completed_system).run_if(in_state(EventState::Active)),
-            );
+        app.add_systems(
+            Update,
+            (on_tween_completed_system).run_if(in_state(EventState::Active)),
+        );
     }
 }

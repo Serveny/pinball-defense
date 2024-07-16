@@ -3,6 +3,7 @@ use crate::{
     game::progress::Progress,
     utils::{PercentBw0And1, RelEntity},
 };
+use bevy::color::palettes::css::RED;
 use bevy::prelude::*;
 
 #[derive(Component, Default)]
@@ -47,7 +48,7 @@ pub fn spawn(cmds: &mut Commands, rel_id: Entity, start_percent: PercentBw0And1)
                     height: Val::Percent(100.),
                     ..default()
                 },
-                background_color: Color::RED.into(),
+                background_color: RED.into(),
                 ..default()
             },
         ));

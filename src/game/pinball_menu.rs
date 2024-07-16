@@ -9,6 +9,7 @@ use super::{EventState, GameState};
 use crate::game::audio::SoundEvent;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
+use bevy::color::palettes::css::{BEIGE, GREEN};
 use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use bevy_tweening::lens::TransformRotateZLens;
 use bevy_tweening::{Animator, Delay, EaseFunction, Sequence, Tween};
@@ -60,15 +61,11 @@ pub enum PinballMenuTrigger {
 #[derive(Event, Clone, Copy)]
 pub struct TowerMenuExecuteEvent {
     pub foundation_id: Entity,
-    pub tower_type: TowerType,
 }
 
 impl TowerMenuExecuteEvent {
-    pub fn new(foundation_id: Entity, tower_type: TowerType) -> Self {
-        Self {
-            foundation_id,
-            tower_type,
-        }
+    pub fn new(foundation_id: Entity) -> Self {
+        Self { foundation_id }
     }
 }
 
@@ -265,7 +262,7 @@ fn active_light_bundle(g_sett: &GraphicsSettings) -> impl Bundle {
                 .looking_at(Vec3::new(-1.0, -0.0, 0.0), Vec3::Z),
             spot_light: SpotLight {
                 intensity: 28000., // lumens - roughly a 100W non-halogen incandescent bulb
-                color: Color::BEIGE,
+                color: BEIGE.into(),
                 shadows_enabled: g_sett.is_shadows,
                 range: 0.2,
                 inner_angle: 0.2,
@@ -353,7 +350,7 @@ fn activate(
 
 fn active_collider() -> impl Bundle {
     (
-        ColliderDebugColor(Color::GREEN),
+        ColliderDebugColor(GREEN.into()),
         Sensor,
         ActiveEvents::COLLISION_EVENTS,
         Collider::convex_polyline(vec![
@@ -438,7 +435,7 @@ fn on_execute_system(
                                 cmds.entity(foundation_id).remove::<PinballMenuSelected>();
 
                                 on_tower_el_selected
-                                    .send(TowerMenuExecuteEvent::new(foundation_id, *tower_type));
+                                    .send(TowerMenuExecuteEvent::new(foundation_id));
 
                                 // Spawn new tower
                                 let pos = sel_trans.translation;
