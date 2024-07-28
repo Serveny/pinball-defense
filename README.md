@@ -1,4 +1,8 @@
-Pinball Defense
+# Pinball Defense
+
+<p align="center">
+  <img src="assets/demo-animation.gif"/>
+</p>
 
 A tower denfense game, but you can only interact with the world by hitting things with the pinball
 Story: You want to steal resources on lava planet, but native monsters come in waves to stop you.
