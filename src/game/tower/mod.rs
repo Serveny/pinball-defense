@@ -389,7 +389,7 @@ fn on_damage_upgrade_system(
                 dmg_over_time.0 *= CONFIG.damage_upgrade_factor;
             }
             if let Some(mut slow_down_factor) = slow_down_factor {
-                slow_down_factor.0 *= 0.98;
+                slow_down_factor.0 *= CONFIG.slow_down_upgrade_factor;
             }
         }
     }
