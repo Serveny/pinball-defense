@@ -1,4 +1,4 @@
-use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, state::app::StatesPlugin};
+use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 pub use bevy_asset_loader::prelude::*;
 use bevy_framepace::Limiter;
 use bevy_inspector_egui::bevy_egui::EguiPlugin;
