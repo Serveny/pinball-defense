@@ -167,12 +167,12 @@ pub struct PauseGameEvent;
 fn on_set_pause_system(
     evr: EventReader<PauseGameEvent>,
     mut set_game_state: ResMut<NextState<GameState>>,
-    mut rapier_cfg: ResMut<RapierConfiguration>,
+    mut physics_time: ResMut<Time<Physics>>,
 ) {
     if !evr.is_empty() {
         log!("⏸️ Pause Game");
         set_game_state.set(GameState::Pause);
-        rapier_cfg.physics_pipeline_active = false;
+        physics_time.pause()
     }
 }
 
@@ -182,12 +182,12 @@ pub struct ResumeGameEvent;
 fn on_resume_game_system(
     evr: EventReader<ResumeGameEvent>,
     mut set_game_state: ResMut<NextState<GameState>>,
-    mut rapier_cfg: ResMut<RapierConfiguration>,
+    mut physics_time: ResMut<Time<Physics>>,
 ) {
     if !evr.is_empty() {
         log!("️⏯️ Resume Game");
         set_game_state.set(GameState::Ingame);
-        rapier_cfg.physics_pipeline_active = true;
+        physics_time.unpause();
     }
 }
 

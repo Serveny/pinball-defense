@@ -1,7 +1,5 @@
 use super::audio::SoundEvent;
-use super::events::collision::BALL;
-use super::events::collision::INTERACT_WITH_BALL;
-use super::events::collision::INTERACT_WITH_ENEMY;
+use super::events::collision::GameLayer;
 use super::health::ChangeHealthEvent;
 use super::level::PointsEvent;
 use super::pinball_menu::PinballMenuEvent;
@@ -12,7 +10,6 @@ use super::GameState;
 use crate::prelude::*;
 use bevy::color::palettes::css::GOLD;
 use bevy::math::primitives::Sphere;
-use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use std::ops::Range;
 
 pub struct BallPlugin;
@@ -63,19 +60,18 @@ pub fn spawn(
             transform: Transform::from_translation(pos),
             ..default()
         },
-        Ccd::enabled(),
+        SweptCcd::NON_LINEAR,
         RigidBody::Dynamic,
-        Collider::ball(radius),
-        ColliderDebugColor(GOLD.into()),
-        CollisionGroups::new(
-            BALL.union(INTERACT_WITH_ENEMY).union(INTERACT_WITH_BALL),
-            INTERACT_WITH_BALL,
+        Collider::circle(radius),
+        DebugRender::collider(GOLD.into()),
+        CollisionLayers::new(
+            GameLayer::Ball,
+            [GameLayer::Enemy, GameLayer::Tower, GameLayer::Map],
         ),
-        Sleeping::disabled(),
-        ColliderMassProperties::Mass(0.081),
-        Restitution::coefficient(0.5),
-        Friction::coefficient(0.01),
-        Velocity::default(),
+        SleepingDisabled::default(),
+        Mass(0.081),
+        Restitution::from(0.5),
+        Friction::from(0.01),
         PinBall,
         Name::new("Ball"),
     ));
@@ -121,64 +117,46 @@ fn on_ball_despawn_system(
 
 // Prevent clipping of ball through objects
 const MAX_SQUARED_SPEED: f32 = 40.;
-const MAX_SQUARED_ANGLE_SPEED: f32 = 20_000.;
 
-fn max_speed_system(mut q_ball: Query<&mut Velocity, With<PinBall>>) {
+fn max_speed_system(mut q_ball: Query<&mut LinearVelocity, With<PinBall>>) {
     q_ball.iter_mut().for_each(limit_velocity);
 }
 
-pub fn limit_velocity(mut velocity: Mut<Velocity>) {
-    let length = velocity.linvel.length_squared();
+pub fn limit_velocity(mut velocity: Mut<LinearVelocity>) {
+    let length = velocity.length_squared();
     if length > MAX_SQUARED_SPEED {
-        velocity.linvel *= MAX_SQUARED_SPEED / length;
+        velocity.0 *= MAX_SQUARED_SPEED / length;
 
         log!("🥨 Limit velocity from {} to {}", length, velocity.linvel);
-
-        // If we reduce speed, maybe we should reduce turn speed too, idk
-        let length = velocity.angvel;
-        if length > MAX_SQUARED_ANGLE_SPEED {
-            velocity.angvel *= MAX_SQUARED_ANGLE_SPEED / length;
-
-            log!("💫 Limit turn speed from {} to {}", length, velocity.angvel);
-        }
     }
 }
 
 #[derive(Event, Debug)]
-pub struct CollisionWithBallEvent(pub Entity, pub CollisionEventFlags);
-
-impl CollisionWithBallEvent {
-    pub fn new(ev: (Entity, CollisionEventFlags)) -> Self {
-        Self(ev.0, ev.1)
-    }
-}
+pub struct CollisionWithBallEvent(pub Entity);
 
 fn on_collision_with_ball_system(
-    coll_ev: EventReader<CollisionEvent>,
+    coll_ev: EventReader<CollisionStarted>,
     mut coll_with_ball_ev: EventWriter<CollisionWithBallEvent>,
     mut points_ev: EventWriter<PointsEvent>,
     q_ball: Query<Entity, With<PinBall>>,
 ) {
-    for ev in get_ball_collisions_start_only(coll_ev, q_ball) {
-        coll_with_ball_ev.send(CollisionWithBallEvent::new(ev));
+    for collidator_id in get_ball_collisions(coll_ev, q_ball) {
+        coll_with_ball_ev.send(CollisionWithBallEvent(collidator_id));
         points_ev.send(PointsEvent::BallCollided);
     }
 }
 
-fn get_ball_collisions_start_only(
-    mut evr: EventReader<CollisionEvent>,
+fn get_ball_collisions(
+    mut evr: EventReader<CollisionStarted>,
     q_ball: Query<Entity, With<PinBall>>,
-) -> Vec<(Entity, CollisionEventFlags)> {
+) -> Vec<Entity> {
     evr.read()
-        .filter_map(|ev| match ev {
-            CollisionEvent::Started(id_1, id_2, flag) => match q_ball.contains(*id_1) {
-                true => Some((*id_2, *flag)),
-                false => match q_ball.contains(*id_2) {
-                    true => Some((*id_1, *flag)),
-                    false => None,
-                },
+        .filter_map(|ev| match q_ball.contains(ev.0) {
+            true => Some(ev.1),
+            false => match q_ball.contains(ev.1) {
+                true => Some(ev.0),
+                false => None,
             },
-            CollisionEvent::Stopped(_, _, _) => None,
         })
         .collect()
 }

@@ -1,7 +1,7 @@
 use super::audio::SoundEvent;
+use super::events::collision::GameLayer;
 use super::{EventState, GameState};
 use crate::game::ball::{self, PinBall};
-use crate::game::events::collision::COLLIDE_ONLY_WITH_BALL;
 use crate::prelude::*;
 use bevy::color::palettes::css::GOLD;
 
@@ -77,14 +77,14 @@ fn collider_bundle() -> impl Bundle {
     (
         Name::new("Ball Starter Collider"),
         TransformBundle::from(Transform::from_xyz(-0.107, 0., 0.)),
-        Collider::cuboid(HALF_SIZE.x, HALF_SIZE.z),
-        RigidBody::KinematicPositionBased,
+        Collider::rectangle(SIZE.x, SIZE.z),
+        RigidBody::Kinematic,
         Restitution {
-            coefficient: 0.,
-            combine_rule: CoefficientCombineRule::Multiply,
+            coefficient: 1.,
+            combine_rule: CoefficientCombine::Multiply,
         },
-        ColliderDebugColor(GOLD.into()),
-        COLLIDE_ONLY_WITH_BALL,
+        DebugRender::collider(GOLD.into()),
+        CollisionLayers::new(GameLayer::Map, GameLayer::Ball),
     )
 }
 
@@ -139,10 +139,10 @@ pub struct BallSpawn(pub Vec3);
 fn setup(mut cmds: Commands) {
     cmds.insert_resource(BallSpawn(Vec3::new(0.96, 0.6, -0.02)));
 }
-const HALF_SIZE: Vec3 = Vec3 {
-    x: 0.099,
-    y: 0.025,
-    z: 0.025,
+const SIZE: Vec3 = Vec3 {
+    x: 0.2,
+    y: 0.05,
+    z: 0.05,
 };
 
 #[derive(Component)]

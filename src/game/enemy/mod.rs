@@ -3,18 +3,17 @@ use self::walk::{
     on_road_end_reached_system, recover_speed_system, walk_system, RoadEndReachedEvent, WALK_SPEED,
 };
 use super::audio::SoundEvent;
+use super::events::collision::GameLayer;
 use super::health::{ChangeHealthEvent, Health, HealthEmptyEvent};
 use super::level::PointsEvent;
 use super::{ui, EventState};
 use crate::game::ball::CollisionWithBallEvent;
-use crate::game::events::collision::{ENEMY, INTERACT_WITH_BALL, INTERACT_WITH_ENEMY};
 use crate::game::world::QueryWorld;
 use crate::game::GameState;
 use crate::generated::world_1::road_points::ROAD_POINTS;
 use crate::prelude::*;
 use bevy::color::palettes::css::RED;
 use bevy::math::primitives::Sphere;
-use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use std::time::Duration;
 
 mod step;
@@ -124,15 +123,14 @@ fn enemy(meshes: &mut Assets<Mesh>, mats: &mut Assets<StandardMaterial>) -> impl
             ..default()
         },
         Sensor,
-        RigidBody::KinematicPositionBased,
-        Collider::ball(0.03),
-        ColliderDebugColor(RED.into()),
-        CollisionGroups::new(ENEMY.union(INTERACT_WITH_BALL), INTERACT_WITH_ENEMY),
+        RigidBody::Kinematic,
+        Collider::circle(0.03),
+        DebugRender::default().with_collider_color(RED.into()),
+        CollisionLayers::new(GameLayer::Enemy, GameLayer::Ball),
         Restitution {
             coefficient: 2.,
-            combine_rule: CoefficientCombineRule::Multiply,
+            combine_rule: CoefficientCombine::Multiply,
         },
-        ActiveEvents::COLLISION_EVENTS,
     )
 }
 
@@ -143,8 +141,9 @@ fn on_pinball_hit_system(
     mut health_ev: EventWriter<ChangeHealthEvent>,
     q_enemy: Query<Entity, With<Enemy>>,
 ) {
-    for CollisionWithBallEvent(id, flag) in evr.read() {
-        if *flag == CollisionEventFlags::SENSOR && q_enemy.contains(*id) {
+    for CollisionWithBallEvent(id) in evr.read() {
+        // flag == CollisionEventFlags::SENSOR &&
+        if q_enemy.contains(*id) {
             log!("😵 Pinball hits enemy {:?}", *id);
             health_ev.send(ChangeHealthEvent::new(*id, -100., None));
             points_ev.send(PointsEvent::BallEnemyHit);

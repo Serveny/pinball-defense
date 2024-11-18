@@ -167,12 +167,12 @@ fn play_ball_rolling_sound(mut cmds: Commands, assets: Res<PinballDefenseAudioAs
 
 fn ball_rolling_sound_system(
     mut q_rolling_sound: Query<&AudioSink, With<BallRollingSound>>,
-    q_ball: Query<&Velocity, With<PinBall>>,
+    q_ball: Query<&LinearVelocity, With<PinBall>>,
     sound_sett: Res<SoundSettings>,
 ) {
     if let Ok(sound) = q_rolling_sound.get_single_mut() {
         if let Some(vel) = q_ball.iter().next() {
-            let linvel = vel.linvel.length().abs() / 12.;
+            let linvel = vel.length().abs() / 12.;
             sound.set_volume(linvel * sound_sett.fx_volume);
             let speed = 0.9 + linvel / 2.;
             sound.set_speed(speed);

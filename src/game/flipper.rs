@@ -1,6 +1,6 @@
 use super::audio::SoundEvent;
 use super::ball::CollisionWithBallEvent;
-use super::events::collision::COLLIDE_ONLY_WITH_BALL;
+use super::events::collision::GameLayer;
 use super::level::PointsEvent;
 use super::{EventState, GameState};
 use crate::prelude::*;
@@ -135,14 +135,13 @@ fn collider(sig: f32) -> impl Bundle {
             rotation: Quat::from_rotation_y(-PI / 2. * 0.85),
             ..default()
         }),
-        RigidBody::KinematicPositionBased,
-        Collider::cuboid(0.03, 0.12),
-        ActiveEvents::COLLISION_EVENTS,
+        RigidBody::Kinematic,
+        Collider::rectangle(0.06, 0.24),
         Restitution {
             coefficient: 0.1,
-            combine_rule: CoefficientCombineRule::Multiply,
+            combine_rule: CoefficientCombine::Multiply,
         },
-        COLLIDE_ONLY_WITH_BALL,
+        CollisionLayers::new(GameLayer::Map, GameLayer::Ball),
         FlipperCollider,
     )
 }
