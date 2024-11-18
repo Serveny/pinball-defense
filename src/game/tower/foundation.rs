@@ -1,6 +1,6 @@
 use crate::game::audio::SoundEvent;
 use crate::game::ball::CollisionWithBallEvent;
-use crate::game::events::collision::COLLIDE_ONLY_WITH_BALL;
+use crate::game::events::collision::GameLayer;
 use crate::game::events::tween_completed::DESPAWN_ENTITY_EVENT_ID;
 use crate::game::level::{LevelHub, LevelUpEvent, PointsEvent};
 use crate::game::light::{contact_light_bundle, disable_flash_light, FlashLight, LightOnCollision};
@@ -11,7 +11,6 @@ use crate::game::world::PinballWorld;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy::color::palettes::css::GREEN;
-use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use bevy_tweening::{
     lens::{TransformPositionLens, TransformRotationLens},
     Animator, Delay, EaseFunction, Tween,
@@ -98,10 +97,9 @@ fn ring(assets: &PinballDefenseGltfAssets, pos: Vec3, hit_progress: f32) -> impl
             ..default()
         },
         Sensor,
-        Collider::ball(0.07),
-        ColliderDebugColor(GREEN.into()),
-        COLLIDE_ONLY_WITH_BALL,
-        ActiveEvents::COLLISION_EVENTS,
+        Collider::circle(0.07),
+        DebugRender::collider(GREEN.into()),
+        CollisionLayers::new(GameLayer::Tower, GameLayer::Ball),
         TowerFoundation::new(hit_progress),
         LightOnCollision,
         PinballMenuTrigger::Tower,
@@ -224,13 +222,12 @@ pub(super) fn on_progress_system(
     mut sound_ev: EventWriter<SoundEvent>,
     q_tower_foundation: Query<&TowerFoundation, With<TowerFoundation>>,
 ) {
-    for CollisionWithBallEvent(id, flag) in evr.read() {
-        if *flag == CollisionEventFlags::SENSOR {
-            if let Ok(foundation) = q_tower_foundation.get(*id) {
-                prog_bar_ev.send(ProgressBarCountUpEvent::new(*id, foundation.hit_progress));
-                points_ev.send(PointsEvent::FoundationHit);
-                sound_ev.send(SoundEvent::BallHitsFoundation);
-            }
+    for CollisionWithBallEvent(id) in evr.read() {
+        // if *flag == CollisionEventFlags::SENSOR {
+        if let Ok(foundation) = q_tower_foundation.get(*id) {
+            prog_bar_ev.send(ProgressBarCountUpEvent::new(*id, foundation.hit_progress));
+            points_ev.send(PointsEvent::FoundationHit);
+            sound_ev.send(SoundEvent::BallHitsFoundation);
         }
     }
 }
