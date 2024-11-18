@@ -1,4 +1,4 @@
-use super::events::collision::COLLIDE_ONLY_WITH_BALL;
+use super::events::collision::GameLayer;
 
 use super::analog_counter;
 use super::level::{LevelCounterId, PointCounterId};
@@ -53,9 +53,9 @@ pub fn spawn_pinball_world(
                 WorldFrame,
                 SpatialBundle::default(),
                 coll,
-                ColliderDebugColor(RED.into()),
-                COLLIDE_ONLY_WITH_BALL,
-                ActiveEvents::COLLISION_EVENTS,
+                DebugRender::default().with_collider_color(RED.into()),
+                CollisionLayers::new(GameLayer::Map, GameLayer::Ball),
+                RigidBody::Static,
             ));
         }
         // Ball starter

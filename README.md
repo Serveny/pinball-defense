@@ -1,4 +1,4 @@
-:warning: **Work in progress**
+:warning: **Work in progress | At the moment broken**
 
 # Pinball Defense
 
