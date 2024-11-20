@@ -22,10 +22,10 @@ opt-level = 3
 log = []
 
 [dependencies]
-bevy = {version ="0.14.2", features = ["dynamic_linking"] }
+bevy = { version ="0.14.2", features = ["dynamic_linking"] }
 bevy-inspector-egui = "0.27.0"
 bevy_asset_loader = "0.21.0"
-avian2d = "0.1"
+avian2d = { version = "0.1" }
 bevy_window_title_diagnostics = "0.14.0"
 bevy_tweening = "0.11.0"
 digits_iterator = "0.1.0"

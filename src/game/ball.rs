@@ -20,7 +20,7 @@ impl Plugin for BallPlugin {
             .add_event::<CollisionWithBallEvent>()
             .add_systems(
                 Update,
-                (ball_reset_system, max_speed_system).run_if(in_state(GameState::Ingame)),
+                (ball_reset_system).run_if(in_state(GameState::Ingame)),
             )
             .add_systems(
                 Update,
@@ -60,18 +60,18 @@ pub fn spawn(
             transform: Transform::from_translation(pos),
             ..default()
         },
-        SweptCcd::NON_LINEAR,
         RigidBody::Dynamic,
+        SweptCcd::default(),
+        SleepingDisabled::default(),
         Collider::circle(radius),
         DebugRender::collider(GOLD.into()),
         CollisionLayers::new(
             GameLayer::Ball,
             [GameLayer::Enemy, GameLayer::Tower, GameLayer::Map],
         ),
-        SleepingDisabled::default(),
         Mass(0.081),
-        Restitution::from(0.5),
-        Friction::from(0.01),
+        Restitution::from(1.0),
+        Friction::from(0.00),
         PinBall,
         Name::new("Ball"),
     ));
@@ -112,22 +112,6 @@ fn on_ball_despawn_system(
     if evr.read().next().is_some() {
         pm_status_ev.send(PinballMenuEvent::Deactivate);
         sound_ev.send(SoundEvent::BallHitsEnd);
-    }
-}
-
-// Prevent clipping of ball through objects
-const MAX_SQUARED_SPEED: f32 = 40.;
-
-fn max_speed_system(mut q_ball: Query<&mut LinearVelocity, With<PinBall>>) {
-    q_ball.iter_mut().for_each(limit_velocity);
-}
-
-pub fn limit_velocity(mut velocity: Mut<LinearVelocity>) {
-    let length = velocity.length_squared();
-    if length > MAX_SQUARED_SPEED {
-        velocity.0 *= MAX_SQUARED_SPEED / length;
-
-        log!("🥨 Limit velocity from {} to {}", length, velocity.linvel);
     }
 }
 

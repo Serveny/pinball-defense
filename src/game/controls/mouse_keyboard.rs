@@ -3,7 +3,7 @@ use crate::game::ball_starter::{BallStarterState, SpawnBallEvent};
 use crate::game::camera::CameraState;
 use crate::game::flipper::{FlipperStatus, FlipperType};
 use crate::game::ui::UiState;
-use crate::game::{GameState, PauseGameEvent, ResumeGameEvent};
+use crate::game::{ball, GameState, PauseGameEvent, ResumeGameEvent};
 use crate::menu::MenuState;
 use crate::prelude::*;
 use bevy::window::{CursorGrabMode, PrimaryWindow};
@@ -98,10 +98,22 @@ pub(super) fn pause_key_system(
 }
 
 pub(super) fn mouse_btn_system(
+    mut cmds: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
     btn: Res<ButtonInput<MouseButton>>,
     mut cam_state: ResMut<NextState<CameraState>>,
     mut q_window: Query<&mut Window, With<PrimaryWindow>>,
 ) {
+    if btn.just_pressed(MouseButton::Left) {
+        ball::spawn(
+            &mut cmds,
+            &mut meshes,
+            &mut materials,
+            Vec3::new(0., 0.2, 0.),
+        );
+    }
+
     if btn.just_pressed(MouseButton::Right) {
         let mut window = q_window.get_single_mut().unwrap();
         window.cursor.grab_mode = CursorGrabMode::Locked;
