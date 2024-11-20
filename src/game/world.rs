@@ -47,17 +47,22 @@ pub fn spawn_pinball_world(
         },));
 
         // Map colliders
-        for coll in colliders::colliders() {
-            p.spawn((
-                Name::new("World Frame Collider"),
-                WorldFrame,
-                SpatialBundle::default(),
-                coll,
-                DebugRender::default().with_collider_color(RED.into()),
-                CollisionLayers::new(GameLayer::Map, GameLayer::Ball),
-                RigidBody::Static,
-            ));
-        }
+        p.spawn((
+            Name::new("World Frame Collider"),
+            WorldFrame,
+            CollisionLayers::new(GameLayer::Map, GameLayer::Ball),
+            RigidBody::Static,
+        ))
+        .with_children(|p| {
+            for coll in colliders::colliders() {
+                p.spawn((
+                    coll,
+                    DebugRender::default().with_collider_color(RED.into()),
+                    CollisionMargin(0.005),
+                ));
+            }
+        });
+
         // Ball starter
         let bs_pos = Vec3::new(1.284, 0.657, -0.018);
         super::ball_starter::spawn(p, bs_pos, assets);
