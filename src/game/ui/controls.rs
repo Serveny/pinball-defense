@@ -28,7 +28,7 @@ pub fn despawn(mut cmds: Commands, q_ui: Query<Entity, With<ControlsUi>>) {
     }
 }
 
-type QKeys<'w, 's, 'a> = Query<'w, 's, (&'a mut Style, &'a UiKey)>;
+type QKeys<'w, 's, 'a> = Query<'w, 's, (&'a mut Node, &'a UiKey)>;
 
 pub fn keys_to_pos_system(
     q_keys: QKeys,
@@ -115,51 +115,44 @@ fn spawn_key(
     pos: FieldPos,
     text: &str,
 ) {
-    p.spawn((
-        Name::new("UI Key"),
-        NodeBundle {
-            style: field_style(pos),
-            ..default()
-        },
-        UiKey(key),
-        ControlsUi,
-    ))
-    .with_children(|p| {
-        p.spawn(TextBundle::from_section(
-            format!("{text} "),
-            TextStyle {
-                font: assets.menu_font.clone(),
-                font_size: 52.0,
-                color: GameColor::WHITE,
-            },
-        ));
-        p.spawn((ButtonBundle {
-            style: Style {
-                width: Val::Auto,
-                height: Val::Px(FIELD_HEIGHT_PX),
-                border: UiRect::all(Val::Px(5.0)),
-                padding: UiRect::new(Val::Px(5.), Val::Px(10.), Val::Px(0.), Val::Px(5.)),
-                ..default()
-            },
-            border_color: GameColor::WHITE.into(),
-            background_color: Color::NONE.into(),
-            ..default()
-        },))
+    p.spawn((Name::new("UI Key"), field_node(pos), UiKey(key), ControlsUi))
+        .with_children(|p| {
+            p.spawn((
+                Text(format!("{text} ")),
+                TextFont {
+                    font: assets.menu_font.clone(),
+                    font_size: 52.0,
+                    ..default()
+                },
+                TextColor(GameColor::WHITE),
+            ));
+            p.spawn((
+                Node {
+                    width: Val::Auto,
+                    height: Val::Px(FIELD_HEIGHT_PX),
+                    border: UiRect::all(Val::Px(5.0)),
+                    padding: UiRect::new(Val::Px(5.), Val::Px(10.), Val::Px(0.), Val::Px(5.)),
+                    ..default()
+                },
+                BorderColor(GameColor::WHITE),
+                BackgroundColor(Color::NONE),
+            ))
             .with_children(|p| {
-                p.spawn(TextBundle::from_section(
-                    format!("{key:?}").replace("Key", ""),
-                    TextStyle {
+                p.spawn((
+                    Text(format!("{key:?}").replace("Key", "")),
+                    TextFont {
                         font: assets.menu_font.clone(),
                         font_size: 40.0,
-                        color: GameColor::WHITE,
+                        ..default()
                     },
+                    TextColor(GameColor::WHITE),
                 ));
             });
-    });
+        });
 }
 
-fn field_style(pos: FieldPos) -> Style {
-    let mut style = Style {
+fn field_node(pos: FieldPos) -> Node {
+    let mut style = Node {
         position_type: PositionType::Absolute,
         width: Val::Auto,
         height: Val::Px(FIELD_HEIGHT_PX),

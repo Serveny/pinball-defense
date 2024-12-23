@@ -25,7 +25,7 @@ pub fn spawn_life_bar(
     parent
         .spawn((
             Name::new("Life Bar"),
-            SpatialBundle::from_transform(trans),
+            trans,
             LifeBar,
             Health::new(100.),
             HealthRecovery::new(4., 6.),

@@ -50,15 +50,12 @@ fn head(
     rel_id: Entity,
 ) -> impl Bundle {
     (
-        PbrBundle {
-            mesh: assets.tower_microwave_top.clone(),
-            material,
-            transform: Transform::from_xyz(0., 0., 0.04),
-            ..default()
-        },
+        TowerHead,
+        Mesh3d(assets.tower_microwave_top.clone()),
+        MeshMaterial3d(material),
+        Transform::from_xyz(0., 0., 0.04),
         RotateToTarget,
         RelEntity(rel_id),
-        TowerHead,
     )
 }
 
@@ -68,21 +65,17 @@ pub struct SlowDownFlashLight;
 fn slow_down_flash_light(g_sett: &GraphicsSettings, rel_id: Entity, range: f32) -> impl Bundle {
     (
         Name::new("Slow Down Flash"),
-        SpotLightBundle {
-            transform: Transform::from_xyz(0., 0.04, 0.)
-                .looking_at(Vec3::new(0.0, 1.0, 0.0), Vec3::Z),
-            spot_light: SpotLight {
-                intensity: 0.,
-                color: ORANGE_RED.into(),
-                shadows_enabled: g_sett.is_shadows,
-                range,
-                inner_angle: 0.02,
-                outer_angle: 0.8,
-                ..default()
-            },
-            visibility: Visibility::Hidden,
+        SpotLight {
+            intensity: 0.,
+            color: ORANGE_RED.into(),
+            shadows_enabled: g_sett.is_shadows,
+            range,
+            inner_angle: 0.02,
+            outer_angle: 0.8,
             ..default()
         },
+        Transform::from_xyz(0., 0.04, 0.).looking_at(Vec3::new(0.0, 1.0, 0.0), Vec3::Z),
+        Visibility::Hidden,
         SlowDownFlashLight,
         ShotLight,
         RelEntity(rel_id),
@@ -101,7 +94,7 @@ pub(in super::super) fn shot_animation_system(
         let mut flash = get_flash(&mut q_slow_flash, tower_id);
         match enemy_id.0 {
             Some(_) => {
-                let sin = (time.elapsed_seconds() * 16.).sin();
+                let sin = (time.elapsed_secs() * 16.).sin();
                 *flash.0 = Visibility::Inherited;
                 flash.1.intensity = (sin + 1.) * 32.;
             }

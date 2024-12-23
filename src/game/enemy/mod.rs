@@ -107,21 +107,18 @@ fn enemy(meshes: &mut Assets<Mesh>, mats: &mut Assets<StandardMaterial>) -> impl
         Enemy::new(),
         Health::new(100.),
         LastDamager(None),
-        PbrBundle {
-            mesh: meshes.add(Mesh::from(Sphere {
-                radius: 0.03,
-                ..default()
-            })),
-            material: mats.add(StandardMaterial {
-                base_color: RED.into(),
-                perceptual_roughness: 0.,
-                metallic: 1.,
-                reflectance: 1.,
-                ..default()
-            }),
-            transform: Transform::from_translation(ROAD_POINTS[0]),
+        Mesh3d(meshes.add(Mesh::from(Sphere {
+            radius: 0.03,
             ..default()
-        },
+        }))),
+        MeshMaterial3d(mats.add(StandardMaterial {
+            base_color: RED.into(),
+            perceptual_roughness: 0.,
+            metallic: 1.,
+            reflectance: 1.,
+            ..default()
+        })),
+        Transform::from_translation(ROAD_POINTS[0]),
         Sensor,
         RigidBody::Kinematic,
         Collider::circle(0.03),

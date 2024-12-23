@@ -11,7 +11,7 @@ use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy::color::palettes::css::{BEIGE, GREEN};
 use bevy_tweening::lens::TransformRotateZLens;
-use bevy_tweening::{Animator, Delay, EaseFunction, Sequence, Tween};
+use bevy_tweening::{Animator, Delay, Sequence, Tween};
 use std::time::Duration;
 
 pub struct PinballMenuPlugin;
@@ -238,15 +238,9 @@ fn element_bundle(
     assets: &PinballDefenseGltfAssets,
 ) -> impl Bundle {
     (
-        PbrBundle {
-            mesh: assets.pinball_menu_element.clone(),
-            material: menu_el_type.get_menu_element_material(assets),
-            transform: Transform {
-                rotation: Quat::from_rotation_y(ELEM_START_ANGLE),
-                ..default()
-            },
-            ..default()
-        },
+        Mesh3d(assets.pinball_menu_element.clone()),
+        MeshMaterial3d(menu_el_type.get_menu_element_material(assets)),
+        Transform::from_rotation(Quat::from_rotation_y(ELEM_START_ANGLE)),
         // Game components
         PinballMenuElement,
         Name::new("Pinball Menu Element"),
@@ -256,21 +250,18 @@ fn element_bundle(
 
 fn active_light_bundle(g_sett: &GraphicsSettings) -> impl Bundle {
     (
-        SpotLightBundle {
-            transform: Transform::from_translation(Vec3::new(-0.79, -0., 0.))
-                .looking_at(Vec3::new(-1.0, -0.0, 0.0), Vec3::Z),
-            spot_light: SpotLight {
-                intensity: 28000., // lumens - roughly a 100W non-halogen incandescent bulb
-                color: BEIGE.into(),
-                shadows_enabled: g_sett.is_shadows,
-                range: 0.2,
-                inner_angle: 0.2,
-                outer_angle: 0.8,
-                ..default()
-            },
-            visibility: Visibility::Hidden,
+        SpotLight {
+            intensity: 28000., // lumens - roughly a 100W non-halogen incandescent bulb
+            color: BEIGE.into(),
+            shadows_enabled: g_sett.is_shadows,
+            range: 0.2,
+            inner_angle: 0.2,
+            outer_angle: 0.8,
             ..default()
         },
+        Transform::from_translation(Vec3::new(-0.79, -0., 0.))
+            .looking_at(Vec3::new(-1.0, -0.0, 0.0), Vec3::Z),
+        Visibility::Hidden,
         PinballMenuElementLight,
     )
 }
@@ -475,20 +466,17 @@ pub fn pinball_menu_glass(
     mats: &mut Assets<StandardMaterial>,
 ) -> impl Bundle {
     (
-        PbrBundle {
-            mesh: assets.world_1_menu_glass.clone(),
-            material: mats.add(StandardMaterial {
-                base_color: Color::WHITE,
-                perceptual_roughness: 0.,
-                metallic: 0.,
-                reflectance: 0.6,
-                alpha_mode: AlphaMode::Multiply,
-                ..default()
-            }),
-            transform: Transform::from_translation(MENU_POS),
-            ..default()
-        },
         Name::new("Pinball menu glass"),
+        Mesh3d(assets.world_1_menu_glass.clone()),
+        MeshMaterial3d(mats.add(StandardMaterial {
+            base_color: Color::WHITE,
+            perceptual_roughness: 0.,
+            metallic: 0.,
+            reflectance: 0.6,
+            alpha_mode: AlphaMode::Multiply,
+            ..default()
+        })),
+        Transform::from_translation(MENU_POS),
     )
 }
 

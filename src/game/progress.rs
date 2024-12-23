@@ -102,18 +102,15 @@ fn frame_bundle(
 ) -> impl Bundle {
     (
         Name::new("Progress Bar Frame"),
-        PbrBundle {
-            mesh: assets.progress_bar_frame.clone(),
-            material: mats.add(StandardMaterial {
-                base_color: Color::BLACK,
-                perceptual_roughness: 0.4,
-                metallic: 0.6,
-                reflectance: 0.5,
-                ..default()
-            }),
-            transform,
+        Mesh3d(assets.progress_bar_frame.clone()),
+        MeshMaterial3d(mats.add(StandardMaterial {
+            base_color: Color::BLACK,
+            perceptual_roughness: 0.4,
+            metallic: 0.6,
+            reflectance: 0.5,
             ..default()
-        },
+        })),
+        transform,
     )
 }
 
@@ -125,26 +122,23 @@ fn bar_bundle(
     color: Color,
 ) -> impl Bundle {
     (
-        PbrBundle {
-            mesh: assets.progress_bar.clone(),
-            material: mats.add(StandardMaterial {
-                base_color: color,
-                perceptual_roughness: 0.4,
-                metallic: 0.6,
-                reflectance: 0.5,
-                ..default()
-            }),
-            transform: Transform {
-                translation: Vec3::new(0.003, -0.034, 0.003),
-                scale: Vec3::new(1., init_val, 1.),
-                ..default()
-            },
+        Name::new("Progress Bar"),
+        Mesh3d(assets.progress_bar.clone()),
+        MeshMaterial3d(mats.add(StandardMaterial {
+            base_color: color,
+            perceptual_roughness: 0.4,
+            metallic: 0.6,
+            reflectance: 0.5,
+            ..default()
+        })),
+        Transform {
+            translation: Vec3::new(0.003, -0.034, 0.003),
+            scale: Vec3::new(1., init_val, 1.),
             ..default()
         },
         ProgressBar::default(),
         Progress(init_val),
         RelEntity(rel_id),
-        Name::new("Progress Bar"),
     )
 }
 
@@ -154,19 +148,16 @@ fn background_bundle(
     color: Color,
 ) -> impl Bundle {
     (
-        PbrBundle {
-            mesh: assets.progress_bar.clone(),
-            material: mats.add(StandardMaterial {
-                base_color: color,
-                perceptual_roughness: 0.2,
-                metallic: 0.6,
-                reflectance: 0.1,
-                ..default()
-            }),
-            transform: Transform::from_xyz(0.003, -0.034, 0.002),
-            ..default()
-        },
         Name::new("Progress Bar Background"),
+        Mesh3d(assets.progress_bar.clone()),
+        MeshMaterial3d(mats.add(StandardMaterial {
+            base_color: color,
+            perceptual_roughness: 0.2,
+            metallic: 0.6,
+            reflectance: 0.1,
+            ..default()
+        })),
+        Transform::from_xyz(0.003, -0.034, 0.002),
     )
 }
 
@@ -192,7 +183,7 @@ fn scale_system(
     {
         let p = progress.0;
         let mut y = trans.scale.y;
-        y += time.delta_seconds() * 0.5 * (p - y).signum();
+        y += time.delta_secs() * 0.5 * (p - y).signum();
 
         if is_almost_eq(y, p) {
             y = p;

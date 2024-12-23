@@ -12,44 +12,35 @@ pub fn spawn(
 ) {
     p.spawn((
         Name::new("UI Row"),
-        NodeBundle {
-            background_color: GameColor::BACKGROUND.into(),
-            border_color: GameColor::GRAY.into(),
-            style: Style {
-                display: Display::Grid,
-                grid_template_columns: vec![
-                    GridTrack::px(400.),
-                    GridTrack::auto(),
-                    GridTrack::px(20.),
-                ],
-                align_items: AlignItems::Stretch,
-                border: UiRect::bottom(Val::Px(2.)),
-                height: Val::Px(65.),
-                ..default()
-            },
+        Node {
+            display: Display::Grid,
+            grid_template_columns: vec![GridTrack::px(400.), GridTrack::auto(), GridTrack::px(20.)],
+            align_items: AlignItems::Stretch,
+            border: UiRect::bottom(Val::Px(2.)),
+            height: Val::Px(65.),
             ..default()
         },
+        BorderColor(GameColor::GRAY),
+        BackgroundColor(GameColor::BACKGROUND),
         Row,
     ))
     .with_children(|p| {
-        p.spawn(NodeBundle::default()).with_children(|p| {
-            p.spawn(TextBundle {
-                text: Text::from_section(
-                    text,
-                    TextStyle {
-                        font: assets.menu_font.clone(),
-                        font_size: 40.0,
-                        color: row_text_color(true),
-                    },
-                ),
-                style: Style {
+        p.spawn(Node::default()).with_children(|p| {
+            p.spawn((
+                Text(text.to_string()),
+                TextFont {
+                    font: assets.menu_font.clone(),
+                    font_size: 40.0,
+                    ..default()
+                },
+                TextColor(row_text_color(true)),
+                Node {
                     margin: UiRect::all(Val::Auto),
                     ..default()
                 },
-                ..default()
-            });
+            ));
         });
-        p.spawn(NodeBundle::default()).with_children(spawn_inside);
+        p.spawn(Node::default()).with_children(spawn_inside);
     });
 }
 

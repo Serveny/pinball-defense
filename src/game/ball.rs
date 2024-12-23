@@ -45,21 +45,18 @@ pub fn spawn(
 ) {
     let radius = 0.02;
     cmds.spawn((
-        PbrBundle {
-            mesh: meshes.add(Mesh::from(Sphere {
-                radius,
-                ..default()
-            })),
-            material: materials.add(StandardMaterial {
-                base_color: GOLD.into(),
-                perceptual_roughness: 0.,
-                metallic: 1.,
-                reflectance: 1.,
-                ..default()
-            }),
-            transform: Transform::from_translation(pos),
+        Mesh3d(meshes.add(Mesh::from(Sphere {
+            radius,
             ..default()
-        },
+        }))),
+        MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: GOLD.into(),
+            perceptual_roughness: 0.,
+            metallic: 1.,
+            reflectance: 1.,
+            ..default()
+        })),
+        Transform::from_translation(pos),
         RigidBody::Dynamic,
         SweptCcd::default(),
         SleepingDisabled::default(),
