@@ -13,7 +13,7 @@ use crate::settings::GraphicsSettings;
 use bevy::color::palettes::css::GREEN;
 use bevy_tweening::{
     lens::{TransformPositionLens, TransformRotationLens},
-    Animator, Delay, EaseFunction, Tween,
+    Animator, Delay, Tween,
 };
 use std::{f32::consts::PI, time::Duration};
 
@@ -90,12 +90,9 @@ fn spawn(
 fn ring(assets: &PinballDefenseGltfAssets, pos: Vec3, hit_progress: f32) -> impl Bundle {
     (
         Name::new("Tower Foundation"),
-        PbrBundle {
-            mesh: assets.foundation_ring.clone(),
-            material: assets.foundation_ring_material.clone(),
-            transform: Transform::from_translation(pos),
-            ..default()
-        },
+        Mesh3d(assets.foundation_ring.clone()),
+        MeshMaterial3d(assets.foundation_ring_material.clone()),
+        Transform::from_translation(pos),
         Sensor,
         Collider::circle(0.07),
         DebugRender::collider(GREEN.into()),
@@ -121,12 +118,9 @@ fn spawn_animation(pos: Vec3) -> Tween<Transform> {
 fn lid_top(assets: &PinballDefenseGltfAssets) -> impl Bundle {
     (
         Name::new("Tower Foundation Top"),
-        PbrBundle {
-            mesh: assets.foundation_lid_top.clone(),
-            material: assets.foundation_lid_material.clone(),
-            transform: Transform::from_translation(Vec3::new(-0.06, 0., 0.)),
-            ..default()
-        },
+        Mesh3d(assets.foundation_lid_top.clone()),
+        MeshMaterial3d(assets.foundation_lid_material.clone()),
+        Transform::from_translation(Vec3::new(-0.06, 0., 0.)),
         TowerFoundationTop,
         TowerFoundationLid,
     )
@@ -135,12 +129,9 @@ fn lid_top(assets: &PinballDefenseGltfAssets) -> impl Bundle {
 fn lid_bottom(assets: &PinballDefenseGltfAssets) -> impl Bundle {
     (
         Name::new("Tower Foundation Bottom"),
-        PbrBundle {
-            mesh: assets.foundation_lid_bottom.clone(),
-            material: assets.foundation_lid_material.clone(),
-            transform: Transform::from_translation(Vec3::new(0.06, 0., 0.)),
-            ..default()
-        },
+        Mesh3d(assets.foundation_lid_bottom.clone()),
+        MeshMaterial3d(assets.foundation_lid_material.clone()),
+        Transform::from_translation(Vec3::new(0.06, 0., 0.)),
         TowerFoundationBottom,
         TowerFoundationLid,
     )
@@ -261,11 +252,8 @@ pub fn build_mark(assets: &PinballDefenseGltfAssets, pos: Vec3, i: usize) -> imp
     (
         Name::new(format!("Build Mark {i}")),
         FoundationBuildMark::new(i),
-        PbrBundle {
-            mesh: assets.build_mark.clone(),
-            material: assets.build_mark_material.clone(),
-            transform: Transform::from_translation(pos),
-            ..default()
-        },
+        Mesh3d(assets.build_mark.clone()),
+        MeshMaterial3d(assets.build_mark_material.clone()),
+        Transform::from_translation(pos),
     )
 }

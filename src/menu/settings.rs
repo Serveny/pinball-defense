@@ -4,7 +4,7 @@ use crate::prelude::*;
 use crate::settings::{GraphicsSettings, SoundSettings};
 use crate::utils::reflect::{cast, prop_name};
 use crate::utils::{Music, Sound};
-use bevy::core_pipeline::bloom::BloomSettings;
+use bevy::core_pipeline::bloom::Bloom;
 
 #[derive(States, Clone, Eq, PartialEq, Debug, Hash, Default)]
 pub enum SettingsMenuState {
@@ -27,6 +27,7 @@ pub fn layout<TSettings: Resource + Struct>(
             let prop_name = prop_name(settings.as_ref(), i)
                 .replace('_', " ")
                 .replace("is", "");
+            let field = field.try_as_reflect().expect("Can't cast as reflect");
             row::spawn(&prop_name, p, &assets, |p| {
                 match field.reflect_type_path() {
                     "bool" => checkbox::spawn(p, i, cast::<bool>(field)),
@@ -44,21 +45,18 @@ pub struct SettingsMenuLayout;
 
 fn settings_menu_layout() -> impl Bundle {
     (
-        NodeBundle {
-            background_color: Color::srgba_u8(23, 24, 26, 120).into(),
-            style: Style {
-                position_type: PositionType::Absolute,
-                left: Val::Px(300.),
-                right: Val::Px(0.),
-                display: Display::Flex,
-                flex_direction: FlexDirection::Column,
-                flex_wrap: FlexWrap::NoWrap,
-                justify_content: JustifyContent::FlexStart,
-                align_content: AlignContent::FlexStart,
-                ..default()
-            },
+        Node {
+            position_type: PositionType::Absolute,
+            left: Val::Px(300.),
+            right: Val::Px(0.),
+            display: Display::Flex,
+            flex_direction: FlexDirection::Column,
+            flex_wrap: FlexWrap::NoWrap,
+            justify_content: JustifyContent::FlexStart,
+            align_content: AlignContent::FlexStart,
             ..default()
         },
+        BackgroundColor(Color::srgba_u8(23, 24, 26, 120).into()),
         MenuLayout,
         SettingsMenuLayout,
     )
@@ -90,7 +88,7 @@ pub fn on_changed_graphics_settings(
     mut q_spot: Query<&mut SpotLight>,
     mut q_point: Query<&mut PointLight>,
     mut q_cam: Query<&mut Camera>,
-    mut q_bloom: Query<&mut BloomSettings>,
+    mut q_bloom: Query<&mut Bloom>,
 ) {
     if g_sett.is_changed() {
         q_point

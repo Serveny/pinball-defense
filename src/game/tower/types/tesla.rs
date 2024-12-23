@@ -46,13 +46,10 @@ pub fn spawn(
 
 fn top(material: Handle<StandardMaterial>, assets: &PinballDefenseGltfAssets) -> impl Bundle {
     (
-        PbrBundle {
-            mesh: assets.tower_tesla_top.clone(),
-            material,
-            transform: Transform::from_xyz(0., 0., 0.02),
-            ..default()
-        },
         TowerHead,
+        Mesh3d(assets.tower_tesla_top.clone()),
+        MeshMaterial3d(material),
+        Transform::from_xyz(0., 0., 0.02),
         RotateAlways,
     )
 }
@@ -63,18 +60,15 @@ pub struct ShotFlashLight;
 fn shot_flash_light(g_sett: &GraphicsSettings, rel_id: Entity, range: f32) -> impl Bundle {
     (
         Name::new("Shot Flash"),
-        PointLightBundle {
-            transform: Transform::from_xyz(0., 0., 0.1),
-            point_light: PointLight {
-                intensity: 0.,
-                color: BLUE.into(),
-                shadows_enabled: g_sett.is_shadows,
-                range,
-                ..default()
-            },
-            visibility: Visibility::Hidden,
+        PointLight {
+            intensity: 0.,
+            color: BLUE.into(),
+            shadows_enabled: g_sett.is_shadows,
+            range,
             ..default()
         },
+        Transform::from_xyz(0., 0., 0.1),
+        Visibility::Hidden,
         ShotFlashLight,
         ShotLight,
         RelEntity(rel_id),
@@ -90,7 +84,7 @@ pub(in super::super) fn shot_animation_system(
         let mut flash = get_flash(&mut q_shot_flash, tower_id);
         match ewr.0.is_empty() {
             false => {
-                let sin = (time.elapsed_seconds() * 32.).sin();
+                let sin = (time.elapsed_secs() * 32.).sin();
                 *flash.0 = Visibility::Inherited;
                 flash.1.intensity = (sin + 1.) * 32.;
             }

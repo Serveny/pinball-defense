@@ -76,21 +76,17 @@ pub struct MuzzleFlashLight;
 fn muzzle_flash_light(g_sett: &GraphicsSettings, rel_id: Entity, range: f32) -> impl Bundle {
     (
         Name::new("Muzzle Flash"),
-        SpotLightBundle {
-            transform: Transform::from_xyz(0., 0.04, 0.)
-                .looking_at(Vec3::new(0.0, 1.0, 0.0), Vec3::Z),
-            spot_light: SpotLight {
-                intensity: 0., // lumens - roughly a 100W non-halogen incandescent bulb
-                color: Color::srgba_u8(215, 205, 117, 255),
-                shadows_enabled: g_sett.is_shadows,
-                range,
-                inner_angle: 0.02,
-                outer_angle: 0.8,
-                ..default()
-            },
-            visibility: Visibility::Hidden,
+        SpotLight {
+            intensity: 0., // lumens - roughly a 100W non-halogen incandescent bulb
+            color: Color::srgba_u8(215, 205, 117, 255),
+            shadows_enabled: g_sett.is_shadows,
+            range,
+            inner_angle: 0.02,
+            outer_angle: 0.8,
             ..default()
         },
+        Transform::from_xyz(0., 0.04, 0.).looking_at(Vec3::new(0.0, 1.0, 0.0), Vec3::Z),
+        Visibility::Hidden,
         MuzzleFlashLight,
         ShotLight,
         RelEntity(rel_id),
@@ -104,12 +100,9 @@ fn barrel(
 ) -> impl Bundle {
     (
         Name::new("Barrel"),
-        PbrBundle {
-            mesh: assets.tower_mg_barrel.clone(),
-            material: tower_mat,
-            transform: Transform::from_xyz(0., 0., 0.),
-            ..default()
-        },
+        Mesh3d(assets.tower_mg_barrel.clone()),
+        MeshMaterial3d(tower_mat),
+        Transform::from_xyz(0., 0., 0.),
         GunTowerBarrel,
         RelEntity(rel_id),
     )
@@ -122,12 +115,9 @@ fn head(
 ) -> impl Bundle {
     (
         Name::new("Head"),
-        PbrBundle {
-            mesh: assets.tower_mg_head.clone(),
-            material: tower_mat,
-            transform: Transform::from_xyz(0., 0., 0.),
-            ..default()
-        },
+        Mesh3d(assets.tower_mg_head.clone()),
+        MeshMaterial3d(tower_mat),
+        Transform::from_xyz(0., 0., 0.),
         GunTowerHead,
         //RotateToTarget::X,
         RelEntity(rel_id),
@@ -141,14 +131,11 @@ fn mounting(
 ) -> impl Bundle {
     (
         Name::new("Mounting"),
-        PbrBundle {
-            mesh: assets.tower_mg_mounting.clone(),
-            material: tower_mat.clone(),
-            transform: Transform {
-                translation: Vec3::new(0., 0., 0.023),
-                scale: Vec3::new(0.9, 0.9, 0.9),
-                ..default()
-            },
+        Mesh3d(assets.tower_mg_mounting.clone()),
+        MeshMaterial3d(tower_mat.clone()),
+        Transform {
+            translation: Vec3::new(0., 0., 0.023),
+            scale: Vec3::new(0.9, 0.9, 0.9),
             ..default()
         },
         GunTowerMount,
@@ -171,7 +158,7 @@ pub(in super::super) fn shoot_animation_system(
         let mut flash = get_flash(&mut q_muzzle_flash, tower_id);
         match enemy_id.0 {
             Some(_) => {
-                let sin = (time.elapsed_seconds() * 64.).sin();
+                let sin = (time.elapsed_secs() * 64.).sin();
                 *flash.0 = Visibility::Inherited;
                 get_barrel(&mut q_barrel, tower_id).0.translation.y = sin * 0.002;
                 flash.1.intensity = (sin + 1.) * 32.;

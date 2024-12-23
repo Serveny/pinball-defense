@@ -14,21 +14,17 @@ pub fn spawn(p: &mut ChildBuilder, prop_i: usize, init_val: f32) {
     p.spawn((
         Name::new("Slider"),
         Slider,
-        NodeBundle {
-            style: Style {
-                position_type: PositionType::Relative,
-                width: Val::Percent(100.),
-                height: Val::Percent(100.),
-                ..default()
-            },
+        Node {
+            position_type: PositionType::Relative,
+            width: Val::Percent(100.),
+            height: Val::Percent(100.),
             ..default()
         },
         RelativeCursorPosition::default(),
     ))
     .with_children(|p| {
-        p.spawn(NodeBundle {
-            background_color: GameColor::GOLD.into(),
-            style: Style {
+        p.spawn((
+            Node {
                 position_type: PositionType::Absolute,
                 top: Val::Px(0.),
                 left: Val::Px(0.),
@@ -37,8 +33,8 @@ pub fn spawn(p: &mut ChildBuilder, prop_i: usize, init_val: f32) {
                 margin: UiRect::all(Val::Auto),
                 ..default()
             },
-            ..default()
-        });
+            BackgroundColor(GameColor::GOLD),
+        ));
         p.spawn(knob(prop_i, init_val));
     });
 }
@@ -53,26 +49,23 @@ fn knob(prop_i: usize, init_val: f32) -> impl Bundle {
         SliderKnob,
         PropIndex(prop_i),
         Active,
-        ButtonBundle {
-            style: Style {
-                position_type: PositionType::Absolute,
-                top: Val::Px(0.),
-                left: Val::Percent(init_val * 100.),
-                width: Val::Px(size_px),
-                height: Val::Px(size_px),
-                margin: UiRect {
-                    left: Val::Px(-size_px / 2.),
-                    top: Val::Auto,
-                    bottom: Val::Auto,
-                    right: Val::Px(0.),
-                },
-                border: UiRect::all(Val::Px(4.0)),
-                ..default()
+        Node {
+            position_type: PositionType::Absolute,
+            top: Val::Px(0.),
+            left: Val::Percent(init_val * 100.),
+            width: Val::Px(size_px),
+            height: Val::Px(size_px),
+            margin: UiRect {
+                left: Val::Px(-size_px / 2.),
+                top: Val::Auto,
+                bottom: Val::Auto,
+                right: Val::Px(0.),
             },
-            border_color: GameColor::GOLD.into(),
-            background_color: GameColor::WHITE.into(),
+            border: UiRect::all(Val::Px(4.0)),
             ..default()
         },
+        BorderColor(GameColor::GOLD),
+        BackgroundColor(GameColor::WHITE),
     )
 }
 
@@ -82,7 +75,7 @@ pub fn system(
             &Interaction,
             &Parent,
             &mut BorderColor,
-            &mut Style,
+            &mut Node,
             &PropIndex,
         ),
         (With<SliderKnob>, With<Active>),

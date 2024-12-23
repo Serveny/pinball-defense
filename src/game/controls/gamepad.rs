@@ -7,43 +7,8 @@ use crate::game::{
 use crate::game::{PauseGameEvent, ResumeGameEvent};
 use crate::menu::MenuState;
 use crate::prelude::*;
-use bevy::input::gamepad::{GamepadButtonChangedEvent, GamepadConnectionEvent};
-
-/// Simple resource to store the ID of the connected gamepad.
-/// We need to know which gamepad to use for player input.
-#[derive(Resource)]
-pub struct MyGamepad(pub Gamepad);
-
-pub(super) fn on_dis_connect(
-    mut cmds: Commands,
-    my_gamepad: Option<Res<MyGamepad>>,
-    mut gamepad_evr: EventReader<GamepadConnectionEvent>,
-) {
-    for ev in gamepad_evr.read() {
-        let id = ev.gamepad;
-        match ev.connected() {
-            true => {
-                println!("New gamepad connected with ID: {id:?}");
-
-                // if we don't have any gamepad yet, use this one
-                if my_gamepad.is_none() {
-                    cmds.insert_resource(MyGamepad(id));
-                }
-            }
-            false => {
-                println!("Lost gamepad connection with ID: {id:?}");
-
-                // if it's the one we previously associated with the player,
-                // disassociate it:
-                if let Some(MyGamepad(old_id)) = my_gamepad.as_deref() {
-                    if *old_id == id {
-                        cmds.remove_resource::<MyGamepad>();
-                    }
-                }
-            }
-        }
-    }
-}
+use bevy::input::gamepad::GamepadButtonChangedEvent;
+use bevy::input::ButtonState;
 
 pub(super) fn on_btn_changed(
     mut evr: EventReader<GamepadButtonChangedEvent>,
@@ -54,25 +19,28 @@ pub(super) fn on_btn_changed(
     mut pause_ev: EventWriter<PauseGameEvent>,
 ) {
     for ev in evr.read() {
-        match ev.button_type {
-            GamepadButtonType::East if ev.value > 0. => {
+        if ev.state != ButtonState::Pressed {
+            return;
+        }
+        match ev.button {
+            GamepadButton::East if ev.value > 0. => {
                 spawn_ball_ev.send(SpawnBallEvent);
             }
-            GamepadButtonType::South => ball_starter_state.set(match ev.value == 0. {
+            GamepadButton::South => ball_starter_state.set(match ev.value == 0. {
                 true => BallStarterState::Fire,
                 false => BallStarterState::Charge,
             }),
-            GamepadButtonType::LeftTrigger => set_flipper_status(
+            GamepadButton::LeftTrigger => set_flipper_status(
                 FlipperType::Left,
                 FlipperStatus::by_value(ev.value),
                 &mut q_flipper,
             ),
-            GamepadButtonType::RightTrigger => set_flipper_status(
+            GamepadButton::RightTrigger => set_flipper_status(
                 FlipperType::Right,
                 FlipperStatus::by_value(ev.value),
                 &mut q_flipper,
             ),
-            GamepadButtonType::Start => {
+            GamepadButton::Start => {
                 pause_ev.send(PauseGameEvent);
                 menu_state.set(MenuState::PauseMenu);
             }
@@ -87,8 +55,8 @@ pub(super) fn pause_btn_changed(
     mut resume_ev: EventWriter<ResumeGameEvent>,
 ) {
     for ev in evr.read() {
-        match ev.button_type {
-            GamepadButtonType::Start => {
+        match ev.button {
+            GamepadButton::Start => {
                 menu_state.set(MenuState::None);
                 resume_ev.send(ResumeGameEvent);
             }

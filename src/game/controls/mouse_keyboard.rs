@@ -37,8 +37,8 @@ pub(super) fn key_system(
 
     if key.just_pressed(controls.menu) {
         let mut window = q_window.get_single_mut().unwrap();
-        window.cursor.grab_mode = CursorGrabMode::None;
-        window.cursor.visible = true;
+        window.cursor_options.grab_mode = CursorGrabMode::None;
+        window.cursor_options.visible = true;
         cam_state.set(CameraState::Dynamic);
         pause_ev.send(PauseGameEvent);
         menu_state.set(MenuState::PauseMenu);
@@ -116,8 +116,8 @@ pub(super) fn mouse_btn_system(
 
     if btn.just_pressed(MouseButton::Right) {
         let mut window = q_window.get_single_mut().unwrap();
-        window.cursor.grab_mode = CursorGrabMode::Locked;
-        window.cursor.visible = false;
+        window.cursor_options.grab_mode = CursorGrabMode::Locked;
+        window.cursor_options.visible = false;
         cam_state.set(CameraState::FpsCamera);
     }
 }

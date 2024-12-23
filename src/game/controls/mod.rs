@@ -39,7 +39,6 @@ impl Plugin for ControlsPlugin {
                 (key_system, mouse_btn_system, gamepad::on_btn_changed)
                     .run_if(in_state(GameState::Ingame)),
             )
-            .add_systems(Update, gamepad::on_dis_connect)
             .add_systems(
                 Update,
                 (pause_key_system, gamepad::pause_btn_changed).run_if(in_state(GameState::Pause)),

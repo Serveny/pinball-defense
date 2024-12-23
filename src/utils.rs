@@ -33,6 +33,8 @@ pub mod reflect {
     pub fn get_field_mut(obj: &mut impl Struct, i: usize) -> &mut dyn Reflect {
         obj.field_at_mut(i)
             .unwrap_or_else(|| panic!("😭 No object at position {i}"))
+            .try_as_reflect_mut()
+            .unwrap_or_else(|| panic!("😭 Can't convert partial to reflect"))
     }
 
     pub fn set_field(obj: &mut impl Struct, i: usize, prop: Box<dyn Reflect>) {

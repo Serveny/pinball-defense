@@ -16,41 +16,35 @@ pub fn spawn(cmds: &mut Commands, rel_id: Entity, start_percent: PercentBw0And1)
         Name::new("Progess UI Bar"),
         RelEntity(rel_id),
         PosToRelEntity,
-        NodeBundle {
-            style: Style {
-                width: Val::Percent(3.),
-                height: Val::Percent(1.5),
-                border: UiRect::all(Val::Percent(0.1)),
-                padding: UiRect::all(Val::Px(0.)),
-                position_type: PositionType::Absolute,
-                // Pos bar on middle top of rel entity
-                margin: UiRect::new(
-                    Val::Percent(-1.5),
-                    Val::DEFAULT,
-                    Val::Percent(-1.5),
-                    Val::DEFAULT,
-                ),
-                ..default()
-            },
-            border_color: Color::BLACK.into(),
-            background_color: Color::WHITE.into(),
+        Node {
+            width: Val::Percent(3.),
+            height: Val::Percent(1.5),
+            border: UiRect::all(Val::Percent(0.1)),
+            padding: UiRect::all(Val::Px(0.)),
+            position_type: PositionType::Absolute,
+            // Pos bar on middle top of rel entity
+            margin: UiRect::new(
+                Val::Percent(-1.5),
+                Val::DEFAULT,
+                Val::Percent(-1.5),
+                Val::DEFAULT,
+            ),
             ..default()
         },
+        BorderColor(Color::BLACK),
+        BackgroundColor(Color::WHITE),
     ))
     .with_children(|p| {
         p.spawn((
             ProgressUiBar::default(),
             Progress(start_percent),
             RelEntity(rel_id),
-            NodeBundle {
-                style: Style {
-                    width: Val::Percent(start_percent * 100.),
-                    height: Val::Percent(100.),
-                    ..default()
-                },
-                background_color: RED.into(),
+            Node {
+                width: Val::Percent(start_percent * 100.),
+                height: Val::Percent(100.),
                 ..default()
             },
+            BackgroundColor(RED.into()),
         ));
     });
 }
@@ -83,7 +77,7 @@ pub(super) fn activate_animation_system(
 
 // Makes progress visible
 pub(super) fn show_progress_system(
-    mut q_progress: Query<(&mut Style, &Progress, &mut ProgressUiBar)>,
+    mut q_progress: Query<(&mut Node, &Progress, &mut ProgressUiBar)>,
     time: Res<Time>,
 ) {
     for (mut style, progress, mut bar) in q_progress
@@ -94,7 +88,7 @@ pub(super) fn show_progress_system(
             return;
         };
         let p = progress.0 * 100.;
-        y += time.delta_seconds() * 100. * (p - y).signum();
+        y += time.delta_secs() * 100. * (p - y).signum();
 
         if is_almost_eq(y, p) {
             y = p;
