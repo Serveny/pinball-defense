@@ -15,32 +15,30 @@ pub struct GameOverScreen;
 
 fn container() -> impl Bundle {
     (
-        NodeBundle {
-            background_color: Color::srgba_u8(23, 24, 26, 120).into(),
-            style: Style {
-                width: Val::Percent(100.),
-                height: Val::Percent(100.),
-                display: Display::Flex,
-                flex_direction: FlexDirection::Column,
-                flex_wrap: FlexWrap::NoWrap,
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
+        Node {
+            width: Val::Percent(100.),
+            height: Val::Percent(100.),
+            display: Display::Flex,
+            flex_direction: FlexDirection::Column,
+            flex_wrap: FlexWrap::NoWrap,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
             ..default()
         },
+        BackgroundColor(Color::srgba_u8(23, 24, 26, 120).into()),
         GameOverScreen,
     )
 }
 
 fn headline(text: &str, assets: &PinballDefenseAssets) -> impl Bundle {
-    TextBundle::from_section(
-        text,
-        TextStyle {
+    (
+        Text(text.to_string()),
+        TextFont {
             font: assets.menu_font.clone(),
             font_size: 100.0,
-            color: Color::srgb_u8(255, 254, 236),
+            ..default()
         },
+        TextColor(Color::srgb_u8(255, 254, 236)),
     )
 }
 
@@ -51,29 +49,28 @@ pub struct ActionBtn;
 fn spawn_restart_btn(p: &mut ChildBuilder, assets: &PinballDefenseAssets) {
     p.spawn((
         Name::new("Button"),
-        ButtonBundle {
-            style: Style {
-                width: Val::Px(400.),
-                height: Val::Px(65.),
-                border: UiRect::all(Val::Px(2.0)),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
-            border_color: GOLD.into(),
-            background_color: Color::NONE.into(),
+        Button::default(),
+        Node {
+            width: Val::Px(400.),
+            height: Val::Px(65.),
+            border: UiRect::all(Val::Px(2.0)),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
             ..default()
         },
+        BorderColor(GOLD.into()),
+        BackgroundColor(Color::NONE.into()),
         ActionBtn,
     ))
     .with_children(|p| {
-        p.spawn(TextBundle::from_section(
-            "New Game",
-            TextStyle {
+        p.spawn((
+            Text("New Game".to_string()),
+            TextFont {
                 font: assets.menu_font.clone(),
                 font_size: 40.0,
-                color: GameColor::WHITE,
+                ..default()
             },
+            TextColor(GameColor::WHITE),
         ));
     });
 }

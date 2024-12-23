@@ -16,7 +16,7 @@ pub(super) fn afe_damage_over_time_system(
         if let Some(enemy_id) = target.0 {
             health_ev.send(ChangeHealthEvent::new(
                 enemy_id,
-                -damage.0 * time.delta_seconds(),
+                -damage.0 * time.delta_secs(),
                 Some(tower_id),
             ));
         }
@@ -35,7 +35,7 @@ pub(super) fn datir_damage_over_time_system(
         for enemy_id in targets.0.iter() {
             health_ev.send(ChangeHealthEvent::new(
                 *enemy_id,
-                -damage.0 * time.delta_seconds(),
+                -damage.0 * time.delta_secs(),
                 Some(tower_id),
             ));
         }

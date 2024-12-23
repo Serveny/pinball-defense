@@ -3,8 +3,8 @@ pub use avian2d::prelude::*;
 pub use bevy::prelude::*;
 pub(crate) use macros::*;
 
-pub fn spatial_from_pos(pos: Vec3) -> SpatialBundle {
-    SpatialBundle::from_transform(Transform::from_translation(pos))
+pub fn spatial_from_pos(pos: Vec3) -> impl Bundle {
+    (Transform::from_translation(pos), Visibility::default())
 }
 
 mod macros {

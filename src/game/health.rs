@@ -169,7 +169,7 @@ fn health_recovery_system(
         if !health.is_full() && rec.can_recover(ig_time.0) {
             health_ev.send(ChangeHealthEvent::new(
                 id,
-                rec.health(time.delta_seconds()),
+                rec.health(time.delta_secs()),
                 None,
             ));
         }

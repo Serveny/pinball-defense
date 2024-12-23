@@ -239,7 +239,7 @@ fn add_gltf_resource(
     {
         let prop_name = prop_name(&assets, i);
         match field.reflect_type_path() {
-            "bevy_asset::handle::Handle<bevy_render::mesh::mesh::Mesh>" => {
+            "bevy_asset::handle::Handle<bevy_mesh::mesh::Mesh>" => {
                 let mesh = mesh(&prop_name, gltf, &gltf_meshes);
                 set_field(&mut assets, i, Box::new(mesh));
             }

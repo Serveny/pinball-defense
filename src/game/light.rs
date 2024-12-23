@@ -38,19 +38,16 @@ pub(super) struct ContactLight;
 pub(super) fn contact_light_bundle(g_sett: &GraphicsSettings, color: Color) -> impl Bundle {
     (
         Name::new("Contact Light"),
-        PointLightBundle {
-            transform: Transform::from_xyz(0., 0., 0.005),
-            point_light: PointLight {
-                intensity: 0.,
-                color,
-                shadows_enabled: g_sett.is_shadows,
-                radius: 0.01,
-                range: 0.5,
-                ..default()
-            },
-            visibility: Visibility::Hidden,
+        PointLight {
+            intensity: 0.,
+            color,
+            shadows_enabled: g_sett.is_shadows,
+            radius: 0.01,
+            range: 0.5,
             ..default()
         },
+        Transform::from_xyz(0., 0., 0.005),
+        Visibility::Hidden,
         ContactLight,
         FadeOutLight,
     )
@@ -99,7 +96,7 @@ fn on_add_flashlight_system(
 
 fn flash_light_system(mut q_light: Query<&mut PointLight, With<FlashLight>>, time: Res<Time>) {
     for mut light in q_light.iter_mut() {
-        light.intensity = ((time.elapsed_seconds() * 16.).sin() + 1.) * LIGHT_INTENSITY * 0.5;
+        light.intensity = ((time.elapsed_secs() * 16.).sin() + 1.) * LIGHT_INTENSITY * 0.5;
     }
 }
 
@@ -141,7 +138,7 @@ fn fade_out_point_light_system(
 ) {
     for (mut visi, mut light) in q_light.iter_mut() {
         if *visi != Visibility::Hidden {
-            let time = time.delta_seconds() * LIGHT_INTENSITY;
+            let time = time.delta_secs() * LIGHT_INTENSITY;
             light.intensity -= time;
             if light.intensity <= 0. {
                 light.intensity = 0.;
@@ -160,7 +157,7 @@ fn fade_out_spot_light_system(
 ) {
     for (mut visi, mut light) in q_light.iter_mut() {
         if *visi != Visibility::Hidden {
-            let time = time.delta_seconds() * LIGHT_INTENSITY;
+            let time = time.delta_secs() * LIGHT_INTENSITY;
             light.intensity -= time;
             if light.intensity <= 0. {
                 light.intensity = 0.;
@@ -176,21 +173,18 @@ pub(super) struct SightRadiusLight;
 pub(super) fn sight_radius_light(range: f32) -> impl Bundle {
     (
         Name::new("Sight Radius Light"),
-        SpotLightBundle {
-            transform: Transform::from_xyz(0., 0., 1.).looking_to(Vec3::NEG_Z, Vec3::Z),
-            spot_light: SpotLight {
-                intensity: 18000.,
-                color: ANTIQUE_WHITE.into(),
-                shadows_enabled: false,
-                radius: 3.,
-                range: 3.,
-                outer_angle: range,
-                inner_angle: range,
-                ..default()
-            },
-            visibility: Visibility::Inherited,
+        SpotLight {
+            intensity: 18000.,
+            color: ANTIQUE_WHITE.into(),
+            shadows_enabled: false,
+            radius: 3.,
+            range: 3.,
+            outer_angle: range,
+            inner_angle: range,
             ..default()
         },
+        Transform::from_xyz(0., 0., 1.).looking_to(Vec3::NEG_Z, Vec3::Z),
+        Visibility::Inherited,
         SightRadiusLight,
     )
 }
@@ -209,38 +203,33 @@ pub fn spawn_lamp(
 ) {
     p.spawn((Name::new("Lamp"), Lamp, spatial_from_pos(pos)))
         .with_children(|p| {
-            p.spawn(PbrBundle {
-                mesh: assets.lamp_bulb.clone(),
-                material: mats.add(StandardMaterial {
+            p.spawn((
+                Mesh3d(assets.lamp_bulb.clone()),
+                MeshMaterial3d(mats.add(StandardMaterial {
                     base_color: color,
                     perceptual_roughness: 0.,
                     metallic: 0.,
                     reflectance: 0.8,
                     alpha_mode: AlphaMode::Multiply,
                     ..default()
-                }),
-                ..default()
-            });
-            p.spawn(PbrBundle {
-                mesh: assets.lamp_thread.clone(),
-                material: assets.lamp_thread_material.clone(),
-                ..default()
-            });
+                })),
+            ));
             p.spawn((
-                PointLightBundle {
-                    transform: Transform::from_xyz(0., 0., 0.035),
-                    point_light: PointLight {
-                        intensity: 0.,
-                        color,
-                        shadows_enabled: g_sett.is_shadows,
-                        radius: 0.01,
-                        range: 2.,
-                        ..default()
-                    },
-                    visibility: Visibility::Hidden,
+                Mesh3d(assets.lamp_thread.clone()),
+                MeshMaterial3d(assets.lamp_thread_material.clone()),
+            ));
+            p.spawn((
+                PointLight {
+                    intensity: 0.,
+                    color,
+                    shadows_enabled: g_sett.is_shadows,
+                    radius: 0.01,
+                    range: 2.,
                     ..default()
                 },
                 light_comp,
+                Visibility::Hidden,
+                Transform::from_xyz(0., 0., 0.035),
             ));
         });
 }

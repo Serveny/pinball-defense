@@ -34,17 +34,17 @@ pub fn spawn_pinball_world(
     let mut lc_id = None;
     //let mut img_handle: Option<Handle<Image>> = None;
     cmds.spawn((
-        SpatialBundle { ..default() },
         PinballWorld,
         Name::new("Pinball World"),
+        Transform::default(),
+        Visibility::default(),
     ))
     .with_children(|p| {
         // World mesh
-        p.spawn((PbrBundle {
-            mesh: assets.world_1.clone(),
-            material: assets.world_1_material.clone(),
-            ..default()
-        },));
+        p.spawn((
+            Mesh3d(assets.world_1.clone()),
+            MeshMaterial3d(assets.world_1_material.clone()),
+        ));
 
         // Map colliders
         p.spawn((

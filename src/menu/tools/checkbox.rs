@@ -15,37 +15,32 @@ pub fn spawn(p: &mut ChildBuilder, prop_i: usize, init_val: bool) {
     p.spawn((
         Name::new("Checkbox"),
         Checkbox,
-        ButtonBundle {
-            style: Style {
-                width: Val::Px(40.),
-                height: Val::Px(40.),
-                border: UiRect::all(Val::Px(5.0)),
-                margin: UiRect::all(Val::Auto),
-                ..default()
-            },
-            border_color: GameColor::GOLD.into(),
-            background_color: Color::NONE.into(),
+        Button::default(),
+        Node {
+            width: Val::Px(40.),
+            height: Val::Px(40.),
+            border: UiRect::all(Val::Px(5.0)),
+            margin: UiRect::all(Val::Auto),
             ..default()
         },
+        BorderColor(GameColor::GOLD),
+        BackgroundColor(Color::NONE),
         PropIndex(prop_i),
         Active,
     ))
     .with_children(|p| {
         p.spawn((
-            NodeBundle {
-                background_color: GameColor::GOLD.into(),
-                style: Style {
-                    width: Val::Px(20.),
-                    height: Val::Px(20.),
-                    margin: UiRect::all(Val::Auto),
-                    ..default()
-                },
-                visibility: match init_val {
-                    true => Visibility::Inherited,
-                    false => Visibility::Hidden,
-                },
+            Node {
+                width: Val::Px(20.),
+                height: Val::Px(20.),
+                margin: UiRect::all(Val::Auto),
                 ..default()
             },
+            match init_val {
+                true => Visibility::Inherited,
+                false => Visibility::Hidden,
+            },
+            BackgroundColor(GameColor::GOLD),
             CheckboxMark,
         ));
     });

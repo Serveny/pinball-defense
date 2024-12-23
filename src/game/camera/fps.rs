@@ -1,4 +1,3 @@
-use crate::game::controls::gamepad::MyGamepad;
 use crate::prelude::*;
 use bevy::input::mouse::MouseMotion;
 
@@ -58,7 +57,7 @@ pub(super) fn on_keyboard_mouse_motion_system(
             &mut cam,
             delta_look,
             delta_move,
-            time.delta_seconds(),
+            time.delta_secs(),
             settings.mouse_sensitivity,
             settings.move_speed,
         )
@@ -66,30 +65,26 @@ pub(super) fn on_keyboard_mouse_motion_system(
 }
 
 pub(super) fn gamepad_input(
-    axes: Res<Axis<GamepadAxis>>,
-    my_gamepad: Option<Res<MyGamepad>>,
-    mut query: Query<(&mut Transform, &mut LookDirection)>,
+    mut q_look: Query<(&mut Transform, &mut LookDirection)>,
     time: Res<Time>,
     settings: Res<FpsCamSettings>,
+    gamepads: Query<&Gamepad>,
 ) {
-    if let Some(gp) = my_gamepad {
-        // a gamepad is connected, we have the id
-        let gamepad = gp.0;
-
+    for gamepad in gamepads.iter() {
         // Rotate
         if let (Some(lx), Some(ly), Some(rx), Some(ry)) = (
-            axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickX)),
-            axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickY)),
-            axes.get(GamepadAxis::new(gamepad, GamepadAxisType::RightStickX)),
-            axes.get(GamepadAxis::new(gamepad, GamepadAxisType::RightStickY)),
+            gamepad.get(GamepadAxis::LeftStickX),
+            gamepad.get(GamepadAxis::LeftStickY),
+            gamepad.get(GamepadAxis::RightStickX),
+            gamepad.get(GamepadAxis::RightStickY),
         ) {
-            query.iter_mut().for_each(|(mut transform, mut cam)| {
+            q_look.iter_mut().for_each(|(mut transform, mut cam)| {
                 look_and_move_in_direction(
                     &mut transform,
                     &mut cam,
                     Vec2::new(rx, -ry),
                     Vec2::new(ly, -lx),
-                    time.delta_seconds(),
+                    time.delta_secs(),
                     settings.stick_sensitivity,
                     settings.move_speed,
                 )

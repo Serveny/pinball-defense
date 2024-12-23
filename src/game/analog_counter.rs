@@ -112,44 +112,32 @@ pub fn spawn_10_digit(
 ) -> Entity {
     let mut counter = parent.spawn((
         Name::new("Analog Counter Casing 10 Digit"),
-        PbrBundle {
-            mesh: assets.analog_counter_10_digit_casing.clone(),
-            material: assets.analog_counter_casing_10_digit_material.clone(),
-            transform: Transform::from_translation(pos),
-            ..default()
-        },
+        Mesh3d(assets.analog_counter_10_digit_casing.clone()),
+        MeshMaterial3d(assets.analog_counter_casing_10_digit_material.clone()),
+        Transform::from_translation(pos),
         AnalogCounter,
     ));
     counter.with_children(|parent| {
         for i in 0..9 {
             parent.spawn((
                 Name::new("Analog Counter Digit"),
-                PbrBundle {
-                    mesh: assets.analog_counter_cylinder.clone(),
-                    material: assets.analog_counter_cylinder_material.clone(),
-                    transform: Transform::from_xyz(0., i as f32 * -0.0242 + 0.096, -0.005),
-                    ..default()
-                },
+                Mesh3d(assets.analog_counter_cylinder.clone()),
+                MeshMaterial3d(assets.analog_counter_cylinder_material.clone()),
+                Transform::from_xyz(0., i as f32 * -0.0242 + 0.096, -0.005),
                 Digit::new(i),
             ));
         }
         parent.spawn((
             Name::new("Level Sign"),
-            PbrBundle {
-                mesh: assets.point_sign.clone(),
-                material: assets.points_sign_material.clone(),
-                transform: Transform::from_xyz(-0.055, 0., 0.047),
-                ..default()
-            },
+            Mesh3d(assets.point_sign.clone()),
+            MeshMaterial3d(assets.points_sign_material.clone()),
+            Transform::from_xyz(-0.055, 0., 0.047),
         ));
         parent.spawn((
             Name::new("Cover"),
-            PbrBundle {
-                mesh: assets.analog_counter_10_digit_cover.clone(),
-                material: assets.analog_counter_cover_material.clone(),
-                transform: Transform::from_xyz(-0.01, 0.004, 0.005),
-                ..default()
-            },
+            Mesh3d(assets.analog_counter_10_digit_cover.clone()),
+            MeshMaterial3d(assets.analog_counter_cover_material.clone()),
+            Transform::from_xyz(-0.01, 0.004, 0.005),
         ));
     });
 
@@ -169,44 +157,32 @@ pub fn spawn_2_digit(
 ) -> Entity {
     let mut counter = parent.spawn((
         Name::new("Analog Counter Casing 2 Digit"),
-        PbrBundle {
-            mesh: assets.analog_counter_casing_2_digit.clone(),
-            material: assets.analog_counter_casing_2_digit_material.clone(),
-            transform,
-            ..default()
-        },
+        Mesh3d(assets.analog_counter_casing_2_digit.clone()),
+        MeshMaterial3d(assets.analog_counter_casing_2_digit_material.clone()),
+        transform,
         AnalogCounter,
     ));
     counter.with_children(|parent| {
         for i in 0..2 {
             parent.spawn((
                 Name::new("Analog Counter Digit"),
-                PbrBundle {
-                    mesh: assets.analog_counter_cylinder.clone(),
-                    material: assets.analog_counter_cylinder_material.clone(),
-                    transform: Transform::from_xyz(0., i as f32 * -0.022 + 0.012, -0.005),
-                    ..default()
-                },
+                Mesh3d(assets.analog_counter_cylinder.clone()),
+                MeshMaterial3d(assets.analog_counter_cylinder_material.clone()),
+                Transform::from_xyz(0., i as f32 * -0.022 + 0.012, -0.005),
                 Digit::new(i),
             ));
         }
         parent.spawn((
             Name::new("Level Sign"),
-            PbrBundle {
-                mesh: assets.level_sign.clone(),
-                material: assets.level_sign_material.clone(),
-                transform: Transform::from_xyz(-0.055, 0., 0.047),
-                ..default()
-            },
+            Mesh3d(assets.level_sign.clone()),
+            MeshMaterial3d(assets.level_sign_material.clone()),
+            Transform::from_xyz(-0.055, 0., 0.047),
         ));
         parent.spawn((
             Name::new("Cover"),
-            PbrBundle {
-                mesh: assets.analog_counter_2_digit_cover.clone(),
-                material: assets.analog_counter_cover_material.clone(),
-                transform: Transform::from_xyz(-0.01, 0., 0.005),
-                ..default()
-            },
+            Mesh3d(assets.analog_counter_2_digit_cover.clone()),
+            MeshMaterial3d(assets.analog_counter_cover_material.clone()),
+            Transform::from_xyz(-0.01, 0., 0.005),
         ));
     });
 
@@ -234,7 +210,7 @@ fn turn_digit_system(
                 sound_ev.send(SoundEvent::CounterTick);
             }
 
-            trans.rotate_y(digit.rotate(time.delta_seconds()));
+            trans.rotate_y(digit.rotate(time.delta_secs()));
         }
     }
 }

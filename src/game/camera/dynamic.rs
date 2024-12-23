@@ -3,7 +3,7 @@ use crate::game::ball_starter::{
     BallSpawn, BallStarterChargeStartedEvent, BallStarterFireEndEvent,
 };
 use crate::prelude::*;
-use bevy_tweening::{Animator, EaseFunction, Tween};
+use bevy_tweening::{Animator, EaseMethod, Tween};
 
 pub(super) fn on_ball_start_cam_system(
     mut cmds: Commands,
@@ -33,7 +33,7 @@ fn ball_start_tracking_shot(is_back: bool, look_at: Vec3) -> Tween<Transform> {
         std::mem::swap(&mut look_at_start, &mut look_at_end);
     }
     Tween::new(
-        EaseFunction::CubicOut,
+        EaseMethod::EaseFunction(EaseFunction::CubicOut),
         std::time::Duration::from_secs(1),
         CamTransformLens::new(start, end, look_at_start, look_at_end),
     )

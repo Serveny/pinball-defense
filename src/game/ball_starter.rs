@@ -22,7 +22,7 @@ impl Plugin for BallStarterPlugin {
             .add_systems(
                 Update,
                 (charge_system).run_if(
-                    in_state(BallStarterState::Charge).and_then(in_state(GameState::Ingame)),
+                    in_state(BallStarterState::Charge).and(in_state(GameState::Ingame)),
                 ),
             )
             .add_systems(
@@ -32,7 +32,7 @@ impl Plugin for BallStarterPlugin {
             .add_systems(
                 Update,
                 fire_system
-                    .run_if(in_state(BallStarterState::Fire).and_then(in_state(GameState::Ingame))),
+                    .run_if(in_state(BallStarterState::Fire).and(in_state(GameState::Ingame))),
             );
     }
 }
@@ -76,7 +76,7 @@ pub fn spawn(parent: &mut ChildBuilder, pos: Vec3, assets: &PinballDefenseGltfAs
 fn collider_bundle() -> impl Bundle {
     (
         Name::new("Ball Starter Collider"),
-        TransformBundle::from(Transform::from_xyz(-0.107, 0., 0.)),
+        Transform::from_xyz(-0.107, 0., 0.),
         Collider::rectangle(SIZE.x, SIZE.z),
         RigidBody::Kinematic,
         Restitution {
@@ -95,11 +95,8 @@ fn starter_plate(assets: &PinballDefenseGltfAssets) -> impl Bundle {
     (
         Name::new("Starter Plate"),
         StarterPlate,
-        PbrBundle {
-            mesh: assets.starter_plate.clone(),
-            material: assets.starter_plate_material.clone(),
-            ..default()
-        },
+        Mesh3d(assets.starter_plate.clone()),
+        MeshMaterial3d(assets.starter_plate_material.clone()),
     )
 }
 
@@ -110,11 +107,8 @@ fn starter_spring(assets: &PinballDefenseGltfAssets) -> impl Bundle {
     (
         Name::new("Starter Spring"),
         StarterSpring,
-        PbrBundle {
-            mesh: assets.starter_spring.clone(),
-            material: assets.starter_spring_material.clone(),
-            ..default()
-        },
+        Mesh3d(assets.starter_spring.clone()),
+        MeshMaterial3d(assets.starter_spring_material.clone()),
     )
 }
 
@@ -125,11 +119,8 @@ fn starter_rod(assets: &PinballDefenseGltfAssets) -> impl Bundle {
     (
         Name::new("Starter Rod"),
         StarterRod,
-        PbrBundle {
-            mesh: assets.starter_balance_rod.clone(),
-            material: assets.starter_balance_rod_material.clone(),
-            ..default()
-        },
+        Mesh3d(assets.starter_balance_rod.clone()),
+        MeshMaterial3d(assets.starter_balance_rod_material.clone()),
     )
 }
 
@@ -187,7 +178,7 @@ fn charge_system(
 ) {
     let plate_pos = &mut q_plate.single_mut().translation;
     let spring_scale = &mut q_spring.single_mut().scale;
-    let x_add = time.delta_seconds() * 0.14;
+    let x_add = time.delta_secs() * 0.14;
     if starter_add(x_add, plate_pos, spring_scale) >= MAX_PLATE_TRANSFORM {
         state.set(BallStarterState::Idle);
     }
@@ -212,7 +203,7 @@ fn fire_system(
 ) {
     let plate_pos = &mut q_plate.single_mut().translation;
     let spring_scale = &mut q_spring.single_mut().scale;
-    let x_add = -time.delta_seconds() * 1.4;
+    let x_add = -time.delta_secs() * 1.4;
     if starter_add(x_add, plate_pos, spring_scale) <= 0. {
         state.set(BallStarterState::Idle);
         leave_ev.send(BallStarterFireEndEvent);

@@ -112,15 +112,12 @@ fn flipper(
     transform: Transform,
 ) -> impl Bundle {
     (
-        PbrBundle {
-            mesh: match flipper_type {
-                FlipperType::Left => assets.flipper_left.clone(),
-                FlipperType::Right => assets.flipper_right.clone(),
-            },
-            material: assets.flipper_material.clone(),
-            transform,
-            ..default()
-        },
+        Mesh3d(match flipper_type {
+            FlipperType::Left => assets.flipper_left.clone(),
+            FlipperType::Right => assets.flipper_right.clone(),
+        }),
+        MeshMaterial3d(assets.flipper_material.clone()),
+        transform,
         Flipper::new(),
         Name::new(flipper_type.to_string()),
         FlipperStatus::Idle,
@@ -130,11 +127,11 @@ fn flipper(
 
 fn collider(sig: f32) -> impl Bundle {
     (
-        TransformBundle::from(Transform {
+        Transform {
             translation: Vec3::new(0.008, sig * -0.115, 0.035),
             rotation: Quat::from_rotation_y(-PI / 2. * 0.85),
             ..default()
-        }),
+        },
         RigidBody::Kinematic,
         Collider::rectangle(0.06, 0.24),
         Restitution {
@@ -150,7 +147,7 @@ fn flipper_system(
     mut q_flipper: Query<(&mut Transform, &FlipperStatus, &mut Flipper, &FlipperType)>,
     time: Res<Time>,
 ) {
-    let time = time.delta_seconds();
+    let time = time.delta_secs();
     for (mut transform, status, mut flipper, f_type) in q_flipper.iter_mut() {
         let mut change_angle = f_type.signum();
         match status {

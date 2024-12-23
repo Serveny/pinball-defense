@@ -118,10 +118,8 @@ fn play_music(
     sound_sett: Res<SoundSettings>,
 ) {
     cmds.spawn((
-        AudioBundle {
-            source: assets.background_music.clone(),
-            settings: PlaybackSettings::LOOP.with_volume(Volume::new(sound_sett.music_volume)),
-        },
+        AudioPlayer(assets.background_music.clone()),
+        PlaybackSettings::LOOP.with_volume(Volume::new(sound_sett.music_volume)),
         Music,
     ));
 }
@@ -130,15 +128,13 @@ fn sound(handle: SoundHandle, vol: f32, speed: f32) -> impl Bundle {
     (
         Name::new("Sound"),
         Sound,
-        AudioBundle {
-            source: match handle {
-                SoundHandle::Single(handle) => handle.clone(),
-                SoundHandle::Various(handles) => handles.choose().clone(),
-            },
-            settings: PlaybackSettings::ONCE
-                .with_volume(Volume::new(vol))
-                .with_speed(speed),
-        },
+        AudioPlayer(match handle {
+            SoundHandle::Single(handle) => handle.clone(),
+            SoundHandle::Various(handles) => handles.choose().clone(),
+        }),
+        PlaybackSettings::ONCE
+            .with_volume(Volume::new(vol))
+            .with_speed(speed),
     )
 }
 
@@ -156,10 +152,8 @@ struct BallRollingSound;
 fn play_ball_rolling_sound(mut cmds: Commands, assets: Res<PinballDefenseAudioAssets>) {
     cmds.spawn((
         Name::new("Ball Rolling Sound"),
-        AudioBundle {
-            source: assets.ball_rolling.clone(),
-            settings: PlaybackSettings::LOOP.with_volume(Volume::new(0.)),
-        },
+        AudioPlayer(assets.ball_rolling.clone()),
+        PlaybackSettings::LOOP.with_volume(Volume::new(0.)),
         BallRollingSound,
         Sound,
     ));

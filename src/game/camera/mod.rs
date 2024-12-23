@@ -2,11 +2,11 @@ use self::fps::{FpsCamSettings, LookDirection};
 use super::GameState;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
-use bevy::core_pipeline::bloom::BloomSettings;
+use bevy::core_pipeline::bloom::Bloom;
 use bevy::core_pipeline::tonemapping::Tonemapping;
 use bevy::core_pipeline::Skybox;
 use bevy::render::render_resource::{TextureViewDescriptor, TextureViewDimension};
-use bevy_tweening::{Animator, EaseFunction, Lens, Targetable, Tween};
+use bevy_tweening::{Animator, Lens, Targetable, Tween};
 
 mod ball;
 mod dynamic;
@@ -55,17 +55,11 @@ fn spawn(
     let start = Transform::from_translation(START_POS).looking_at(Vec3::ZERO, Vec3::Z);
     cmds.spawn((
         Name::new("Camera"),
-        Camera3dBundle {
-            transform: start,
-            camera: Camera {
-                order: 1,
-                hdr: g_setting.is_hdr,
-                ..default()
-            },
-            tonemapping: Tonemapping::TonyMcMapface,
-            ..default()
-        },
-        BloomSettings {
+        PinballCamera,
+        start,
+        Camera3d::default(),
+        Tonemapping::TonyMcMapface,
+        Bloom {
             intensity: g_setting.bloom_intensity,
             ..default()
         },
@@ -73,14 +67,15 @@ fn spawn(
         Skybox {
             image: assets.skybox.clone(),
             brightness: 1600.,
+            rotation: Quat::from_rotation_x(90.),
         },
         EnvironmentMapLight {
             diffuse_map: assets.skybox.clone(),
             specular_map: assets.skybox.clone(),
             intensity: 3200.,
+            ..default()
         },
         LookDirection::default(),
-        PinballCamera,
         Animator::new(init_tracking_shot()),
     ));
     place_skybox(assets, images)

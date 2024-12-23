@@ -237,10 +237,10 @@ fn level_up_animation_system(
 //// Main pass cube, with material containing the rendered first pass texture.
 //parent.spawn((
 //PbrBundle {
-//mesh: assets.world_1_point_display.clone(),
-//material: material_handle,
+//Mesh3d(assets.world_1_point_display.clone(),
+//MeshMaterial3d(material_handle,
 //// Do not know, how to rotate the generated texture, so I rotate the object
-//transform: Transform::from_rotation(Quat::from_rotation_y(PI / 2.))
+//Transform::from_rotation(Quat::from_rotation_y(PI / 2.))
 //.with_translation(Vec3::new(0.98, -0.56, 0.051)),
 //..default()
 //},
@@ -261,7 +261,7 @@ fn level_up_animation_system(
 //image_handle: Handle<Image>,
 //) {
 //cmds.spawn((NodeBundle {
-//style: Style {
+//style: Node {
 //border: UiRect::all(Val::Px(10.)),
 //width: Val::Px(SIZE.x as f32),
 //height: Val::Px(SIZE.y as f32),

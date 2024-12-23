@@ -140,7 +140,7 @@ fn start_game(
 struct IngameTime(f32);
 
 fn tick_ingame_timer_system(mut ig_time: ResMut<IngameTime>, time: Res<Time>) {
-    **ig_time += time.delta_seconds();
+    **ig_time += time.delta_secs();
 }
 
 fn setup_ambient_lights(mut cmds: Commands, g_sett: Res<GraphicsSettings>) {
@@ -149,16 +149,14 @@ fn setup_ambient_lights(mut cmds: Commands, g_sett: Res<GraphicsSettings>) {
         brightness: 0.2,
     });
     // directional 'sun' light
-    cmds.spawn(DirectionalLightBundle {
-        directional_light: DirectionalLight {
+    cmds.spawn((
+        DirectionalLight {
             illuminance: 8000.0,
             shadows_enabled: g_sett.is_shadows,
             ..default()
         },
-        transform: Transform::from_xyz(0.0, -0.0, 2.0)
-            .with_rotation(Quat::from_rotation_x(-PI / 4.)),
-        ..default()
-    });
+        Transform::from_xyz(0.0, -0.0, 2.0).with_rotation(Quat::from_rotation_x(-PI / 4.)),
+    ));
 }
 
 #[derive(Event)]
@@ -172,7 +170,7 @@ fn on_set_pause_system(
     if !evr.is_empty() {
         log!("⏸️ Pause Game");
         set_game_state.set(GameState::Pause);
-        physics_time.pause()
+        physics_time.pause();
     }
 }
 

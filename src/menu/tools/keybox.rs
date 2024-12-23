@@ -15,33 +15,32 @@ pub fn spawn(
     p.spawn((
         Name::new("Key"),
         Keybox,
-        ButtonBundle {
-            style: Style {
-                width: Val::Px(130.),
-                height: Val::Px(55.),
-                border: UiRect::all(Val::Px(5.0)),
-                margin: UiRect::all(Val::Auto),
-                padding: UiRect::all(Val::Auto),
-                display: Display::Flex,
-                align_content: AlignContent::Center,
-                justify_content: JustifyContent::Center,
-                ..default()
-            },
-            border_color: GameColor::GOLD.into(),
-            background_color: GRAY.into(),
+        Button::default(),
+        Node {
+            width: Val::Px(130.),
+            height: Val::Px(55.),
+            border: UiRect::all(Val::Px(5.0)),
+            margin: UiRect::all(Val::Auto),
+            padding: UiRect::all(Val::Auto),
+            display: Display::Flex,
+            align_content: AlignContent::Center,
+            justify_content: JustifyContent::Center,
             ..default()
         },
+        BorderColor(GameColor::GOLD),
+        BackgroundColor(GRAY.into()),
         PropIndex(prop_i),
         Active,
     ))
     .with_children(|p| {
-        p.spawn(TextBundle::from_section(
-            format!("{init_val:?}").replace("Key", ""),
-            TextStyle {
+        p.spawn((
+            Text(format!("{init_val:?}").replace("Key", "").to_string()),
+            TextFont {
                 font: assets.menu_font.clone(),
                 font_size: 40.0,
-                color: GameColor::WHITE,
+                ..default()
             },
+            TextColor(GameColor::WHITE),
         ));
     });
 }

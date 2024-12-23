@@ -16,29 +16,28 @@ pub fn spawn(
         Name::new("Button"),
         MenuButton,
         action,
-        ButtonBundle {
-            style: Style {
-                width: Val::Percent(100.),
-                height: Val::Px(65.),
-                border: UiRect::bottom(Val::Px(2.0)),
-                margin,
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
-            border_color: GOLD.into(),
-            background_color: Color::NONE.into(),
+        Button::default(),
+        Node {
+            width: Val::Percent(100.),
+            height: Val::Px(65.),
+            border: UiRect::bottom(Val::Px(2.0)),
+            margin,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
             ..default()
         },
+        BorderColor(GOLD.into()),
+        BackgroundColor(Color::NONE.into()),
     ))
     .with_children(|p| {
-        p.spawn(TextBundle::from_section(
-            action.to_string(),
-            TextStyle {
+        p.spawn((
+            Text(action.to_string()),
+            TextFont {
                 font: assets.menu_font.clone(),
                 font_size: 40.0,
-                color: GameColor::WHITE,
+                ..default()
             },
+            TextColor(GameColor::WHITE),
         ));
     });
 }

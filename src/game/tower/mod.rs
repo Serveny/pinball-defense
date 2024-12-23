@@ -20,7 +20,7 @@ use crate::settings::GraphicsSettings;
 use crate::utils::RelEntity;
 use bevy::color::palettes::css::{BEIGE, ORANGE, RED};
 use bevy_tweening::lens::TransformPositionLens;
-use bevy_tweening::{Animator, Delay, EaseFunction, Sequence, Tween};
+use bevy_tweening::{Animator, Delay, Sequence, Tween};
 use std::time::Duration;
 pub use types::TowerType;
 use types::*;
@@ -129,7 +129,6 @@ pub struct TowerSightSensor;
 
 fn tower_sight_sensor_bundle(radius: f32) -> impl Bundle {
     (
-        PbrBundle::default(),
         Sensor,
         RigidBody::Kinematic,
         DebugRender::collider(ORANGE.into()),
@@ -145,11 +144,8 @@ fn tower_base_bundle(
 ) -> impl Bundle {
     (
         Name::new("Tower Base"),
-        PbrBundle {
-            mesh: assets.tower_base.clone(),
-            material: mats.add(tower_material()),
-            ..default()
-        },
+        Mesh3d(assets.tower_base.clone()),
+        MeshMaterial3d(mats.add(tower_material())),
     )
 }
 

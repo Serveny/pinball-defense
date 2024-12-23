@@ -19,12 +19,9 @@ pub fn spawn_road(
     assets: &PinballDefenseGltfAssets,
 ) {
     parent.spawn((
-        PbrBundle {
-            mesh: assets.road_mesh.clone(),
-            material: assets.road_material.clone(),
-            ..default()
-        },
         Name::new("Road Mesh"),
+        Mesh3d(assets.road_mesh.clone()),
+        MeshMaterial3d(assets.road_material.clone()),
     ));
     //spawn_road_milestones(parent, materials, meshes);
 }
@@ -36,20 +33,19 @@ fn spawn_road_milestones(
     meshes: &mut Assets<Mesh>,
 ) {
     for pos in ROAD_POINTS {
-        parent.spawn(PbrBundle {
-            mesh: meshes.add(Mesh::from(Sphere {
+        parent.spawn((
+            Mesh3d(meshes.add(Mesh::from(Sphere {
                 radius: 0.005,
                 ..default()
-            })),
-            material: materials.add(StandardMaterial {
+            }))),
+            MeshMaterial3d(materials.add(StandardMaterial {
                 base_color: GREEN.into(),
                 perceptual_roughness: 0.8,
                 metallic: 0.,
                 reflectance: 0.8,
                 ..default()
-            }),
-            transform: Transform::from_translation(pos),
-            ..default()
-        });
+            })),
+            Transform::from_translation(pos),
+        ));
     }
 }
