@@ -8,7 +8,7 @@ use bevy::asset::LoadState;
 use bevy::gltf::{Gltf, GltfMesh};
 use bevy::utils::HashMap;
 pub use bevy_asset_loader::prelude::*;
-use rand::seq::SliceRandom;
+use rand::seq::IndexedRandom;
 use std::env;
 use std::path::PathBuf;
 
@@ -137,7 +137,7 @@ impl<T: Asset> Default for Handles<T> {
 impl<T: Asset> Handles<T> {
     pub fn choose(&self) -> &Handle<T> {
         self.0
-            .choose(&mut rand::thread_rng())
+            .choose(&mut rand::rng())
             .expect("😥 Vector empty, no sound to choose")
     }
 
