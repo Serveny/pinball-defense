@@ -75,7 +75,7 @@ impl SoundEvent {
         };
         let speed = match handle {
             SoundHandle::Single(_) => 1.,
-            SoundHandle::Various(_) => rand::thread_rng().gen_range(0.9..1.1),
+            SoundHandle::Various(_) => rand::rng().random_range(0.9..1.1),
         };
         (handle, speed)
     }
