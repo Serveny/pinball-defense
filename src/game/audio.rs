@@ -12,7 +12,11 @@ impl Plugin for AudioPlugin {
         app.add_event::<SoundEvent>()
             .add_systems(
                 OnEnter(GameState::Init),
-                (play_music, play_ball_rolling_sound),
+                (
+                    stop_all_audio,
+                    play_music.after(stop_all_audio),
+                    play_ball_rolling_sound.after(stop_all_audio),
+                ),
             )
             .add_systems(OnEnter(GameState::Pause), pause_sounds)
             .add_systems(OnEnter(GameState::Ingame), resume_sounds)
@@ -110,6 +114,12 @@ fn on_play_sound_fx_system(
 enum SoundHandle<'a> {
     Single(&'a Handle<AudioSource>),
     Various(&'a Handles<AudioSource>),
+}
+
+fn stop_all_audio(q_audio: Query<&AudioSink>) {
+    for sink in q_audio.iter() {
+        sink.stop();
+    }
 }
 
 fn play_music(
