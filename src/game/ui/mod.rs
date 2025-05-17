@@ -44,7 +44,7 @@ fn update_pos_system(
     q_trans: Query<(Entity, &Transform)>,
     q_cam: Query<(&GlobalTransform, &Camera), With<PinballCamera>>,
 ) {
-    let Ok((cam_trans, cam)) = q_cam.get_single() else {
+    let Ok((cam_trans, cam)) = q_cam.single() else {
         return;
     };
     for (mut node, rel_id) in q_bar.iter_mut() {

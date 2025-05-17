@@ -13,12 +13,12 @@ struct RoadPath(Vec<Vec3>);
 
 #[allow(unused_variables)]
 pub fn spawn_road(
-    parent: &mut ChildBuilder,
+    spawner: &mut ChildSpawnerCommands,
     materials: &mut Assets<StandardMaterial>,
     meshes: &mut Assets<Mesh>,
     assets: &PinballDefenseGltfAssets,
 ) {
-    parent.spawn((
+    spawner.spawn((
         Name::new("Road Mesh"),
         Mesh3d(assets.road_mesh.clone()),
         MeshMaterial3d(assets.road_material.clone()),
@@ -28,12 +28,12 @@ pub fn spawn_road(
 
 #[allow(dead_code)]
 fn spawn_road_milestones(
-    parent: &mut ChildBuilder,
+    spawner: &mut ChildSpawnerCommands,
     materials: &mut Assets<StandardMaterial>,
     meshes: &mut Assets<Mesh>,
 ) {
     for pos in ROAD_POINTS {
-        parent.spawn((
+        spawner.spawn((
             Mesh3d(meshes.add(Mesh::from(Sphere {
                 radius: 0.005,
                 ..default()

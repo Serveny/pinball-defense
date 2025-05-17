@@ -10,7 +10,7 @@ use bevy::ui::RelativeCursorPosition;
 pub struct Slider;
 
 // init_val must be between 0 and 1
-pub fn spawn(p: &mut ChildBuilder, prop_i: usize, init_val: f32) {
+pub fn spawn(p: &mut ChildSpawnerCommands, prop_i: usize, init_val: f32) {
     p.spawn((
         Name::new("Slider"),
         Slider,
@@ -66,6 +66,7 @@ fn knob(prop_i: usize, init_val: f32) -> impl Bundle {
         },
         BorderColor(GameColor::GOLD),
         BackgroundColor(GameColor::WHITE),
+        Button::default(),
     )
 }
 
@@ -73,7 +74,7 @@ pub fn system(
     mut interaction_query: Query<
         (
             &Interaction,
-            &Parent,
+            &ChildOf,
             &mut BorderColor,
             &mut Node,
             &PropIndex,
@@ -83,12 +84,12 @@ pub fn system(
     mut g_sett: ResMut<GraphicsSettings>,
     mut s_sett: ResMut<SoundSettings>,
     menu_state: Res<State<SettingsMenuState>>,
-    q_parent: Query<&RelativeCursorPosition, With<Slider>>,
+    q_spawner: Query<&RelativeCursorPosition, With<Slider>>,
 ) {
-    for (interaction, parent, mut border_color, mut style, prop_i) in &mut interaction_query {
+    for (interaction, child_of, mut border_color, mut style, prop_i) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
-                if let Ok(rel_pos) = q_parent.get(parent.get()) {
+                if let Ok(rel_pos) = q_spawner.get(child_of.parent()) {
                     if let Some(rel_pos) = rel_pos.normalized {
                         let val = rel_pos.x.clamp(0., 1.);
                         style.left = Val::Percent(val * 100.);

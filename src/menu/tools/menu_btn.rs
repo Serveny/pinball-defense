@@ -8,38 +8,39 @@ pub struct MenuButton;
 
 pub fn spawn(
     action: MenuAction,
-    p: &mut ChildBuilder,
+    spawner: &mut ChildSpawnerCommands,
     assets: &PinballDefenseAssets,
     margin: UiRect,
 ) {
-    p.spawn((
-        Name::new("Button"),
-        MenuButton,
-        action,
-        Button::default(),
-        Node {
-            width: Val::Percent(100.),
-            height: Val::Px(65.),
-            border: UiRect::bottom(Val::Px(2.0)),
-            margin,
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            ..default()
-        },
-        BorderColor(GOLD.into()),
-        BackgroundColor(Color::NONE.into()),
-    ))
-    .with_children(|p| {
-        p.spawn((
-            Text(action.to_string()),
-            TextFont {
-                font: assets.menu_font.clone(),
-                font_size: 40.0,
+    spawner
+        .spawn((
+            Name::new("Button"),
+            MenuButton,
+            action,
+            Button::default(),
+            Node {
+                width: Val::Percent(100.),
+                height: Val::Px(65.),
+                border: UiRect::bottom(Val::Px(2.0)),
+                margin,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
                 ..default()
             },
-            TextColor(GameColor::WHITE),
-        ));
-    });
+            BorderColor(GOLD.into()),
+            BackgroundColor(Color::NONE.into()),
+        ))
+        .with_children(|spawner| {
+            spawner.spawn((
+                Text(action.to_string()),
+                TextFont {
+                    font: assets.menu_font.clone(),
+                    font_size: 40.0,
+                    ..default()
+                },
+                TextColor(GameColor::WHITE),
+            ));
+        });
 }
 
 pub fn system(
@@ -52,7 +53,7 @@ pub fn system(
     for (interaction, mut border_color, action) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
-                action_ev.send(*action);
+                action_ev.write(*action);
             }
             Interaction::Hovered => {
                 *border_color = GameColor::WHITE.into();

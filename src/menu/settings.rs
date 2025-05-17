@@ -4,6 +4,7 @@ use crate::prelude::*;
 use crate::settings::{GraphicsSettings, SoundSettings};
 use crate::utils::reflect::{cast, prop_name};
 use crate::utils::{Music, Sound};
+use bevy::audio::Volume;
 use bevy::core_pipeline::bloom::Bloom;
 
 #[derive(States, Clone, Eq, PartialEq, Debug, Hash, Default)]
@@ -64,7 +65,7 @@ fn settings_menu_layout() -> impl Bundle {
 
 pub fn clean_up(mut cmds: Commands, q_sett_layout: Query<Entity, With<SettingsMenuLayout>>) {
     for layout_id in q_sett_layout.iter() {
-        cmds.entity(layout_id).despawn_recursive();
+        cmds.entity(layout_id).despawn();
     }
 }
 
@@ -74,11 +75,11 @@ pub fn on_changed_sound_settings(
     mut q_music: Query<&mut AudioSink, (With<Music>, Without<Sound>)>,
 ) {
     if sound_sett.is_changed() {
-        for sound in q_sound.iter_mut() {
-            sound.set_volume(sound_sett.fx_volume);
+        for mut sound in q_sound.iter_mut() {
+            sound.set_volume(Volume::Linear(sound_sett.fx_volume));
         }
-        for music in q_music.iter_mut() {
-            music.set_volume(sound_sett.music_volume);
+        for mut music in q_music.iter_mut() {
+            music.set_volume(Volume::Linear(sound_sett.music_volume));
         }
     }
 }

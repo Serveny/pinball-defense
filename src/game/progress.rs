@@ -67,7 +67,7 @@ fn bar_full_system(
 ) {
     for (rel_id, bar) in q_bar.iter() {
         if bar.is_full() {
-            full_ev.send(ProgressBarFullEvent(rel_id.0));
+            full_ev.write(ProgressBarFullEvent(rel_id.0));
         }
     }
 }
@@ -79,7 +79,7 @@ pub struct ProgressBar {
 }
 
 pub fn spawn(
-    parent: &mut ChildBuilder,
+    spawner: &mut ChildSpawnerCommands,
     assets: &PinballDefenseGltfAssets,
     mats: &mut Assets<StandardMaterial>,
     rel_id: Entity,
@@ -87,11 +87,11 @@ pub fn spawn(
     color: Color,
     init_val: f32,
 ) {
-    parent
+    spawner
         .spawn(frame_bundle(assets, mats, transform))
-        .with_children(|parent| {
-            parent.spawn(bar_bundle(assets, mats, init_val, rel_id, color));
-            parent.spawn(background_bundle(assets, mats, ANTIQUE_WHITE.into()));
+        .with_children(|spawner| {
+            spawner.spawn(bar_bundle(assets, mats, init_val, rel_id, color));
+            spawner.spawn(background_bundle(assets, mats, ANTIQUE_WHITE.into()));
         });
 }
 

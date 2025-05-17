@@ -72,7 +72,7 @@ fn wave_system(
         match wave.is_wave_end() {
             true => wave.prepare_next_wave(now),
             false => {
-                spawn_enemy_ev.send(wave.next_enemy(now));
+                spawn_enemy_ev.write(wave.next_enemy(now));
             }
         }
     }

@@ -68,7 +68,7 @@ fn on_contact_light_on_system(
 fn light_on_by_parent(parent_id: Entity, q_light: &mut QueryContactLight) {
     if let Some((_, mut visi, mut light)) = q_light
         .iter_mut()
-        .find(|(parent, _, _)| parent_id == parent.get())
+        .find(|(child_of, _, _)| parent_id == child_of.parent())
     {
         *visi = Visibility::Inherited;
         light.intensity = LIGHT_INTENSITY;
@@ -81,12 +81,12 @@ pub(super) struct FlashLight;
 fn on_add_flashlight_system(
     mut cmds: Commands,
     mut evr: EventReader<PinballMenuOnSetSelectedEvent>,
-    mut q_light: Query<(&mut Visibility, &Parent, Entity), With<ContactLight>>,
+    mut q_light: Query<(&mut Visibility, &ChildOf, Entity), With<ContactLight>>,
 ) {
     for ev in evr.read() {
         let (mut visi, _, light_id) = q_light
             .iter_mut()
-            .find(|(_, parent, _)| parent.get() == ev.0)
+            .find(|(_, child_of, _)| child_of.parent() == ev.0)
             .expect("Parent should have ContactLight as child");
 
         cmds.entity(light_id).insert(FlashLight);
@@ -102,12 +102,12 @@ fn flash_light_system(mut q_light: Query<&mut PointLight, With<FlashLight>>, tim
 
 pub(super) fn disable_flash_light(
     cmds: &mut Commands,
-    q_light: &mut Query<(Entity, &Parent, &mut Visibility), With<FlashLight>>,
+    q_light: &mut Query<(Entity, &ChildOf, &mut Visibility), With<FlashLight>>,
     parent_id: Entity,
 ) {
     let (entity, _, mut visi) = q_light
         .iter_mut()
-        .find(|(_, p, _)| p.get() == parent_id)
+        .find(|(_, child_of, _)| child_of.parent() == parent_id)
         .expect("Here should be the selected parend 🫢");
     log!("Disable flashlight for {:?}", parent_id);
     *visi = Visibility::Hidden;
@@ -122,7 +122,7 @@ const LIGHT_INTENSITY: f32 = 48000.;
 type QueryContactLight<'w, 's, 'a> = Query<
     'w,
     's,
-    (&'a Parent, &'a mut Visibility, &'a mut PointLight),
+    (&'a ChildOf, &'a mut Visibility, &'a mut PointLight),
     (With<ContactLight>, Without<FlashLight>),
 >;
 
@@ -193,7 +193,7 @@ pub(super) fn sight_radius_light(range: f32) -> impl Bundle {
 pub struct Lamp;
 
 pub fn spawn_lamp(
-    p: &mut ChildBuilder,
+    p: &mut ChildSpawnerCommands,
     mats: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,

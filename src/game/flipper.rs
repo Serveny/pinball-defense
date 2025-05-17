@@ -75,18 +75,18 @@ impl std::fmt::Display for FlipperType {
 
 pub fn spawn_right(
     transform: Transform,
-    parent: &mut ChildBuilder,
+    spawner: &mut ChildSpawnerCommands,
     assets: &PinballDefenseGltfAssets,
 ) {
-    spawn(FlipperType::Right, transform, parent, assets);
+    spawn(FlipperType::Right, transform, spawner, assets);
 }
 
 pub fn spawn_left(
     transform: Transform,
-    parent: &mut ChildBuilder,
+    spawner: &mut ChildSpawnerCommands,
     assets: &PinballDefenseGltfAssets,
 ) {
-    spawn(FlipperType::Left, transform, parent, assets);
+    spawn(FlipperType::Left, transform, spawner, assets);
 }
 
 #[derive(Component)]
@@ -95,14 +95,14 @@ pub struct FlipperCollider;
 fn spawn(
     flipper_type: FlipperType,
     transform: Transform,
-    parent: &mut ChildBuilder,
+    spawner: &mut ChildSpawnerCommands,
     assets: &PinballDefenseGltfAssets,
 ) {
     let sig = flipper_type.signum();
-    parent
+    spawner
         .spawn(flipper(flipper_type, assets, transform))
-        .with_children(|parent| {
-            parent.spawn(collider(sig));
+        .with_children(|spawner| {
+            spawner.spawn(collider(sig));
         });
 }
 
@@ -175,8 +175,8 @@ fn sound_system(
 ) {
     for status in q_flipper.iter() {
         match status {
-            FlipperStatus::Idle => sound_ev.send(SoundEvent::FlipperRelease),
-            FlipperStatus::Pushed => sound_ev.send(SoundEvent::FlipperPress),
+            FlipperStatus::Idle => sound_ev.write(SoundEvent::FlipperRelease),
+            FlipperStatus::Pushed => sound_ev.write(SoundEvent::FlipperPress),
         };
     }
 }
@@ -188,7 +188,7 @@ fn on_collision_with_ball_system(
 ) {
     for ev in evr.read() {
         if q_flipper.contains(ev.0) {
-            points_ev.send(PointsEvent::FlipperHit);
+            points_ev.write(PointsEvent::FlipperHit);
         }
     }
 }

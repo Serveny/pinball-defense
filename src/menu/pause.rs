@@ -22,7 +22,7 @@ pub fn layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
     });
 }
 
-fn spawn_headline(text: &str, p: &mut ChildBuilder, assets: &PinballDefenseAssets) {
+fn spawn_headline(text: &str, p: &mut ChildSpawnerCommands, assets: &PinballDefenseAssets) {
     p.spawn((Node {
         width: Val::Percent(100.),
         justify_content: JustifyContent::Center,
@@ -42,7 +42,7 @@ fn spawn_headline(text: &str, p: &mut ChildBuilder, assets: &PinballDefenseAsset
         });
 }
 
-fn spawn_buttons(p: &mut ChildBuilder, assets: &PinballDefenseAssets) {
+fn spawn_buttons(p: &mut ChildSpawnerCommands, assets: &PinballDefenseAssets) {
     p.spawn((Node {
         display: Display::Flex,
         align_items: AlignItems::Center,

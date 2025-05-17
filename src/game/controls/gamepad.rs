@@ -24,7 +24,7 @@ pub(super) fn on_btn_changed(
         }
         match ev.button {
             GamepadButton::East if ev.value > 0. => {
-                spawn_ball_ev.send(SpawnBallEvent);
+                spawn_ball_ev.write(SpawnBallEvent);
             }
             GamepadButton::South => ball_starter_state.set(match ev.value == 0. {
                 true => BallStarterState::Fire,
@@ -41,7 +41,7 @@ pub(super) fn on_btn_changed(
                 &mut q_flipper,
             ),
             GamepadButton::Start => {
-                pause_ev.send(PauseGameEvent);
+                pause_ev.write(PauseGameEvent);
                 menu_state.set(MenuState::PauseMenu);
             }
             _ => {}
@@ -58,7 +58,7 @@ pub(super) fn pause_btn_changed(
         match ev.button {
             GamepadButton::Start => {
                 menu_state.set(MenuState::None);
-                resume_ev.send(ResumeGameEvent);
+                resume_ev.write(ResumeGameEvent);
             }
             _ => {}
         }

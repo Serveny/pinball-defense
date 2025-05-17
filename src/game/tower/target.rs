@@ -1,7 +1,7 @@
 use super::TowerSightSensor;
 use crate::game::enemy::{Enemy, OnEnemyDespawnEvent};
 use crate::prelude::*;
-use bevy::utils::HashSet;
+use bevy::platform::collections::HashSet;
 
 #[derive(Component)]
 pub(super) struct SightRadius(pub f32);
@@ -42,7 +42,7 @@ pub(super) struct EnemiesWithinReach(pub HashSet<Entity>);
 pub(super) fn on_enemy_enter_reach_system(
     mut evr: EventReader<CollisionStarted>,
     mut q_ewr: Query<&mut EnemiesWithinReach>,
-    q_tower_sight: Query<&Parent, With<TowerSightSensor>>,
+    q_tower_sight: Query<&ChildOf, With<TowerSightSensor>>,
 ) {
     for ev in evr.read() {
         // if *flag == CollisionEventFlags::SENSOR {
@@ -56,7 +56,7 @@ pub(super) fn on_enemy_enter_reach_system(
 pub(super) fn on_enemy_leave_reach_system(
     mut evr: EventReader<CollisionEnded>,
     mut q_ewr: Query<&mut EnemiesWithinReach>,
-    q_tower_sight: Query<&Parent, With<TowerSightSensor>>,
+    q_tower_sight: Query<&ChildOf, With<TowerSightSensor>>,
 ) {
     for ev in evr.read() {
         // if *flag == CollisionEventFlags::SENSOR {
@@ -71,12 +71,12 @@ fn edit_eir<F: FnOnce(&mut EnemiesWithinReach, Entity)>(
     id_1: Entity,
     id_2: Entity,
     q_eir: &mut Query<&mut EnemiesWithinReach>,
-    q_tower_sight: &Query<&Parent, With<TowerSightSensor>>,
+    q_tower_sight: &Query<&ChildOf, With<TowerSightSensor>>,
     f: F,
 ) {
     for (tower_sight_id, enemy_id) in [(id_1, id_2), (id_2, id_1)] {
-        if let Ok(ts_parent) = q_tower_sight.get(tower_sight_id) {
-            if let Ok(mut eir) = q_eir.get_mut(ts_parent.get()) {
+        if let Ok(ts_child_of) = q_tower_sight.get(tower_sight_id) {
+            if let Ok(mut eir) = q_eir.get_mut(ts_child_of.parent()) {
                 f(&mut eir, enemy_id);
                 return;
             }

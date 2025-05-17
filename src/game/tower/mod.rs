@@ -150,20 +150,20 @@ fn tower_base_bundle(
 }
 
 fn spawn(
-    pb_world: &mut ChildBuilder,
+    pb_world: &mut ChildSpawnerCommands,
     mats: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
     pos: Vec3,
     sight_radius: f32,
     tower_type_bundle: impl Bundle,
-    add_to_tower: impl Fn(&mut ChildBuilder),
+    add_to_tower: impl Fn(&mut ChildSpawnerCommands),
 ) {
     pb_world
         .spawn(tower_bundle(pos, sight_radius))
         .insert(tower_type_bundle)
         .with_children(|p| {
-            let tower_id = p.parent_entity();
+            let tower_id = p.target_entity();
             let color = Color::srgb_u8(115, 27, 7);
             let bar_trans =
                 Transform::from_xyz(0.034, 0., -0.007).with_scale(Vec3::new(0.5, 0.5, 1.));
@@ -217,16 +217,20 @@ fn on_spawn_tower_system(
     g_sett: Res<GraphicsSettings>,
 ) {
     for ev in evr.read() {
-        cmds.entity(q_pbw.single()).with_children(|parent| {
-            let pos = ev.1;
-            match ev.0 {
-                TowerType::Gun => gun::spawn(parent, &mut mats, &assets, &g_sett, pos),
-                TowerType::Tesla => tesla::spawn(parent, &mut mats, &assets, &g_sett, pos),
-                TowerType::Microwave => microwave::spawn(parent, &mut mats, &assets, &g_sett, pos),
-            };
-            points_ev.send(PointsEvent::TowerBuild);
-            sound_ev.send(SoundEvent::TowerBuild);
-        });
+        if let Ok(world) = q_pbw.single() {
+            cmds.entity(world).with_children(|spawner| {
+                let pos = ev.1;
+                match ev.0 {
+                    TowerType::Gun => gun::spawn(spawner, &mut mats, &assets, &g_sett, pos),
+                    TowerType::Tesla => tesla::spawn(spawner, &mut mats, &assets, &g_sett, pos),
+                    TowerType::Microwave => {
+                        microwave::spawn(spawner, &mut mats, &assets, &g_sett, pos)
+                    }
+                };
+                points_ev.write(PointsEvent::TowerBuild);
+                sound_ev.write(SoundEvent::TowerBuild);
+            });
+        }
     }
 }
 
@@ -240,9 +244,9 @@ fn on_progress_system(
     evr.read().for_each(|CollisionWithBallEvent(id)| {
         // *flag != CollisionEventFlags::SENSOR &&
         if q_tower.contains(*id) {
-            prog_bar_ev.send(ProgressBarCountUpEvent::new(*id, CONFIG.tower_hit_progress));
-            points_ev.send(PointsEvent::TowerHit);
-            sound_ev.send(SoundEvent::TowerHit);
+            prog_bar_ev.write(ProgressBarCountUpEvent::new(*id, CONFIG.tower_hit_progress));
+            points_ev.write(PointsEvent::TowerHit);
+            sound_ev.write(SoundEvent::TowerHit);
         }
     });
 }
@@ -262,7 +266,7 @@ impl SoundEvent {
 fn on_upgrade_system(
     mut cmds: Commands,
     mut evr: EventReader<UpgradeMenuExecuteEvent>,
-    mut q_light: Query<(Entity, &Parent, &mut Visibility), With<FlashLight>>,
+    mut q_light: Query<(Entity, &ChildOf, &mut Visibility), With<FlashLight>>,
     mut points_ev: EventWriter<PointsEvent>,
     mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
     mut q_tower: Query<&mut TowerLevel>,
@@ -277,21 +281,21 @@ fn on_upgrade_system(
             .unwrap_or_else(|_| panic!("😥 No tower level for id {:?} found", ev.tower_id));
         tower_level.0 += 1;
         disable_flash_light(&mut cmds, &mut q_light, ev.tower_id);
-        ac_set_ev.send(AnalogCounterSetEvent::new(
+        ac_set_ev.write(AnalogCounterSetEvent::new(
             ev.tower_id,
             tower_level.0 as u32,
         ));
-        points_ev.send(PointsEvent::TowerUpgrade);
-        prog_bar_ev.send(ProgressBarCountUpEvent::new(ev.tower_id, -1.));
+        points_ev.write(PointsEvent::TowerUpgrade);
+        prog_bar_ev.write(ProgressBarCountUpEvent::new(ev.tower_id, -1.));
         match ev.upgrade {
             TowerUpgrade::Damage => {
-                damage_upgrade_ev.send(DamageUpgradeEvent(ev.tower_id));
+                damage_upgrade_ev.write(DamageUpgradeEvent(ev.tower_id));
             }
             TowerUpgrade::Range => {
-                range_upgrade_ev.send(RangeUpgradeEvent(ev.tower_id));
+                range_upgrade_ev.write(RangeUpgradeEvent(ev.tower_id));
             }
         }
-        sound_ev.send(SoundEvent::upgrade_sound(ev.upgrade));
+        sound_ev.write(SoundEvent::upgrade_sound(ev.upgrade));
         log!(
             "🐱 Upgrade tower {:?} to level {:?}",
             ev.tower_id,
@@ -317,8 +321,8 @@ type QShotLight<'w, 's, 'a> = Query<
 fn on_range_upgrade_system(
     mut evr: EventReader<RangeUpgradeEvent>,
     mut q_tower: Query<(Entity, &mut SightRadius), With<Tower>>,
-    mut q_coll: Query<(&mut Transform, &Parent), With<TowerSightSensor>>,
-    mut q_sr_light: Query<(&mut SpotLight, &Parent), With<SightRadiusLight>>,
+    mut q_coll: Query<(&mut Transform, &ChildOf), With<TowerSightSensor>>,
+    mut q_sr_light: Query<(&mut SpotLight, &ChildOf), With<SightRadiusLight>>,
     mut q_shot_light: QShotLight,
 ) {
     for ev in evr.read() {
@@ -332,26 +336,26 @@ fn on_range_upgrade_system(
 }
 
 fn update_collider_size(
-    q_coll: &mut Query<(&mut Transform, &Parent), With<TowerSightSensor>>,
+    q_coll: &mut Query<(&mut Transform, &ChildOf), With<TowerSightSensor>>,
     upgrade_factor: f32,
     tower_id: Entity,
 ) {
     q_coll
         .iter_mut()
-        .find(|(_, parent)| parent.get() == tower_id)
+        .find(|(_, child_of)| child_of.parent() == tower_id)
         .expect("No tower sight radius for tower found")
         .0
         .scale += upgrade_factor;
 }
 
 fn update_sight_radius_light_size(
-    q_sr_light: &mut Query<(&mut SpotLight, &Parent), With<SightRadiusLight>>,
+    q_sr_light: &mut Query<(&mut SpotLight, &ChildOf), With<SightRadiusLight>>,
     sight_radius: f32,
     tower_id: Entity,
 ) {
     let (mut light, _) = q_sr_light
         .iter_mut()
-        .find(|(_, parent)| parent.get() == tower_id)
+        .find(|(_, child_of)| child_of.parent() == tower_id)
         .expect("No tower sight radius light for tower found");
     light.inner_angle = sight_radius;
     light.outer_angle = sight_radius;

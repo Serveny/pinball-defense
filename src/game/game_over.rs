@@ -46,7 +46,7 @@ fn headline(text: &str, assets: &PinballDefenseAssets) -> impl Bundle {
 #[derive(Component)]
 pub struct ActionBtn;
 
-fn spawn_restart_btn(p: &mut ChildBuilder, assets: &PinballDefenseAssets) {
+fn spawn_restart_btn(p: &mut ChildSpawnerCommands, assets: &PinballDefenseAssets) {
     p.spawn((
         Name::new("Button"),
         Button::default(),

@@ -21,9 +21,8 @@ impl Plugin for BallStarterPlugin {
             .add_systems(OnEnter(BallStarterState::Fire), on_fire_started)
             .add_systems(
                 Update,
-                (charge_system).run_if(
-                    in_state(BallStarterState::Charge).and(in_state(GameState::Ingame)),
-                ),
+                (charge_system)
+                    .run_if(in_state(BallStarterState::Charge).and(in_state(GameState::Ingame))),
             )
             .add_systems(
                 Update,
@@ -50,15 +49,15 @@ fn on_spawn_ball_system(
 ) {
     for _ in evr.read() {
         ball::spawn(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
-        sound_ev.send(SoundEvent::BallSpawn);
+        sound_ev.write(SoundEvent::BallSpawn);
     }
 }
 
-pub fn spawn(parent: &mut ChildBuilder, pos: Vec3, assets: &PinballDefenseGltfAssets) {
-    let collider = |p: &mut ChildBuilder| {
+pub fn spawn(spawner: &mut ChildSpawnerCommands, pos: Vec3, assets: &PinballDefenseGltfAssets) {
+    let collider = |p: &mut ChildSpawnerCommands| {
         p.spawn(collider_bundle());
     };
-    parent
+    spawner
         .spawn((
             spatial_from_pos(pos),
             BallStarter,
@@ -153,7 +152,7 @@ fn spawn_ball_at_charge(
     q_ball: Query<Entity, With<PinBall>>,
 ) {
     if q_ball.is_empty() {
-        spawn_ball_ev.send(SpawnBallEvent);
+        spawn_ball_ev.write(SpawnBallEvent);
     }
 }
 
@@ -164,8 +163,8 @@ fn on_charge_started(
     mut charge_started_ev: EventWriter<BallStarterChargeStartedEvent>,
     mut sound_ev: EventWriter<SoundEvent>,
 ) {
-    charge_started_ev.send(BallStarterChargeStartedEvent);
-    sound_ev.send(SoundEvent::BallStarterCharge);
+    charge_started_ev.write(BallStarterChargeStartedEvent);
+    sound_ev.write(SoundEvent::BallStarterCharge);
 }
 
 const MAX_PLATE_TRANSFORM: f32 = 0.08;
@@ -176,10 +175,14 @@ fn charge_system(
     mut state: ResMut<NextState<BallStarterState>>,
     time: Res<Time>,
 ) {
-    let plate_pos = &mut q_plate.single_mut().translation;
-    let spring_scale = &mut q_spring.single_mut().scale;
+    let Ok(mut plate) = q_plate.single_mut() else {
+        return;
+    };
+    let Ok(mut spring) = q_spring.single_mut() else {
+        return;
+    };
     let x_add = time.delta_secs() * 0.14;
-    if starter_add(x_add, plate_pos, spring_scale) >= MAX_PLATE_TRANSFORM {
+    if starter_add(x_add, &mut plate.translation, &mut spring.scale) >= MAX_PLATE_TRANSFORM {
         state.set(BallStarterState::Idle);
     }
 }
@@ -201,15 +204,19 @@ fn fire_system(
     mut leave_ev: EventWriter<BallStarterFireEndEvent>,
     time: Res<Time>,
 ) {
-    let plate_pos = &mut q_plate.single_mut().translation;
-    let spring_scale = &mut q_spring.single_mut().scale;
+    let Ok(mut plate) = q_plate.single_mut() else {
+        return;
+    };
+    let Ok(mut spring) = q_spring.single_mut() else {
+        return;
+    };
     let x_add = -time.delta_secs() * 1.4;
-    if starter_add(x_add, plate_pos, spring_scale) <= 0. {
+    if starter_add(x_add, &mut plate.translation, &mut spring.scale) <= 0. {
         state.set(BallStarterState::Idle);
-        leave_ev.send(BallStarterFireEndEvent);
+        leave_ev.write(BallStarterFireEndEvent);
     }
 }
 
 fn on_fire_started(mut sound_ev: EventWriter<SoundEvent>) {
-    sound_ev.send(SoundEvent::BallStarterFire);
+    sound_ev.write(SoundEvent::BallStarterFire);
 }

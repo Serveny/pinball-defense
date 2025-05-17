@@ -17,26 +17,27 @@ impl Plugin for PlayerLifePlugin {
 pub struct LifeBar;
 
 pub fn spawn_life_bar(
-    parent: &mut ChildBuilder,
+    spawner: &mut ChildSpawnerCommands,
     assets: &PinballDefenseGltfAssets,
     materials: &mut Assets<StandardMaterial>,
     trans: Transform,
 ) {
-    parent
+    spawner
         .spawn((
             Name::new("Life Bar"),
             trans,
             LifeBar,
             Health::new(100.),
             HealthRecovery::new(4., 6.),
+            Visibility::Inherited,
         ))
-        .with_children(|parent| {
+        .with_children(|spawner| {
             let color = Color::srgb_u8(156, 217, 26);
             super::progress::spawn(
-                parent,
+                spawner,
                 assets,
                 materials,
-                parent.parent_entity(),
+                spawner.target_entity(),
                 Transform::default(),
                 color,
                 1.,

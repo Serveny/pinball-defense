@@ -6,9 +6,9 @@ pub struct Row;
 
 pub fn spawn(
     text: &str,
-    p: &mut ChildBuilder,
+    p: &mut ChildSpawnerCommands,
     assets: &PinballDefenseAssets,
-    spawn_inside: impl FnOnce(&mut ChildBuilder),
+    spawn_inside: impl FnOnce(&mut ChildSpawnerCommands),
 ) {
     p.spawn((
         Name::new("UI Row"),

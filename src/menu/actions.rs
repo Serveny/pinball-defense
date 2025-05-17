@@ -5,7 +5,7 @@ use bevy::app::AppExit;
 use std::fmt;
 //const NORMAL_BUTTON: Color = Color::rgb(57. / 255., 61. / 255., 64. / 255.);
 
-#[derive(Event, Debug, Clone, Copy)]
+#[derive(Component, Event, Debug, Clone, Copy)]
 pub enum MenuAction {
     Continue,
     Controls,
@@ -32,13 +32,13 @@ pub fn on_menu_action(
         match action {
             MA::Continue => {
                 menu_state.set(MenuState::None);
-                resume_ev.send(ResumeGameEvent);
+                resume_ev.write(ResumeGameEvent);
             }
             MA::Controls => settings_state.set(SettingsMenuState::KeyboardControls),
             MA::Graphics => settings_state.set(SettingsMenuState::Graphics),
             MA::Sound => settings_state.set(SettingsMenuState::Sound),
             MA::Quit => {
-                exit_ev.send(AppExit::Success);
+                exit_ev.write(AppExit::Success);
             }
         }
     }

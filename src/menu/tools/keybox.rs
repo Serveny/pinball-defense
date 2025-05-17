@@ -7,7 +7,7 @@ use bevy::color::palettes::css::GRAY;
 pub struct Keybox;
 
 pub fn spawn(
-    p: &mut ChildBuilder,
+    p: &mut ChildSpawnerCommands,
     assets: &PinballDefenseAssets,
     prop_i: usize,
     init_val: KeyCode,

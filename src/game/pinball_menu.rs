@@ -107,7 +107,7 @@ fn on_menu_event_system(
     sound_ev: EventWriter<SoundEvent>,
 ) {
     if let Some(ev) = evr.read().next() {
-        if let Ok((menu_entity, mut status)) = q_pb_menu.get_single_mut() {
+        if let Ok((menu_entity, mut status)) = q_pb_menu.single_mut() {
             use PinballMenuEvent::*;
             use PinballMenuStatus::*;
             if let Some(new_status) = match (ev, *status) {
@@ -140,10 +140,10 @@ fn spawn_system(
     unlocked_tower_upgrades: Res<UnlockedUpgrades>,
 ) {
     if q_pb_menu.is_empty() {
-        if let Ok(trigger) = q_selected.get_single() {
+        if let Ok(trigger) = q_selected.single() {
             log!("🐢 Spawn {trigger:?} menu");
-            cmds.entity(q_pbw.single())
-                .with_children(|p| match *trigger {
+            if let Ok(world_id) = q_pbw.single() {
+                cmds.entity(world_id).with_children(|p| match *trigger {
                     PinballMenuTrigger::Tower => {
                         spawn_tower_menu(p, &assets, &g_sett, &unlocked_towers, MENU_POS)
                     }
@@ -151,7 +151,8 @@ fn spawn_system(
                         spawn_upgrade_menu(p, &assets, &g_sett, &unlocked_tower_upgrades, MENU_POS)
                     }
                 });
-            sound_ev.send(SoundEvent::PbMenuFadeIn);
+                sound_ev.write(SoundEvent::PbMenuFadeIn);
+            }
         }
     }
 }
@@ -163,16 +164,16 @@ enum PinballMenu {
 }
 
 fn spawn_tower_menu(
-    parent: &mut ChildBuilder,
+    spawner: &mut ChildSpawnerCommands,
     assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
     unlocked_towers: &UnlockedTowers,
     pos: Vec3,
 ) {
-    parent.spawn(menu(pos)).with_children(|p| {
+    spawner.spawn(menu(pos)).with_children(|spawner| {
         let mut angles = CardAngles::new(unlocked_towers.0.len() as u8);
         for tower in unlocked_towers.0.iter() {
-            spawn_menu_element(*tower, p, assets, g_sett, angles.next(), 0.1);
+            spawn_menu_element(*tower, spawner, assets, g_sett, angles.next(), 0.1);
         }
     });
 }
@@ -187,16 +188,16 @@ fn menu(pos: Vec3) -> impl Bundle {
 }
 
 fn spawn_upgrade_menu(
-    parent: &mut ChildBuilder,
+    spawner: &mut ChildSpawnerCommands,
     assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
     unlocked_tower_upgrades: &UnlockedUpgrades,
     pos: Vec3,
 ) {
-    parent.spawn(menu_element(pos)).with_children(|p| {
+    spawner.spawn(menu_element(pos)).with_children(|spawner| {
         let mut angles = CardAngles::new(unlocked_tower_upgrades.0.len() as u8);
         for tower_upgrade in unlocked_tower_upgrades.0.iter() {
-            spawn_menu_element(*tower_upgrade, p, assets, g_sett, angles.next(), 0.1);
+            spawn_menu_element(*tower_upgrade, spawner, assets, g_sett, angles.next(), 0.1);
         }
     });
 }
@@ -219,17 +220,17 @@ struct PinballMenuElementLight;
 
 fn spawn_menu_element(
     menu_el_type: impl Component + GetMaterial,
-    parent: &mut ChildBuilder,
+    spawner: &mut ChildSpawnerCommands,
     assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
     angle: f32,
     delay_secs: f32,
 ) {
-    parent
+    spawner
         .spawn(element_bundle(menu_el_type, assets))
         .insert(Animator::new(spawn_animation(angle, delay_secs)))
-        .with_children(|parent| {
-            parent.spawn(active_light_bundle(g_sett));
+        .with_children(|spawner| {
+            spawner.spawn(active_light_bundle(g_sett));
         });
 }
 
@@ -286,7 +287,7 @@ fn despawn(
         )));
     });
     deactivate(cmds, q_lights, q_pbm_el);
-    sound_ev.send(SoundEvent::PbMenuFadeOut);
+    sound_ev.write(SoundEvent::PbMenuFadeOut);
     PinballMenuStatus::Disabled
 }
 
@@ -300,12 +301,12 @@ fn de_activate_system(
             PinballMenuStatus::Disabled => (),
             PinballMenuStatus::Ready => {
                 if is_ball_in_x_zone(&q_ball, 0.6, 0.8) {
-                    pb_menu_ev.send(PinballMenuEvent::Activate);
+                    pb_menu_ev.write(PinballMenuEvent::Activate);
                 }
             }
             PinballMenuStatus::Activated => {
                 if !is_ball_in_x_zone(&q_ball, 0.28, 1.) {
-                    pb_menu_ev.send(PinballMenuEvent::Deactivate);
+                    pb_menu_ev.write(PinballMenuEvent::Deactivate);
                 }
             }
         }
@@ -334,7 +335,7 @@ fn activate(
     q_lights
         .iter_mut()
         .for_each(|mut visi| *visi = Visibility::Inherited);
-    sound_ev.send(SoundEvent::PbMenuActive);
+    sound_ev.write(SoundEvent::PbMenuActive);
     PinballMenuStatus::Activated
 }
 
@@ -415,21 +416,21 @@ fn on_execute_system(
 ) {
     for CollisionWithBallEvent(id) in evr.read() {
         // if *flag == CollisionEventFlags::SENSOR {
-        if let Ok(pb_menu) = q_pb_menu.get_single() {
+        if let Ok(pb_menu) = q_pb_menu.single() {
             match pb_menu {
                 PinballMenu::Tower => {
                     if let Some((_, tower_type)) =
                         q_tower_menu_els.iter().find(|(el_id, _)| *el_id == *id)
                     {
-                        if let Ok((foundation_id, sel_trans)) = q_selected.get_single() {
+                        if let Ok((foundation_id, sel_trans)) = q_selected.single() {
                             // Deselect
                             cmds.entity(foundation_id).remove::<PinballMenuSelected>();
 
-                            on_tower_el_selected.send(TowerMenuExecuteEvent::new(foundation_id));
+                            on_tower_el_selected.write(TowerMenuExecuteEvent::new(foundation_id));
 
                             // Spawn new tower
                             let pos = sel_trans.translation;
-                            spawn_tower_ev.send(SpawnTowerEvent(
+                            spawn_tower_ev.write(SpawnTowerEvent(
                                 *tower_type,
                                 Vec3::new(pos.x, pos.y, -0.025),
                             ));
@@ -440,19 +441,19 @@ fn on_execute_system(
                     if let Some((_, upgrade)) =
                         q_upgrade_menu_els.iter().find(|(el_id, _)| *el_id == *id)
                     {
-                        if let Ok((tower_id, _)) = q_selected.get_single() {
+                        if let Ok((tower_id, _)) = q_selected.single() {
                             // Deselect
                             cmds.entity(tower_id).remove::<PinballMenuSelected>();
 
                             on_upgrade_el_selected
-                                .send(UpgradeMenuExecuteEvent::new(tower_id, *upgrade));
+                                .write(UpgradeMenuExecuteEvent::new(tower_id, *upgrade));
                         }
                     }
                 }
             }
 
             // Despawn menu
-            pb_menu_ev.send(PinballMenuEvent::Disable);
+            pb_menu_ev.write(PinballMenuEvent::Disable);
 
             return;
         }
@@ -510,7 +511,7 @@ fn selected_system(
         for (ready_id, trigger) in q_ready.iter() {
             if is_unlock_available(*trigger, &unlocked_towers, &unlocked_tower_upgrades) {
                 set_selected(&mut cmds, ready_id);
-                on_sel_ev.send(PinballMenuOnSetSelectedEvent(ready_id));
+                on_sel_ev.write(PinballMenuOnSetSelectedEvent(ready_id));
                 return;
             }
         }

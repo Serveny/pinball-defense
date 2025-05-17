@@ -19,7 +19,7 @@ pub struct GunTowerHead;
 pub struct GunTowerBarrel;
 
 pub fn spawn(
-    pb_world: &mut ChildBuilder,
+    pb_world: &mut ChildSpawnerCommands,
     mats: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
@@ -43,24 +43,24 @@ pub fn spawn(
             DamageOverTime(100.),
         ),
         |tower| {
-            let rel_id = tower.parent_entity();
+            let rel_id = tower.target_entity();
 
             // Children of tower
-            let muzzle_flash_light = |parent: &mut ChildBuilder| {
-                parent.spawn(muzzle_flash_light(g_sett, rel_id, sight_radius));
+            let muzzle_flash_light = |spawner: &mut ChildSpawnerCommands| {
+                spawner.spawn(muzzle_flash_light(g_sett, rel_id, sight_radius));
             };
-            let mg_barrel = |parent: &mut ChildBuilder| {
-                parent
+            let mg_barrel = |spawner: &mut ChildSpawnerCommands| {
+                spawner
                     .spawn(barrel(tower_mat.clone(), assets, rel_id))
                     .with_children(muzzle_flash_light);
             };
-            let mg_head = |parent: &mut ChildBuilder| {
-                parent
+            let mg_head = |spawner: &mut ChildSpawnerCommands| {
+                spawner
                     .spawn(head(tower_mat.clone(), assets, rel_id))
                     .with_children(mg_barrel);
             };
-            let mg_mounting = |parent: &mut ChildBuilder| {
-                parent
+            let mg_mounting = |spawner: &mut ChildSpawnerCommands| {
+                spawner
                     .spawn(mounting(tower_mat.clone(), assets, rel_id))
                     .with_children(mg_head);
             };

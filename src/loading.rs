@@ -15,7 +15,7 @@ impl Plugin for LoadingScreenPlugin {
 
 fn despawn_layout(mut cmds: Commands, q_layout: Query<Entity, With<LoadingLayout>>) {
     for entity in q_layout.iter() {
-        cmds.get_entity(entity).unwrap().despawn_recursive();
+        cmds.get_entity(entity).unwrap().despawn();
     }
 }
 
@@ -29,8 +29,8 @@ fn spawn_layout(mut cmds: Commands) {
         },
         LoadingLayout,
     ))
-    .with_children(|parent| {
-        parent.spawn((
+    .with_children(|spawner| {
+        spawner.spawn((
             Text("Loading...".into()),
             TextFont {
                 font_size: 100.0,

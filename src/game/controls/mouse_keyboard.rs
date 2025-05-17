@@ -36,17 +36,17 @@ pub(super) fn key_system(
     }
 
     if key.just_pressed(controls.menu) {
-        let mut window = q_window.get_single_mut().unwrap();
+        let mut window = q_window.single_mut().unwrap();
         window.cursor_options.grab_mode = CursorGrabMode::None;
         window.cursor_options.visible = true;
         cam_state.set(CameraState::Dynamic);
-        pause_ev.send(PauseGameEvent);
+        pause_ev.write(PauseGameEvent);
         menu_state.set(MenuState::PauseMenu);
     }
 
     // Only for testing
     if key.just_pressed(KeyCode::ControlLeft) {
-        spawn_ball_ev.send(SpawnBallEvent);
+        spawn_ball_ev.write(SpawnBallEvent);
     }
 
     if key.just_pressed(controls.charge_ball_starter) {
@@ -70,7 +70,7 @@ pub(super) fn key_system(
         set_flipper_status(FlipperType::Right, FlipperStatus::Idle, &mut q_flipper);
     }
     if key.just_pressed(controls.pause) {
-        pause_ev.send(PauseGameEvent);
+        pause_ev.write(PauseGameEvent);
     }
 }
 
@@ -93,7 +93,7 @@ pub(super) fn pause_key_system(
     }
     if key.just_pressed(controls.menu) || key.just_pressed(KeyCode::KeyP) {
         menu_state.set(MenuState::None);
-        resume_ev.send(ResumeGameEvent);
+        resume_ev.write(ResumeGameEvent);
     }
 }
 
@@ -115,7 +115,7 @@ pub(super) fn mouse_btn_system(
     }
 
     if btn.just_pressed(MouseButton::Right) {
-        let mut window = q_window.get_single_mut().unwrap();
+        let mut window = q_window.single_mut().unwrap();
         window.cursor_options.grab_mode = CursorGrabMode::Locked;
         window.cursor_options.visible = false;
         cam_state.set(CameraState::FpsCamera);

@@ -24,7 +24,7 @@ pub fn spawn(mut cmd: Commands, ctl: Res<KeyboardControls>, ass: Res<PinballDefe
 
 pub fn despawn(mut cmds: Commands, q_ui: Query<Entity, With<ControlsUi>>) {
     for id in &q_ui {
-        cmds.entity(id).despawn_recursive();
+        cmds.entity(id).despawn();
     }
 }
 
@@ -37,7 +37,7 @@ pub fn keys_to_pos_system(
     q_flipper: Query<(&GlobalTransform, &FlipperType)>,
     ball_spawn: Res<BallSpawn>,
 ) {
-    if let Ok(cam) = q_cam.get_single() {
+    if let Ok(cam) = q_cam.single() {
         keys_to_pos(q_keys, controls, cam, q_flipper, ball_spawn)
     }
 }
@@ -187,7 +187,7 @@ pub(super) fn on_resize_system(
     ball_spawn: Res<BallSpawn>,
 ) {
     for _ in resize_reader.read() {
-        if let Ok(cam) = q_cam.get_single() {
+        if let Ok(cam) = q_cam.single() {
             keys_to_pos(q_keys, controls, cam, q_flipper, ball_spawn);
         }
         return;

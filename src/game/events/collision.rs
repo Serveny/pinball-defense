@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-#[derive(PhysicsLayer, Default)]
+#[derive(PhysicsLayer, Clone, Copy, Debug, Default)]
 pub enum GameLayer {
     Ball,
     Enemy,

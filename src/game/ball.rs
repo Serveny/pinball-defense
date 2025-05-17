@@ -92,11 +92,13 @@ fn ball_reset_system(
         let ball_pos = transform.translation;
         if !X_RANGE.contains(&ball_pos.x) || !Y_RANGE.contains(&ball_pos.y) {
             if ball_pos.x > 1.2 && HIT_Y_RANGE.contains(&ball_pos.y) {
-                health_ev.send(ChangeHealthEvent::new(q_life_bar.single(), -5., None));
+                if let Ok(lifebar_id) = q_life_bar.single() {
+                    health_ev.write(ChangeHealthEvent::new(lifebar_id, -5., None));
+                }
             }
             log!("🎱 Despawn ball");
-            cmds.get_entity(entity).unwrap().despawn_recursive();
-            evw.send(OnBallDespawnEvent);
+            cmds.get_entity(entity).unwrap().despawn();
+            evw.write(OnBallDespawnEvent);
         }
     }
 }
@@ -107,8 +109,8 @@ fn on_ball_despawn_system(
     mut sound_ev: EventWriter<SoundEvent>,
 ) {
     if evr.read().next().is_some() {
-        pm_status_ev.send(PinballMenuEvent::Deactivate);
-        sound_ev.send(SoundEvent::BallHitsEnd);
+        pm_status_ev.write(PinballMenuEvent::Deactivate);
+        sound_ev.write(SoundEvent::BallHitsEnd);
     }
 }
 
@@ -122,8 +124,8 @@ fn on_collision_with_ball_system(
     q_ball: Query<Entity, With<PinBall>>,
 ) {
     for collidator_id in get_ball_collisions(coll_ev, q_ball) {
-        coll_with_ball_ev.send(CollisionWithBallEvent(collidator_id));
-        points_ev.send(PointsEvent::BallCollided);
+        coll_with_ball_ev.write(CollisionWithBallEvent(collidator_id));
+        points_ev.write(PointsEvent::BallCollided);
     }
 }
 
@@ -149,7 +151,7 @@ fn on_wall_collision_system(
 ) {
     for ev in evr.read() {
         if q_wall.contains(ev.0) {
-            sound_ev.send(SoundEvent::BallHitsWall);
+            sound_ev.write(SoundEvent::BallHitsWall);
         }
     }
 }
