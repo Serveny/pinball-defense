@@ -25,7 +25,7 @@ log = []
 bevy = { version = "0.16.0", features = ["dynamic_linking"] }
 bevy-inspector-egui = "0.31.0"
 bevy_asset_loader = "0.23.0-rc.4"
-avian2d = { version = "0.3.0" }
+bevy_rapier2d = { version = "0.30.0", features = ["parallel"] }
 bevy_window_title_diagnostics = "0.16.0"
 bevy_tweening = "0.13.0"
 digits_iterator = "0.1.0"

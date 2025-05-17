@@ -1,5 +1,5 @@
 use super::ball::{CollisionWithBallEvent, PinBall};
-use super::events::collision::GameLayer;
+use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 use super::events::tween_completed::{ACTIVATE_PINBALL_MENU_EVENT_ID, DESPAWN_ENTITY_EVENT_ID};
 use super::level::{Level, LevelUpEvent};
 use super::progress::ProgressBarFullEvent;
@@ -10,6 +10,7 @@ use crate::game::audio::SoundEvent;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy::color::palettes::css::{BEIGE, GREEN};
+use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use bevy_tweening::lens::TransformRotateZLens;
 use bevy_tweening::{Animator, Delay, Sequence, Tween};
 use std::time::Duration;
@@ -341,18 +342,17 @@ fn activate(
 
 fn active_collider() -> impl Bundle {
     (
-        DebugRender::collider(GREEN.into()),
+        ColliderDebugColor(GREEN.into()),
         Sensor,
-        Collider::polyline(
-            vec![
-                Vec2::new(-0.98, -0.09),
-                Vec2::new(-0.98, 0.08),
-                Vec2::new(-0.83, 0.07),
-                Vec2::new(-0.83, -0.07),
-            ],
-            None,
-        ),
-        CollisionLayers::new(GameLayer::Map, GameLayer::Ball),
+        ActiveEvents::COLLISION_EVENTS,
+        Collider::convex_polyline(vec![
+            Vec2::new(-0.98, -0.09),
+            Vec2::new(-0.98, 0.08),
+            Vec2::new(-0.83, 0.07),
+            Vec2::new(-0.83, -0.07),
+        ])
+        .expect("Cannot build menu element convex"),
+        COLLIDE_ONLY_WITH_BALL,
     )
 }
 
@@ -414,48 +414,49 @@ fn on_execute_system(
     q_upgrade_menu_els: QueryUpgradeMenuEls,
     q_selected: Query<(Entity, &Transform), With<PinballMenuSelected>>,
 ) {
-    for CollisionWithBallEvent(id) in evr.read() {
-        // if *flag == CollisionEventFlags::SENSOR {
-        if let Ok(pb_menu) = q_pb_menu.single() {
-            match pb_menu {
-                PinballMenu::Tower => {
-                    if let Some((_, tower_type)) =
-                        q_tower_menu_els.iter().find(|(el_id, _)| *el_id == *id)
-                    {
-                        if let Ok((foundation_id, sel_trans)) = q_selected.single() {
-                            // Deselect
-                            cmds.entity(foundation_id).remove::<PinballMenuSelected>();
+    for CollisionWithBallEvent(id, flag) in evr.read() {
+        if *flag == CollisionEventFlags::SENSOR {
+            if let Ok(pb_menu) = q_pb_menu.single() {
+                match pb_menu {
+                    PinballMenu::Tower => {
+                        if let Some((_, tower_type)) =
+                            q_tower_menu_els.iter().find(|(el_id, _)| *el_id == *id)
+                        {
+                            if let Ok((foundation_id, sel_trans)) = q_selected.single() {
+                                // Deselect
+                                cmds.entity(foundation_id).remove::<PinballMenuSelected>();
+                                on_tower_el_selected
+                                    .write(TowerMenuExecuteEvent::new(foundation_id));
 
-                            on_tower_el_selected.write(TowerMenuExecuteEvent::new(foundation_id));
+                                // Spawn new tower
+                                let pos = sel_trans.translation;
 
-                            // Spawn new tower
-                            let pos = sel_trans.translation;
-                            spawn_tower_ev.write(SpawnTowerEvent(
-                                *tower_type,
-                                Vec3::new(pos.x, pos.y, -0.025),
-                            ));
+                                spawn_tower_ev.write(SpawnTowerEvent(
+                                    *tower_type,
+                                    Vec3::new(pos.x, pos.y, -0.025),
+                                ));
+                            }
+                        }
+                    }
+                    PinballMenu::Upgrade => {
+                        if let Some((_, upgrade)) =
+                            q_upgrade_menu_els.iter().find(|(el_id, _)| *el_id == *id)
+                        {
+                            if let Ok((tower_id, _)) = q_selected.single() {
+                                // Deselect
+                                cmds.entity(tower_id).remove::<PinballMenuSelected>();
+                                on_upgrade_el_selected
+                                    .write(UpgradeMenuExecuteEvent::new(tower_id, *upgrade));
+                            }
                         }
                     }
                 }
-                PinballMenu::Upgrade => {
-                    if let Some((_, upgrade)) =
-                        q_upgrade_menu_els.iter().find(|(el_id, _)| *el_id == *id)
-                    {
-                        if let Ok((tower_id, _)) = q_selected.single() {
-                            // Deselect
-                            cmds.entity(tower_id).remove::<PinballMenuSelected>();
 
-                            on_upgrade_el_selected
-                                .write(UpgradeMenuExecuteEvent::new(tower_id, *upgrade));
-                        }
-                    }
-                }
+                // Despawn menu
+                pb_menu_ev.write(PinballMenuEvent::Disable);
+
+                return;
             }
-
-            // Despawn menu
-            pb_menu_ev.write(PinballMenuEvent::Disable);
-
-            return;
         }
     }
 }

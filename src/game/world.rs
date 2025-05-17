@@ -1,4 +1,4 @@
-use super::events::collision::GameLayer;
+use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 
 use super::analog_counter;
 use super::level::{LevelCounterId, PointCounterId};
@@ -47,21 +47,19 @@ pub fn spawn_pinball_world(
         ));
 
         // Map colliders
-        p.spawn((
-            Name::new("World Frame Collider"),
-            WorldFrame,
-            CollisionLayers::new(GameLayer::Map, GameLayer::Ball),
-            RigidBody::Static,
-        ))
-        .with_children(|p| {
-            for coll in colliders::colliders() {
-                p.spawn((
-                    coll,
-                    DebugRender::default().with_collider_color(RED.into()),
-                    CollisionMargin(0.005),
-                ));
-            }
-        });
+        p.spawn((Name::new("World Frame Collider"),))
+            .with_children(|p| {
+                for coll in colliders::colliders() {
+                    p.spawn((
+                        WorldFrame,
+                        coll,
+                        ColliderDebugColor(RED.into()),
+                        COLLIDE_ONLY_WITH_BALL,
+                        ActiveEvents::COLLISION_EVENTS,
+                        RigidBody::Fixed,
+                    ));
+                }
+            });
 
         // Ball starter
         let bs_pos = Vec3::new(1.284, 0.657, -0.018);

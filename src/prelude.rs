@@ -1,6 +1,6 @@
 pub use crate::assets::*;
-pub use avian2d::prelude::*;
 pub use bevy::prelude::*;
+pub use bevy_rapier2d::prelude::*;
 pub(crate) use macros::*;
 
 pub fn spatial_from_pos(pos: Vec3) -> impl Bundle {

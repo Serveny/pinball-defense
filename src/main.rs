@@ -1,4 +1,3 @@
-use avian2d::PhysicsPlugins;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 pub use bevy_asset_loader::prelude::*;
 use bevy_framepace::Limiter;
@@ -46,12 +45,11 @@ fn main() {
         EguiPlugin {
             enable_multipass_for_primary_context: false,
         },
-        PhysicsPlugins::default(),
     ))
     .init_state::<AppState>()
     .add_systems(Startup, set_framerate);
 
-    add_pysics_settings(&mut app);
+    add_rapier(&mut app);
 
     // Only show debug data in debug mode
     #[cfg(debug_assertions)]
@@ -72,15 +70,32 @@ fn set_framerate(mut settings: ResMut<bevy_framepace::FramepaceSettings>) {
     settings.limiter = Limiter::from_framerate(MAX_FRAME_RATE as f64);
 }
 
-fn add_pysics_settings(app: &mut App) {
-    app.insert_resource(Gravity(Vec2::X * 9.81))
-        .insert_resource(Time::<Fixed>::from_hz(128.));
-}
-
 #[cfg(debug_assertions)]
 fn add_debug_plugins(app: &mut App) {
     app.add_plugins((
         WorldInspectorPlugin::default(),
-        PhysicsDebugPlugin::default(),
+        RapierDebugRenderPlugin::default(),
     ));
+}
+
+fn add_rapier(app: &mut App) {
+    app.insert_resource(TimestepMode::Variable {
+        max_dt: 1. / 80.,
+        time_scale: 1.0,
+        substeps: 3,
+    })
+    .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
+    .add_systems(OnEnter(AppState::Game), set_rapier_config);
+}
+
+fn set_rapier_config(mut q_config: Query<&mut RapierConfiguration>) {
+    if let Ok(mut cfg) = q_config.single_mut() {
+        *cfg = RapierConfiguration {
+            gravity: Vec2::X * 2.,
+            force_update_from_transform_changes: false,
+            physics_pipeline_active: true,
+            query_pipeline_active: true,
+            scaled_shape_subdivision: 1,
+        }
+    }
 }

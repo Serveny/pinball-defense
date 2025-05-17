@@ -4,7 +4,7 @@ use self::target::{EnemiesWithinReach, SightRadius, TargetPos};
 use super::audio::SoundEvent;
 use super::ball::CollisionWithBallEvent;
 use super::cfg::CONFIG;
-use super::events::collision::GameLayer;
+use super::events::collision::{COLLIDE_ONLY_WITH_BALL, COLLIDE_ONLY_WITH_ENEMY};
 use super::level::{Level, PointsEvent};
 use super::light::{
     contact_light_bundle, sight_radius_light, FlashLight, LightOnCollision, SightRadiusLight,
@@ -19,6 +19,7 @@ use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::RelEntity;
 use bevy::color::palettes::css::{BEIGE, ORANGE, RED};
+use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use bevy_tweening::lens::TransformPositionLens;
 use bevy_tweening::{Animator, Delay, Sequence, Tween};
 use std::time::Duration;
@@ -66,8 +67,7 @@ impl Plugin for TowerPlugin {
                     foundation::on_spawn_system,
                     foundation::on_despawn_system,
                     foundation::on_progress_system,
-                    target::on_enemy_enter_reach_system,
-                    target::on_enemy_leave_reach_system,
+                    target::on_enemy_within_reach_system,
                     target::on_remove_despawned_enemies_from_ewr_system,
                 )
                     .run_if(in_state(EventState::Active)),
@@ -108,14 +108,15 @@ fn tower_bundle(pos: Vec3, sight_radius: f32) -> impl Bundle {
         EnemiesWithinReach::default(),
         //
         // Collider
-        RigidBody::Kinematic,
+        RigidBody::KinematicPositionBased,
         Restitution {
             coefficient: 2.,
-            combine_rule: CoefficientCombine::Multiply,
+            combine_rule: CoefficientCombineRule::Multiply,
         },
-        DebugRender::collider(RED.into()),
-        Collider::circle(0.06),
-        CollisionLayers::new(GameLayer::Tower, GameLayer::Ball),
+        ActiveEvents::COLLISION_EVENTS,
+        ColliderDebugColor(RED.into()),
+        Collider::ball(0.06),
+        COLLIDE_ONLY_WITH_BALL,
         PinballMenuTrigger::Upgrade,
         LightOnCollision,
         //
@@ -130,10 +131,12 @@ pub struct TowerSightSensor;
 fn tower_sight_sensor_bundle(radius: f32) -> impl Bundle {
     (
         Sensor,
-        RigidBody::Kinematic,
-        DebugRender::collider(ORANGE.into()),
-        Collider::circle(radius),
-        CollisionLayers::new(GameLayer::Tower, GameLayer::Enemy),
+        RigidBody::KinematicPositionBased,
+        ColliderDebugColor(ORANGE.into()),
+        Collider::ball(radius),
+        ActiveEvents::COLLISION_EVENTS,
+        ActiveCollisionTypes::KINEMATIC_KINEMATIC,
+        COLLIDE_ONLY_WITH_ENEMY,
         TowerSightSensor,
     )
 }
@@ -241,9 +244,8 @@ fn on_progress_system(
     mut sound_ev: EventWriter<SoundEvent>,
     q_tower: Query<Entity, With<Tower>>,
 ) {
-    evr.read().for_each(|CollisionWithBallEvent(id)| {
-        // *flag != CollisionEventFlags::SENSOR &&
-        if q_tower.contains(*id) {
+    evr.read().for_each(|CollisionWithBallEvent(id, flag)| {
+        if *flag != CollisionEventFlags::SENSOR && q_tower.contains(*id) {
             prog_bar_ev.write(ProgressBarCountUpEvent::new(*id, CONFIG.tower_hit_progress));
             points_ev.write(PointsEvent::TowerHit);
             sound_ev.write(SoundEvent::TowerHit);

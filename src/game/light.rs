@@ -58,7 +58,7 @@ fn on_contact_light_on_system(
     mut q_light: QueryContactLight,
     q_light_on_coll: Query<Entity, With<LightOnCollision>>,
 ) {
-    for CollisionWithBallEvent(id) in evr.read() {
+    for CollisionWithBallEvent(id, _) in evr.read() {
         if q_light_on_coll.contains(*id) {
             light_on_by_parent(*id, &mut q_light);
         }
