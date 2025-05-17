@@ -6,7 +6,7 @@ use crate::AppState;
 use bevy::asset::Asset;
 use bevy::asset::LoadState;
 use bevy::gltf::{Gltf, GltfMesh};
-use bevy::utils::HashMap;
+use bevy::platform::collections::HashMap;
 pub use bevy_asset_loader::prelude::*;
 use rand::seq::IndexedRandom;
 use std::env;

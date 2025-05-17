@@ -76,7 +76,7 @@ fn clean_up(
 ) {
     settings_state.set(SettingsMenuState::None);
     for id in q_layout.iter() {
-        cmds.entity(id).despawn_recursive();
+        cmds.entity(id).despawn();
     }
 }
 

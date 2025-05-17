@@ -152,8 +152,8 @@ const TOWER_POSIS: [Vec3; 3] = [
     Vec3::new(-0.5, 0.4, -0.04),
 ];
 
-fn spawn_build_marks(parent: &mut ChildBuilder, assets: &PinballDefenseGltfAssets) {
+fn spawn_build_marks(spawner: &mut ChildSpawnerCommands, assets: &PinballDefenseGltfAssets) {
     for (i, pos) in TOWER_POSIS.iter().enumerate() {
-        parent.spawn(foundation::build_mark(assets, *pos, i));
+        spawner.spawn(foundation::build_mark(assets, *pos, i));
     }
 }

@@ -85,16 +85,15 @@ impl AnalogCounterSetEvent {
 
 fn on_set_system(
     mut evr: EventReader<AnalogCounterSetEvent>,
-    mut q_digit: Query<(&mut Digit, &Parent)>,
+    mut q_digit: Query<(&mut Digit, &ChildOf)>,
     q_counter: Query<(Entity, &RelEntity), With<AnalogCounter>>,
 ) {
     for ev in evr.read() {
         if let Some((counter_id, _)) = q_counter.iter().find(|(_, rel_id)| rel_id.0 == ev.rel_id) {
             for (i, number) in ev.number.digits().rev().enumerate() {
-                if let Some((mut digit, _)) = q_digit
-                    .iter_mut()
-                    .find(|(digit_comp, p)| p.get() == counter_id && digit_comp.position == i as u8)
-                {
+                if let Some((mut digit, _)) = q_digit.iter_mut().find(|(digit_comp, child_of)| {
+                    child_of.parent() == counter_id && digit_comp.position == i as u8
+                }) {
                     digit.set_number(number);
                 } else {
                     warn!("😥 No digit component for i ({i}) with given parent!");
@@ -105,21 +104,21 @@ fn on_set_system(
 }
 
 pub fn spawn_10_digit(
-    parent: &mut ChildBuilder,
+    spawner: &mut ChildSpawnerCommands,
     assets: &PinballDefenseGltfAssets,
     pos: Vec3,
     rel_id: Option<Entity>,
 ) -> Entity {
-    let mut counter = parent.spawn((
+    let mut counter = spawner.spawn((
         Name::new("Analog Counter Casing 10 Digit"),
         Mesh3d(assets.analog_counter_10_digit_casing.clone()),
         MeshMaterial3d(assets.analog_counter_casing_10_digit_material.clone()),
         Transform::from_translation(pos),
         AnalogCounter,
     ));
-    counter.with_children(|parent| {
+    counter.with_children(|spawner| {
         for i in 0..9 {
-            parent.spawn((
+            spawner.spawn((
                 Name::new("Analog Counter Digit"),
                 Mesh3d(assets.analog_counter_cylinder.clone()),
                 MeshMaterial3d(assets.analog_counter_cylinder_material.clone()),
@@ -127,13 +126,13 @@ pub fn spawn_10_digit(
                 Digit::new(i),
             ));
         }
-        parent.spawn((
+        spawner.spawn((
             Name::new("Level Sign"),
             Mesh3d(assets.point_sign.clone()),
             MeshMaterial3d(assets.points_sign_material.clone()),
             Transform::from_xyz(-0.055, 0., 0.047),
         ));
-        parent.spawn((
+        spawner.spawn((
             Name::new("Cover"),
             Mesh3d(assets.analog_counter_10_digit_cover.clone()),
             MeshMaterial3d(assets.analog_counter_cover_material.clone()),
@@ -150,21 +149,21 @@ pub fn spawn_10_digit(
 }
 
 pub fn spawn_2_digit(
-    parent: &mut ChildBuilder,
+    spawner: &mut ChildSpawnerCommands,
     assets: &PinballDefenseGltfAssets,
     transform: Transform,
     rel_id: Option<Entity>,
 ) -> Entity {
-    let mut counter = parent.spawn((
+    let mut counter = spawner.spawn((
         Name::new("Analog Counter Casing 2 Digit"),
         Mesh3d(assets.analog_counter_casing_2_digit.clone()),
         MeshMaterial3d(assets.analog_counter_casing_2_digit_material.clone()),
         transform,
         AnalogCounter,
     ));
-    counter.with_children(|parent| {
+    counter.with_children(|spawner| {
         for i in 0..2 {
-            parent.spawn((
+            spawner.spawn((
                 Name::new("Analog Counter Digit"),
                 Mesh3d(assets.analog_counter_cylinder.clone()),
                 MeshMaterial3d(assets.analog_counter_cylinder_material.clone()),
@@ -172,13 +171,13 @@ pub fn spawn_2_digit(
                 Digit::new(i),
             ));
         }
-        parent.spawn((
+        spawner.spawn((
             Name::new("Level Sign"),
             Mesh3d(assets.level_sign.clone()),
             MeshMaterial3d(assets.level_sign_material.clone()),
             Transform::from_xyz(-0.055, 0., 0.047),
         ));
-        parent.spawn((
+        spawner.spawn((
             Name::new("Cover"),
             Mesh3d(assets.analog_counter_2_digit_cover.clone()),
             MeshMaterial3d(assets.analog_counter_cover_material.clone()),
@@ -207,7 +206,7 @@ fn turn_digit_system(
                     *trans = trans.with_rotation(Quat::from_rotation_y(target_rot));
                     return;
                 }
-                sound_ev.send(SoundEvent::CounterTick);
+                sound_ev.write(SoundEvent::CounterTick);
             }
 
             trans.rotate_y(digit.rotate(time.delta_secs()));

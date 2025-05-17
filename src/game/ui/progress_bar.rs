@@ -54,9 +54,9 @@ pub(super) fn despawn_system(
     q_bar: Query<(Entity, &RelEntity), Or<(With<ProgressUiBar>, With<RelEntity>)>>,
 ) {
     for (bar_id, rel_id) in q_bar.iter() {
-        if cmds.get_entity(rel_id.0).is_none() {
-            if let Some(bar) = cmds.get_entity(bar_id) {
-                bar.despawn_recursive();
+        if cmds.get_entity(rel_id.0).is_err() {
+            if let Ok(mut bar) = cmds.get_entity(bar_id) {
+                bar.despawn();
             }
         }
     }

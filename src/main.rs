@@ -35,12 +35,17 @@ fn main() {
     let mut app = App::new();
 
     app.add_plugins((
-        DefaultPlugins,
+        DefaultPlugins.set(AssetPlugin {
+            unapproved_path_mode: bevy::asset::UnapprovedPathMode::Allow,
+            ..default()
+        }),
         bevy_framepace::FramepacePlugin,
-        FrameTimeDiagnosticsPlugin,
+        FrameTimeDiagnosticsPlugin::default(),
         TweeningPlugin,
         WindowTitleLoggerDiagnosticsPlugin::default(),
-        EguiPlugin,
+        EguiPlugin {
+            enable_multipass_for_primary_context: false,
+        },
         PhysicsPlugins::default(),
     ))
     .init_state::<AppState>()

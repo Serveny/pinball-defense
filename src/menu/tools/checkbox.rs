@@ -11,7 +11,7 @@ pub struct Checkbox;
 #[derive(Component)]
 pub struct CheckboxMark;
 
-pub fn spawn(p: &mut ChildBuilder, prop_i: usize, init_val: bool) {
+pub fn spawn(p: &mut ChildSpawnerCommands, prop_i: usize, init_val: bool) {
     p.spawn((
         Name::new("Checkbox"),
         Checkbox,
@@ -51,7 +51,7 @@ pub fn system(
         (Entity, &Interaction, &mut BorderColor, &PropIndex),
         (Changed<Interaction>, With<Checkbox>, With<Active>),
     >,
-    mut q_mark: Query<(&mut Visibility, &mut BackgroundColor, &Parent), With<CheckboxMark>>,
+    mut q_mark: Query<(&mut Visibility, &mut BackgroundColor, &ChildOf), With<CheckboxMark>>,
     mut g_sett: ResMut<GraphicsSettings>,
     mut s_sett: ResMut<SoundSettings>,
     menu_state: Res<State<SettingsMenuState>>,
@@ -59,7 +59,7 @@ pub fn system(
     for (checkbox_id, interaction, mut border_color, prop_i) in &mut interaction_query {
         if let Some((mut visi, mut bg_color, _)) = q_mark
             .iter_mut()
-            .find(|(_, _, parent)| parent.get() == checkbox_id)
+            .find(|(_, _, child_of)| child_of.parent() == checkbox_id)
         {
             match *interaction {
                 Interaction::Pressed => {

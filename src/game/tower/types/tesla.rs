@@ -12,7 +12,7 @@ use bevy::color::palettes::css::BLUE;
 pub struct TeslaTower;
 
 pub fn spawn(
-    pb_world: &mut ChildBuilder,
+    pb_world: &mut ChildSpawnerCommands,
     mats: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
@@ -37,7 +37,7 @@ pub fn spawn(
             tower.spawn(top(tower_mat.clone(), assets));
             tower.spawn(shot_flash_light(
                 g_sett,
-                tower.parent_entity(),
+                tower.target_entity(),
                 sight_radius,
             ));
         },

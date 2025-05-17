@@ -89,8 +89,12 @@ fn on_spawn_system(
 ) {
     for _ in evr.read() {
         let mut enemy_id: Option<Entity> = None;
-        cmds.entity(q_pqw.single()).with_children(|parent| {
-            enemy_id = Some(parent.spawn(enemy(&mut meshes, &mut mats)).id());
+        let Ok(world) = q_pqw.single() else {
+            warn!("[enemy spawn] no world");
+            return;
+        };
+        cmds.entity(world).with_children(|spawner| {
+            enemy_id = Some(spawner.spawn(enemy(&mut meshes, &mut mats)).id());
         });
         if let Some(enemy_id) = enemy_id {
             ui::progress_bar::spawn(&mut cmds, enemy_id, 1.);
@@ -142,9 +146,9 @@ fn on_pinball_hit_system(
         // flag == CollisionEventFlags::SENSOR &&
         if q_enemy.contains(*id) {
             log!("😵 Pinball hits enemy {:?}", *id);
-            health_ev.send(ChangeHealthEvent::new(*id, -100., None));
-            points_ev.send(PointsEvent::BallEnemyHit);
-            sound_ev.send(SoundEvent::BallHitsEnemy);
+            health_ev.write(ChangeHealthEvent::new(*id, -100., None));
+            points_ev.write(PointsEvent::BallEnemyHit);
+            sound_ev.write(SoundEvent::BallHitsEnemy);
         }
     }
 }
@@ -161,9 +165,9 @@ fn on_health_empty_system(
 ) {
     for ev in evr.read() {
         if q_enemy.contains(ev.0) {
-            cmds.entity(ev.0).despawn_recursive();
-            despawn_ev.send(OnEnemyDespawnEvent(ev.0));
-            points_ev.send(PointsEvent::EnemyDied);
+            cmds.entity(ev.0).despawn();
+            despawn_ev.write(OnEnemyDespawnEvent(ev.0));
+            points_ev.write(PointsEvent::EnemyDied);
         }
     }
 }
