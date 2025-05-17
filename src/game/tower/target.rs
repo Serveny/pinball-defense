@@ -2,6 +2,7 @@ use super::TowerSightSensor;
 use crate::game::enemy::{Enemy, OnEnemyDespawnEvent};
 use crate::prelude::*;
 use bevy::platform::collections::HashSet;
+use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 
 #[derive(Component)]
 pub(super) struct SightRadius(pub f32);
@@ -39,31 +40,32 @@ pub(super) fn aim_first_enemy_system(mut q_afe: Query<(&mut AimFirstEnemy, &Enem
 #[derive(Component, Default)]
 pub(super) struct EnemiesWithinReach(pub HashSet<Entity>);
 
-pub(super) fn on_enemy_enter_reach_system(
-    mut evr: EventReader<CollisionStarted>,
+pub(super) fn on_enemy_within_reach_system(
+    mut evr: EventReader<CollisionEvent>,
     mut q_ewr: Query<&mut EnemiesWithinReach>,
     q_tower_sight: Query<&ChildOf, With<TowerSightSensor>>,
 ) {
     for ev in evr.read() {
-        // if *flag == CollisionEventFlags::SENSOR {
-        edit_eir(ev.0, ev.1, &mut q_ewr, &q_tower_sight, |eir, enemy_id| {
-            //log!("Insert: {enemy_id:?}");
-            eir.0.insert(enemy_id);
-        });
-    }
-}
+        match ev {
+            CollisionEvent::Started(id_1, id_2, flag) => {
+                if *flag == CollisionEventFlags::SENSOR {
+                    edit_eir(*id_1, *id_2, &mut q_ewr, &q_tower_sight, |eir, enemy_id| {
+                        //log!("Insert: {enemy_id:?}");
+                        eir.0.insert(enemy_id);
+                    });
+                }
+            }
 
-pub(super) fn on_enemy_leave_reach_system(
-    mut evr: EventReader<CollisionEnded>,
-    mut q_ewr: Query<&mut EnemiesWithinReach>,
-    q_tower_sight: Query<&ChildOf, With<TowerSightSensor>>,
-) {
-    for ev in evr.read() {
-        // if *flag == CollisionEventFlags::SENSOR {
-        edit_eir(ev.0, ev.1, &mut q_ewr, &q_tower_sight, |eir, enemy_id| {
-            //log!("Remove: {enemy_id:?}");
-            eir.0.remove(&enemy_id);
-        });
+            CollisionEvent::Stopped(id_1, id_2, flag) => {
+                if *flag == CollisionEventFlags::SENSOR {
+                    edit_eir(*id_1, *id_2, &mut q_ewr, &q_tower_sight, |eir, enemy_id| {
+                        //log!("Remove: {enemy_id:?}");
+
+                        eir.0.remove(&enemy_id);
+                    });
+                }
+            }
+        }
     }
 }
 

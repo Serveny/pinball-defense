@@ -1,9 +1,10 @@
 use super::audio::SoundEvent;
 use super::ball::CollisionWithBallEvent;
-use super::events::collision::GameLayer;
+use super::events::collision::COLLIDE_ONLY_WITH_BALL;
 use super::level::PointsEvent;
 use super::{EventState, GameState};
 use crate::prelude::*;
+use bevy::color::palettes::css::BLUE;
 use std::f32::consts::PI;
 
 pub struct FlipperPlugin;
@@ -127,18 +128,21 @@ fn flipper(
 
 fn collider(sig: f32) -> impl Bundle {
     (
+        Name::new("Flipper Collider"),
         Transform {
             translation: Vec3::new(0.008, sig * -0.115, 0.035),
             rotation: Quat::from_rotation_y(-PI / 2. * 0.85),
             ..default()
         },
-        RigidBody::Kinematic,
-        Collider::rectangle(0.06, 0.24),
+        Collider::cuboid(0.03, 0.12),
+        RigidBody::KinematicPositionBased,
         Restitution {
             coefficient: 0.1,
-            combine_rule: CoefficientCombine::Multiply,
+            combine_rule: CoefficientCombineRule::Multiply,
         },
-        CollisionLayers::new(GameLayer::Map, GameLayer::Ball),
+        COLLIDE_ONLY_WITH_BALL,
+        ColliderDebugColor(BLUE.into()),
+        ActiveEvents::COLLISION_EVENTS,
         FlipperCollider,
     )
 }
