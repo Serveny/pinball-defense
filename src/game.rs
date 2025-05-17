@@ -147,6 +147,7 @@ fn setup_ambient_lights(mut cmds: Commands, g_sett: Res<GraphicsSettings>) {
     cmds.insert_resource(AmbientLight {
         color: Color::WHITE,
         brightness: 0.2,
+        affects_lightmapped_meshes: true,
     });
     // directional 'sun' light
     cmds.spawn((
@@ -204,5 +205,5 @@ fn reset(
 ) {
     q_game_over_screen
         .iter()
-        .for_each(|entity| cmds.entity(entity).despawn_recursive());
+        .for_each(|entity| cmds.entity(entity).despawn());
 }

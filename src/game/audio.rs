@@ -119,7 +119,7 @@ fn play_music(
 ) {
     cmds.spawn((
         AudioPlayer(assets.background_music.clone()),
-        PlaybackSettings::LOOP.with_volume(Volume::new(sound_sett.music_volume)),
+        PlaybackSettings::LOOP.with_volume(Volume::Linear(sound_sett.music_volume)),
         Music,
     ));
 }
@@ -133,7 +133,7 @@ fn sound(handle: SoundHandle, vol: f32, speed: f32) -> impl Bundle {
             SoundHandle::Various(handles) => handles.choose().clone(),
         }),
         PlaybackSettings::ONCE
-            .with_volume(Volume::new(vol))
+            .with_volume(Volume::Linear(vol))
             .with_speed(speed),
     )
 }
@@ -153,25 +153,25 @@ fn play_ball_rolling_sound(mut cmds: Commands, assets: Res<PinballDefenseAudioAs
     cmds.spawn((
         Name::new("Ball Rolling Sound"),
         AudioPlayer(assets.ball_rolling.clone()),
-        PlaybackSettings::LOOP.with_volume(Volume::new(0.)),
+        PlaybackSettings::LOOP.with_volume(Volume::Linear(0.)),
         BallRollingSound,
         Sound,
     ));
 }
 
 fn ball_rolling_sound_system(
-    mut q_rolling_sound: Query<&AudioSink, With<BallRollingSound>>,
+    mut q_rolling_sound: Query<&mut AudioSink, With<BallRollingSound>>,
     q_ball: Query<&LinearVelocity, With<PinBall>>,
     sound_sett: Res<SoundSettings>,
 ) {
-    if let Ok(sound) = q_rolling_sound.get_single_mut() {
+    if let Ok(mut sound) = q_rolling_sound.single_mut() {
         if let Some(vel) = q_ball.iter().next() {
             let linvel = vel.length().abs() / 12.;
-            sound.set_volume(linvel * sound_sett.fx_volume);
+            sound.set_volume(Volume::Linear(linvel * sound_sett.fx_volume));
             let speed = 0.9 + linvel / 2.;
             sound.set_speed(speed);
         } else {
-            sound.set_volume(0.);
+            sound.set_volume(Volume::Linear(0.));
         }
     }
 }

@@ -57,16 +57,18 @@ pub(super) fn on_spawn_system(
             set_despawn_animation(&mut cmds, mark_id, pos, 1.);
 
             // Spawn foundation
-            cmds.entity(q_pb_word.single()).with_children(|p| {
-                let hit_progress = level.foundation_hit_progress();
-                spawn(p, &mut mats, &assets, &g_sett, pos, hit_progress);
-            });
+            if let Ok(world_id) = q_pb_word.single() {
+                cmds.entity(world_id).with_children(|p| {
+                    let hit_progress = level.foundation_hit_progress();
+                    spawn(p, &mut mats, &assets, &g_sett, pos, hit_progress);
+                });
+            }
         }
     }
 }
 
 fn spawn(
-    parent: &mut ChildBuilder,
+    spawner: &mut ChildSpawnerCommands,
     mats: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
@@ -74,10 +76,10 @@ fn spawn(
     hit_progress: f32,
 ) {
     let color = Color::srgb_u8(134, 166, 86);
-    parent
+    spawner
         .spawn(ring(assets, pos, hit_progress))
         .with_children(|p| {
-            let rel_id = p.parent_entity();
+            let rel_id = p.target_entity();
             p.spawn(contact_light_bundle(g_sett, color));
             p.spawn(lid_top(assets));
             p.spawn(lid_bottom(assets)).with_children(|p| {
@@ -176,10 +178,10 @@ fn set_despawn_animation(cmds: &mut Commands, foundation_id: Entity, pos: Vec3, 
 pub(super) fn on_despawn_system(
     mut cmds: Commands,
     mut evr: EventReader<TowerMenuExecuteEvent>,
-    mut q_light: Query<(Entity, &Parent, &mut Visibility), With<FlashLight>>,
+    mut q_light: Query<(Entity, &ChildOf, &mut Visibility), With<FlashLight>>,
     q_foundation: Query<&Transform, With<TowerFoundation>>,
-    q_lids_bottom: Query<(Entity, &Parent), With<TowerFoundationBottom>>,
-    q_lids_top: Query<(Entity, &Parent), With<TowerFoundationTop>>,
+    q_lids_bottom: Query<(Entity, &ChildOf), With<TowerFoundationBottom>>,
+    q_lids_top: Query<(Entity, &ChildOf), With<TowerFoundationTop>>,
 ) {
     for ev in evr.read() {
         let foundation_id = ev.foundation_id;
@@ -189,11 +191,11 @@ pub(super) fn on_despawn_system(
             .translation;
 
         // Open lids
-        q_lids_bottom.iter().for_each(|(lid_id, lid_parent)| {
-            set_lid_open_animation(&mut cmds, lid_id, lid_parent.get(), foundation_id, -1.);
+        q_lids_bottom.iter().for_each(|(lid_id, lid_child_of)| {
+            set_lid_open_animation(&mut cmds, lid_id, lid_child_of.parent(), foundation_id, -1.);
         });
-        q_lids_top.iter().for_each(|(lid_id, lid_parent)| {
-            set_lid_open_animation(&mut cmds, lid_id, lid_parent.get(), foundation_id, 1.);
+        q_lids_top.iter().for_each(|(lid_id, lid_child_of)| {
+            set_lid_open_animation(&mut cmds, lid_id, lid_child_of.parent(), foundation_id, 1.);
         });
 
         // Despawn foundation
@@ -216,9 +218,9 @@ pub(super) fn on_progress_system(
     for CollisionWithBallEvent(id) in evr.read() {
         // if *flag == CollisionEventFlags::SENSOR {
         if let Ok(foundation) = q_tower_foundation.get(*id) {
-            prog_bar_ev.send(ProgressBarCountUpEvent::new(*id, foundation.hit_progress));
-            points_ev.send(PointsEvent::FoundationHit);
-            sound_ev.send(SoundEvent::BallHitsFoundation);
+            prog_bar_ev.write(ProgressBarCountUpEvent::new(*id, foundation.hit_progress));
+            points_ev.write(PointsEvent::FoundationHit);
+            sound_ev.write(SoundEvent::BallHitsFoundation);
         }
     }
 }

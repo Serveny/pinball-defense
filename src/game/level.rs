@@ -107,7 +107,7 @@ fn level_up_system(
 ) {
     if points.is_changed() && level.is_level_up(points.0) {
         let new_level = level.level_up();
-        lvl_up_ev.send(LevelUpEvent(new_level));
+        lvl_up_ev.write(LevelUpEvent(new_level));
         log!("🥳 Level up: {new_level}!");
     }
 }
@@ -127,7 +127,7 @@ fn update_points_counter_system(
     pc_id: Res<PointCounterId>,
 ) {
     if points.is_changed() {
-        ac_set_ev.send(AnalogCounterSetEvent::new(pc_id.0, points.0));
+        ac_set_ev.write(AnalogCounterSetEvent::new(pc_id.0, points.0));
     }
 }
 
@@ -146,7 +146,7 @@ fn update_level_counter_system(
     lc_id: Res<LevelCounterId>,
 ) {
     if level.is_changed() {
-        ac_set_ev.send(AnalogCounterSetEvent::new(lc_id.0, level.level as u32));
+        ac_set_ev.write(AnalogCounterSetEvent::new(lc_id.0, level.level as u32));
     }
 }
 
@@ -159,14 +159,15 @@ fn on_level_up_lamp(
     level_up_ev: EventReader<LevelUpEvent>,
 ) {
     if !level_up_ev.is_empty() {
-        let (lamp_id, mut visi) = q_lvl_up_lamp.single_mut();
-        *visi = Visibility::Inherited;
-        cmds.entity(lamp_id)
-            .insert(FlashLight)
-            .insert(LevelUpAnimation(Timer::new(
-                Duration::from_secs(4),
-                TimerMode::Once,
-            )));
+        if let Ok((lamp_id, mut visi)) = q_lvl_up_lamp.single_mut() {
+            *visi = Visibility::Inherited;
+            cmds.entity(lamp_id)
+                .insert(FlashLight)
+                .insert(LevelUpAnimation(Timer::new(
+                    Duration::from_secs(4),
+                    TimerMode::Once,
+                )));
+        }
     }
 }
 
@@ -193,7 +194,7 @@ fn level_up_animation_system(
 //const SIZE: UVec2 = UVec2::new(224, 116);
 
 //pub fn spawn_point_display(
-//parent: &mut ChildBuilder,
+//spawner: &mut ChildSpawnerCommands,
 //materials: &mut Assets<StandardMaterial>,
 //images: &mut Assets<Image>,
 //assets: &PinballDefenseAssets,
@@ -235,7 +236,7 @@ fn level_up_animation_system(
 //});
 
 //// Main pass cube, with material containing the rendered first pass texture.
-//parent.spawn((
+//spawner:spawn((
 //PbrBundle {
 //Mesh3d(assets.world_1_point_display.clone(),
 //MeshMaterial3d(material_handle,
@@ -269,7 +270,7 @@ fn level_up_animation_system(
 //},
 //..default()
 //},))
-//.with_children(|parent| {
+//.with_children(|spawner| {
 //let text = TextBundle::from_section(
 //format!("Points: {}\nLevel: {}\n\nUpgrade ready", 0, 0),
 //TextStyle {
@@ -279,7 +280,7 @@ fn level_up_animation_system(
 //},
 //)
 //.with_text_alignment(TextAlignment::Left);
-//parent.spawn((
+//spawner:spawn((
 //Name::new("Points Display Text Bundle"),
 //text,
 //RENDER_LAYER,

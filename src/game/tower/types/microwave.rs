@@ -12,7 +12,7 @@ use bevy::color::palettes::css::ORANGE_RED;
 pub struct MicrowaveTower;
 
 pub fn spawn(
-    pb_world: &mut ChildBuilder,
+    pb_world: &mut ChildSpawnerCommands,
     mats: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
@@ -34,7 +34,7 @@ pub fn spawn(
             SlowDownFactor(0.5),
         ),
         |tower| {
-            let rel_id = tower.parent_entity();
+            let rel_id = tower.target_entity();
             tower
                 .spawn(head(tower_mat.clone(), assets, rel_id))
                 .with_children(|head| {

@@ -13,11 +13,15 @@ pub(super) fn on_ball_start_cam_system(
     ball_spawn: Res<BallSpawn>,
 ) {
     if !on_charge_start.is_empty() {
-        cmds.entity(q_cam.single())
-            .insert(Animator::new(ball_start_tracking_shot(false, ball_spawn.0)));
+        if let Ok(cam) = q_cam.single() {
+            cmds.entity(cam)
+                .insert(Animator::new(ball_start_tracking_shot(false, ball_spawn.0)));
+        };
     } else if !on_fire_end.is_empty() {
-        cmds.entity(q_cam.single())
-            .insert(Animator::new(ball_start_tracking_shot(true, ball_spawn.0)));
+        if let Ok(cam) = q_cam.single() {
+            cmds.entity(cam)
+                .insert(Animator::new(ball_start_tracking_shot(true, ball_spawn.0)));
+        };
     }
 }
 

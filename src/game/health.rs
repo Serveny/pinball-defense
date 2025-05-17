@@ -79,7 +79,7 @@ fn on_change_health_system(
     for ev in evr.read() {
         if let Ok((mut health, recovery, damager)) = q_health.get_mut(ev.health_id) {
             health.add(ev.amount);
-            prog_bar_ev.send(ProgressBarCountUpEvent::new(
+            prog_bar_ev.write(ProgressBarCountUpEvent::new(
                 ev.health_id,
                 health.to_progress(ev.amount),
             ));
@@ -110,12 +110,12 @@ fn health_empty_system(
 ) {
     for (id, health, last_damager) in q_health.iter() {
         if health.is_empty() {
-            empty_ev.send(HealthEmptyEvent(id));
+            empty_ev.write(HealthEmptyEvent(id));
 
             // Upgrade points for towers
             if let Some(damager) = last_damager {
                 if let Some(damager_id) = damager.0 {
-                    prog_bar_ev.send(ProgressBarCountUpEvent::new(
+                    prog_bar_ev.write(ProgressBarCountUpEvent::new(
                         damager_id,
                         CONFIG.tower_enemy_killed_progress,
                     ));
@@ -167,7 +167,7 @@ fn health_recovery_system(
         //rec.can_recover(ig_time.0)
         //);
         if !health.is_full() && rec.can_recover(ig_time.0) {
-            health_ev.send(ChangeHealthEvent::new(
+            health_ev.write(ChangeHealthEvent::new(
                 id,
                 rec.health(time.delta_secs()),
                 None,

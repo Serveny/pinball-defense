@@ -14,7 +14,7 @@ pub(super) fn afe_damage_over_time_system(
 ) {
     for (tower_id, target, damage) in q_tower.iter() {
         if let Some(enemy_id) = target.0 {
-            health_ev.send(ChangeHealthEvent::new(
+            health_ev.write(ChangeHealthEvent::new(
                 enemy_id,
                 -damage.0 * time.delta_secs(),
                 Some(tower_id),
@@ -33,7 +33,7 @@ pub(super) fn datir_damage_over_time_system(
 ) {
     for (tower_id, targets, damage) in q_tower.iter() {
         for enemy_id in targets.0.iter() {
-            health_ev.send(ChangeHealthEvent::new(
+            health_ev.write(ChangeHealthEvent::new(
                 *enemy_id,
                 -damage.0 * time.delta_secs(),
                 Some(tower_id),
