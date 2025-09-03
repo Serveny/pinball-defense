@@ -122,9 +122,6 @@ pub struct PinballDefenseAudioAssets {
     pub pb_menu_active: Handle<AudioSource>,
 }
 
-#[derive(Resource, Reflect, Default)]
-pub struct AudioAssetId(HashMap<Entity, String>);
-
 #[derive(Reflect, Clone)]
 pub struct Handles<T: Asset>(pub Vec<Handle<T>>);
 
