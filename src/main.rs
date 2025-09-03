@@ -43,9 +43,7 @@ fn main() {
         FrameTimeDiagnosticsPlugin::default(),
         TweeningPlugin,
         WindowTitleLoggerDiagnosticsPlugin::default(),
-        EguiPlugin {
-            enable_multipass_for_primary_context: false,
-        },
+        EguiPlugin::default(),
         PhysicsPlugins::default(),
     ))
     .init_state::<AppState>()
