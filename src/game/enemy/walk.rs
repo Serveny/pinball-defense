@@ -9,7 +9,7 @@ pub(super) const WALK_SPEED: f32 = 0.2;
 pub(super) fn walk_system(
     mut cmds: Commands,
     mut q_enemy: Query<(Entity, &mut Transform, &mut Enemy)>,
-    mut end_reached_ev: EventWriter<RoadEndReachedEvent>,
+    mut end_reached_ev: MessageWriter<RoadEndReachedEvent>,
     time: Res<Time>,
 ) {
     for (enemy_id, mut trans, mut enemy) in q_enemy.iter_mut() {
@@ -26,13 +26,13 @@ pub(super) fn walk_system(
     }
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub(super) struct RoadEndReachedEvent;
 
 pub(super) fn on_road_end_reached_system(
-    mut evr: EventReader<RoadEndReachedEvent>,
-    mut health_ev: EventWriter<ChangeHealthEvent>,
-    mut sound_ev: EventWriter<SoundEvent>,
+    mut evr: MessageReader<RoadEndReachedEvent>,
+    mut health_ev: MessageWriter<ChangeHealthEvent>,
+    mut sound_ev: MessageWriter<SoundEvent>,
     q_life_bar: Query<Entity, With<LifeBar>>,
 ) {
     for _ in evr.read() {

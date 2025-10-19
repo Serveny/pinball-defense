@@ -22,13 +22,13 @@ opt-level = 3
 log = []
 
 [dependencies]
-bevy = { version = "0.16.1", features = ["dynamic_linking"] }
-bevy-inspector-egui = "0.33.1"
-bevy_asset_loader = "0.23.0"
-avian2d = { version = "0.3.1" }
-bevy_window_title_diagnostics = "0.16.0"
-bevy_tweening = "0.13.0"
+bevy = { version = "0.17.2", features = ["dynamic_linking"] }
+bevy-inspector-egui = "0.34.0"
+bevy_asset_loader = "0.24.0-rc.1"
+avian2d = { version = "0.4.0" }
+bevy_window_title_diagnostics = "0.17.0"
+bevy_tweening = "0.14.0"
 digits_iterator = "0.1.0"
-bevy_framepace = "0.19.1"
+bevy_framepace = "0.20.0"
 rand = "0.9.2"
 #bevy_debug_grid = "0.1"

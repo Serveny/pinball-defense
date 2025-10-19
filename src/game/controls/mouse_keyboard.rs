@@ -6,14 +6,13 @@ use crate::game::ui::UiState;
 use crate::game::{ball, GameState, PauseGameEvent, ResumeGameEvent};
 use crate::menu::MenuState;
 use crate::prelude::*;
-use bevy::window::{CursorGrabMode, PrimaryWindow};
+use bevy::window::{CursorGrabMode, CursorOptions, PrimaryWindow};
 
 pub(super) fn key_system(
     key: Res<ButtonInput<KeyCode>>,
     controls: Res<KeyboardControls>,
-    mut spawn_ball_ev: EventWriter<SpawnBallEvent>,
-    mut pause_ev: EventWriter<PauseGameEvent>,
-    mut q_window: Query<&mut Window, With<PrimaryWindow>>,
+    mut spawn_ball_ev: MessageWriter<SpawnBallEvent>,
+    mut pause_ev: MessageWriter<PauseGameEvent>,
     mut cam_state: ResMut<NextState<CameraState>>,
     mut ball_starter_state: ResMut<NextState<BallStarterState>>,
     mut q_flipper: Query<(&mut FlipperStatus, &FlipperType)>,
@@ -21,6 +20,7 @@ pub(super) fn key_system(
     mut game_state: ResMut<NextState<GameState>>,
     ui_state: Res<State<UiState>>,
     mut set_ui_state: ResMut<NextState<UiState>>,
+    mut cursor_options: Single<&mut CursorOptions, With<PrimaryWindow>>,
 ) {
     if key.just_pressed(controls.toggle_key_ui) {
         if *ui_state == UiState::None {
@@ -36,9 +36,8 @@ pub(super) fn key_system(
     }
 
     if key.just_pressed(controls.menu) {
-        let mut window = q_window.single_mut().unwrap();
-        window.cursor_options.grab_mode = CursorGrabMode::None;
-        window.cursor_options.visible = true;
+        cursor_options.grab_mode = CursorGrabMode::None;
+        cursor_options.visible = true;
         cam_state.set(CameraState::Dynamic);
         pause_ev.write(PauseGameEvent);
         menu_state.set(MenuState::PauseMenu);
@@ -78,7 +77,7 @@ pub(super) fn pause_key_system(
     key: Res<ButtonInput<KeyCode>>,
     mut q_flipper: Query<(&mut FlipperStatus, &FlipperType)>,
     mut ball_starter_state: ResMut<NextState<BallStarterState>>,
-    mut resume_ev: EventWriter<ResumeGameEvent>,
+    mut resume_ev: MessageWriter<ResumeGameEvent>,
     mut menu_state: ResMut<NextState<MenuState>>,
     controls: Res<KeyboardControls>,
 ) {
@@ -103,7 +102,7 @@ pub(super) fn mouse_btn_system(
     mut materials: ResMut<Assets<StandardMaterial>>,
     btn: Res<ButtonInput<MouseButton>>,
     mut cam_state: ResMut<NextState<CameraState>>,
-    mut q_window: Query<&mut Window, With<PrimaryWindow>>,
+    mut cursor_options: Single<&mut CursorOptions, With<PrimaryWindow>>,
 ) {
     if btn.just_pressed(MouseButton::Left) {
         ball::spawn(
@@ -115,9 +114,8 @@ pub(super) fn mouse_btn_system(
     }
 
     if btn.just_pressed(MouseButton::Right) {
-        let mut window = q_window.single_mut().unwrap();
-        window.cursor_options.grab_mode = CursorGrabMode::Locked;
-        window.cursor_options.visible = false;
+        cursor_options.grab_mode = CursorGrabMode::Locked;
+        cursor_options.visible = false;
         cam_state.set(CameraState::FpsCamera);
     }
 }

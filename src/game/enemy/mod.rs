@@ -23,9 +23,9 @@ pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SpawnEnemyEvent>()
-            .add_event::<RoadEndReachedEvent>()
-            .add_event::<OnEnemyDespawnEvent>()
+        app.add_message::<SpawnEnemyEvent>()
+            .add_message::<RoadEndReachedEvent>()
+            .add_message::<OnEnemyDespawnEvent>()
             .add_systems(
                 Update,
                 (walk_system, recover_speed_system).run_if(in_state(GameState::Ingame)),
@@ -77,12 +77,12 @@ impl Enemy {
     }
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct SpawnEnemyEvent;
 
 fn on_spawn_system(
     mut cmds: Commands,
-    mut evr: EventReader<SpawnEnemyEvent>,
+    mut evr: MessageReader<SpawnEnemyEvent>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut mats: ResMut<Assets<StandardMaterial>>,
     q_pqw: QueryWorld,
@@ -136,10 +136,10 @@ fn enemy(meshes: &mut Assets<Mesh>, mats: &mut Assets<StandardMaterial>) -> impl
 }
 
 fn on_pinball_hit_system(
-    mut evr: EventReader<CollisionWithBallEvent>,
-    mut points_ev: EventWriter<PointsEvent>,
-    mut sound_ev: EventWriter<SoundEvent>,
-    mut health_ev: EventWriter<ChangeHealthEvent>,
+    mut evr: MessageReader<CollisionWithBallEvent>,
+    mut points_ev: MessageWriter<PointsEvent>,
+    mut sound_ev: MessageWriter<SoundEvent>,
+    mut health_ev: MessageWriter<ChangeHealthEvent>,
     q_enemy: Query<Entity, With<Enemy>>,
 ) {
     for CollisionWithBallEvent(id) in evr.read() {
@@ -153,14 +153,14 @@ fn on_pinball_hit_system(
     }
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct OnEnemyDespawnEvent(pub Entity);
 
 fn on_health_empty_system(
     mut cmds: Commands,
-    mut evr: EventReader<HealthEmptyEvent>,
-    mut despawn_ev: EventWriter<OnEnemyDespawnEvent>,
-    mut points_ev: EventWriter<PointsEvent>,
+    mut evr: MessageReader<HealthEmptyEvent>,
+    mut despawn_ev: MessageWriter<OnEnemyDespawnEvent>,
+    mut points_ev: MessageWriter<PointsEvent>,
     q_enemy: Query<Entity, With<Enemy>>,
 ) {
     for ev in evr.read() {

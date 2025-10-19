@@ -9,8 +9,8 @@ pub struct HealthPlugin;
 
 impl Plugin for HealthPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<ChangeHealthEvent>()
-            .add_event::<HealthEmptyEvent>()
+        app.add_message::<ChangeHealthEvent>()
+            .add_message::<HealthEmptyEvent>()
             .add_systems(
                 Update,
                 (health_empty_system, health_recovery_system).run_if(in_state(GameState::Ingame)),
@@ -49,7 +49,7 @@ impl Health {
     }
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct ChangeHealthEvent {
     health_id: Entity,
     amount: f32,
@@ -68,13 +68,13 @@ impl ChangeHealthEvent {
 
 fn on_change_health_system(
     ig_time: Res<IngameTime>,
-    mut evr: EventReader<ChangeHealthEvent>,
+    mut evr: MessageReader<ChangeHealthEvent>,
     mut q_health: Query<(
         &mut Health,
         Option<&mut HealthRecovery>,
         Option<&mut LastDamager>,
     )>,
-    mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
+    mut prog_bar_ev: MessageWriter<ProgressBarCountUpEvent>,
 ) {
     for ev in evr.read() {
         if let Ok((mut health, recovery, damager)) = q_health.get_mut(ev.health_id) {
@@ -100,12 +100,12 @@ fn on_change_health_system(
 }
 
 // Remainder: Need this, because not every health has a progress bar
-#[derive(Event)]
+#[derive(Message)]
 pub struct HealthEmptyEvent(pub Entity);
 
 fn health_empty_system(
-    mut empty_ev: EventWriter<HealthEmptyEvent>,
-    mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
+    mut empty_ev: MessageWriter<HealthEmptyEvent>,
+    mut prog_bar_ev: MessageWriter<ProgressBarCountUpEvent>,
     q_health: Query<(Entity, &Health, Option<&LastDamager>), Changed<Health>>,
 ) {
     for (id, health, last_damager) in q_health.iter() {
@@ -158,7 +158,7 @@ fn health_recovery_system(
     time: Res<Time>,
     ig_time: Res<IngameTime>,
     q_recovery: Query<(Entity, &Health, &HealthRecovery)>,
-    mut health_ev: EventWriter<ChangeHealthEvent>,
+    mut health_ev: MessageWriter<ChangeHealthEvent>,
 ) {
     for (id, health, rec) in q_recovery.iter() {
         //log!(

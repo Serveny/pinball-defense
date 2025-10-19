@@ -20,7 +20,7 @@ pub fn spawn(
             height: Val::Px(65.),
             ..default()
         },
-        BorderColor(GameColor::GRAY),
+        BorderColor::from(GameColor::GRAY),
         BackgroundColor(GameColor::BACKGROUND),
         Row,
     ))

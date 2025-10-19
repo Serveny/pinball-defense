@@ -8,8 +8,8 @@ pub struct ProgressPlugin;
 
 impl Plugin for ProgressPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<ProgressBarCountUpEvent>()
-            .add_event::<ProgressBarFullEvent>()
+        app.add_message::<ProgressBarCountUpEvent>()
+            .add_message::<ProgressBarFullEvent>()
             .add_systems(
                 Update,
                 (scale_system, bar_full_system, activate_animation_system)
@@ -31,7 +31,7 @@ impl Progress {
     }
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct ProgressBarCountUpEvent {
     rel_id: Entity,
     amount: f32,
@@ -44,7 +44,7 @@ impl ProgressBarCountUpEvent {
 }
 
 fn on_count_up_system(
-    mut evr: EventReader<ProgressBarCountUpEvent>,
+    mut evr: MessageReader<ProgressBarCountUpEvent>,
     mut q_progress: QueryProgressBar,
 ) {
     for ev in evr.read() {
@@ -58,11 +58,11 @@ fn on_count_up_system(
     }
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct ProgressBarFullEvent(pub Entity);
 
 fn bar_full_system(
-    mut full_ev: EventWriter<ProgressBarFullEvent>,
+    mut full_ev: MessageWriter<ProgressBarFullEvent>,
     q_bar: Query<(&RelEntity, &Progress), Changed<Progress>>,
 ) {
     for (rel_id, bar) in q_bar.iter() {

@@ -134,7 +134,7 @@ fn spawn_key(
                     padding: UiRect::new(Val::Px(5.), Val::Px(10.), Val::Px(0.), Val::Px(5.)),
                     ..default()
                 },
-                BorderColor(GameColor::WHITE),
+                BorderColor::from(GameColor::WHITE),
                 BackgroundColor(Color::NONE),
             ))
             .with_children(|p| {
@@ -179,7 +179,7 @@ fn field_node(pos: FieldPos) -> Node {
 }
 
 pub(super) fn on_resize_system(
-    mut resize_reader: EventReader<WindowResized>,
+    mut resize_reader: MessageReader<WindowResized>,
     q_keys: QKeys,
     controls: Res<KeyboardControls>,
     q_cam: Query<(&GlobalTransform, &Camera), With<PinballCamera>>,

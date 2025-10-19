@@ -34,7 +34,7 @@ impl Default for FpsCamSettings {
 }
 
 pub(super) fn on_keyboard_mouse_motion_system(
-    mut evr: EventReader<MouseMotion>,
+    mut evr: MessageReader<MouseMotion>,
     mut query: Query<(&mut Transform, &mut LookDirection)>,
     key_input: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,

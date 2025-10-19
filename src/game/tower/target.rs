@@ -40,30 +40,42 @@ pub(super) fn aim_first_enemy_system(mut q_afe: Query<(&mut AimFirstEnemy, &Enem
 pub(super) struct EnemiesWithinReach(pub HashSet<Entity>);
 
 pub(super) fn on_enemy_enter_reach_system(
-    mut evr: EventReader<CollisionStarted>,
+    mut evr: MessageReader<CollisionStart>,
     mut q_ewr: Query<&mut EnemiesWithinReach>,
     q_tower_sight: Query<&ChildOf, With<TowerSightSensor>>,
 ) {
     for ev in evr.read() {
         // if *flag == CollisionEventFlags::SENSOR {
-        edit_eir(ev.0, ev.1, &mut q_ewr, &q_tower_sight, |eir, enemy_id| {
-            //log!("Insert: {enemy_id:?}");
-            eir.0.insert(enemy_id);
-        });
+        edit_eir(
+            ev.collider1,
+            ev.collider2,
+            &mut q_ewr,
+            &q_tower_sight,
+            |eir, enemy_id| {
+                //log!("Insert: {enemy_id:?}");
+                eir.0.insert(enemy_id);
+            },
+        );
     }
 }
 
 pub(super) fn on_enemy_leave_reach_system(
-    mut evr: EventReader<CollisionEnded>,
+    mut evr: MessageReader<CollisionEnd>,
     mut q_ewr: Query<&mut EnemiesWithinReach>,
     q_tower_sight: Query<&ChildOf, With<TowerSightSensor>>,
 ) {
     for ev in evr.read() {
         // if *flag == CollisionEventFlags::SENSOR {
-        edit_eir(ev.0, ev.1, &mut q_ewr, &q_tower_sight, |eir, enemy_id| {
-            //log!("Remove: {enemy_id:?}");
-            eir.0.remove(&enemy_id);
-        });
+        edit_eir(
+            ev.collider1,
+            ev.collider2,
+            &mut q_ewr,
+            &q_tower_sight,
+            |eir, enemy_id| {
+                //log!("Remove: {enemy_id:?}");
+                eir.0.remove(&enemy_id);
+            },
+        );
     }
 }
 
@@ -86,7 +98,7 @@ fn edit_eir<F: FnOnce(&mut EnemiesWithinReach, Entity)>(
 }
 
 pub(super) fn on_remove_despawned_enemies_from_ewr_system(
-    mut evr: EventReader<OnEnemyDespawnEvent>,
+    mut evr: MessageReader<OnEnemyDespawnEvent>,
     mut q_ewr: Query<&mut EnemiesWithinReach>,
 ) {
     for ev in evr.read() {

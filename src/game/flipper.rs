@@ -170,7 +170,7 @@ fn flipper_system(
 }
 
 fn sound_system(
-    mut sound_ev: EventWriter<SoundEvent>,
+    mut sound_ev: MessageWriter<SoundEvent>,
     q_flipper: Query<&FlipperStatus, Changed<FlipperStatus>>,
 ) {
     for status in q_flipper.iter() {
@@ -182,8 +182,8 @@ fn sound_system(
 }
 
 fn on_collision_with_ball_system(
-    mut points_ev: EventWriter<PointsEvent>,
-    mut evr: EventReader<CollisionWithBallEvent>,
+    mut points_ev: MessageWriter<PointsEvent>,
+    mut evr: MessageReader<CollisionWithBallEvent>,
     q_flipper: Query<Entity, With<FlipperCollider>>,
 ) {
     for ev in evr.read() {

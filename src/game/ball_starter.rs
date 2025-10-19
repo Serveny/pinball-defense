@@ -10,9 +10,9 @@ pub struct BallStarterPlugin;
 impl Plugin for BallStarterPlugin {
     fn build(&self, app: &mut App) {
         app.init_state::<BallStarterState>()
-            .add_event::<SpawnBallEvent>()
-            .add_event::<BallStarterChargeStartedEvent>()
-            .add_event::<BallStarterFireEndEvent>()
+            .add_message::<SpawnBallEvent>()
+            .add_message::<BallStarterChargeStartedEvent>()
+            .add_message::<BallStarterFireEndEvent>()
             .add_systems(Startup, setup)
             .add_systems(
                 OnEnter(BallStarterState::Charge),
@@ -36,15 +36,15 @@ impl Plugin for BallStarterPlugin {
     }
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct SpawnBallEvent;
 
 fn on_spawn_ball_system(
     mut cmds: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut evr: EventReader<SpawnBallEvent>,
-    mut sound_ev: EventWriter<SoundEvent>,
+    mut evr: MessageReader<SpawnBallEvent>,
+    mut sound_ev: MessageWriter<SoundEvent>,
     ball_spawn: Res<BallSpawn>,
 ) {
     for _ in evr.read() {
@@ -148,7 +148,7 @@ pub enum BallStarterState {
 }
 
 fn spawn_ball_at_charge(
-    mut spawn_ball_ev: EventWriter<SpawnBallEvent>,
+    mut spawn_ball_ev: MessageWriter<SpawnBallEvent>,
     q_ball: Query<Entity, With<PinBall>>,
 ) {
     if q_ball.is_empty() {
@@ -156,12 +156,12 @@ fn spawn_ball_at_charge(
     }
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct BallStarterChargeStartedEvent;
 
 fn on_charge_started(
-    mut charge_started_ev: EventWriter<BallStarterChargeStartedEvent>,
-    mut sound_ev: EventWriter<SoundEvent>,
+    mut charge_started_ev: MessageWriter<BallStarterChargeStartedEvent>,
+    mut sound_ev: MessageWriter<SoundEvent>,
 ) {
     charge_started_ev.write(BallStarterChargeStartedEvent);
     sound_ev.write(SoundEvent::BallStarterCharge);
@@ -194,14 +194,14 @@ fn starter_add(pos_x: f32, plate_pos: &mut Vec3, spring_scale: &mut Vec3) -> f32
     x
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct BallStarterFireEndEvent;
 
 fn fire_system(
     mut q_plate: Query<&mut Transform, (With<StarterPlate>, Without<StarterSpring>)>,
     mut q_spring: Query<&mut Transform, (With<StarterSpring>, Without<StarterPlate>)>,
     mut state: ResMut<NextState<BallStarterState>>,
-    mut leave_ev: EventWriter<BallStarterFireEndEvent>,
+    mut leave_ev: MessageWriter<BallStarterFireEndEvent>,
     time: Res<Time>,
 ) {
     let Ok(mut plate) = q_plate.single_mut() else {
@@ -217,6 +217,6 @@ fn fire_system(
     }
 }
 
-fn on_fire_started(mut sound_ev: EventWriter<SoundEvent>) {
+fn on_fire_started(mut sound_ev: MessageWriter<SoundEvent>) {
     sound_ev.write(SoundEvent::BallStarterFire);
 }

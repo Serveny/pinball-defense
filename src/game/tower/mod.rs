@@ -20,7 +20,7 @@ use crate::settings::GraphicsSettings;
 use crate::utils::RelEntity;
 use bevy::color::palettes::css::{BEIGE, ORANGE, RED};
 use bevy_tweening::lens::TransformPositionLens;
-use bevy_tweening::{Animator, Delay, Sequence, Tween};
+use bevy_tweening::{Delay, Sequence, Tween, TweenAnim};
 use std::time::Duration;
 pub use types::TowerType;
 use types::*;
@@ -36,9 +36,9 @@ pub struct TowerPlugin;
 
 impl Plugin for TowerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SpawnTowerEvent>()
-            .add_event::<DamageUpgradeEvent>()
-            .add_event::<RangeUpgradeEvent>()
+        app.add_message::<SpawnTowerEvent>()
+            .add_message::<DamageUpgradeEvent>()
+            .add_message::<RangeUpgradeEvent>()
             .add_systems(
                 Update,
                 (
@@ -120,7 +120,7 @@ fn tower_bundle(pos: Vec3, sight_radius: f32) -> impl Bundle {
         LightOnCollision,
         //
         // Spawn animation
-        Animator::new(create_tower_spawn_animator(pos)),
+        TweenAnim::new(create_tower_spawn_animator(pos)),
     )
 }
 
@@ -186,7 +186,7 @@ fn tower_material() -> StandardMaterial {
     }
 }
 
-fn create_tower_spawn_animator(pos: Vec3) -> Sequence<Transform> {
+fn create_tower_spawn_animator(pos: Vec3) -> Sequence {
     let delay = Delay::new(Duration::from_secs(1));
     let tween = Tween::new(
         EaseFunction::ExponentialInOut,
@@ -203,15 +203,15 @@ fn tower_start_pos(pos: Vec3) -> Vec3 {
     Vec3::new(pos.x, pos.y, pos.z - 0.1)
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct SpawnTowerEvent(pub TowerType, pub Vec3);
 
 fn on_spawn_tower_system(
     mut cmds: Commands,
-    mut evr: EventReader<SpawnTowerEvent>,
+    mut evr: MessageReader<SpawnTowerEvent>,
     mut mats: ResMut<Assets<StandardMaterial>>,
-    mut points_ev: EventWriter<PointsEvent>,
-    mut sound_ev: EventWriter<SoundEvent>,
+    mut points_ev: MessageWriter<PointsEvent>,
+    mut sound_ev: MessageWriter<SoundEvent>,
     assets: Res<PinballDefenseGltfAssets>,
     q_pbw: QueryWorld,
     g_sett: Res<GraphicsSettings>,
@@ -235,10 +235,10 @@ fn on_spawn_tower_system(
 }
 
 fn on_progress_system(
-    mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
-    mut evr: EventReader<CollisionWithBallEvent>,
-    mut points_ev: EventWriter<PointsEvent>,
-    mut sound_ev: EventWriter<SoundEvent>,
+    mut prog_bar_ev: MessageWriter<ProgressBarCountUpEvent>,
+    mut evr: MessageReader<CollisionWithBallEvent>,
+    mut points_ev: MessageWriter<PointsEvent>,
+    mut sound_ev: MessageWriter<SoundEvent>,
     q_tower: Query<Entity, With<Tower>>,
 ) {
     evr.read().for_each(|CollisionWithBallEvent(id)| {
@@ -265,15 +265,15 @@ impl SoundEvent {
 
 fn on_upgrade_system(
     mut cmds: Commands,
-    mut evr: EventReader<UpgradeMenuExecuteEvent>,
+    mut evr: MessageReader<UpgradeMenuExecuteEvent>,
     mut q_light: Query<(Entity, &ChildOf, &mut Visibility), With<FlashLight>>,
-    mut points_ev: EventWriter<PointsEvent>,
-    mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
+    mut points_ev: MessageWriter<PointsEvent>,
+    mut prog_bar_ev: MessageWriter<ProgressBarCountUpEvent>,
     mut q_tower: Query<&mut TowerLevel>,
-    mut ac_set_ev: EventWriter<AnalogCounterSetEvent>,
-    mut range_upgrade_ev: EventWriter<RangeUpgradeEvent>,
-    mut damage_upgrade_ev: EventWriter<DamageUpgradeEvent>,
-    mut sound_ev: EventWriter<SoundEvent>,
+    mut ac_set_ev: MessageWriter<AnalogCounterSetEvent>,
+    mut range_upgrade_ev: MessageWriter<RangeUpgradeEvent>,
+    mut damage_upgrade_ev: MessageWriter<DamageUpgradeEvent>,
+    mut sound_ev: MessageWriter<SoundEvent>,
 ) {
     for ev in evr.read() {
         let mut tower_level = q_tower
@@ -304,7 +304,7 @@ fn on_upgrade_system(
     }
 }
 
-#[derive(Event)]
+#[derive(Message)]
 struct RangeUpgradeEvent(Entity);
 
 type QShotLight<'w, 's, 'a> = Query<
@@ -319,7 +319,7 @@ type QShotLight<'w, 's, 'a> = Query<
 >;
 
 fn on_range_upgrade_system(
-    mut evr: EventReader<RangeUpgradeEvent>,
+    mut evr: MessageReader<RangeUpgradeEvent>,
     mut q_tower: Query<(Entity, &mut SightRadius), With<Tower>>,
     mut q_coll: Query<(&mut Transform, &ChildOf), With<TowerSightSensor>>,
     mut q_sr_light: Query<(&mut SpotLight, &ChildOf), With<SightRadiusLight>>,
@@ -374,11 +374,11 @@ fn update_shot_light_size(q_shot_light: &mut QShotLight, sight_radius: f32, towe
     }
 }
 
-#[derive(Event)]
+#[derive(Message)]
 struct DamageUpgradeEvent(Entity);
 
 fn on_damage_upgrade_system(
-    mut evr: EventReader<DamageUpgradeEvent>,
+    mut evr: MessageReader<DamageUpgradeEvent>,
     mut q_tower: Query<(Option<&mut DamageOverTime>, Option<&mut SlowDownFactor>), With<Tower>>,
 ) {
     for ev in evr.read() {

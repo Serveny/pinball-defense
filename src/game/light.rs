@@ -54,7 +54,7 @@ pub(super) fn contact_light_bundle(g_sett: &GraphicsSettings, color: Color) -> i
 }
 
 fn on_contact_light_on_system(
-    mut evr: EventReader<CollisionWithBallEvent>,
+    mut evr: MessageReader<CollisionWithBallEvent>,
     mut q_light: QueryContactLight,
     q_light_on_coll: Query<Entity, With<LightOnCollision>>,
 ) {
@@ -80,7 +80,7 @@ pub(super) struct FlashLight;
 
 fn on_add_flashlight_system(
     mut cmds: Commands,
-    mut evr: EventReader<PinballMenuOnSetSelectedEvent>,
+    mut evr: MessageReader<PinballMenuOnSetSelectedEvent>,
     mut q_light: Query<(&mut Visibility, &ChildOf, Entity), With<ContactLight>>,
 ) {
     for ev in evr.read() {

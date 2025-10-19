@@ -23,7 +23,7 @@ impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
         app.init_state::<MenuState>()
             .init_state::<SettingsMenuState>()
-            .add_event::<MenuAction>()
+            .add_message::<MenuAction>()
             .add_systems(OnEnter(MenuState::PauseMenu), pause::layout)
             .add_systems(
                 Update,

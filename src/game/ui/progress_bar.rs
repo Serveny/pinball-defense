@@ -31,7 +31,7 @@ pub fn spawn(cmds: &mut Commands, rel_id: Entity, start_percent: PercentBw0And1)
             ),
             ..default()
         },
-        BorderColor(Color::BLACK),
+        BorderColor::from(Color::BLACK),
         BackgroundColor(Color::WHITE),
     ))
     .with_children(|p| {

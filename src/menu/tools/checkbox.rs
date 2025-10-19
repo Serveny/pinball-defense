@@ -23,7 +23,7 @@ pub fn spawn(p: &mut ChildSpawnerCommands, prop_i: usize, init_val: bool) {
             margin: UiRect::all(Val::Auto),
             ..default()
         },
-        BorderColor(GameColor::GOLD),
+        BorderColor::from(GameColor::GOLD),
         BackgroundColor(Color::NONE),
         PropIndex(prop_i),
         Active,

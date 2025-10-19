@@ -9,7 +9,7 @@ pub struct AnalogCounterPlugin;
 
 impl Plugin for AnalogCounterPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<AnalogCounterSetEvent>()
+        app.add_message::<AnalogCounterSetEvent>()
             .add_systems(
                 Update,
                 (turn_digit_system).run_if(in_state(GameState::Ingame)),
@@ -71,7 +71,7 @@ impl Digit {
     }
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct AnalogCounterSetEvent {
     rel_id: Entity,
     number: u32,
@@ -84,7 +84,7 @@ impl AnalogCounterSetEvent {
 }
 
 fn on_set_system(
-    mut evr: EventReader<AnalogCounterSetEvent>,
+    mut evr: MessageReader<AnalogCounterSetEvent>,
     mut q_digit: Query<(&mut Digit, &ChildOf)>,
     q_counter: Query<(Entity, &RelEntity), With<AnalogCounter>>,
 ) {
@@ -195,7 +195,7 @@ pub fn spawn_2_digit(
 
 fn turn_digit_system(
     mut q_digit: Query<(&mut Transform, &mut Digit)>,
-    mut sound_ev: EventWriter<SoundEvent>,
+    mut sound_ev: MessageWriter<SoundEvent>,
     time: Res<Time>,
 ) {
     for (mut trans, mut digit) in q_digit.iter_mut() {

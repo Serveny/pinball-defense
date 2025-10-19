@@ -3,31 +3,34 @@ use crate::game::ball_starter::{
     BallSpawn, BallStarterChargeStartedEvent, BallStarterFireEndEvent,
 };
 use crate::prelude::*;
-use bevy_tweening::{Animator, EaseMethod, Tween};
+use bevy_tweening::{EaseMethod, Tween, TweenAnim};
 
 pub(super) fn on_ball_start_cam_system(
     mut cmds: Commands,
     q_cam: Query<Entity, With<PinballCamera>>,
-    on_charge_start: EventReader<BallStarterChargeStartedEvent>,
-    on_fire_end: EventReader<BallStarterFireEndEvent>,
+    on_charge_start: MessageReader<BallStarterChargeStartedEvent>,
+    on_fire_end: MessageReader<BallStarterFireEndEvent>,
     ball_spawn: Res<BallSpawn>,
 ) {
     if !on_charge_start.is_empty() {
         if let Ok(cam) = q_cam.single() {
             cmds.entity(cam)
-                .insert(Animator::new(ball_start_tracking_shot(false, ball_spawn.0)));
+                .insert(TweenAnim::new(ball_start_tracking_shot(
+                    false,
+                    ball_spawn.0,
+                )));
         };
     } else if !on_fire_end.is_empty() {
         if let Ok(cam) = q_cam.single() {
             cmds.entity(cam)
-                .insert(Animator::new(ball_start_tracking_shot(true, ball_spawn.0)));
+                .insert(TweenAnim::new(ball_start_tracking_shot(true, ball_spawn.0)));
         };
     }
 }
 
 const CAM_BALL_START_POS: Vec3 = Vec3::new(1.7, 0.9, 1.4);
 
-fn ball_start_tracking_shot(is_back: bool, look_at: Vec3) -> Tween<Transform> {
+fn ball_start_tracking_shot(is_back: bool, look_at: Vec3) -> Tween {
     let mut start = CAM_LOW_POS;
     let mut end = CAM_BALL_START_POS;
     let mut look_at_start = LOOK_POS;
