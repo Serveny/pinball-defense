@@ -72,8 +72,8 @@ impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.init_state::<GameState>()
             .init_state::<EventState>()
-            .add_event::<PauseGameEvent>()
-            .add_event::<ResumeGameEvent>()
+            .add_message::<PauseGameEvent>()
+            .add_message::<ResumeGameEvent>()
             .init_resource::<IngameTime>()
             .add_plugins((
                 AssetsPlugin,
@@ -160,11 +160,11 @@ fn setup_ambient_lights(mut cmds: Commands, g_sett: Res<GraphicsSettings>) {
     ));
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct PauseGameEvent;
 
 fn on_set_pause_system(
-    evr: EventReader<PauseGameEvent>,
+    evr: MessageReader<PauseGameEvent>,
     mut set_game_state: ResMut<NextState<GameState>>,
     mut physics_time: ResMut<Time<Physics>>,
 ) {
@@ -175,11 +175,11 @@ fn on_set_pause_system(
     }
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct ResumeGameEvent;
 
 fn on_resume_game_system(
-    evr: EventReader<ResumeGameEvent>,
+    evr: MessageReader<ResumeGameEvent>,
     mut set_game_state: ResMut<NextState<GameState>>,
     mut physics_time: ResMut<Time<Physics>>,
 ) {

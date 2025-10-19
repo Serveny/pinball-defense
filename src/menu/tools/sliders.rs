@@ -64,7 +64,7 @@ fn knob(prop_i: usize, init_val: f32) -> impl Bundle {
             border: UiRect::all(Val::Px(4.0)),
             ..default()
         },
-        BorderColor(GameColor::GOLD),
+        BorderColor::from(GameColor::GOLD),
         BackgroundColor(GameColor::WHITE),
         Button::default(),
     )

@@ -2,11 +2,12 @@ use self::fps::{FpsCamSettings, LookDirection};
 use super::GameState;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
-use bevy::core_pipeline::bloom::Bloom;
 use bevy::core_pipeline::tonemapping::Tonemapping;
 use bevy::core_pipeline::Skybox;
+use bevy::post_process::bloom::Bloom;
 use bevy::render::render_resource::{TextureViewDescriptor, TextureViewDimension};
-use bevy_tweening::{Animator, Lens, Targetable, Tween};
+use bevy::render::view::Hdr;
+use bevy_tweening::{Lens, Tween, TweenAnim};
 
 mod ball;
 mod dynamic;
@@ -76,7 +77,8 @@ fn spawn(
             ..default()
         },
         LookDirection::default(),
-        Animator::new(init_tracking_shot()),
+        TweenAnim::new(init_tracking_shot()),
+        Hdr,
     ));
     place_skybox(assets, images)
 }
@@ -112,14 +114,14 @@ impl CamTransformLens {
 }
 
 impl Lens<Transform> for CamTransformLens {
-    fn lerp(&mut self, target: &mut dyn Targetable<Transform>, ratio: f32) {
+    fn lerp(&mut self, mut target: Mut<Transform>, ratio: f32) {
         target.translation = self.start + (self.end - self.start) * ratio;
         let look_at = self.look_at_start + (self.look_at_end - self.look_at_start) * ratio;
         target.look_at(look_at, Vec3::Z);
     }
 }
 
-fn init_tracking_shot() -> Tween<Transform> {
+fn init_tracking_shot() -> Tween {
     Tween::new(
         EaseFunction::CubicOut,
         std::time::Duration::from_secs(4),

@@ -63,7 +63,7 @@ const TIME_BETWEEN_WAVES: f32 = 8.;
 
 fn wave_system(
     mut wave: ResMut<Wave>,
-    mut spawn_enemy_ev: EventWriter<SpawnEnemyEvent>,
+    mut spawn_enemy_ev: MessageWriter<SpawnEnemyEvent>,
     ig_timer: Res<IngameTime>,
 ) {
     let now = **ig_timer;

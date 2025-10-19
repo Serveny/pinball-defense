@@ -5,7 +5,8 @@ use crate::settings::{GraphicsSettings, SoundSettings};
 use crate::utils::reflect::{cast, prop_name};
 use crate::utils::{Music, Sound};
 use bevy::audio::Volume;
-use bevy::core_pipeline::bloom::Bloom;
+use bevy::post_process::bloom::Bloom;
+use bevy::render::view::Hdr;
 
 #[derive(States, Clone, Eq, PartialEq, Debug, Hash, Default)]
 pub enum SettingsMenuState {
@@ -85,10 +86,11 @@ pub fn on_changed_sound_settings(
 }
 
 pub fn on_changed_graphics_settings(
+    mut cmds: Commands,
     g_sett: Res<GraphicsSettings>,
+    q_cam: Query<(Entity, Option<&Hdr>), With<Camera>>,
     mut q_spot: Query<&mut SpotLight>,
     mut q_point: Query<&mut PointLight>,
-    mut q_cam: Query<&mut Camera>,
     mut q_bloom: Query<&mut Bloom>,
 ) {
     if g_sett.is_changed() {
@@ -98,7 +100,14 @@ pub fn on_changed_graphics_settings(
         q_spot
             .iter_mut()
             .for_each(|mut light| light.shadows_enabled = g_sett.is_shadows);
-        q_cam.iter_mut().for_each(|mut cam| cam.hdr = g_sett.is_hdr);
+
+        if let Ok((id, hdr)) = q_cam.single() {
+            if g_sett.is_hdr && hdr.is_none() {
+                cmds.entity(id).insert(Hdr);
+            } else if !g_sett.is_hdr && hdr.is_some() {
+                cmds.entity(id).remove::<Hdr>();
+            }
+        }
         q_bloom
             .iter_mut()
             .for_each(|mut bloom_sett| bloom_sett.intensity = g_sett.bloom_intensity);

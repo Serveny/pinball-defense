@@ -46,7 +46,7 @@ pub fn spawn_life_bar(
 }
 
 fn on_game_over_system(
-    mut evr: EventReader<HealthEmptyEvent>,
+    mut evr: MessageReader<HealthEmptyEvent>,
     mut game_state: ResMut<NextState<GameState>>,
     mut ev_state: ResMut<NextState<EventState>>,
     q_life_bar: Query<Entity, With<LifeBar>>,

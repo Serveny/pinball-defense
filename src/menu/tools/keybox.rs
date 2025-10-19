@@ -27,7 +27,7 @@ pub fn spawn(
             justify_content: JustifyContent::Center,
             ..default()
         },
-        BorderColor(GameColor::GOLD),
+        BorderColor::from(GameColor::GOLD),
         BackgroundColor(GRAY.into()),
         PropIndex(prop_i),
         Active,

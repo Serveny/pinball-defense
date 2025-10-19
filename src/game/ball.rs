@@ -16,8 +16,8 @@ pub struct BallPlugin;
 
 impl Plugin for BallPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<OnBallDespawnEvent>()
-            .add_event::<CollisionWithBallEvent>()
+        app.add_message::<OnBallDespawnEvent>()
+            .add_message::<CollisionWithBallEvent>()
             .add_systems(
                 Update,
                 (ball_reset_system).run_if(in_state(GameState::Ingame)),
@@ -74,7 +74,7 @@ pub fn spawn(
     ));
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct OnBallDespawnEvent;
 
 const X_RANGE: Range<f32> = -1.3..1.3;
@@ -83,8 +83,8 @@ const HIT_Y_RANGE: Range<f32> = -0.2..0.12;
 
 fn ball_reset_system(
     mut cmds: Commands,
-    mut evw: EventWriter<OnBallDespawnEvent>,
-    mut health_ev: EventWriter<ChangeHealthEvent>,
+    mut evw: MessageWriter<OnBallDespawnEvent>,
+    mut health_ev: MessageWriter<ChangeHealthEvent>,
     q_ball: Query<(Entity, &Transform), With<PinBall>>,
     q_life_bar: Query<Entity, With<LifeBar>>,
 ) {
@@ -104,9 +104,9 @@ fn ball_reset_system(
 }
 
 fn on_ball_despawn_system(
-    mut evr: EventReader<OnBallDespawnEvent>,
-    mut pm_status_ev: EventWriter<PinballMenuEvent>,
-    mut sound_ev: EventWriter<SoundEvent>,
+    mut evr: MessageReader<OnBallDespawnEvent>,
+    mut pm_status_ev: MessageWriter<PinballMenuEvent>,
+    mut sound_ev: MessageWriter<SoundEvent>,
 ) {
     if evr.read().next().is_some() {
         pm_status_ev.write(PinballMenuEvent::Deactivate);
@@ -114,13 +114,13 @@ fn on_ball_despawn_system(
     }
 }
 
-#[derive(Event, Debug)]
+#[derive(Message, Debug)]
 pub struct CollisionWithBallEvent(pub Entity);
 
 fn on_collision_with_ball_system(
-    coll_ev: EventReader<CollisionStarted>,
-    mut coll_with_ball_ev: EventWriter<CollisionWithBallEvent>,
-    mut points_ev: EventWriter<PointsEvent>,
+    coll_ev: MessageReader<CollisionStart>,
+    mut coll_with_ball_ev: MessageWriter<CollisionWithBallEvent>,
+    mut points_ev: MessageWriter<PointsEvent>,
     q_ball: Query<Entity, With<PinBall>>,
 ) {
     for collidator_id in get_ball_collisions(coll_ev, q_ball) {
@@ -130,14 +130,14 @@ fn on_collision_with_ball_system(
 }
 
 fn get_ball_collisions(
-    mut evr: EventReader<CollisionStarted>,
+    mut evr: MessageReader<CollisionStart>,
     q_ball: Query<Entity, With<PinBall>>,
 ) -> Vec<Entity> {
     evr.read()
-        .filter_map(|ev| match q_ball.contains(ev.0) {
-            true => Some(ev.1),
-            false => match q_ball.contains(ev.1) {
-                true => Some(ev.0),
+        .filter_map(|ev| match q_ball.contains(ev.collider1) {
+            true => Some(ev.collider1),
+            false => match q_ball.contains(ev.collider2) {
+                true => Some(ev.collider2),
                 false => None,
             },
         })
@@ -145,8 +145,8 @@ fn get_ball_collisions(
 }
 
 fn on_wall_collision_system(
-    mut evr: EventReader<CollisionWithBallEvent>,
-    mut sound_ev: EventWriter<SoundEvent>,
+    mut evr: MessageReader<CollisionWithBallEvent>,
+    mut sound_ev: MessageWriter<SoundEvent>,
     q_wall: Query<Entity, With<WorldFrame>>,
 ) {
     for ev in evr.read() {

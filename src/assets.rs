@@ -5,6 +5,7 @@ use crate::utils::reflect::set_field;
 use crate::AppState;
 use bevy::asset::Asset;
 use bevy::asset::LoadState;
+use bevy::ecs::resource::Resource;
 use bevy::gltf::{Gltf, GltfMesh};
 use bevy::platform::collections::HashMap;
 pub use bevy_asset_loader::prelude::*;
@@ -12,7 +13,7 @@ use rand::seq::IndexedRandom;
 use std::env;
 use std::path::PathBuf;
 
-#[derive(Resource, AssetCollection, Default)]
+#[derive(AssetCollection, Resource, Default)]
 pub struct PinballDefenseAssets {
     // Other
     #[asset(path = "textures/skybox.png")]

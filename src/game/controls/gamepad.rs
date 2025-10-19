@@ -11,12 +11,12 @@ use bevy::input::gamepad::GamepadButtonChangedEvent;
 use bevy::input::ButtonState;
 
 pub(super) fn on_btn_changed(
-    mut evr: EventReader<GamepadButtonChangedEvent>,
-    mut spawn_ball_ev: EventWriter<SpawnBallEvent>,
+    mut evr: MessageReader<GamepadButtonChangedEvent>,
+    mut spawn_ball_ev: MessageWriter<SpawnBallEvent>,
     mut ball_starter_state: ResMut<NextState<BallStarterState>>,
     mut q_flipper: Query<(&mut FlipperStatus, &FlipperType)>,
     mut menu_state: ResMut<NextState<MenuState>>,
-    mut pause_ev: EventWriter<PauseGameEvent>,
+    mut pause_ev: MessageWriter<PauseGameEvent>,
 ) {
     for ev in evr.read() {
         if ev.state != ButtonState::Pressed {
@@ -50,9 +50,9 @@ pub(super) fn on_btn_changed(
 }
 
 pub(super) fn pause_btn_changed(
-    mut evr: EventReader<GamepadButtonChangedEvent>,
+    mut evr: MessageReader<GamepadButtonChangedEvent>,
     mut menu_state: ResMut<NextState<MenuState>>,
-    mut resume_ev: EventWriter<ResumeGameEvent>,
+    mut resume_ev: MessageWriter<ResumeGameEvent>,
 ) {
     for ev in evr.read() {
         match ev.button {

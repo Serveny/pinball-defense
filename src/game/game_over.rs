@@ -58,7 +58,7 @@ fn spawn_restart_btn(p: &mut ChildSpawnerCommands, assets: &PinballDefenseAssets
             align_items: AlignItems::Center,
             ..default()
         },
-        BorderColor(GOLD.into()),
+        BorderColor::from(GOLD),
         BackgroundColor(Color::NONE.into()),
         ActionBtn,
     ))

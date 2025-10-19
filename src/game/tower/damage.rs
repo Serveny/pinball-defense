@@ -10,7 +10,7 @@ pub(super) struct DamageOverTime(pub DamagePerSecond);
 pub(super) fn afe_damage_over_time_system(
     time: Res<Time>,
     q_tower: Query<(Entity, &AimFirstEnemy, &DamageOverTime)>,
-    mut health_ev: EventWriter<ChangeHealthEvent>,
+    mut health_ev: MessageWriter<ChangeHealthEvent>,
 ) {
     for (tower_id, target, damage) in q_tower.iter() {
         if let Some(enemy_id) = target.0 {
@@ -29,7 +29,7 @@ pub struct DamageAllTargetsInReach;
 pub(super) fn datir_damage_over_time_system(
     time: Res<Time>,
     q_tower: Query<(Entity, &EnemiesWithinReach, &DamageOverTime), With<DamageAllTargetsInReach>>,
-    mut health_ev: EventWriter<ChangeHealthEvent>,
+    mut health_ev: MessageWriter<ChangeHealthEvent>,
 ) {
     for (tower_id, targets, damage) in q_tower.iter() {
         for enemy_id in targets.0.iter() {

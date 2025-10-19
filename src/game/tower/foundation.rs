@@ -1,7 +1,6 @@
 use crate::game::audio::SoundEvent;
 use crate::game::ball::CollisionWithBallEvent;
 use crate::game::events::collision::GameLayer;
-use crate::game::events::tween_completed::DESPAWN_ENTITY_EVENT_ID;
 use crate::game::level::{LevelHub, LevelUpEvent, PointsEvent};
 use crate::game::light::{contact_light_bundle, disable_flash_light, FlashLight, LightOnCollision};
 use crate::game::pinball_menu::{PinballMenuTrigger, TowerMenuExecuteEvent};
@@ -11,9 +10,10 @@ use crate::game::world::PinballWorld;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy::color::palettes::css::GREEN;
+use bevy_tweening::TweenAnim;
 use bevy_tweening::{
     lens::{TransformPositionLens, TransformRotationLens},
-    Animator, Delay, Tween,
+    Delay, Tween,
 };
 use std::{f32::consts::PI, time::Duration};
 
@@ -39,7 +39,7 @@ pub(super) struct TowerFoundationBottom;
 
 pub(super) fn on_spawn_system(
     mut cmds: Commands,
-    mut evr: EventReader<LevelUpEvent>,
+    mut evr: MessageReader<LevelUpEvent>,
     mut q_mark: Query<(Entity, &mut FoundationBuildMark, &Transform)>,
     mut mats: ResMut<Assets<StandardMaterial>>,
     assets: Res<PinballDefenseGltfAssets>,
@@ -102,11 +102,11 @@ fn ring(assets: &PinballDefenseGltfAssets, pos: Vec3, hit_progress: f32) -> impl
         TowerFoundation::new(hit_progress),
         LightOnCollision,
         PinballMenuTrigger::Tower,
-        Animator::new(spawn_animation(pos)),
+        TweenAnim::new(spawn_animation(pos)),
     )
 }
 
-fn spawn_animation(pos: Vec3) -> Tween<Transform> {
+fn spawn_animation(pos: Vec3) -> Tween {
     Tween::new(
         EaseFunction::QuadraticIn,
         std::time::Duration::from_secs(2),
@@ -155,7 +155,7 @@ fn set_lid_open_animation(
                 end: Quat::from_rotation_y(-signum * PI / 2.),
             },
         );
-        cmds.entity(lid_id).insert(Animator::new(tween));
+        cmds.entity(lid_id).insert(TweenAnim::new(tween));
     }
 }
 
@@ -169,15 +169,15 @@ fn set_despawn_animation(cmds: &mut Commands, foundation_id: Entity, pos: Vec3, 
             end: Vec3::new(pos.x, pos.y, pos.z - 0.1),
         },
     )
-    .with_completed_event(DESPAWN_ENTITY_EVENT_ID);
+    .with_cycle_completed_event(true);
 
     let sequence = delay.then(tween);
-    cmds.entity(foundation_id).insert(Animator::new(sequence));
+    cmds.entity(foundation_id).insert(TweenAnim::new(sequence));
 }
 
 pub(super) fn on_despawn_system(
     mut cmds: Commands,
-    mut evr: EventReader<TowerMenuExecuteEvent>,
+    mut evr: MessageReader<TowerMenuExecuteEvent>,
     mut q_light: Query<(Entity, &ChildOf, &mut Visibility), With<FlashLight>>,
     q_foundation: Query<&Transform, With<TowerFoundation>>,
     q_lids_bottom: Query<(Entity, &ChildOf), With<TowerFoundationBottom>>,
@@ -209,10 +209,10 @@ pub(super) fn on_despawn_system(
 }
 
 pub(super) fn on_progress_system(
-    mut prog_bar_ev: EventWriter<ProgressBarCountUpEvent>,
-    mut evr: EventReader<CollisionWithBallEvent>,
-    mut points_ev: EventWriter<PointsEvent>,
-    mut sound_ev: EventWriter<SoundEvent>,
+    mut prog_bar_ev: MessageWriter<ProgressBarCountUpEvent>,
+    mut evr: MessageReader<CollisionWithBallEvent>,
+    mut points_ev: MessageWriter<PointsEvent>,
+    mut sound_ev: MessageWriter<SoundEvent>,
     q_tower_foundation: Query<&TowerFoundation, With<TowerFoundation>>,
 ) {
     for CollisionWithBallEvent(id) in evr.read() {

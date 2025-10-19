@@ -1,27 +1,27 @@
 use super::ball::{CollisionWithBallEvent, PinBall};
 use super::events::collision::GameLayer;
-use super::events::tween_completed::{ACTIVATE_PINBALL_MENU_EVENT_ID, DESPAWN_ENTITY_EVENT_ID};
 use super::level::{Level, LevelUpEvent};
 use super::progress::ProgressBarFullEvent;
 use super::tower::{SpawnTowerEvent, TowerType, TowerUpgrade};
 use super::world::QueryWorld;
 use super::{EventState, GameState};
 use crate::game::audio::SoundEvent;
+use crate::game::events::tween_completed::DeleteAfterTween;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy::color::palettes::css::{BEIGE, GREEN};
 use bevy_tweening::lens::TransformRotateZLens;
-use bevy_tweening::{Animator, Delay, Sequence, Tween};
+use bevy_tweening::{Delay, Sequence, Tween, TweenAnim};
 use std::time::Duration;
 
 pub struct PinballMenuPlugin;
 
 impl Plugin for PinballMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<PinballMenuEvent>()
-            .add_event::<TowerMenuExecuteEvent>()
-            .add_event::<UpgradeMenuExecuteEvent>()
-            .add_event::<PinballMenuOnSetSelectedEvent>()
+        app.add_message::<PinballMenuEvent>()
+            .add_message::<TowerMenuExecuteEvent>()
+            .add_message::<UpgradeMenuExecuteEvent>()
+            .add_message::<PinballMenuOnSetSelectedEvent>()
             .add_systems(OnEnter(GameState::Init), init_resources)
             .add_systems(
                 Update,
@@ -43,7 +43,7 @@ impl Plugin for PinballMenuPlugin {
 
 // --- Public Area ---
 
-#[derive(Event, Debug, Clone, Copy)]
+#[derive(Message, Debug, Clone, Copy)]
 pub enum PinballMenuEvent {
     Disable,
     SetReady,
@@ -57,7 +57,7 @@ pub enum PinballMenuTrigger {
     Upgrade,
 }
 
-#[derive(Event, Clone, Copy)]
+#[derive(Message, Clone, Copy)]
 pub struct TowerMenuExecuteEvent {
     pub foundation_id: Entity,
 }
@@ -68,10 +68,10 @@ impl TowerMenuExecuteEvent {
     }
 }
 
-#[derive(Event, Clone, Copy)]
+#[derive(Message, Clone, Copy)]
 pub struct PinballMenuOnSetSelectedEvent(pub Entity);
 
-#[derive(Event, Clone, Copy)]
+#[derive(Message, Clone, Copy)]
 pub struct UpgradeMenuExecuteEvent {
     pub tower_id: Entity,
     pub upgrade: TowerUpgrade,
@@ -99,12 +99,12 @@ enum PinballMenuStatus {
 }
 
 fn on_menu_event_system(
-    mut evr: EventReader<PinballMenuEvent>,
+    mut evr: MessageReader<PinballMenuEvent>,
     mut q_pb_menu: Query<(Entity, &mut PinballMenuStatus), With<PinballMenu>>,
     cmds: Commands,
     q_pbm_el: QueryPinballMenuElements,
     q_lights: Query<&mut Visibility, With<PinballMenuElementLight>>,
-    sound_ev: EventWriter<SoundEvent>,
+    sound_ev: MessageWriter<SoundEvent>,
 ) {
     if let Some(ev) = evr.read().next() {
         if let Ok((menu_entity, mut status)) = q_pb_menu.single_mut() {
@@ -130,7 +130,7 @@ type QueryPinballMenuElements<'w, 's, 'a> =
 
 fn spawn_system(
     mut cmds: Commands,
-    mut sound_ev: EventWriter<SoundEvent>,
+    mut sound_ev: MessageWriter<SoundEvent>,
     assets: Res<PinballDefenseGltfAssets>,
     q_pbw: QueryWorld,
     q_pb_menu: Query<&PinballMenu>,
@@ -228,7 +228,7 @@ fn spawn_menu_element(
 ) {
     spawner
         .spawn(element_bundle(menu_el_type, assets))
-        .insert(Animator::new(spawn_animation(angle, delay_secs)))
+        .insert(TweenAnim::new(spawn_animation(angle, delay_secs)))
         .with_children(|spawner| {
             spawner.spawn(active_light_bundle(g_sett));
         });
@@ -272,16 +272,16 @@ fn despawn(
     q_lights: Query<&mut Visibility, With<PinballMenuElementLight>>,
     q_pbm_el: QueryPinballMenuElements,
     menu_entity: Entity,
-    mut sound_ev: EventWriter<SoundEvent>,
+    mut sound_ev: MessageWriter<SoundEvent>,
 ) -> PinballMenuStatus {
     // Despawn menu
-    let delay: Delay<Transform> =
-        Delay::new(Duration::from_secs(2)).with_completed_event(DESPAWN_ENTITY_EVENT_ID);
-    cmds.entity(menu_entity).insert(Animator::new(delay));
+    let delay = Delay::new(Duration::from_secs(2));
+    cmds.entity(menu_entity)
+        .insert((TweenAnim::new(delay), DeleteAfterTween));
     // Despawn animation
     q_pbm_el.iter().for_each(|(entity, trans)| {
         let secs = (trans.rotation.y + 0.2) * 2.;
-        cmds.entity(entity).insert(Animator::new(despawn_animation(
+        cmds.entity(entity).insert(TweenAnim::new(despawn_animation(
             trans.rotation.y,
             Duration::from_secs_f32(secs),
         )));
@@ -292,7 +292,7 @@ fn despawn(
 }
 
 fn de_activate_system(
-    mut pb_menu_ev: EventWriter<PinballMenuEvent>,
+    mut pb_menu_ev: MessageWriter<PinballMenuEvent>,
     q_ball: Query<&Transform, With<PinBall>>,
     q_pb_menu_status: Query<&PinballMenuStatus>,
 ) {
@@ -327,7 +327,7 @@ fn activate(
     mut cmds: Commands,
     mut q_lights: Query<&mut Visibility, With<PinballMenuElementLight>>,
     q_pbm_el: QueryPinballMenuElements,
-    mut sound_ev: EventWriter<SoundEvent>,
+    mut sound_ev: MessageWriter<SoundEvent>,
 ) -> PinballMenuStatus {
     q_pbm_el.iter().for_each(|(entity, _)| {
         cmds.entity(entity).insert(active_collider());
@@ -372,7 +372,7 @@ fn deactivate(
 
 const ELEM_START_ANGLE: f32 = -0.58;
 
-fn spawn_animation(angle: f32, delay_secs: f32) -> Sequence<Transform> {
+fn spawn_animation(angle: f32, delay_secs: f32) -> Sequence {
     let wait = Delay::new(Duration::from_secs_f32(delay_secs));
     let rotate = Tween::new(
         EaseFunction::ElasticOut,
@@ -381,12 +381,13 @@ fn spawn_animation(angle: f32, delay_secs: f32) -> Sequence<Transform> {
             start: ELEM_START_ANGLE + 0.2,
             end: angle,
         },
-    );
+    )
+    .with_cycle_completed_event(true);
 
-    wait.then(rotate.with_completed_event(ACTIVATE_PINBALL_MENU_EVENT_ID))
+    wait.then(rotate)
 }
 
-fn despawn_animation(angle: f32, duration: Duration) -> Sequence<Transform> {
+fn despawn_animation(angle: f32, duration: Duration) -> Sequence {
     let wait = Delay::new(duration);
     let rotate = Tween::new(
         EaseFunction::ExponentialInOut,
@@ -404,11 +405,11 @@ type QueryUpgradeMenuEls<'w, 's, 'a> =
 
 fn on_execute_system(
     mut cmds: Commands,
-    mut evr: EventReader<CollisionWithBallEvent>,
-    mut on_tower_el_selected: EventWriter<TowerMenuExecuteEvent>,
-    mut on_upgrade_el_selected: EventWriter<UpgradeMenuExecuteEvent>,
-    mut pb_menu_ev: EventWriter<PinballMenuEvent>,
-    mut spawn_tower_ev: EventWriter<SpawnTowerEvent>,
+    mut evr: MessageReader<CollisionWithBallEvent>,
+    mut on_tower_el_selected: MessageWriter<TowerMenuExecuteEvent>,
+    mut on_upgrade_el_selected: MessageWriter<UpgradeMenuExecuteEvent>,
+    mut pb_menu_ev: MessageWriter<PinballMenuEvent>,
+    mut spawn_tower_ev: MessageWriter<SpawnTowerEvent>,
     q_pb_menu: Query<&PinballMenu>,
     q_tower_menu_els: Query<(Entity, &TowerType), With<PinballMenuElement>>,
     q_upgrade_menu_els: QueryUpgradeMenuEls,
@@ -486,7 +487,7 @@ struct PinballMenuReady;
 
 fn on_ready_system(
     mut cmds: Commands,
-    mut evr: EventReader<ProgressBarFullEvent>,
+    mut evr: MessageReader<ProgressBarFullEvent>,
     q_trigger: Query<&PinballMenuTrigger>,
 ) {
     for ev in evr.read() {
@@ -501,7 +502,7 @@ struct PinballMenuSelected;
 
 fn selected_system(
     mut cmds: Commands,
-    mut on_sel_ev: EventWriter<PinballMenuOnSetSelectedEvent>,
+    mut on_sel_ev: MessageWriter<PinballMenuOnSetSelectedEvent>,
     q_ready: Query<(Entity, &PinballMenuTrigger), With<PinballMenuReady>>,
     q_selected: Query<Entity, With<PinballMenuSelected>>,
     unlocked_towers: Res<UnlockedTowers>,
@@ -548,7 +549,7 @@ impl Default for UnlockedTowers {
 struct UnlockedUpgrades(Vec<TowerUpgrade>);
 
 fn on_unlock_system(
-    mut evr: EventReader<LevelUpEvent>,
+    mut evr: MessageReader<LevelUpEvent>,
     mut towers: ResMut<UnlockedTowers>,
     mut upgrades: ResMut<UnlockedUpgrades>,
 ) {

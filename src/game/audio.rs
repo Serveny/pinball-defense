@@ -9,7 +9,7 @@ pub struct AudioPlugin;
 
 impl Plugin for AudioPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SoundEvent>()
+        app.add_message::<SoundEvent>()
             .add_systems(
                 OnEnter(GameState::Init),
                 (
@@ -32,7 +32,7 @@ impl Plugin for AudioPlugin {
     }
 }
 
-#[derive(Event)]
+#[derive(Message)]
 pub enum SoundEvent {
     BallSpawn,
     FlipperPress,
@@ -99,7 +99,7 @@ fn resume_sounds(q_sound: Query<&AudioSink, With<Sound>>) {
 
 fn on_play_sound_fx_system(
     mut cmds: Commands,
-    mut evr: EventReader<SoundEvent>,
+    mut evr: MessageReader<SoundEvent>,
     assets: Res<PinballDefenseAudioAssets>,
     sound_sett: Res<SoundSettings>,
 ) {

@@ -10,8 +10,8 @@ pub struct LevelPlugin;
 
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<PointsEvent>()
-            .add_event::<LevelUpEvent>()
+        app.add_message::<PointsEvent>()
+            .add_message::<LevelUpEvent>()
             .add_systems(OnEnter(GameState::Init), init_resources)
             .add_systems(
                 Update,
@@ -36,7 +36,7 @@ fn init_resources(mut cmds: Commands) {
     cmds.insert_resource(LevelHub::default());
 }
 
-#[derive(Event, Clone, Copy)]
+#[derive(Message, Clone, Copy)]
 #[repr(u32)]
 pub enum PointsEvent {
     BallCollided = 1,
@@ -61,7 +61,7 @@ const POINT_FACTOR: u32 = 10;
 #[cfg(not(debug_assertions))]
 const POINT_FACTOR: u32 = 1;
 
-fn on_add_points_system(mut evr: EventReader<PointsEvent>, mut points: ResMut<PointHub>) {
+fn on_add_points_system(mut evr: MessageReader<PointsEvent>, mut points: ResMut<PointHub>) {
     for ev in evr.read() {
         points.0 += ev.points() * POINT_FACTOR;
     }
@@ -97,11 +97,11 @@ impl LevelHub {
     }
 }
 
-#[derive(Event, Clone, Copy)]
+#[derive(Message, Clone, Copy)]
 pub struct LevelUpEvent(pub Level);
 
 fn level_up_system(
-    mut lvl_up_ev: EventWriter<LevelUpEvent>,
+    mut lvl_up_ev: MessageWriter<LevelUpEvent>,
     mut level: ResMut<LevelHub>,
     points: Res<PointHub>,
 ) {
@@ -123,7 +123,7 @@ impl Default for PointCounterId {
 
 fn update_points_counter_system(
     points: Res<PointHub>,
-    mut ac_set_ev: EventWriter<AnalogCounterSetEvent>,
+    mut ac_set_ev: MessageWriter<AnalogCounterSetEvent>,
     pc_id: Res<PointCounterId>,
 ) {
     if points.is_changed() {
@@ -142,7 +142,7 @@ impl Default for LevelCounterId {
 
 fn update_level_counter_system(
     level: Res<LevelHub>,
-    mut ac_set_ev: EventWriter<AnalogCounterSetEvent>,
+    mut ac_set_ev: MessageWriter<AnalogCounterSetEvent>,
     lc_id: Res<LevelCounterId>,
 ) {
     if level.is_changed() {
@@ -156,7 +156,7 @@ struct LevelUpAnimation(Timer);
 fn on_level_up_lamp(
     mut cmds: Commands,
     mut q_lvl_up_lamp: Query<(Entity, &mut Visibility), With<LevelUpLamp>>,
-    level_up_ev: EventReader<LevelUpEvent>,
+    level_up_ev: MessageReader<LevelUpEvent>,
 ) {
     if !level_up_ev.is_empty() {
         if let Ok((lamp_id, mut visi)) = q_lvl_up_lamp.single_mut() {
@@ -177,7 +177,7 @@ fn level_up_animation_system(
     time: Res<Time>,
 ) {
     for (lamp_id, mut visi, mut anim) in &mut q_anim {
-        if anim.0.finished() {
+        if anim.0.is_finished() {
             *visi = Visibility::Hidden;
             cmds.entity(lamp_id)
                 .remove::<FlashLight>()

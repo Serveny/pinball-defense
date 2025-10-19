@@ -27,7 +27,7 @@ pub fn spawn(
                 align_items: AlignItems::Center,
                 ..default()
             },
-            BorderColor(GOLD.into()),
+            BorderColor::from(GOLD),
             BackgroundColor(Color::NONE.into()),
         ))
         .with_children(|spawner| {
@@ -48,7 +48,7 @@ pub fn system(
         (&Interaction, &mut BorderColor, &MenuAction),
         (Changed<Interaction>, With<Button>, With<MenuButton>),
     >,
-    mut action_ev: EventWriter<MenuAction>,
+    mut action_ev: MessageWriter<MenuAction>,
 ) {
     for (interaction, mut border_color, action) in &mut interaction_query {
         match *interaction {
