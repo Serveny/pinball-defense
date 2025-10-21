@@ -1,36 +1,35 @@
 //use crate::game::pinball_menu::PinballMenuEvent;
+use crate::game::pinball_menu::PinballMenuEvent;
 use crate::prelude::*;
 use bevy_tweening::AnimCompletedEvent;
 
 #[derive(Component)]
-pub struct DeleteAfterTween;
-
-//pub const DESPAWN_ENTITY_EVENT_ID: u64 = 0;
-//pub const ACTIVATE_PINBALL_MENU_EVENT_ID: u64 = 1;
-//pub const DESPAWN_PINBALL_MENU_EVENT_ID: u64 = 2;
+pub enum AfterTween {
+    DeleteEntity,
+    ActivatePinballMenu,
+    DespawnPinballMenu,
+}
 
 pub(super) fn on_tween_completed_system(
-    mut evr: MessageReader<AnimCompletedEvent>,
     mut cmds: Commands,
-    //mut pm_status_ev: MessageWriter<PinballMenuEvent>,
-    q_delete: Query<Entity, With<DeleteAfterTween>>,
+    mut evr: MessageReader<AnimCompletedEvent>,
+    mut pm_status_ev: MessageWriter<PinballMenuEvent>,
+    q_after_tween: Query<&AfterTween>,
 ) {
     for ev in evr.read() {
         if let bevy_tweening::AnimTargetKind::Component { entity } = ev.target {
-            if q_delete.get(entity).is_ok() {
-                cmds.entity(ev.anim_entity).despawn();
+            if let Ok(after_tween) = q_after_tween.get(entity) {
+                match after_tween {
+                    AfterTween::DeleteEntity => cmds.entity(ev.anim_entity).despawn(),
+                    AfterTween::ActivatePinballMenu => {
+                        pm_status_ev.write(PinballMenuEvent::SetReady);
+                    }
+                    AfterTween::DespawnPinballMenu => {
+                        pm_status_ev.write(PinballMenuEvent::Disable);
+                    }
+                }
+                cmds.entity(entity).remove::<AfterTween>();
             }
         }
-
-        //match ev.anim_entity.to_bits() {
-        //DESPAWN_ENTITY_EVENT_ID => cmds.entity(ev.anim_entity).despawn(),
-        //ACTIVATE_PINBALL_MENU_EVENT_ID => {
-        //pm_status_ev.write(PinballMenuEvent::SetReady);
-        //}
-        //DESPAWN_PINBALL_MENU_EVENT_ID => {
-        //pm_status_ev.write(PinballMenuEvent::Disable);
-        //}
-        //_ => panic!("😭 Unkown tween user event: {}", ev.anim_entity),
-        //}
     }
 }
