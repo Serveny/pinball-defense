@@ -1,6 +1,7 @@
 use crate::game::audio::SoundEvent;
 use crate::game::ball::CollisionWithBallEvent;
 use crate::game::events::collision::GameLayer;
+use crate::game::events::tween_completed::AfterTween;
 use crate::game::level::{LevelHub, LevelUpEvent, PointsEvent};
 use crate::game::light::{contact_light_bundle, disable_flash_light, FlashLight, LightOnCollision};
 use crate::game::pinball_menu::{PinballMenuTrigger, TowerMenuExecuteEvent};
@@ -172,7 +173,8 @@ fn set_despawn_animation(cmds: &mut Commands, foundation_id: Entity, pos: Vec3, 
     .with_cycle_completed_event(true);
 
     let sequence = delay.then(tween);
-    cmds.entity(foundation_id).insert(TweenAnim::new(sequence));
+    cmds.entity(foundation_id)
+        .insert((TweenAnim::new(sequence), AfterTween::DeleteEntity));
 }
 
 pub(super) fn on_despawn_system(

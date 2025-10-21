@@ -6,7 +6,7 @@ use super::tower::{SpawnTowerEvent, TowerType, TowerUpgrade};
 use super::world::QueryWorld;
 use super::{EventState, GameState};
 use crate::game::audio::SoundEvent;
-use crate::game::events::tween_completed::DeleteAfterTween;
+use crate::game::events::tween_completed::AfterTween;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy::color::palettes::css::{BEIGE, GREEN};
@@ -228,7 +228,10 @@ fn spawn_menu_element(
 ) {
     spawner
         .spawn(element_bundle(menu_el_type, assets))
-        .insert(TweenAnim::new(spawn_animation(angle, delay_secs)))
+        .insert((
+            TweenAnim::new(spawn_animation(angle, delay_secs)),
+            AfterTween::ActivatePinballMenu,
+        ))
         .with_children(|spawner| {
             spawner.spawn(active_light_bundle(g_sett));
         });
@@ -277,14 +280,17 @@ fn despawn(
     // Despawn menu
     let delay = Delay::new(Duration::from_secs(2));
     cmds.entity(menu_entity)
-        .insert((TweenAnim::new(delay), DeleteAfterTween));
+        .insert((TweenAnim::new(delay), AfterTween::DeleteEntity));
     // Despawn animation
     q_pbm_el.iter().for_each(|(entity, trans)| {
         let secs = (trans.rotation.y + 0.2) * 2.;
-        cmds.entity(entity).insert(TweenAnim::new(despawn_animation(
-            trans.rotation.y,
-            Duration::from_secs_f32(secs),
-        )));
+        cmds.entity(entity).insert((
+            TweenAnim::new(despawn_animation(
+                trans.rotation.y,
+                Duration::from_secs_f32(secs),
+            )),
+            AfterTween::DespawnPinballMenu,
+        ));
     });
     deactivate(cmds, q_lights, q_pbm_el);
     sound_ev.write(SoundEvent::PbMenuFadeOut);
@@ -381,8 +387,7 @@ fn spawn_animation(angle: f32, delay_secs: f32) -> Sequence {
             start: ELEM_START_ANGLE + 0.2,
             end: angle,
         },
-    )
-    .with_cycle_completed_event(true);
+    );
 
     wait.then(rotate)
 }
