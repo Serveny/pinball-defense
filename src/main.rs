@@ -43,7 +43,6 @@ fn main() {
         FrameTimeDiagnosticsPlugin::default(),
         TweeningPlugin,
         WindowTitleLoggerDiagnosticsPlugin::default(),
-        EguiPlugin::default(),
         PhysicsPlugins::default(),
     ))
     .init_state::<AppState>()
@@ -78,7 +77,8 @@ fn add_pysics_settings(app: &mut App) {
 #[cfg(debug_assertions)]
 fn add_debug_plugins(app: &mut App) {
     app.add_plugins((
-        WorldInspectorPlugin::default(),
+        EguiPlugin::default(),
+        WorldInspectorPlugin::new(),
         PhysicsDebugPlugin::default(),
     ));
 }
