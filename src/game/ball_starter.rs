@@ -14,6 +14,7 @@ impl Plugin for BallStarterPlugin {
             .add_message::<BallStarterChargeStartedEvent>()
             .add_message::<BallStarterFireEndEvent>()
             .add_systems(Startup, setup)
+            .add_systems(OnEnter(BallStarterState::Idle), on_enter_idle)
             .add_systems(
                 OnEnter(BallStarterState::Charge),
                 (spawn_ball_at_charge, on_charge_started),
@@ -55,7 +56,7 @@ fn on_spawn_ball_system(
 
 pub fn spawn(spawner: &mut ChildSpawnerCommands, pos: Vec3, assets: &PinballDefenseGltfAssets) {
     let collider = |p: &mut ChildSpawnerCommands| {
-        p.spawn(collider_bundle());
+        p.spawn(starter_plate_mesh(assets));
     };
     spawner
         .spawn((
@@ -64,16 +65,19 @@ pub fn spawn(spawner: &mut ChildSpawnerCommands, pos: Vec3, assets: &PinballDefe
             Name::new("Ball Starter"),
         ))
         .with_children(|p| {
-            p.spawn(starter_plate(assets))
-                // Long cube collider to prevent clipping ball
-                .with_children(collider);
+            // Long cube collider to prevent clipping ball
+            p.spawn(collider_bundle()).with_children(collider);
             p.spawn(starter_spring(assets));
             p.spawn(starter_rod(assets));
         });
 }
 
+#[derive(Component)]
+struct StarterPlate;
+
 fn collider_bundle() -> impl Bundle {
     (
+        StarterPlate,
         Name::new("Ball Starter Collider"),
         Transform::from_xyz(-0.107, 0., 0.),
         Collider::rectangle(SIZE.x, SIZE.z),
@@ -87,13 +91,10 @@ fn collider_bundle() -> impl Bundle {
     )
 }
 
-#[derive(Component)]
-struct StarterPlate;
-
-fn starter_plate(assets: &PinballDefenseGltfAssets) -> impl Bundle {
+fn starter_plate_mesh(assets: &PinballDefenseGltfAssets) -> impl Bundle {
     (
-        Name::new("Starter Plate"),
-        StarterPlate,
+        Name::new("Starter Plate Mesh"),
+        Transform::from_xyz(0.107, 0., 0.),
         Mesh3d(assets.starter_plate.clone()),
         MeshMaterial3d(assets.starter_plate_material.clone()),
     )
@@ -156,67 +157,79 @@ fn spawn_ball_at_charge(
     }
 }
 
+fn on_enter_idle(q_plate: Query<&mut LinearVelocity, With<StarterPlate>>) {
+    for mut velocity in q_plate {
+        velocity.x = 0.;
+    }
+}
+
 #[derive(Message)]
 pub struct BallStarterChargeStartedEvent;
 
 fn on_charge_started(
     mut charge_started_ev: MessageWriter<BallStarterChargeStartedEvent>,
     mut sound_ev: MessageWriter<SoundEvent>,
+    mut q_plate: Query<&mut LinearVelocity, With<StarterPlate>>,
 ) {
     charge_started_ev.write(BallStarterChargeStartedEvent);
     sound_ev.write(SoundEvent::BallStarterCharge);
+    for mut velocity in q_plate.iter_mut() {
+        velocity.x = 0.1;
+    }
 }
 
-const MAX_PLATE_TRANSFORM: f32 = 0.08;
-
 fn charge_system(
-    mut q_plate: Query<&mut Transform, (With<StarterPlate>, Without<StarterSpring>)>,
+    q_plate: Query<&Transform, (With<StarterPlate>, Without<StarterSpring>)>,
     mut q_spring: Query<&mut Transform, (With<StarterSpring>, Without<StarterPlate>)>,
     mut state: ResMut<NextState<BallStarterState>>,
-    time: Res<Time>,
 ) {
-    let Ok(mut plate) = q_plate.single_mut() else {
+    let Ok(plate) = q_plate.single() else {
         return;
     };
     let Ok(mut spring) = q_spring.single_mut() else {
         return;
     };
-    let x_add = time.delta_secs() * 0.14;
-    if starter_add(x_add, &mut plate.translation, &mut spring.scale) >= MAX_PLATE_TRANSFORM {
+    let x = plate.translation.x;
+    update_spring_scale(x, &mut spring.scale);
+
+    if x >= 0. {
         state.set(BallStarterState::Idle);
     }
 }
 
-fn starter_add(pos_x: f32, plate_pos: &mut Vec3, spring_scale: &mut Vec3) -> f32 {
-    let x = (plate_pos.x + pos_x).clamp(0., MAX_PLATE_TRANSFORM);
-    plate_pos.x = x;
-    spring_scale.x = 1. - (x / MAX_PLATE_TRANSFORM / 2.6);
-    x
+fn update_spring_scale(plate_x: f32, spring_scale: &mut Vec3) {
+    spring_scale.x = 1. - (plate_x + 0.107 / (0.107 * 2.) / 2.6);
 }
 
 #[derive(Message)]
 pub struct BallStarterFireEndEvent;
 
 fn fire_system(
-    mut q_plate: Query<&mut Transform, (With<StarterPlate>, Without<StarterSpring>)>,
+    q_plate: Query<&Transform, (With<StarterPlate>, Without<StarterSpring>)>,
     mut q_spring: Query<&mut Transform, (With<StarterSpring>, Without<StarterPlate>)>,
     mut state: ResMut<NextState<BallStarterState>>,
     mut leave_ev: MessageWriter<BallStarterFireEndEvent>,
-    time: Res<Time>,
 ) {
-    let Ok(mut plate) = q_plate.single_mut() else {
+    let Ok(plate) = q_plate.single() else {
         return;
     };
     let Ok(mut spring) = q_spring.single_mut() else {
         return;
     };
-    let x_add = -time.delta_secs() * 1.4;
-    if starter_add(x_add, &mut plate.translation, &mut spring.scale) <= 0. {
+    let x = plate.translation.x;
+    update_spring_scale(x, &mut spring.scale);
+    if x <= -0.107 {
         state.set(BallStarterState::Idle);
         leave_ev.write(BallStarterFireEndEvent);
     }
 }
 
-fn on_fire_started(mut sound_ev: MessageWriter<SoundEvent>) {
+fn on_fire_started(
+    mut sound_ev: MessageWriter<SoundEvent>,
+    q_plate: Query<&mut LinearVelocity, With<StarterPlate>>,
+) {
+    for mut velocity in q_plate {
+        velocity.x = -20.;
+    }
     sound_ev.write(SoundEvent::BallStarterFire);
 }
