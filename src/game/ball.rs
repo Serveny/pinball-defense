@@ -20,7 +20,7 @@ impl Plugin for BallPlugin {
             .add_message::<CollisionWithBallEvent>()
             .add_systems(
                 Update,
-                (ball_reset_system).run_if(in_state(GameState::Ingame)),
+                (ball_reset_system, clamp_ball_speed_system).run_if(in_state(GameState::Ingame)),
             )
             .add_systems(
                 Update,
@@ -43,10 +43,10 @@ pub fn spawn(
     materials: &mut Assets<StandardMaterial>,
     pos: Vec3,
 ) {
-    let radius = 0.015;
+    let radius = 0.005;
     cmds.spawn((
         Mesh3d(meshes.add(Mesh::from(Sphere {
-            radius,
+            radius: radius * 4.,
             ..default()
         }))),
         MeshMaterial3d(materials.add(StandardMaterial {
@@ -67,8 +67,8 @@ pub fn spawn(
             [GameLayer::Enemy, GameLayer::Tower, GameLayer::Map],
         ),
         Mass(0.081),
-        Restitution::from(1.0),
-        Friction::from(0.00),
+        Restitution::from(0.5),
+        Friction::from(0.02),
         PinBall,
         Name::new("Ball"),
     ));
@@ -80,6 +80,7 @@ pub struct OnBallDespawnEvent;
 const X_RANGE: Range<f32> = -1.3..1.3;
 const Y_RANGE: Range<f32> = -0.72..0.72;
 const HIT_Y_RANGE: Range<f32> = -0.2..0.12;
+const MAX_BALL_SPEED: f32 = 16.;
 
 fn ball_reset_system(
     mut cmds: Commands,
@@ -99,6 +100,17 @@ fn ball_reset_system(
             log!("🎱 Despawn ball");
             cmds.get_entity(entity).unwrap().despawn();
             evw.write(OnBallDespawnEvent);
+        }
+    }
+}
+
+fn clamp_ball_speed_system(mut q_ball: Query<&mut LinearVelocity, With<PinBall>>) {
+    for mut velocity in q_ball.iter_mut() {
+        let speed = velocity.length();
+        if speed > MAX_BALL_SPEED {
+            let scale = MAX_BALL_SPEED / speed;
+            velocity.x *= scale;
+            velocity.y *= scale;
         }
     }
 }
