@@ -58,7 +58,7 @@ pub fn spawn_pinball_world(
                 p.spawn((
                     coll,
                     DebugRender::default().with_collider_color(RED.into()),
-                    CollisionMargin(0.005),
+                    CollisionMargin(0.008),
                 ));
             }
         });
