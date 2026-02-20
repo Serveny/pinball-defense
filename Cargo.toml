@@ -13,7 +13,7 @@ opt-level = 1
 [profile.dev.package."*"]
 opt-level = 3
 
-# setting the number codegen units to 1 will further improve performances in a noticeable way, 
+# setting the number codegen units to 1 will further improve performances in a noticeable way,
 # even for a release build (though the build itself will take longer to complete)
 [profile.release]
 codegen-units = 1
@@ -22,13 +22,13 @@ codegen-units = 1
 log = []
 
 [dependencies]
-bevy = { version = "0.17.3", features = ["dynamic_linking"] }
-bevy-inspector-egui = "0.35.0"
-bevy_asset_loader = "0.24.0-rc.1"
-avian2d = { version = "0.4.1" }
-bevy_window_title_diagnostics = "0.17.0"
-bevy_tweening = "0.14.0"
+bevy = { version = "0.18.0", features = ["dynamic_linking"] }
+bevy-inspector-egui = "0.36.0"
+bevy_asset_loader = "0.25.0"
+avian2d = { version = "0.5.0" }
+bevy_window_title_diagnostics = "0.18.0"
+bevy_tweening = "0.15.0"
 digits_iterator = "0.1.0"
-bevy_framepace = "0.20.0"
-rand = "0.9.2"
+bevy_framepace = "0.21.0"
+rand = { version = "0.10.0", features = ["thread_rng"] }
 #bevy_debug_grid = "0.1"

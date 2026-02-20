@@ -3,7 +3,6 @@ use crate::prelude::*;
 use crate::utils::Music;
 use crate::{settings::SoundSettings, utils::Sound};
 use bevy::audio::Volume;
-use rand::Rng;
 
 pub struct AudioPlugin;
 
@@ -79,7 +78,7 @@ impl SoundEvent {
         };
         let speed = match handle {
             SoundHandle::Single(_) => 1.,
-            SoundHandle::Various(_) => rand::rng().random_range(0.9..1.1),
+            SoundHandle::Various(_) => rand::random_range(0.9..1.1),
         };
         (handle, speed)
     }

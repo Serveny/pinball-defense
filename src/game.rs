@@ -144,7 +144,7 @@ fn tick_ingame_timer_system(mut ig_time: ResMut<IngameTime>, time: Res<Time>) {
 }
 
 fn setup_ambient_lights(mut cmds: Commands, g_sett: Res<GraphicsSettings>) {
-    cmds.insert_resource(AmbientLight {
+    cmds.insert_resource(GlobalAmbientLight {
         color: Color::WHITE,
         brightness: 0.2,
         affects_lightmapped_meshes: true,
