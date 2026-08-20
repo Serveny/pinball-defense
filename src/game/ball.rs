@@ -43,10 +43,10 @@ pub fn spawn(
     materials: &mut Assets<StandardMaterial>,
     pos: Vec3,
 ) {
-    let radius = 0.01;
+    let radius = 0.02;
     cmds.spawn((
         Mesh3d(meshes.add(Mesh::from(Sphere {
-            radius: radius * 2.,
+            radius: radius,
             ..default()
         }))),
         MeshMaterial3d(materials.add(StandardMaterial {

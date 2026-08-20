@@ -54,7 +54,7 @@ fn spawn(
     g_setting: Res<GraphicsSettings>,
 ) {
     let start = Transform::from_translation(START_POS).looking_at(Vec3::ZERO, Vec3::Z);
-    cmds.spawn((
+    let mut camera = cmds.spawn((
         Name::new("Camera"),
         PinballCamera,
         start,
@@ -80,6 +80,7 @@ fn spawn(
         TweenAnim::new(init_tracking_shot()),
         Hdr,
     ));
+    camera.insert(IsDefaultUiCamera);
     place_skybox(assets, images)
 }
 

@@ -136,8 +136,8 @@ const PLATE_SIZE: Vec2 = Vec2::new(0.2, 0.085);
 const STARTER_MIN_X: f32 = -0.107;
 const STARTER_MAX_X: f32 = 0.;
 const CHARGE_SPEED: f32 = 0.24;
-const FIRE_SPEED_MIN: f32 = -1.8;
-const FIRE_SPEED_MAX: f32 = -4.2;
+const FIRE_SPEED_MIN: f32 = -0.9;
+const FIRE_SPEED_MAX: f32 = -2.1;
 const SPRING_SCALE_X_MIN: f32 = 0.35;
 
 #[derive(Component)]

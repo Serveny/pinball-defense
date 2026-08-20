@@ -2,8 +2,8 @@ use super::events::collision::GameLayer;
 
 use super::analog_counter;
 use super::level::{LevelCounterId, PointCounterId};
-use super::light::spawn_lamp;
 use super::light::LevelUpLamp;
+use super::light::spawn_lamp;
 use super::pinball_menu::pinball_menu_glass;
 use super::player_life::spawn_life_bar;
 use super::road::spawn_road;
@@ -65,7 +65,7 @@ pub fn spawn_pinball_world(
         });
 
         // Ball starter
-        let bs_pos = Vec3::new(1.284, 0.657, -0.018);
+        let bs_pos = Vec3::new(1.289, 0.67, -0.018);
         super::ball_starter::spawn(p, bs_pos, assets);
 
         // Flipper left

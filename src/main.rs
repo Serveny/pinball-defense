@@ -1,9 +1,12 @@
 use avian2d::PhysicsPlugins;
+use bevy::camera::Hdr;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
+#[cfg(debug_assertions)]
+use bevy::input::common_conditions::input_toggle_active;
 pub use bevy_asset_loader::prelude::*;
 use bevy_framepace::Limiter;
 #[cfg(debug_assertions)]
-use bevy_inspector_egui::bevy_egui::EguiPlugin;
+use bevy_inspector_egui::bevy_egui::{EguiGlobalSettings, EguiPlugin, PrimaryEguiContext};
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_tweening::TweeningPlugin;
@@ -77,9 +80,29 @@ fn add_pysics_settings(app: &mut App) {
 
 #[cfg(debug_assertions)]
 fn add_debug_plugins(app: &mut App) {
-    app.add_plugins((
+    app.insert_resource(EguiGlobalSettings {
+        auto_create_primary_context: false,
+        ..default()
+    })
+    .add_plugins((
         EguiPlugin::default(),
-        WorldInspectorPlugin::new(),
+        WorldInspectorPlugin::new().run_if(input_toggle_active(false, KeyCode::F12)),
         PhysicsDebugPlugin::default(),
+    ))
+    .add_systems(OnEnter(AppState::Game), spawn_egui_overlay_camera);
+}
+
+#[cfg(debug_assertions)]
+fn spawn_egui_overlay_camera(mut cmds: Commands) {
+    cmds.spawn((
+        Name::new("Egui Overlay Camera"),
+        Camera2d,
+        Camera {
+            order: 100,
+            clear_color: ClearColorConfig::None,
+            ..default()
+        },
+        Hdr,
+        PrimaryEguiContext,
     ));
 }
