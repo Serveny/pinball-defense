@@ -20,7 +20,7 @@ pub(super) fn walk_system(
                 end_reached_ev.write(RoadEndReachedEvent);
 
                 // Delete enemy here, to prevent double events
-                cmds.entity(enemy_id).despawn();
+                cmds.entity(enemy_id).try_despawn();
             }
         };
     }

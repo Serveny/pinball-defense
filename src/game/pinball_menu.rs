@@ -277,10 +277,15 @@ fn despawn(
     menu_entity: Entity,
     mut sound_ev: MessageWriter<SoundEvent>,
 ) -> PinballMenuStatus {
-    // Despawn menu
+    // Despawn menu after a delay
     let delay = Delay::new(Duration::from_secs(2));
+    let noop = Tween::new(
+        EaseFunction::Linear,
+        Duration::from_millis(1),
+        TransformRotateZLens { start: 0., end: 0. },
+    );
     cmds.entity(menu_entity)
-        .insert((TweenAnim::new(delay), AfterTween::DeleteEntity));
+        .insert((TweenAnim::new(delay.then(noop)), AfterTween::DeleteEntity));
     // Despawn animation
     q_pbm_el.iter().for_each(|(entity, trans)| {
         let secs = (trans.rotation.y + 0.2) * 2.;
@@ -421,46 +426,52 @@ fn on_execute_system(
     q_selected: Query<(Entity, &Transform), With<PinballMenuSelected>>,
 ) {
     for CollisionWithBallEvent(id) in evr.read() {
-        // if *flag == CollisionEventFlags::SENSOR {
-        if let Ok(pb_menu) = q_pb_menu.single() {
-            match pb_menu {
-                PinballMenu::Tower => {
-                    if let Some((_, tower_type)) =
-                        q_tower_menu_els.iter().find(|(el_id, _)| *el_id == *id)
-                    {
-                        if let Ok((foundation_id, sel_trans)) = q_selected.single() {
-                            // Deselect
-                            cmds.entity(foundation_id).remove::<PinballMenuSelected>();
+        let Ok(pb_menu) = q_pb_menu.single() else {
+            continue;
+        };
+        let card_hit = match pb_menu {
+            PinballMenu::Tower => {
+                if let Some((_, tower_type)) =
+                    q_tower_menu_els.iter().find(|(el_id, _)| *el_id == *id)
+                {
+                    if let Ok((foundation_id, sel_trans)) = q_selected.single() {
+                        // Deselect
+                        cmds.entity(foundation_id).remove::<PinballMenuSelected>();
 
-                            on_tower_el_selected.write(TowerMenuExecuteEvent::new(foundation_id));
+                        on_tower_el_selected.write(TowerMenuExecuteEvent::new(foundation_id));
 
-                            // Spawn new tower
-                            let pos = sel_trans.translation;
-                            spawn_tower_ev.write(SpawnTowerEvent(
-                                *tower_type,
-                                Vec3::new(pos.x, pos.y, -0.025),
-                            ));
-                        }
+                        // Spawn new tower
+                        let pos = sel_trans.translation;
+                        spawn_tower_ev.write(SpawnTowerEvent(
+                            *tower_type,
+                            Vec3::new(pos.x, pos.y, -0.025),
+                        ));
                     }
-                }
-                PinballMenu::Upgrade => {
-                    if let Some((_, upgrade)) =
-                        q_upgrade_menu_els.iter().find(|(el_id, _)| *el_id == *id)
-                    {
-                        if let Ok((tower_id, _)) = q_selected.single() {
-                            // Deselect
-                            cmds.entity(tower_id).remove::<PinballMenuSelected>();
-
-                            on_upgrade_el_selected
-                                .write(UpgradeMenuExecuteEvent::new(tower_id, *upgrade));
-                        }
-                    }
+                    true
+                } else {
+                    false
                 }
             }
+            PinballMenu::Upgrade => {
+                if let Some((_, upgrade)) =
+                    q_upgrade_menu_els.iter().find(|(el_id, _)| *el_id == *id)
+                {
+                    if let Ok((tower_id, _)) = q_selected.single() {
+                        // Deselect
+                        cmds.entity(tower_id).remove::<PinballMenuSelected>();
 
+                        on_upgrade_el_selected
+                            .write(UpgradeMenuExecuteEvent::new(tower_id, *upgrade));
+                    }
+                    true
+                } else {
+                    false
+                }
+            }
+        };
+        if card_hit {
             // Despawn menu
             pb_menu_ev.write(PinballMenuEvent::Disable);
-
             return;
         }
     }

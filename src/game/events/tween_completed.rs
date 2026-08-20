@@ -22,7 +22,7 @@ pub(super) fn on_tween_completed_system(
                 match after_tween {
                     AfterTween::DeleteEntity => {
                         if let Ok(mut ec) = cmds.get_entity(ev.anim_entity) {
-                            ec.despawn();
+                            ec.try_despawn();
                         }
                         // The tween target carries the `AfterTween` marker. When the
                         // anim entity *is* the tween target it has just been despawned

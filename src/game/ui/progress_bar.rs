@@ -39,7 +39,7 @@ pub fn spawn(cmds: &mut Commands, rel_id: Entity, start_percent: PercentBw0And1)
 
 pub(super) fn despawn_system(
     mut cmds: Commands,
-    q_bar: Query<(Entity, &RelEntity), Or<(With<ProgressUiBar>, With<RelEntity>)>>,
+    q_bar: Query<(Entity, &RelEntity), With<PosToRelEntity>>,
 ) {
     for (bar_id, rel_id) in q_bar.iter() {
         if cmds.get_entity(rel_id.0).is_err() {

@@ -1,15 +1,15 @@
 use self::step::Step;
 use self::walk::{
-    on_road_end_reached_system, recover_speed_system, walk_system, RoadEndReachedEvent, WALK_SPEED,
+    RoadEndReachedEvent, WALK_SPEED, on_road_end_reached_system, recover_speed_system, walk_system,
 };
 use super::audio::SoundEvent;
 use super::events::collision::GameLayer;
 use super::health::{ChangeHealthEvent, Health, HealthEmptyEvent};
 use super::level::PointsEvent;
-use super::{ui, EventState};
+use super::{EventState, ui};
+use crate::game::GameState;
 use crate::game::ball::CollisionWithBallEvent;
 use crate::game::world::QueryWorld;
-use crate::game::GameState;
 use crate::generated::world_1::road_points::ROAD_POINTS;
 use crate::prelude::*;
 use bevy::color::palettes::css::RED;
@@ -165,7 +165,7 @@ fn on_health_empty_system(
 ) {
     for ev in evr.read() {
         if q_enemy.contains(ev.0) {
-            cmds.entity(ev.0).despawn();
+            cmds.entity(ev.0).try_despawn();
             despawn_ev.write(OnEnemyDespawnEvent(ev.0));
             points_ev.write(PointsEvent::EnemyDied);
         }

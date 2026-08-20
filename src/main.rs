@@ -2,6 +2,7 @@ use avian2d::PhysicsPlugins;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 pub use bevy_asset_loader::prelude::*;
 use bevy_framepace::Limiter;
+#[cfg(debug_assertions)]
 use bevy_inspector_egui::bevy_egui::EguiPlugin;
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
