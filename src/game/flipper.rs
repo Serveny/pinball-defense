@@ -4,7 +4,6 @@ use super::events::collision::GameLayer;
 use super::level::PointsEvent;
 use super::{EventState, GameState};
 use crate::prelude::*;
-use std::f32::consts::PI;
 
 pub struct FlipperPlugin;
 
@@ -118,6 +117,10 @@ fn flipper(
         }),
         MeshMaterial3d(assets.flipper_material.clone()),
         transform,
+        RigidBody::Kinematic,
+        AngularVelocity(0.),
+        CenterOfMass::new(0., 0.),
+        NoAutoCenterOfMass,
         Flipper::new(),
         Name::new(flipper_type.to_string()),
         FlipperStatus::Idle,
@@ -129,13 +132,11 @@ fn collider(sig: f32) -> impl Bundle {
     (
         Transform {
             translation: Vec3::new(0.008, sig * -0.115, 0.035),
-            rotation: Quat::from_rotation_y(-PI / 2. * 0.85),
             ..default()
         },
-        RigidBody::Kinematic,
         Collider::rectangle(0.06, 0.24),
         Restitution {
-            coefficient: 0.1,
+            coefficient: 0.4,
             combine_rule: CoefficientCombine::Multiply,
         },
         CollisionLayers::new(GameLayer::Map, GameLayer::Ball),
@@ -144,28 +145,35 @@ fn collider(sig: f32) -> impl Bundle {
 }
 
 fn flipper_system(
-    mut q_flipper: Query<(&mut Transform, &FlipperStatus, &mut Flipper, &FlipperType)>,
+    mut q_flipper: Query<(
+        &FlipperStatus,
+        &mut Flipper,
+        &FlipperType,
+        &Rotation,
+        &mut AngularVelocity,
+    )>,
     time: Res<Time>,
 ) {
-    let time = time.delta_secs();
-    for (mut transform, status, mut flipper, f_type) in q_flipper.iter_mut() {
-        let mut change_angle = f_type.signum();
-        match status {
+    let dt = time.delta_secs();
+    const MAX_ANGLE: f32 = 0.4;
+    for (status, mut flipper, f_type, rotation, mut ang_vel) in q_flipper.iter_mut() {
+        let sig = f_type.signum();
+        let curr = rotation.as_radians();
+        let desired = match status {
             FlipperStatus::Idle => {
                 flipper.acceleration_factor = 1.;
-                change_angle *= 8. * time;
+                sig * 8.
             }
             FlipperStatus::Pushed => {
-                change_angle *= -time * flipper.acceleration_factor;
-                flipper.acceleration_factor += time * 256.;
+                let v = -sig * flipper.acceleration_factor;
+                flipper.acceleration_factor += dt * 256.;
+                v
             }
-        }
-        let new_angle = flipper.curr_angle + change_angle;
-        let new_clamped_angle = new_angle.clamp(-0.4, 0.4);
-        let pivot_rotation = Quat::from_rotation_z(new_clamped_angle - flipper.curr_angle);
-        let translation = transform.translation;
-        transform.rotate_around(translation, pivot_rotation);
-        flipper.curr_angle = new_clamped_angle;
+        };
+        let projected = curr + desired * dt;
+        let clamped = projected.clamp(-MAX_ANGLE, MAX_ANGLE);
+        ang_vel.0 = if dt > 0. { (clamped - curr) / dt } else { 0. };
+        flipper.curr_angle = clamped;
     }
 }
 
