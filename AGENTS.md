@@ -1,6 +1,6 @@
 ## Rules
 
-- Only add a comment if critical context/intent is genuinely lost without it; never explain what clean code already reveals.
+- Do not add comments, unless if critical context/intent is genuinely lost without it; never explain what code already reveals.
 
 ## Tips
 
