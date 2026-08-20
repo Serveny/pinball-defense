@@ -30,8 +30,9 @@ impl Plugin for MenuPlugin {
                 (
                     actions::on_menu_action,
                     tools::menu_btn::system,
-                    tools::sliders::system,
-                    tools::checkbox::system,
+                    tools::sliders::update_thumb_position,
+                    tools::sliders::update_thumb_style,
+                    tools::checkbox::update_mark_visibility,
                     tools::keybox::system,
                 )
                     .run_if(in_state(MenuState::PauseMenu)),

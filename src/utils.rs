@@ -49,13 +49,6 @@ pub mod reflect {
             .unwrap_or_else(|error| panic!("😭 Not able to set object at position {i}: {error:?}"));
     }
 
-    pub fn toggle_field_bool(obj: &mut impl Struct, i: usize) -> bool {
-        let val = get_field_mut(obj, i)
-            .downcast_mut::<bool>()
-            .expect("😥 Can't downcast to mut bool");
-        *val = !*val;
-        *val
-    }
     pub fn cast<T: Reflect + Copy>(field: &dyn Reflect) -> T {
         *field
             .downcast_ref::<T>()
