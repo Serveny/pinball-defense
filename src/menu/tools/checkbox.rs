@@ -1,90 +1,88 @@
-use super::{Active, PropIndex};
 use crate::menu::settings::SettingsMenuState;
 use crate::prelude::*;
 use crate::settings::{GraphicsSettings, SoundSettings};
-use crate::utils::reflect::toggle_field_bool;
 use crate::utils::GameColor;
-
-#[derive(Component)]
-pub struct Checkbox;
+use crate::utils::reflect::set_field;
+use bevy::ecs::observer::On;
+use bevy::input_focus::tab_navigation::TabIndex;
+use bevy::picking::hover::Hovered;
+use bevy::ui::Checked;
+use bevy::ui_widgets::{Checkbox, ValueChange, checkbox_self_update};
 
 #[derive(Component)]
 pub struct CheckboxMark;
 
 pub fn spawn(p: &mut ChildSpawnerCommands, prop_i: usize, init_val: bool) {
-    p.spawn((
+    let mut entity = p.spawn((
         Name::new("Checkbox"),
         Checkbox,
-        Button::default(),
         Node {
             width: Val::Px(40.),
             height: Val::Px(40.),
-            border: UiRect::all(Val::Px(5.0)),
+            border: UiRect::all(Val::Px(5.)),
             margin: UiRect::all(Val::Auto),
+            border_radius: BorderRadius::all(Val::Px(4.)),
             ..default()
         },
         BorderColor::from(GameColor::GOLD),
         BackgroundColor(Color::NONE),
-        PropIndex(prop_i),
-        Active,
-    ))
-    .with_children(|p| {
+        Hovered::default(),
+        TabIndex(0),
+    ));
+    // Let the checkbox widget manage its own `Checked` component on click.
+    entity.observe(checkbox_self_update);
+    entity.observe(
+        move |change: On<ValueChange<bool>>,
+              menu_state: Res<State<SettingsMenuState>>,
+              mut g_sett: ResMut<GraphicsSettings>,
+              mut s_sett: ResMut<SoundSettings>| {
+            let val = change.value;
+            match **menu_state {
+                SettingsMenuState::Sound => {
+                    set_field(&mut *s_sett, prop_i, Box::new(val));
+                }
+                SettingsMenuState::Graphics => {
+                    set_field(&mut *g_sett, prop_i, Box::new(val));
+                }
+                _ => (),
+            };
+        },
+    );
+    entity.with_children(|p| {
         p.spawn((
+            Name::new("Checkbox Mark"),
             Node {
                 width: Val::Px(20.),
                 height: Val::Px(20.),
                 margin: UiRect::all(Val::Auto),
                 ..default()
             },
-            match init_val {
-                true => Visibility::Inherited,
-                false => Visibility::Hidden,
-            },
             BackgroundColor(GameColor::GOLD),
             CheckboxMark,
         ));
     });
+    // Start in the checked state if the underlying setting is already `true`. The
+    // `update_mark_visibility` system keeps the mark in sync with this component afterwards.
+    if init_val {
+        entity.insert(Checked);
+    }
 }
 
-pub fn system(
-    mut interaction_query: Query<
-        (Entity, &Interaction, &mut BorderColor, &PropIndex),
-        (Changed<Interaction>, With<Checkbox>, With<Active>),
-    >,
-    mut q_mark: Query<(&mut Visibility, &mut BackgroundColor, &ChildOf), With<CheckboxMark>>,
-    mut g_sett: ResMut<GraphicsSettings>,
-    mut s_sett: ResMut<SoundSettings>,
-    menu_state: Res<State<SettingsMenuState>>,
+/// Toggles the visibility of the checkbox mark based on whether the checkbox is `Checked`.
+pub fn update_mark_visibility(
+    q_checkboxes: Query<(Entity, Has<Checked>), With<Checkbox>>,
+    children: Query<&Children>,
+    mut marks: Query<&mut Visibility, With<CheckboxMark>>,
 ) {
-    for (checkbox_id, interaction, mut border_color, prop_i) in &mut interaction_query {
-        if let Some((mut visi, mut bg_color, _)) = q_mark
-            .iter_mut()
-            .find(|(_, _, child_of)| child_of.parent() == checkbox_id)
-        {
-            match *interaction {
-                Interaction::Pressed => {
-                    let val = match **menu_state {
-                        SettingsMenuState::Sound => {
-                            toggle_field_bool(&mut s_sett as &mut SoundSettings, prop_i.0)
-                        }
-                        SettingsMenuState::Graphics => {
-                            toggle_field_bool(&mut g_sett as &mut GraphicsSettings, prop_i.0)
-                        }
-                        _ => false,
-                    };
-                    *visi = match val {
-                        true => Visibility::Inherited,
-                        false => Visibility::Hidden,
-                    };
-                }
-                Interaction::Hovered => {
-                    *border_color = GameColor::WHITE.into();
-                    *bg_color = GameColor::WHITE.into();
-                }
-                Interaction::None => {
-                    *border_color = GameColor::GOLD.into();
-                    *bg_color = GameColor::GOLD.into();
-                }
+    for (checkbox_ent, checked) in q_checkboxes.iter() {
+        let target = if checked {
+            Visibility::Inherited
+        } else {
+            Visibility::Hidden
+        };
+        for child in children.iter_descendants(checkbox_ent) {
+            if let Ok(mut visi) = marks.get_mut(child) {
+                *visi = target;
             }
         }
     }
