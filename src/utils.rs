@@ -22,7 +22,7 @@ impl GameColor {
 }
 
 pub mod reflect {
-    use bevy::reflect::{Reflect, Struct};
+    use bevy::reflect::{Reflect, structs::Struct};
 
     pub fn prop_name(obj: &impl Struct, i: usize) -> String {
         obj.name_at(i)

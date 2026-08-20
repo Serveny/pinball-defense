@@ -1,8 +1,8 @@
 use super::animations::RotateAlways;
-use super::{tower_material, TowerHead};
+use super::{TowerHead, tower_material};
+use crate::game::tower::ShotLight;
 use crate::game::tower::damage::{DamageAllTargetsInReach, DamageOverTime};
 use crate::game::tower::target::EnemiesWithinReach;
-use crate::game::tower::ShotLight;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::RelEntity;
@@ -63,7 +63,7 @@ fn shot_flash_light(g_sett: &GraphicsSettings, rel_id: Entity, range: f32) -> im
         PointLight {
             intensity: 0.,
             color: BLUE.into(),
-            shadows_enabled: g_sett.is_shadows,
+            shadow_maps_enabled: g_sett.is_shadows,
             range,
             ..default()
         },

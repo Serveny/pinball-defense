@@ -1,12 +1,13 @@
 use super::tools::{checkbox, keybox, row};
-use super::{tools::sliders, MenuLayout};
+use super::{MenuLayout, tools::sliders};
 use crate::prelude::*;
 use crate::settings::{GraphicsSettings, SoundSettings};
 use crate::utils::reflect::{cast, prop_name};
 use crate::utils::{Music, Sound};
 use bevy::audio::Volume;
+use bevy::camera::Hdr;
 use bevy::post_process::bloom::Bloom;
-use bevy::render::view::Hdr;
+use bevy::reflect::structs::Struct;
 
 #[derive(States, Clone, Eq, PartialEq, Debug, Hash, Default)]
 pub enum SettingsMenuState {
@@ -25,7 +26,7 @@ pub fn layout<TSettings: Resource + Struct>(
     settings: Res<TSettings>,
 ) {
     cmds.spawn(settings_menu_layout()).with_children(|p| {
-        for (i, field) in settings.iter_fields().enumerate() {
+        for (i, (_, field)) in settings.iter_fields().enumerate() {
             let prop_name = prop_name(settings.as_ref(), i)
                 .replace('_', " ")
                 .replace("is", "");
@@ -96,10 +97,10 @@ pub fn on_changed_graphics_settings(
     if g_sett.is_changed() {
         q_point
             .iter_mut()
-            .for_each(|mut light| light.shadows_enabled = g_sett.is_shadows);
+            .for_each(|mut light| light.shadow_maps_enabled = g_sett.is_shadows);
         q_spot
             .iter_mut()
-            .for_each(|mut light| light.shadows_enabled = g_sett.is_shadows);
+            .for_each(|mut light| light.shadow_maps_enabled = g_sett.is_shadows);
 
         if let Ok((id, hdr)) = q_cam.single() {
             if g_sett.is_hdr && hdr.is_none() {

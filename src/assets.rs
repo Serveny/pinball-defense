@@ -1,12 +1,12 @@
+use crate::AppState;
 use crate::prelude::*;
 use crate::utils::reflect::get_field_mut;
 use crate::utils::reflect::prop_name;
 use crate::utils::reflect::set_field;
-use crate::AppState;
 use bevy::asset::Asset;
 use bevy::asset::LoadState;
 use bevy::ecs::resource::Resource;
-use bevy::gltf::{Gltf, GltfMesh};
+use bevy::gltf::{Gltf, GltfAssetLabel, GltfMesh};
 use bevy::platform::collections::HashMap;
 pub use bevy_asset_loader::prelude::*;
 use rand::seq::IndexedRandom;
@@ -187,8 +187,10 @@ fn set_appstate_if_finished(
 #[derive(Resource, Default)]
 struct GltfHandle(Handle<Gltf>);
 
+const GLTF_PATH: &str = "models/gltf/world.glb";
+
 fn init_gltf_load(mut cmds: Commands, ass: Res<AssetServer>) {
-    let handle = ass.load("models/gltf/world.glb");
+    let handle = ass.load(GLTF_PATH);
     cmds.insert_resource(GltfHandle(handle));
 }
 
@@ -222,6 +224,7 @@ fn check_assets_ready(
 fn add_gltf_resource(
     mut cmds: Commands,
     mut state: ResMut<NextState<AssetsInternalLoadState>>,
+    ass: Res<AssetServer>,
     gltf_meshes: Res<Assets<GltfMesh>>,
     gltfs: Res<Assets<Gltf>>,
     gltf_handle: Res<GltfHandle>,
@@ -231,7 +234,7 @@ fn add_gltf_resource(
         .expect("😭 Can not load world gltf file!");
 
     let mut assets = PinballDefenseGltfAssets::default();
-    for (i, field) in PinballDefenseGltfAssets::default()
+    for (i, (_, field)) in PinballDefenseGltfAssets::default()
         .iter_fields()
         .enumerate()
     {
@@ -242,7 +245,7 @@ fn add_gltf_resource(
                 set_field(&mut assets, i, Box::new(mesh));
             }
             "bevy_asset::handle::Handle<bevy_pbr::pbr_material::StandardMaterial>" => {
-                let material = material(&prop_name, gltf);
+                let material = material(&prop_name, gltf, &ass);
                 set_field(&mut assets, i, Box::new(material));
             }
             type_name => println!("🐱 Unknown type in asset struct: {}", type_name),
@@ -265,11 +268,27 @@ fn mesh(mesh_name: &str, gltf: &Gltf, gltf_meshes: &Assets<GltfMesh>) -> Handle<
         .clone()
 }
 
-fn material(material_name: &str, gltf: &Gltf) -> Handle<StandardMaterial> {
-    gltf.named_materials
+fn material(material_name: &str, gltf: &Gltf, ass: &AssetServer) -> Handle<StandardMaterial> {
+    let gltf_mat_handle = gltf
+        .named_materials
         .get(material_name)
-        .unwrap_or_else(|| panic!("😭 No material with name {material_name}"))
-        .clone()
+        .unwrap_or_else(|| panic!("😭 No material with name {material_name}"));
+    // Bevy 0.19: `named_materials` now holds `Handle<GltfMaterial>` instead of
+    // `Handle<StandardMaterial>`. Look up the material index and load the
+    // corresponding `StandardMaterial` sub-asset via the `/std` label suffix.
+    let index = gltf
+        .materials
+        .iter()
+        .position(|h| h == gltf_mat_handle)
+        .unwrap_or_else(|| panic!("😭 Material {material_name} not found in materials vec"));
+    ass.load(format!(
+        "{}#{}/std",
+        GLTF_PATH,
+        GltfAssetLabel::Material {
+            index,
+            is_scale_inverted: false,
+        }
+    ))
 }
 
 fn audio_assets_path(sub_dir: Option<&str>) -> PathBuf {
@@ -296,7 +315,7 @@ fn add_audio_resource(mut cmds: Commands, ass: Res<AssetServer>) {
 
     let mut audio_assets = PinballDefenseAudioAssets::default();
     let mut handles_map = PinballDefenseAudioSources::default();
-    for (i, field) in PinballDefenseAudioAssets::default()
+    for (i, (_, field)) in PinballDefenseAudioAssets::default()
         .iter_fields()
         .enumerate()
     {

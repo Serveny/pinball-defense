@@ -1,6 +1,7 @@
-use super::{actions::MenuAction, tools::menu_btn, MenuLayout};
+use super::{MenuLayout, actions::MenuAction, tools::menu_btn};
 use crate::prelude::*;
 use crate::utils::GameColor;
+use bevy::text::FontSize;
 
 pub fn layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
     cmds.spawn((
@@ -33,8 +34,8 @@ fn spawn_headline(text: &str, p: &mut ChildSpawnerCommands, assets: &PinballDefe
             p.spawn((
                 Text(text.to_string()),
                 TextFont {
-                    font: assets.menu_font.clone(),
-                    font_size: 80.0,
+                    font: assets.menu_font.clone().into(),
+                    font_size: FontSize::Px(80.0),
                     ..default()
                 },
                 TextColor(Color::srgb_u8(255, 254, 236).into()),

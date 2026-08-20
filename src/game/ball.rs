@@ -1,3 +1,5 @@
+use super::EventState;
+use super::GameState;
 use super::audio::SoundEvent;
 use super::events::collision::GameLayer;
 use super::health::ChangeHealthEvent;
@@ -5,8 +7,6 @@ use super::level::PointsEvent;
 use super::pinball_menu::PinballMenuEvent;
 use super::player_life::LifeBar;
 use super::world::WorldFrame;
-use super::EventState;
-use super::GameState;
 use crate::prelude::*;
 use bevy::color::palettes::css::GOLD;
 use bevy::math::primitives::Sphere;
@@ -43,10 +43,10 @@ pub fn spawn(
     materials: &mut Assets<StandardMaterial>,
     pos: Vec3,
 ) {
-    let radius = 0.005;
+    let radius = 0.01;
     cmds.spawn((
         Mesh3d(meshes.add(Mesh::from(Sphere {
-            radius: radius * 4.,
+            radius: radius * 2.,
             ..default()
         }))),
         MeshMaterial3d(materials.add(StandardMaterial {
@@ -58,7 +58,8 @@ pub fn spawn(
         })),
         Transform::from_translation(pos),
         RigidBody::Dynamic,
-        SweptCcd::default(),
+        SweptCcd::LINEAR.include_dynamic(false),
+        MaxLinearSpeed(MAX_BALL_SPEED),
         SleepingDisabled::default(),
         Collider::circle(radius),
         DebugRender::collider(GOLD.into()),
@@ -67,8 +68,8 @@ pub fn spawn(
             [GameLayer::Enemy, GameLayer::Tower, GameLayer::Map],
         ),
         Mass(0.081),
-        Restitution::from(0.5),
-        Friction::from(0.02),
+        Restitution::from(0.65),
+        Friction::from(0.01),
         PinBall,
         Name::new("Ball"),
     ));
@@ -80,7 +81,7 @@ pub struct OnBallDespawnEvent;
 const X_RANGE: Range<f32> = -1.3..1.3;
 const Y_RANGE: Range<f32> = -0.72..0.72;
 const HIT_Y_RANGE: Range<f32> = -0.2..0.12;
-const MAX_BALL_SPEED: f32 = 16.;
+const MAX_BALL_SPEED: f32 = 10.;
 
 fn ball_reset_system(
     mut cmds: Commands,
@@ -146,12 +147,14 @@ fn get_ball_collisions(
     q_ball: Query<Entity, With<PinBall>>,
 ) -> Vec<Entity> {
     evr.read()
-        .filter_map(|ev| match q_ball.contains(ev.collider1) {
-            true => Some(ev.collider1),
-            false => match q_ball.contains(ev.collider2) {
-                true => Some(ev.collider2),
-                false => None,
-            },
+        .filter_map(|ev| {
+            if q_ball.contains(ev.collider1) {
+                Some(ev.collider2)
+            } else if q_ball.contains(ev.collider2) {
+                Some(ev.collider1)
+            } else {
+                None
+            }
         })
         .collect()
 }

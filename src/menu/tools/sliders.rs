@@ -18,6 +18,7 @@ pub fn spawn(p: &mut ChildSpawnerCommands, prop_i: usize, init_val: f32) {
             position_type: PositionType::Relative,
             width: Val::Percent(100.),
             height: Val::Percent(100.),
+            min_width: Val::Px(120.),
             ..default()
         },
         RelativeCursorPosition::default(),

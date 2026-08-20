@@ -20,7 +20,20 @@ pub(super) fn on_tween_completed_system(
         if let bevy_tweening::AnimTargetKind::Component { entity } = ev.target {
             if let Ok(after_tween) = q_after_tween.get(entity) {
                 match after_tween {
-                    AfterTween::DeleteEntity => cmds.entity(ev.anim_entity).despawn(),
+                    AfterTween::DeleteEntity => {
+                        if let Ok(mut ec) = cmds.get_entity(ev.anim_entity) {
+                            ec.despawn();
+                        }
+                        // The tween target carries the `AfterTween` marker. When the
+                        // anim entity *is* the tween target it has just been despawned
+                        // above, so only clean up the marker when they differ.
+                        if ev.anim_entity != entity {
+                            if let Ok(mut ec) = cmds.get_entity(entity) {
+                                ec.remove::<AfterTween>();
+                            }
+                        }
+                        continue;
+                    }
                     AfterTween::ActivatePinballMenu => {
                         pm_status_ev.write(PinballMenuEvent::SetReady);
                     }
@@ -28,7 +41,9 @@ pub(super) fn on_tween_completed_system(
                         pm_status_ev.write(PinballMenuEvent::Disable);
                     }
                 }
-                cmds.entity(entity).remove::<AfterTween>();
+                if let Ok(mut ec) = cmds.get_entity(entity) {
+                    ec.remove::<AfterTween>();
+                }
             }
         }
     }

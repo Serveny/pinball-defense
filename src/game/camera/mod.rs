@@ -2,11 +2,11 @@ use self::fps::{FpsCamSettings, LookDirection};
 use super::GameState;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
-use bevy::core_pipeline::tonemapping::Tonemapping;
+use bevy::camera::Hdr;
 use bevy::core_pipeline::Skybox;
+use bevy::core_pipeline::tonemapping::Tonemapping;
 use bevy::post_process::bloom::Bloom;
 use bevy::render::render_resource::{TextureViewDescriptor, TextureViewDimension};
-use bevy::render::view::Hdr;
 use bevy_tweening::{Lens, Tween, TweenAnim};
 
 mod ball;
@@ -66,7 +66,7 @@ fn spawn(
         },
         //UiCameraConfig { show_ui: false },
         Skybox {
-            image: assets.skybox.clone(),
+            image: Some(assets.skybox.clone()),
             brightness: 1600.,
             rotation: Quat::from_rotation_x(90.),
         },
@@ -132,13 +132,12 @@ fn init_tracking_shot() -> Tween {
 // NOTE: PNGs do not have any metadata that could indicate they contain a cubemap texture,
 // so they appear as one texture. The following code reconfigures the texture as necessary.
 fn place_skybox(assets: Res<PinballDefenseAssets>, mut images: ResMut<Assets<Image>>) {
-    let image = images.get_mut(&assets.skybox).unwrap();
+    let mut image = images.get_mut(&assets.skybox).unwrap();
     if image.texture_descriptor.array_layer_count() == 1 {
-        image
-            .reinterpret_stacked_2d_as_array(
-                image.texture_descriptor.size.height / image.texture_descriptor.size.width,
-            )
-            .unwrap();
+        // Read the layer count into a local first so we don't hold an
+        // immutable borrow of `image` while calling a `&mut self` method.
+        let layers = image.texture_descriptor.size.height / image.texture_descriptor.size.width;
+        image.reinterpret_stacked_2d_as_array(layers).unwrap();
         image.texture_view_descriptor = Some(TextureViewDescriptor {
             dimension: Some(TextureViewDimension::Cube),
             ..default()

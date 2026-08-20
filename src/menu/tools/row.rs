@@ -1,5 +1,6 @@
 use crate::prelude::*;
 use crate::utils::GameColor;
+use bevy::text::FontSize;
 
 #[derive(Component)]
 pub struct Row;
@@ -14,10 +15,15 @@ pub fn spawn(
         Name::new("UI Row"),
         Node {
             display: Display::Grid,
-            grid_template_columns: vec![GridTrack::px(400.), GridTrack::auto(), GridTrack::px(20.)],
+            grid_template_columns: vec![
+                GridTrack::px(400.),
+                GridTrack::flex(1.),
+                GridTrack::px(20.),
+            ],
             align_items: AlignItems::Stretch,
             border: UiRect::bottom(Val::Px(2.)),
             height: Val::Px(65.),
+            width: Val::Percent(100.),
             ..default()
         },
         BorderColor::from(GameColor::GRAY),
@@ -29,8 +35,8 @@ pub fn spawn(
             p.spawn((
                 Text(text.to_string()),
                 TextFont {
-                    font: assets.menu_font.clone(),
-                    font_size: 40.0,
+                    font: assets.menu_font.clone().into(),
+                    font_size: FontSize::Px(40.0),
                     ..default()
                 },
                 TextColor(row_text_color(true)),
@@ -40,7 +46,11 @@ pub fn spawn(
                 },
             ));
         });
-        p.spawn(Node::default()).with_children(spawn_inside);
+        p.spawn(Node {
+            width: Val::Percent(100.),
+            ..default()
+        })
+        .with_children(spawn_inside);
     });
 }
 

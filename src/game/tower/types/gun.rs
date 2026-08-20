@@ -1,7 +1,7 @@
 use super::animations::RotateToTarget;
 use super::target::AimFirstEnemy;
 use crate::game::tower::damage::DamageOverTime;
-use crate::game::tower::{tower_material, ShotLight, TowerHead};
+use crate::game::tower::{ShotLight, TowerHead, tower_material};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::RelEntity;
@@ -79,7 +79,7 @@ fn muzzle_flash_light(g_sett: &GraphicsSettings, rel_id: Entity, range: f32) -> 
         SpotLight {
             intensity: 0., // lumens - roughly a 100W non-halogen incandescent bulb
             color: Color::srgba_u8(215, 205, 117, 255),
-            shadows_enabled: g_sett.is_shadows,
+            shadow_maps_enabled: g_sett.is_shadows,
             range,
             inner_angle: 0.02,
             outer_angle: 0.8,

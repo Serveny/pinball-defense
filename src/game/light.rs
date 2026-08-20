@@ -41,7 +41,7 @@ pub(super) fn contact_light_bundle(g_sett: &GraphicsSettings, color: Color) -> i
         PointLight {
             intensity: 0.,
             color,
-            shadows_enabled: g_sett.is_shadows,
+            shadow_maps_enabled: g_sett.is_shadows,
             radius: 0.01,
             range: 0.5,
             ..default()
@@ -176,7 +176,7 @@ pub(super) fn sight_radius_light(range: f32) -> impl Bundle {
         SpotLight {
             intensity: 18000.,
             color: ANTIQUE_WHITE.into(),
-            shadows_enabled: false,
+            shadow_maps_enabled: false,
             radius: 3.,
             range: 3.,
             outer_angle: range,
@@ -222,7 +222,7 @@ pub fn spawn_lamp(
                 PointLight {
                     intensity: 0.,
                     color,
-                    shadows_enabled: g_sett.is_shadows,
+                    shadow_maps_enabled: g_sett.is_shadows,
                     radius: 0.01,
                     range: 2.,
                     ..default()

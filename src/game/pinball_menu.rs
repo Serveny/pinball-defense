@@ -257,7 +257,7 @@ fn active_light_bundle(g_sett: &GraphicsSettings) -> impl Bundle {
         SpotLight {
             intensity: 28000., // lumens - roughly a 100W non-halogen incandescent bulb
             color: BEIGE.into(),
-            shadows_enabled: g_sett.is_shadows,
+            shadow_maps_enabled: g_sett.is_shadows,
             range: 0.2,
             inner_angle: 0.2,
             outer_angle: 0.8,

@@ -12,3 +12,4 @@ Cargo.lock
 *.pdb
 
 .DS_Store
+.worktrees/

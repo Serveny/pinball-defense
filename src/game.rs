@@ -12,10 +12,10 @@ use self::health::HealthPlugin;
 use self::level::LevelPlugin;
 use self::light::LightPlugin;
 use self::ui::UiState;
-use self::world::{spawn_pinball_world, PinballWorld};
+use self::world::{PinballWorld, spawn_pinball_world};
+use crate::AppState;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
-use crate::AppState;
 use controls::ControlsPlugin;
 pub use controls::KeyboardControls;
 use enemy::EnemyPlugin;
@@ -153,7 +153,7 @@ fn setup_ambient_lights(mut cmds: Commands, g_sett: Res<GraphicsSettings>) {
     cmds.spawn((
         DirectionalLight {
             illuminance: 8000.0,
-            shadows_enabled: g_sett.is_shadows,
+            shadow_maps_enabled: g_sett.is_shadows,
             ..default()
         },
         Transform::from_xyz(0.0, -0.0, 2.0).with_rotation(Quat::from_rotation_x(-PI / 4.)),

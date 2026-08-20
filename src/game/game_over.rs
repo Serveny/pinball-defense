@@ -2,6 +2,7 @@ use super::GameState;
 use crate::prelude::*;
 use crate::utils::GameColor;
 use bevy::color::palettes::css::GOLD;
+use bevy::text::FontSize;
 
 pub fn spawn(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
     cmds.spawn(container()).with_children(|p| {
@@ -34,8 +35,8 @@ fn headline(text: &str, assets: &PinballDefenseAssets) -> impl Bundle {
     (
         Text(text.to_string()),
         TextFont {
-            font: assets.menu_font.clone(),
-            font_size: 100.0,
+            font: assets.menu_font.clone().into(),
+            font_size: FontSize::Px(100.0),
             ..default()
         },
         TextColor(Color::srgb_u8(255, 254, 236)),
@@ -66,8 +67,8 @@ fn spawn_restart_btn(p: &mut ChildSpawnerCommands, assets: &PinballDefenseAssets
         p.spawn((
             Text("New Game".to_string()),
             TextFont {
-                font: assets.menu_font.clone(),
-                font_size: 40.0,
+                font: assets.menu_font.clone().into(),
+                font_size: FontSize::Px(40.0),
                 ..default()
             },
             TextColor(GameColor::WHITE),

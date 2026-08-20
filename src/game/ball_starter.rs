@@ -22,8 +22,9 @@ impl Plugin for BallStarterPlugin {
             .add_systems(OnEnter(BallStarterState::Fire), on_fire_started)
             .add_systems(
                 Update,
-                (charge_system)
-                    .run_if(in_state(BallStarterState::Charge).and(in_state(GameState::Ingame))),
+                (charge_system).run_if(
+                    in_state(BallStarterState::Charge).and_then(in_state(GameState::Ingame)),
+                ),
             )
             .add_systems(
                 Update,
@@ -32,7 +33,7 @@ impl Plugin for BallStarterPlugin {
             .add_systems(
                 Update,
                 fire_system
-                    .run_if(in_state(BallStarterState::Fire).and(in_state(GameState::Ingame))),
+                    .run_if(in_state(BallStarterState::Fire).and_then(in_state(GameState::Ingame))),
             );
     }
 }

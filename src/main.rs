@@ -70,7 +70,7 @@ fn set_framerate(mut settings: ResMut<bevy_framepace::FramepaceSettings>) {
 }
 
 fn add_pysics_settings(app: &mut App) {
-    app.insert_resource(Gravity(Vec2::X * 9.81))
+    app.insert_resource(Gravity(Vec2::X * 2.))
         .insert_resource(Time::<Fixed>::from_hz(128.));
 }
 

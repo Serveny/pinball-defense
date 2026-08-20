@@ -1,5 +1,6 @@
-use crate::prelude::*;
 use crate::AppState;
+use crate::prelude::*;
+use bevy::text::FontSize;
 
 pub struct LoadingScreenPlugin;
 
@@ -33,7 +34,7 @@ fn spawn_layout(mut cmds: Commands) {
         spawner.spawn((
             Text("Loading...".into()),
             TextFont {
-                font_size: 100.0,
+                font_size: FontSize::Px(100.0),
                 ..default()
             },
             TextColor(Color::WHITE),

@@ -57,6 +57,7 @@ pub fn spawn_pinball_world(
             for coll in colliders::colliders() {
                 p.spawn((
                     coll,
+                    WorldFrame,
                     DebugRender::default().with_collider_color(RED.into()),
                     CollisionMargin(0.008),
                 ));

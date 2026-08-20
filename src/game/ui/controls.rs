@@ -1,11 +1,12 @@
 use super::project_3d_to_2d_screen;
+use crate::game::KeyboardControls;
 use crate::game::ball_starter::BallSpawn;
 use crate::game::camera::PinballCamera;
 use crate::game::flipper::FlipperType;
-use crate::game::KeyboardControls;
 use crate::prelude::*;
 use crate::utils::GameColor;
 use bevy::prelude::default;
+use bevy::text::FontSize;
 use bevy::window::WindowResized;
 
 #[derive(Component)]
@@ -120,8 +121,8 @@ fn spawn_key(
             p.spawn((
                 Text(format!("{text} ")),
                 TextFont {
-                    font: assets.menu_font.clone(),
-                    font_size: 52.0,
+                    font: assets.menu_font.clone().into(),
+                    font_size: FontSize::Px(52.0),
                     ..default()
                 },
                 TextColor(GameColor::WHITE),
@@ -141,8 +142,8 @@ fn spawn_key(
                 p.spawn((
                     Text(format!("{key:?}").replace("Key", "")),
                     TextFont {
-                        font: assets.menu_font.clone(),
-                        font_size: 40.0,
+                        font: assets.menu_font.clone().into(),
+                        font_size: FontSize::Px(40.0),
                         ..default()
                     },
                     TextColor(GameColor::WHITE),

@@ -2,6 +2,7 @@ use super::{Active, PropIndex};
 use crate::prelude::*;
 use crate::utils::GameColor;
 use bevy::color::palettes::css::GRAY;
+use bevy::text::FontSize;
 
 #[derive(Component)]
 pub struct Keybox;
@@ -36,8 +37,8 @@ pub fn spawn(
         p.spawn((
             Text(format!("{init_val:?}").replace("Key", "").to_string()),
             TextFont {
-                font: assets.menu_font.clone(),
-                font_size: 40.0,
+                font: assets.menu_font.clone().into(),
+                font_size: FontSize::Px(40.0),
                 ..default()
             },
             TextColor(GameColor::WHITE),
