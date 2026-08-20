@@ -26,9 +26,14 @@ impl Plugin for UiPlugin {
                     (
                         update_pos_system,
                         progress_bar::despawn_system,
-                        progress_bar::show_progress_system,
+                        progress_bar::show_on_hit_system,
                         progress_bar::activate_animation_system,
+                        progress_bar::hide_when_fill_complete_system,
+                        progress_bar::show_progress_system,
+                        progress_bar::hide_after_timeout_system,
+                        progress_bar::reset_on_upgrade_system,
                     )
+                        .chain()
                         .run_if(in_state(GameState::Ingame)),
                 ),
             )

@@ -24,7 +24,7 @@ pub fn spawn(
     assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
     pos: Vec3,
-) {
+) -> Entity {
     let sight_radius = 0.3;
     let tower_mat = mats.add(tower_material());
 
@@ -67,7 +67,7 @@ pub fn spawn(
 
             mg_mounting(tower);
         },
-    );
+    )
 }
 
 #[derive(Component)]

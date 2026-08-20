@@ -11,7 +11,8 @@ use super::light::{
     FlashLight, LightOnCollision, SightRadiusLight, contact_light_bundle, sight_radius_light,
 };
 use super::pinball_menu::{PinballMenuTrigger, UpgradeMenuExecuteEvent};
-use super::progress::{self, ProgressBarCountUpEvent};
+use super::progress::{ProgressBarCountUpEvent, ProgressBarResetEvent};
+use super::ui;
 use super::{EventState, GameState};
 use crate::game::analog_counter::AnalogCounterSetEvent;
 use crate::game::light::disable_flash_light;
@@ -164,22 +165,19 @@ fn spawn(
     sight_radius: f32,
     tower_type_bundle: impl Bundle,
     add_to_tower: impl Fn(&mut ChildSpawnerCommands),
-) {
+) -> Entity {
     pb_world
         .spawn(tower_bundle(pos, sight_radius))
         .insert(tower_type_bundle)
         .with_children(|p| {
-            let tower_id = p.target_entity();
             let color = Color::srgb_u8(115, 27, 7);
-            let bar_trans =
-                Transform::from_xyz(0.034, 0., -0.007).with_scale(Vec3::new(0.5, 0.5, 1.));
             p.spawn(tower_base_bundle(assets, mats));
             p.spawn(contact_light_bundle(g_sett, color));
             p.spawn(tower_sight_sensor_bundle(sight_radius));
             p.spawn(sight_radius_light(sight_radius));
-            progress::spawn(p, assets, mats, tower_id, bar_trans, color, 0.);
             add_to_tower(p);
-        });
+        })
+        .id()
 }
 
 fn tower_material() -> StandardMaterial {
@@ -224,18 +222,20 @@ fn on_spawn_tower_system(
 ) {
     for ev in evr.read() {
         if let Ok(world) = q_pbw.single() {
+            let mut tower_id = Entity::PLACEHOLDER;
             cmds.entity(world).with_children(|spawner| {
                 let pos = ev.1;
-                match ev.0 {
+                tower_id = match ev.0 {
                     TowerType::Gun => gun::spawn(spawner, &mut mats, &assets, &g_sett, pos),
                     TowerType::Tesla => tesla::spawn(spawner, &mut mats, &assets, &g_sett, pos),
                     TowerType::Microwave => {
                         microwave::spawn(spawner, &mut mats, &assets, &g_sett, pos)
                     }
                 };
-                points_ev.write(PointsEvent::TowerBuild);
-                sound_ev.write(SoundEvent::TowerBuild);
             });
+            ui::progress_bar::spawn_transient(&mut cmds, tower_id);
+            points_ev.write(PointsEvent::TowerBuild);
+            sound_ev.write(SoundEvent::TowerBuild);
         }
     }
 }
@@ -274,7 +274,7 @@ fn on_upgrade_system(
     mut evr: MessageReader<UpgradeMenuExecuteEvent>,
     mut q_light: Query<(Entity, &ChildOf, &mut Visibility), With<FlashLight>>,
     mut points_ev: MessageWriter<PointsEvent>,
-    mut prog_bar_ev: MessageWriter<ProgressBarCountUpEvent>,
+    mut reset_ev: MessageWriter<ProgressBarResetEvent>,
     mut q_tower: Query<&mut TowerLevel>,
     mut ac_set_ev: MessageWriter<AnalogCounterSetEvent>,
     mut range_upgrade_ev: MessageWriter<RangeUpgradeEvent>,
@@ -292,7 +292,7 @@ fn on_upgrade_system(
             tower_level.0 as u32,
         ));
         points_ev.write(PointsEvent::TowerUpgrade);
-        prog_bar_ev.write(ProgressBarCountUpEvent::new(ev.tower_id, -1.));
+        reset_ev.write(ProgressBarResetEvent::new(ev.tower_id));
         match ev.upgrade {
             TowerUpgrade::Damage => {
                 damage_upgrade_ev.write(DamageUpgradeEvent(ev.tower_id));
