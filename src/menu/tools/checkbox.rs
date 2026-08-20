@@ -29,7 +29,6 @@ pub fn spawn(p: &mut ChildSpawnerCommands, prop_i: usize, init_val: bool) {
         Hovered::default(),
         TabIndex(0),
     ));
-    // Let the checkbox widget manage its own `Checked` component on click.
     entity.observe(checkbox_self_update);
     entity.observe(
         move |change: On<ValueChange<bool>>,
@@ -61,14 +60,11 @@ pub fn spawn(p: &mut ChildSpawnerCommands, prop_i: usize, init_val: bool) {
             CheckboxMark,
         ));
     });
-    // Start in the checked state if the underlying setting is already `true`. The
-    // `update_mark_visibility` system keeps the mark in sync with this component afterwards.
     if init_val {
         entity.insert(Checked);
     }
 }
 
-/// Toggles the visibility of the checkbox mark based on whether the checkbox is `Checked`.
 pub fn update_mark_visibility(
     q_checkboxes: Query<(Entity, Has<Checked>), With<Checkbox>>,
     children: Query<&Children>,

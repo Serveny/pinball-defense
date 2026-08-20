@@ -12,7 +12,6 @@ use bevy::ui_widgets::{
     slider_self_update,
 };
 
-/// Diameter of the slider thumb in pixels.
 const THUMB_SIZE: f32 = 30.;
 
 // init_val must be between 0 and 1
@@ -38,7 +37,6 @@ pub fn spawn(p: &mut ChildSpawnerCommands, prop_i: usize, init_val: f32) {
         Hovered::default(),
         TabIndex(0),
     ))
-    // Let the slider widget keep its own `SliderValue` in sync with `ValueChange` events.
     .observe(slider_self_update)
     .observe(
         move |change: On<ValueChange<f32>>,
@@ -58,7 +56,6 @@ pub fn spawn(p: &mut ChildSpawnerCommands, prop_i: usize, init_val: f32) {
         },
     )
     .with_children(|p| {
-        // Static track (the rail the thumb slides along).
         p.spawn((
             Name::new("Slider Track"),
             Node {
@@ -105,8 +102,6 @@ pub fn spawn(p: &mut ChildSpawnerCommands, prop_i: usize, init_val: f32) {
     });
 }
 
-/// Moves the thumb to match the slider's current value. The core [`Slider`] widget handles the
-/// drag math but does not move the thumb visually; that is the stylist's responsibility.
 pub fn update_thumb_position(
     q_sliders: Query<(Entity, &SliderValue, &SliderRange), With<Slider>>,
     children: Query<&Children>,
@@ -122,7 +117,6 @@ pub fn update_thumb_position(
     }
 }
 
-/// Updates the thumb's border color based on hover/press state.
 pub fn update_thumb_style(
     q_sliders: Query<(Entity, &Hovered, Has<Pressed>), With<Slider>>,
     children: Query<&Children>,
