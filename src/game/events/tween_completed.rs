@@ -1,5 +1,6 @@
 //use crate::game::pinball_menu::PinballMenuEvent;
 use crate::game::pinball_menu::PinballMenuEvent;
+use crate::game::tower::TowerReady;
 use crate::prelude::*;
 use bevy_tweening::AnimCompletedEvent;
 
@@ -8,6 +9,7 @@ pub enum AfterTween {
     DeleteEntity,
     ActivatePinballMenu,
     DespawnPinballMenu,
+    ActivateTower,
 }
 
 pub(super) fn on_tween_completed_system(
@@ -39,6 +41,11 @@ pub(super) fn on_tween_completed_system(
                     }
                     AfterTween::DespawnPinballMenu => {
                         pm_status_ev.write(PinballMenuEvent::Disable);
+                    }
+                    AfterTween::ActivateTower => {
+                        if let Ok(mut ec) = cmds.get_entity(entity) {
+                            ec.insert(TowerReady);
+                        }
                     }
                 }
                 if let Ok(mut ec) = cmds.get_entity(entity) {

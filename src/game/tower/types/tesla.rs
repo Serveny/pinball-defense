@@ -1,6 +1,6 @@
 use super::animations::RotateAlways;
 use super::{TowerHead, tower_material};
-use crate::game::tower::ShotLight;
+use crate::game::tower::{ShotLight, TowerReady};
 use crate::game::tower::damage::{DamageAllTargetsInReach, DamageOverTime};
 use crate::game::tower::target::EnemiesWithinReach;
 use crate::prelude::*;
@@ -77,7 +77,7 @@ fn shot_flash_light(g_sett: &GraphicsSettings, rel_id: Entity, range: f32) -> im
 
 pub(in super::super) fn shot_animation_system(
     time: Res<Time>,
-    q_tesla: Query<(Entity, &EnemiesWithinReach), With<TeslaTower>>,
+    q_tesla: Query<(Entity, &EnemiesWithinReach), (With<TeslaTower>, With<TowerReady>)>,
     mut q_shot_flash: Query<(&mut Visibility, &mut PointLight, &RelEntity), With<ShotFlashLight>>,
 ) {
     for (tower_id, ewr) in q_tesla.iter() {

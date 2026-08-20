@@ -1,7 +1,7 @@
 use super::animations::RotateToTarget;
 use super::target::AimFirstEnemy;
 use crate::game::tower::damage::DamageOverTime;
-use crate::game::tower::{ShotLight, TowerHead, tower_material};
+use crate::game::tower::{ShotLight, TowerHead, TowerReady, tower_material};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::RelEntity;
@@ -147,7 +147,7 @@ fn mounting(
 
 pub(in super::super) fn shoot_animation_system(
     time: Res<Time>,
-    q_gun_tower: Query<(Entity, &AimFirstEnemy), With<GunTower>>,
+    q_gun_tower: Query<(Entity, &AimFirstEnemy), (With<GunTower>, With<TowerReady>)>,
     mut q_barrel: Query<(&mut Transform, &RelEntity), With<GunTowerBarrel>>,
     mut q_muzzle_flash: Query<
         (&mut Visibility, &mut SpotLight, &RelEntity),

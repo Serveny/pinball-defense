@@ -5,6 +5,7 @@ use super::audio::SoundEvent;
 use super::ball::CollisionWithBallEvent;
 use super::cfg::CONFIG;
 use super::events::collision::GameLayer;
+use super::events::tween_completed::AfterTween;
 use super::level::{Level, PointsEvent};
 use super::light::{
     FlashLight, LightOnCollision, SightRadiusLight, contact_light_bundle, sight_radius_light,
@@ -89,6 +90,9 @@ impl Tower {
 #[derive(Component)]
 pub struct TowerHead;
 
+#[derive(Component)]
+pub struct TowerReady;
+
 #[derive(Component, Clone, Copy, Debug, Hash, PartialEq, Eq)]
 pub enum TowerUpgrade {
     Damage,
@@ -121,6 +125,7 @@ fn tower_bundle(pos: Vec3, sight_radius: f32) -> impl Bundle {
         //
         // Spawn animation
         TweenAnim::new(create_tower_spawn_animator(pos)),
+        AfterTween::ActivateTower,
     )
 }
 

@@ -1,5 +1,5 @@
 use super::{TowerHead, tower_material};
-use crate::game::tower::ShotLight;
+use crate::game::tower::{ShotLight, TowerReady};
 use crate::game::tower::animations::RotateToTarget;
 use crate::game::tower::speed::SlowDownFactor;
 use crate::game::tower::target::AimFirstEnemy;
@@ -84,7 +84,7 @@ fn slow_down_flash_light(g_sett: &GraphicsSettings, rel_id: Entity, range: f32) 
 
 pub(in super::super) fn shot_animation_system(
     time: Res<Time>,
-    q_gun_tower: Query<(Entity, &AimFirstEnemy), With<MicrowaveTower>>,
+    q_gun_tower: Query<(Entity, &AimFirstEnemy), (With<MicrowaveTower>, With<TowerReady>)>,
     mut q_slow_flash: Query<
         (&mut Visibility, &mut SpotLight, &RelEntity),
         With<SlowDownFlashLight>,

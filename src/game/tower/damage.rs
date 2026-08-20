@@ -1,4 +1,5 @@
 use super::target::{AimFirstEnemy, EnemiesWithinReach};
+use super::TowerReady;
 use crate::game::health::ChangeHealthEvent;
 use crate::prelude::*;
 
@@ -9,7 +10,7 @@ pub(super) struct DamageOverTime(pub DamagePerSecond);
 
 pub(super) fn afe_damage_over_time_system(
     time: Res<Time>,
-    q_tower: Query<(Entity, &AimFirstEnemy, &DamageOverTime)>,
+    q_tower: Query<(Entity, &AimFirstEnemy, &DamageOverTime), With<TowerReady>>,
     mut health_ev: MessageWriter<ChangeHealthEvent>,
 ) {
     for (tower_id, target, damage) in q_tower.iter() {
@@ -28,7 +29,7 @@ pub struct DamageAllTargetsInReach;
 
 pub(super) fn datir_damage_over_time_system(
     time: Res<Time>,
-    q_tower: Query<(Entity, &EnemiesWithinReach, &DamageOverTime), With<DamageAllTargetsInReach>>,
+    q_tower: Query<(Entity, &EnemiesWithinReach, &DamageOverTime), (With<DamageAllTargetsInReach>, With<TowerReady>)>,
     mut health_ev: MessageWriter<ChangeHealthEvent>,
 ) {
     for (tower_id, targets, damage) in q_tower.iter() {

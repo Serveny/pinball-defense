@@ -1,4 +1,5 @@
 use super::target::AimFirstEnemy;
+use super::TowerReady;
 use crate::game::enemy::Enemy;
 use crate::prelude::*;
 
@@ -7,7 +8,7 @@ pub(super) struct SlowDownFactor(pub f32);
 
 pub(super) fn afe_slow_down_system(
     mut q_enemy: Query<&mut Enemy>,
-    q_tower: Query<(&AimFirstEnemy, &SlowDownFactor)>,
+    q_tower: Query<(&AimFirstEnemy, &SlowDownFactor), With<TowerReady>>,
 ) {
     for (target, slow_factor) in q_tower.iter() {
         if let Some(enemy_id) = target.0 {
