@@ -7,7 +7,7 @@ use super::cfg::CONFIG;
 use super::events::collision::GameLayer;
 use super::level::{Level, PointsEvent};
 use super::light::{
-    contact_light_bundle, sight_radius_light, FlashLight, LightOnCollision, SightRadiusLight,
+    FlashLight, LightOnCollision, SightRadiusLight, contact_light_bundle, sight_radius_light,
 };
 use super::pinball_menu::{PinballMenuTrigger, UpgradeMenuExecuteEvent};
 use super::progress::{self, ProgressBarCountUpEvent};
@@ -133,6 +133,7 @@ fn tower_sight_sensor_bundle(radius: f32) -> impl Bundle {
         RigidBody::Kinematic,
         DebugRender::collider(ORANGE.into()),
         Collider::circle(radius),
+        CollisionEventsEnabled,
         CollisionLayers::new(GameLayer::Tower, GameLayer::Enemy),
         TowerSightSensor,
     )

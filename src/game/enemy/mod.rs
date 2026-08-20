@@ -126,8 +126,9 @@ fn enemy(meshes: &mut Assets<Mesh>, mats: &mut Assets<StandardMaterial>) -> impl
         Sensor,
         RigidBody::Kinematic,
         Collider::circle(0.03),
+        CollisionEventsEnabled,
         DebugRender::default().with_collider_color(RED.into()),
-        CollisionLayers::new(GameLayer::Enemy, GameLayer::Ball),
+        CollisionLayers::new(GameLayer::Enemy, [GameLayer::Ball, GameLayer::Tower]),
         Restitution {
             coefficient: 2.,
             combine_rule: CoefficientCombine::Multiply,
