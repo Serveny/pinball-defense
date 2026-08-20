@@ -10,6 +10,7 @@ impl Plugin for ProgressPlugin {
     fn build(&self, app: &mut App) {
         app.add_message::<ProgressBarCountUpEvent>()
             .add_message::<ProgressBarFullEvent>()
+            .add_message::<ProgressBarResetEvent>()
             .add_systems(
                 Update,
                 (scale_system, bar_full_system, activate_animation_system)
@@ -41,6 +42,10 @@ impl ProgressBarCountUpEvent {
     pub fn new(rel_id: Entity, amount: f32) -> Self {
         Self { rel_id, amount }
     }
+
+    pub fn rel_id(&self) -> Entity {
+        self.rel_id
+    }
 }
 
 fn on_count_up_system(
@@ -60,6 +65,21 @@ fn on_count_up_system(
 
 #[derive(Message)]
 pub struct ProgressBarFullEvent(pub Entity);
+
+#[derive(Message)]
+pub struct ProgressBarResetEvent {
+    rel_id: Entity,
+}
+
+impl ProgressBarResetEvent {
+    pub fn new(rel_id: Entity) -> Self {
+        Self { rel_id }
+    }
+
+    pub fn rel_id(&self) -> Entity {
+        self.rel_id
+    }
+}
 
 fn bar_full_system(
     mut full_ev: MessageWriter<ProgressBarFullEvent>,

@@ -17,7 +17,7 @@ pub fn spawn(
     assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
     pos: Vec3,
-) {
+) -> Entity {
     let sight_radius = 0.3;
     let tower_mat = mats.add(tower_material());
     super::spawn(
@@ -41,7 +41,7 @@ pub fn spawn(
                     head.spawn(slow_down_flash_light(g_sett, rel_id, sight_radius));
                 });
         },
-    );
+    )
 }
 
 fn head(
