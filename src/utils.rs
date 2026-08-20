@@ -1,7 +1,13 @@
 use crate::prelude::*;
 
-#[derive(Component, Deref, DerefMut)]
+#[derive(Component, Clone, Deref, DerefMut)]
 pub struct RelEntity(pub Entity);
+
+impl Default for RelEntity {
+    fn default() -> Self {
+        RelEntity(Entity::PLACEHOLDER)
+    }
+}
 
 #[derive(Component)]
 pub struct Music;

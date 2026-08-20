@@ -1,10 +1,10 @@
 use super::{MenuLayout, actions::MenuAction, tools::menu_btn};
 use crate::prelude::*;
 use crate::utils::GameColor;
-use bevy::text::FontSize;
+use bevy::text::{FontSize, FontSourceTemplate};
 
 pub fn layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
-    cmds.spawn((
+    cmds.spawn_scene(bsn! {
         Node {
             display: Display::Grid,
             width: Val::Percent(100.),
@@ -12,11 +12,10 @@ pub fn layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
             height: Val::Percent(100.),
             grid_template_rows: vec![GridTrack::px(80.), GridTrack::auto()],
             align_content: AlignContent::Stretch,
-            ..default()
-        },
-        BackgroundColor(GameColor::BACKGROUND),
-        MenuLayout,
-    ))
+        }
+        BackgroundColor({GameColor::BACKGROUND})
+        MenuLayout
+    })
     .with_children(|p| {
         spawn_headline("Pause", p, &assets);
         spawn_buttons(p, &assets);
@@ -24,23 +23,19 @@ pub fn layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
 }
 
 fn spawn_headline(text: &str, p: &mut ChildSpawnerCommands, assets: &PinballDefenseAssets) {
-    p.spawn((Node {
-        width: Val::Percent(100.),
-        justify_content: JustifyContent::Center,
-        align_items: AlignItems::Center,
-        ..default()
-    },))
-        .with_children(|p| {
-            p.spawn((
-                Text(text.to_string()),
-                TextFont {
-                    font: assets.menu_font.clone().into(),
-                    font_size: FontSize::Px(80.0),
-                    ..default()
-                },
-                TextColor(Color::srgb_u8(255, 254, 236).into()),
-            ));
-        });
+    let font = FontSourceTemplate::Handle(assets.menu_font.clone().into());
+    p.spawn_empty().queue_apply_scene(bsn! {
+        Node {
+            width: Val::Percent(100.),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+        }
+        Children [
+            (Text({text})
+             TextFont { font: {font}, font_size: FontSize::Px(80.0) }
+             TextColor(Color::srgb_u8(255, 254, 236)))
+        ]
+    });
 }
 
 fn spawn_buttons(p: &mut ChildSpawnerCommands, assets: &PinballDefenseAssets) {

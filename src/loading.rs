@@ -4,7 +4,7 @@ use bevy::text::FontSize;
 
 pub struct LoadingScreenPlugin;
 
-#[derive(Component)]
+#[derive(Component, Clone, Default)]
 struct LoadingLayout;
 
 impl Plugin for LoadingScreenPlugin {
@@ -21,29 +21,21 @@ fn despawn_layout(mut cmds: Commands, q_layout: Query<Entity, With<LoadingLayout
 }
 
 fn spawn_layout(mut cmds: Commands) {
-    log!("Loading Sceen 🤤");
-    cmds.spawn((Camera2d::default(), LoadingLayout));
-    cmds.spawn((
+    log!("Loading Sceen 🤡");
+    cmds.spawn_scene(bsn! {
+        Camera2d
+        LoadingLayout
+    });
+    cmds.spawn_scene(bsn! {
         Node {
             border: UiRect::percent(10., 0., 25., 25.),
-            ..default()
-        },
-        LoadingLayout,
-    ))
-    .with_children(|spawner| {
-        spawner.spawn((
-            Text("Loading...".into()),
-            TextFont {
-                font_size: FontSize::Px(100.0),
-                ..default()
-            },
-            TextColor(Color::WHITE),
-            Node {
-                width: Val::Percent(100.),
-                height: Val::Percent(100.),
-                justify_content: JustifyContent::Center,
-                ..default()
-            },
-        ));
+        }
+        LoadingLayout
+        Children [
+            (Text("Loading...")
+             TextFont { font_size: FontSize::Px(100.0) }
+             TextColor({Color::WHITE})
+             Node { width: Val::Percent(100.), height: Val::Percent(100.), justify_content: JustifyContent::Center })
+        ]
     });
 }

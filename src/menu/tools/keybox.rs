@@ -2,9 +2,9 @@ use super::{Active, PropIndex};
 use crate::prelude::*;
 use crate::utils::GameColor;
 use bevy::color::palettes::css::GRAY;
-use bevy::text::FontSize;
+use bevy::text::{FontSize, FontSourceTemplate};
 
-#[derive(Component)]
+#[derive(Component, Clone, Default)]
 pub struct Keybox;
 
 pub fn spawn(
@@ -13,10 +13,11 @@ pub fn spawn(
     prop_i: usize,
     init_val: KeyCode,
 ) {
-    p.spawn((
-        Name::new("Key"),
-        Keybox,
-        Button::default(),
+    let font = FontSourceTemplate::Handle(assets.menu_font.clone().into());
+    p.spawn_empty().queue_apply_scene(bsn! {
+        #Key
+        Keybox
+        Button
         Node {
             width: Val::Px(130.),
             height: Val::Px(55.),
@@ -26,23 +27,16 @@ pub fn spawn(
             display: Display::Flex,
             align_content: AlignContent::Center,
             justify_content: JustifyContent::Center,
-            ..default()
-        },
-        BorderColor::from(GameColor::GOLD),
-        BackgroundColor(GRAY.into()),
-        PropIndex(prop_i),
-        Active,
-    ))
-    .with_children(|p| {
-        p.spawn((
-            Text(format!("{init_val:?}").replace("Key", "").to_string()),
-            TextFont {
-                font: assets.menu_font.clone().into(),
-                font_size: FontSize::Px(40.0),
-                ..default()
-            },
-            TextColor(GameColor::WHITE),
-        ));
+        }
+        BorderColor::from(GameColor::GOLD)
+        BackgroundColor({GRAY})
+        PropIndex({prop_i})
+        Active
+        Children [
+            (Text({format!("{init_val:?}").replace("Key", "")})
+             TextFont { font: {font}, font_size: FontSize::Px(40.0) }
+             TextColor({GameColor::WHITE}))
+        ]
     });
 }
 

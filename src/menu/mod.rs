@@ -80,5 +80,5 @@ fn clean_up(
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Clone, Default)]
 struct MenuLayout;

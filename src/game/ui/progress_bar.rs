@@ -6,16 +6,16 @@ use crate::{
 use bevy::color::palettes::css::RED;
 use bevy::prelude::*;
 
-#[derive(Component, Default)]
+#[derive(Component, Clone, Default)]
 pub struct ProgressUiBar {
     is_active_animation: bool,
 }
 
 pub fn spawn(cmds: &mut Commands, rel_id: Entity, start_percent: PercentBw0And1) {
-    cmds.spawn((
-        Name::new("Progess UI Bar"),
-        RelEntity(rel_id),
-        PosToRelEntity,
+    cmds.spawn_scene(bsn! {
+        Name::new("Progess UI Bar")
+        RelEntity({rel_id})
+        PosToRelEntity
         Node {
             width: Val::Percent(3.),
             height: Val::Percent(1.5),
@@ -23,29 +23,17 @@ pub fn spawn(cmds: &mut Commands, rel_id: Entity, start_percent: PercentBw0And1)
             padding: UiRect::all(Val::Px(0.)),
             position_type: PositionType::Absolute,
             // Pos bar on middle top of rel entity
-            margin: UiRect::new(
-                Val::Percent(-1.5),
-                Val::DEFAULT,
-                Val::Percent(-1.5),
-                Val::DEFAULT,
-            ),
-            ..default()
-        },
-        BorderColor::from(Color::BLACK),
-        BackgroundColor(Color::WHITE),
-    ))
-    .with_children(|p| {
-        p.spawn((
-            ProgressUiBar::default(),
-            Progress(start_percent),
-            RelEntity(rel_id),
-            Node {
-                width: Val::Percent(start_percent * 100.),
-                height: Val::Percent(100.),
-                ..default()
-            },
-            BackgroundColor(RED.into()),
-        ));
+            margin: UiRect::new(Val::Percent(-1.5), Val::DEFAULT, Val::Percent(-1.5), Val::DEFAULT),
+        }
+        BorderColor::from(Color::BLACK)
+        BackgroundColor({Color::WHITE})
+        Children [
+            (ProgressUiBar
+             Progress({start_percent})
+             RelEntity({rel_id})
+             Node { width: Val::Percent({start_percent * 100.}), height: Val::Percent(100.) }
+             BackgroundColor({RED}))
+        ]
     });
 }
 

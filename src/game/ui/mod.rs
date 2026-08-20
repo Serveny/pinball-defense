@@ -1,4 +1,4 @@
-use super::{camera::PinballCamera, GameState};
+use super::{GameState, camera::PinballCamera};
 use crate::prelude::*;
 use crate::utils::RelEntity;
 
@@ -36,7 +36,7 @@ impl Plugin for UiPlugin {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Clone, Default)]
 struct PosToRelEntity;
 
 fn update_pos_system(

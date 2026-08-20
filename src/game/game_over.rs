@@ -2,20 +2,10 @@ use super::GameState;
 use crate::prelude::*;
 use crate::utils::GameColor;
 use bevy::color::palettes::css::GOLD;
-use bevy::text::FontSize;
+use bevy::text::{FontSize, FontSourceTemplate};
 
 pub fn spawn(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
-    cmds.spawn(container()).with_children(|p| {
-        p.spawn(headline("GAME OVER", &assets));
-        spawn_restart_btn(p, &assets);
-    });
-}
-
-#[derive(Component)]
-pub struct GameOverScreen;
-
-fn container() -> impl Bundle {
-    (
+    cmds.spawn_scene(bsn! {
         Node {
             width: Val::Percent(100.),
             height: Val::Percent(100.),
@@ -24,55 +14,52 @@ fn container() -> impl Bundle {
             flex_wrap: FlexWrap::NoWrap,
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
-            ..default()
-        },
-        BackgroundColor(Color::srgba_u8(23, 24, 26, 120).into()),
-        GameOverScreen,
-    )
+        }
+        BackgroundColor({Color::srgba_u8(23, 24, 26, 120)})
+        GameOverScreen
+    })
+    .with_children(|p| {
+        spawn_headline("GAME OVER", p, &assets);
+        spawn_restart_btn(p, &assets);
+    });
 }
 
-fn headline(text: &str, assets: &PinballDefenseAssets) -> impl Bundle {
-    (
-        Text(text.to_string()),
-        TextFont {
-            font: assets.menu_font.clone().into(),
-            font_size: FontSize::Px(100.0),
-            ..default()
-        },
-        TextColor(Color::srgb_u8(255, 254, 236)),
-    )
+#[derive(Component, Clone, Default)]
+pub struct GameOverScreen;
+
+fn spawn_headline(text: &str, p: &mut ChildSpawnerCommands, assets: &PinballDefenseAssets) {
+    let font = FontSourceTemplate::Handle(assets.menu_font.clone().into());
+    p.spawn_empty().queue_apply_scene(bsn! {
+        Text({text})
+        TextFont { font: {font}, font_size: FontSize::Px(100.0) }
+        TextColor(Color::srgb_u8(255, 254, 236))
+    });
 }
 
 // If more buttons needed, change this to an enum
-#[derive(Component)]
+#[derive(Component, Clone, Default)]
 pub struct ActionBtn;
 
 fn spawn_restart_btn(p: &mut ChildSpawnerCommands, assets: &PinballDefenseAssets) {
-    p.spawn((
-        Name::new("Button"),
-        Button::default(),
+    let font = FontSourceTemplate::Handle(assets.menu_font.clone().into());
+    p.spawn_empty().queue_apply_scene(bsn! {
+        #Button
+        Button
+        ActionBtn
         Node {
             width: Val::Px(400.),
             height: Val::Px(65.),
             border: UiRect::all(Val::Px(2.0)),
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
-            ..default()
-        },
-        BorderColor::from(GOLD),
-        BackgroundColor(Color::NONE.into()),
-        ActionBtn,
-    ))
-    .with_children(|p| {
-        p.spawn((
-            Text("New Game".to_string()),
-            TextFont {
-                font: assets.menu_font.clone().into(),
-                font_size: FontSize::Px(40.0),
-                ..default()
-            },
-            TextColor(GameColor::WHITE),
-        ));
+        }
+        BorderColor::from(GOLD)
+        BackgroundColor({Color::NONE})
+        Children [
+            (Text("New Game")
+             TextFont { font: {font}, font_size: FontSize::Px(40.0) }
+             TextColor({GameColor::WHITE}))
+        ]
     });
 }
 

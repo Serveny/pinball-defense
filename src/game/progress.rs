@@ -22,7 +22,7 @@ impl Plugin for ProgressPlugin {
     }
 }
 
-#[derive(Component, Default, Deref, DerefMut)]
+#[derive(Component, Clone, Default, Deref, DerefMut)]
 pub struct Progress(pub f32);
 
 impl Progress {
