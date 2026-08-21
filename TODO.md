@@ -54,7 +54,6 @@
 - bloom setting ✅
 - ball charger model ✅
 - replace level up lights through red level up alarm light at level counter ✅
-- towers get also upgrade points, when killing an enemy ✅
 - damage upgrades on microwave tower makes enemies slightly more slower ✅
 - towers get darker texture color, the higher they are upgraded
 - camera flips only to ball starter, when ball is in starter area
