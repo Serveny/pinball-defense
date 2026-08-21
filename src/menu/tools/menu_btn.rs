@@ -1,23 +1,40 @@
 use super::super::actions::MenuAction;
 use crate::prelude::*;
 use crate::utils::GameColor;
-use bevy::color::palettes::css::GOLD;
 use bevy::text::{FontSize, FontSourceTemplate};
 
 #[derive(Component)]
 pub struct MenuButton;
 
+#[derive(Component, Clone, Copy, Default)]
+pub enum ButtonStyle {
+    #[default]
+    Primary,
+    Secondary,
+}
+
+impl ButtonStyle {
+    fn resting_color(&self) -> Color {
+        match self {
+            ButtonStyle::Primary => GameColor::GOLD,
+            ButtonStyle::Secondary => GameColor::GRAY,
+        }
+    }
+}
+
 pub fn spawn(
     action: MenuAction,
+    style: ButtonStyle,
     spawner: &mut ChildSpawnerCommands,
     assets: &PinballDefenseAssets,
     margin: UiRect,
 ) {
-    let label = action.to_string();
+    let label = action.label();
     let font = FontSourceTemplate::Handle(assets.menu_font.clone().into());
+    let color = style.resting_color();
     spawner
         .spawn_empty()
-        .insert((MenuButton, action))
+        .insert((MenuButton, style, action))
         .queue_apply_scene(bsn! {
             #Button
             Button
@@ -29,33 +46,47 @@ pub fn spawn(
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
             }
-            BorderColor::from(GOLD)
+            BorderColor::from(color)
             BackgroundColor({Color::NONE})
             Children [
                 (Text({label})
                  TextFont { font: {font}, font_size: FontSize::Px(40.0) }
-                 TextColor({GameColor::WHITE}))
+                 TextColor({color}))
             ]
         });
 }
 
 pub fn system(
+    children: Query<&Children>,
     mut interaction_query: Query<
-        (&Interaction, &mut BorderColor, &MenuAction),
+        (
+            &Interaction,
+            &mut BorderColor,
+            &ButtonStyle,
+            &MenuAction,
+            Entity,
+        ),
         (Changed<Interaction>, With<Button>, With<MenuButton>),
     >,
+    mut text_query: Query<&mut TextColor>,
     mut action_ev: MessageWriter<MenuAction>,
 ) {
-    for (interaction, mut border_color, action) in &mut interaction_query {
-        match *interaction {
+    for (interaction, mut border_color, style, action, entity) in &mut interaction_query {
+        let resting = style.resting_color();
+        let target = match *interaction {
             Interaction::Pressed => {
                 action_ev.write(*action);
+                resting
             }
-            Interaction::Hovered => {
-                *border_color = GameColor::WHITE.into();
-            }
-            Interaction::None => {
-                *border_color = GameColor::GOLD.into();
+            Interaction::Hovered => GameColor::WHITE,
+            Interaction::None => resting,
+        };
+        *border_color = target.into();
+        if let Ok(children) = children.get(entity) {
+            for child in children {
+                if let Ok(mut text_color) = text_query.get_mut(*child) {
+                    *text_color = target.into();
+                }
             }
         }
     }

@@ -1,4 +1,5 @@
 use avian2d::PhysicsPlugins;
+#[cfg(debug_assertions)]
 use bevy::camera::Hdr;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 #[cfg(debug_assertions)]
@@ -30,6 +31,7 @@ mod utils;
 pub enum AppState {
     #[default]
     Loading,
+    MainMenu,
     Game,
 }
 

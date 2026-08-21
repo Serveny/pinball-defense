@@ -180,7 +180,7 @@ fn set_appstate_if_finished(
     if *gltf_load_state == AssetsInternalLoadState::Finished
         && *load_state == AssetsLoadState::Finished
     {
-        app_state.set(AppState::Game);
+        app_state.set(AppState::MainMenu);
     }
 }
 

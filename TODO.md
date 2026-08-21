@@ -96,3 +96,18 @@ Important things, to make it playable:
 
 - Game over mechanic/screen ✅
 - Controls UI ✅
+
+- Main menu:
+  - Load game
+  - Start new game
+  - Options
+  - Exit
+- game state Save/Load system
+- Performance Profiling feature
+- Pause animations if game is paused
+- Fix hanging ball physics sometimes when hitting a tower
+- Rolling ball visual effect
+
+- Activate sound by default in release mode
+- Fix ui progress bars pixel position (Green bar too small, white pixels at top)
+- UI: Show points where they are made: Progress blue, Damage red

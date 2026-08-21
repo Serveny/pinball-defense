@@ -4,20 +4,21 @@ use crate::utils::GameColor;
 use bevy::text::{FontSize, FontSourceTemplate};
 
 pub fn layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
+    cmds.spawn((Camera2d, MenuLayout));
     cmds.spawn_scene(bsn! {
         Node {
             display: Display::Grid,
             width: Val::Percent(100.),
             max_width: Val::Px(300.),
             height: Val::Percent(100.),
-            grid_template_rows: vec![GridTrack::px(80.), GridTrack::auto()],
+            grid_template_rows: vec![GridTrack::px(50.), GridTrack::fr(1.)],
             align_content: AlignContent::Stretch,
         }
         BackgroundColor({GameColor::BACKGROUND})
         MenuLayout
     })
     .with_children(|p| {
-        spawn_headline("Pause", p, &assets);
+        spawn_headline("Settings", p, &assets);
         spawn_buttons(p, &assets);
     });
 }
@@ -32,7 +33,7 @@ fn spawn_headline(text: &str, p: &mut ChildSpawnerCommands, assets: &PinballDefe
         }
         Children [
             (Text({text})
-             TextFont { font: {font}, font_size: FontSize::Px(80.0) }
+             TextFont { font: {font}, font_size: FontSize::Px(36.0) }
              TextColor(Color::srgb_u8(255, 254, 236)))
         ]
     });
@@ -41,46 +42,44 @@ fn spawn_headline(text: &str, p: &mut ChildSpawnerCommands, assets: &PinballDefe
 fn spawn_buttons(p: &mut ChildSpawnerCommands, assets: &PinballDefenseAssets) {
     p.spawn((Node {
         display: Display::Flex,
-        align_items: AlignItems::Center,
-        align_content: AlignContent::Center,
-        justify_content: JustifyContent::Center,
         flex_direction: FlexDirection::Column,
-        flex_wrap: FlexWrap::NoWrap,
-        row_gap: Val::Percent(5.),
         padding: UiRect::horizontal(Val::Percent(5.)),
         ..default()
     },))
         .with_children(|p| {
-            let margin = UiRect::default();
-            let con_margin = UiRect::bottom(Val::Px(10.));
+            p.spawn((Node {
+                display: Display::Flex,
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                row_gap: Val::Percent(5.),
+                flex_grow: 1.0,
+                ..default()
+            },))
+                .with_children(|p| {
+                    let margin = UiRect::default();
+                    menu_btn::spawn(
+                        MenuAction::Controls,
+                        ButtonStyle::Primary,
+                        p,
+                        assets,
+                        UiRect::bottom(Val::Px(10.)),
+                    );
+                    menu_btn::spawn(
+                        MenuAction::Graphics,
+                        ButtonStyle::Primary,
+                        p,
+                        assets,
+                        margin,
+                    );
+                    menu_btn::spawn(MenuAction::Sound, ButtonStyle::Primary, p, assets, margin);
+                });
             menu_btn::spawn(
-                MenuAction::Continue,
-                ButtonStyle::Primary,
+                MenuAction::Back,
+                ButtonStyle::Secondary,
                 p,
                 assets,
-                con_margin,
-            );
-            menu_btn::spawn(
-                MenuAction::Controls,
-                ButtonStyle::Primary,
-                p,
-                assets,
-                margin,
-            );
-            menu_btn::spawn(
-                MenuAction::Graphics,
-                ButtonStyle::Primary,
-                p,
-                assets,
-                margin,
-            );
-            menu_btn::spawn(MenuAction::Sound, ButtonStyle::Primary, p, assets, margin);
-            menu_btn::spawn(
-                MenuAction::Quit,
-                ButtonStyle::Primary,
-                p,
-                assets,
-                UiRect::top(Val::Px(10.)),
+                UiRect::bottom(Val::Px(20.)),
             );
         });
 }
