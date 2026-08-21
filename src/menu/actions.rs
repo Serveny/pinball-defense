@@ -4,8 +4,9 @@ use crate::game::ResumeGameEvent;
 use crate::prelude::*;
 use bevy::app::AppExit;
 
-#[derive(Message, Component, Debug, Clone, Copy)]
+#[derive(Message, Component, Debug, Clone, Copy, Default)]
 pub enum MenuAction {
+    #[default]
     Continue,
     NewGame,
     LoadGame,

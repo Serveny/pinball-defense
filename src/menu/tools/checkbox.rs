@@ -9,29 +9,26 @@ use bevy::picking::hover::Hovered;
 use bevy::ui::Checked;
 use bevy::ui_widgets::{Checkbox, ValueChange, checkbox_self_update};
 
-#[derive(Component)]
+#[derive(Component, Clone, Default)]
 pub struct CheckboxMark;
 
-pub fn spawn(p: &mut ChildSpawnerCommands, prop_i: usize, init_val: bool) {
-    let mut entity = p.spawn((
-        Name::new("Checkbox"),
-        Checkbox,
+pub fn scene(prop_i: usize) -> impl Scene {
+    bsn! {
+        Name::new("Checkbox")
+        Checkbox
         Node {
             width: Val::Px(40.),
             height: Val::Px(40.),
             border: UiRect::all(Val::Px(5.)),
             margin: UiRect::all(Val::Auto),
             border_radius: BorderRadius::all(Val::Px(4.)),
-            ..default()
-        },
-        BorderColor::from(GameColor::GOLD),
-        BackgroundColor(Color::NONE),
-        Hovered::default(),
-        TabIndex(0),
-    ));
-    entity.observe(checkbox_self_update);
-    entity.observe(
-        move |change: On<ValueChange<bool>>,
+        }
+        BorderColor::from(GameColor::GOLD)
+        BackgroundColor(Color::NONE)
+        Hovered::default()
+        TabIndex(0)
+        on(checkbox_self_update)
+        on(move |change: On<ValueChange<bool>>,
               menu_state: Res<State<SettingsMenuState>>,
               mut g_sett: ResMut<GraphicsSettings>,
               mut s_sett: ResMut<SoundSettings>| {
@@ -45,21 +42,23 @@ pub fn spawn(p: &mut ChildSpawnerCommands, prop_i: usize, init_val: bool) {
                 }
                 _ => (),
             };
-        },
-    );
-    entity.with_children(|p| {
-        p.spawn((
-            Name::new("Checkbox Mark"),
-            Node {
-                width: Val::Px(20.),
-                height: Val::Px(20.),
-                margin: UiRect::all(Val::Auto),
-                ..default()
-            },
-            BackgroundColor(GameColor::GOLD),
-            CheckboxMark,
-        ));
-    });
+        })
+        Children [
+            (Name::new("Checkbox Mark")
+             Node {
+                 width: Val::Px(20.),
+                 height: Val::Px(20.),
+                 margin: UiRect::all(Val::Auto),
+             }
+             BackgroundColor(GameColor::GOLD)
+             CheckboxMark)
+        ]
+    }
+}
+
+pub fn spawn(p: &mut ChildSpawnerCommands, prop_i: usize, init_val: bool) {
+    let mut entity = p.spawn_empty();
+    entity.apply_scene(scene(prop_i));
     if init_val {
         entity.insert(Checked);
     }

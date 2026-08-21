@@ -11,6 +11,7 @@ mod pause;
 mod settings;
 mod settings_menu;
 mod tools;
+mod utils;
 
 #[derive(States, Clone, Eq, PartialEq, Debug, Hash, Default)]
 pub enum MenuState {

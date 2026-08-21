@@ -14,10 +14,9 @@ use bevy::ui_widgets::{
 
 const THUMB_SIZE: f32 = 30.;
 
-// init_val must be between 0 and 1
-pub fn spawn(p: &mut ChildSpawnerCommands, prop_i: usize, init_val: f32) {
-    p.spawn((
-        Name::new("Slider"),
+pub fn scene(prop_i: usize, init_val: f32) -> impl Scene {
+    bsn! {
+        Name::new("Slider")
         Node {
             display: Display::Flex,
             flex_direction: FlexDirection::Column,
@@ -26,20 +25,17 @@ pub fn spawn(p: &mut ChildSpawnerCommands, prop_i: usize, init_val: f32) {
             width: Val::Percent(100.),
             height: Val::Percent(100.),
             min_width: Val::Px(120.),
-            ..default()
-        },
+        }
         Slider {
             track_click: TrackClick::Drag,
             orientation: SliderOrientation::Horizontal,
-        },
-        SliderValue(init_val),
-        SliderRange::new(0., 1.),
-        Hovered::default(),
-        TabIndex(0),
-    ))
-    .observe(slider_self_update)
-    .observe(
-        move |change: On<ValueChange<f32>>,
+        }
+        SliderValue(init_val)
+        SliderRange::new(0., 1.)
+        Hovered::default()
+        TabIndex(0)
+        on(slider_self_update)
+        on(move |change: On<ValueChange<f32>>,
               menu_state: Res<State<SettingsMenuState>>,
               mut g_sett: ResMut<GraphicsSettings>,
               mut s_sett: ResMut<SoundSettings>| {
@@ -53,53 +49,46 @@ pub fn spawn(p: &mut ChildSpawnerCommands, prop_i: usize, init_val: f32) {
                 }
                 _ => (),
             };
-        },
-    )
-    .with_children(|p| {
-        p.spawn((
-            Name::new("Slider Track"),
-            Node {
-                height: Val::Px(10.),
-                width: Val::Percent(100.),
-                border_radius: BorderRadius::all(Val::Px(5.)),
-                ..default()
-            },
-            BackgroundColor(GameColor::GRAY),
-        ));
-        // Inner track that is shorter than the slider by exactly the thumb size, so the
-        // thumb can be positioned with simple percentages without overhanging the ends.
-        p.spawn((
-            Name::new("Slider Thumb Track"),
-            Node {
-                position_type: PositionType::Absolute,
-                left: Val::Px(0.),
-                right: Val::Px(THUMB_SIZE),
-                top: Val::Px(0.),
-                bottom: Val::Px(0.),
-                ..default()
-            },
-        ))
-        .with_children(|p| {
-            p.spawn((
-                Name::new("Slider Thumb"),
-                SliderThumb,
-                Node {
-                    position_type: PositionType::Absolute,
-                    top: Val::Px(0.),
-                    bottom: Val::Px(0.),
-                    left: Val::Percent(init_val * 100.),
-                    width: Val::Px(THUMB_SIZE),
-                    height: Val::Px(THUMB_SIZE),
-                    margin: UiRect::vertical(Val::Auto),
-                    border: UiRect::all(Val::Px(4.)),
-                    border_radius: BorderRadius::MAX,
-                    ..default()
-                },
-                BorderColor::from(GameColor::GOLD),
-                BackgroundColor(GameColor::WHITE),
-            ));
-        });
-    });
+        })
+        Children [
+            (Name::new("Slider Track")
+             Node {
+                 height: Val::Px(10.),
+                 width: Val::Percent(100.),
+                 border_radius: BorderRadius::all(Val::Px(5.)),
+             }
+             BackgroundColor(GameColor::GRAY)),
+            (Name::new("Slider Thumb Track")
+             Node {
+                 position_type: PositionType::Absolute,
+                 left: Val::Px(0.),
+                 right: Val::Px({THUMB_SIZE}),
+                 top: Val::Px(0.),
+                 bottom: Val::Px(0.),
+             }
+             Children [
+                 (Name::new("Slider Thumb")
+                  SliderThumb
+                  Node {
+                      position_type: PositionType::Absolute,
+                      top: Val::Px(0.),
+                      bottom: Val::Px(0.),
+                      left: Val::Percent({init_val * 100.}),
+                      width: Val::Px({THUMB_SIZE}),
+                      height: Val::Px({THUMB_SIZE}),
+                      margin: UiRect::vertical(Val::Auto),
+                      border: UiRect::all(Val::Px(4.)),
+                      border_radius: BorderRadius::MAX,
+                  }
+                  BorderColor::from(GameColor::GOLD)
+                  BackgroundColor(GameColor::WHITE))
+             ])
+        ]
+    }
+}
+
+pub fn spawn(p: &mut ChildSpawnerCommands, prop_i: usize, init_val: f32) {
+    p.spawn_empty().apply_scene(scene(prop_i, init_val));
 }
 
 pub fn update_thumb_position(

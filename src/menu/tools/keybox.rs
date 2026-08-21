@@ -7,14 +7,9 @@ use bevy::text::{FontSize, FontSourceTemplate};
 #[derive(Component, Clone, Default)]
 pub struct Keybox;
 
-pub fn spawn(
-    p: &mut ChildSpawnerCommands,
-    assets: &PinballDefenseAssets,
-    prop_i: usize,
-    init_val: KeyCode,
-) {
+pub fn scene(assets: &PinballDefenseAssets, prop_i: usize, init_val: KeyCode) -> impl Scene {
     let font = FontSourceTemplate::Handle(assets.menu_font.clone().into());
-    p.spawn_empty().queue_apply_scene(bsn! {
+    bsn! {
         #Key
         Keybox
         Button
@@ -37,7 +32,16 @@ pub fn spawn(
              TextFont { font: {font}, font_size: FontSize::Px(40.0) }
              TextColor({GameColor::WHITE}))
         ]
-    });
+    }
+}
+
+pub fn spawn(
+    p: &mut ChildSpawnerCommands,
+    assets: &PinballDefenseAssets,
+    prop_i: usize,
+    init_val: KeyCode,
+) {
+    p.spawn_empty().apply_scene(scene(assets, prop_i, init_val));
 }
 
 pub fn system(

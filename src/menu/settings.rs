@@ -1,5 +1,6 @@
+use super::MenuLayout;
+use super::tools::sliders;
 use super::tools::{checkbox, keybox, row};
-use super::{MenuLayout, tools::sliders};
 use crate::prelude::*;
 use crate::settings::{GraphicsSettings, SoundSettings};
 use crate::utils::reflect::{cast, prop_name};
@@ -25,7 +26,7 @@ pub fn layout<TSettings: Resource + Struct>(
     assets: Res<PinballDefenseAssets>,
     settings: Res<TSettings>,
 ) {
-    cmds.spawn(settings_menu_layout()).with_children(|p| {
+    cmds.spawn_scene(settings_menu_layout()).with_children(|p| {
         for (i, (_, field)) in settings.iter_fields().enumerate() {
             let prop_name = prop_name(settings.as_ref(), i)
                 .replace('_', " ")
@@ -43,11 +44,12 @@ pub fn layout<TSettings: Resource + Struct>(
     });
 }
 
-#[derive(Component)]
+#[derive(Component, Clone, Default)]
 pub struct SettingsMenuLayout;
 
-fn settings_menu_layout() -> impl Bundle {
-    (
+fn settings_menu_layout() -> impl Scene {
+    let bg: Color = Color::srgba_u8(23, 24, 26, 120);
+    bsn! {
         Node {
             position_type: PositionType::Absolute,
             left: Val::Px(300.),
@@ -57,12 +59,11 @@ fn settings_menu_layout() -> impl Bundle {
             flex_wrap: FlexWrap::NoWrap,
             justify_content: JustifyContent::FlexStart,
             align_content: AlignContent::FlexStart,
-            ..default()
-        },
-        BackgroundColor(Color::srgba_u8(23, 24, 26, 120).into()),
-        MenuLayout,
-        SettingsMenuLayout,
-    )
+        }
+        BackgroundColor({bg})
+        MenuLayout
+        SettingsMenuLayout
+    }
 }
 
 pub fn clean_up(mut cmds: Commands, q_sett_layout: Query<Entity, With<SettingsMenuLayout>>) {

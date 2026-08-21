@@ -1,7 +1,7 @@
+use super::utils::headline;
 use super::{MenuLayout, actions::MenuAction, tools::menu_btn, tools::menu_btn::ButtonStyle};
 use crate::prelude::*;
 use crate::utils::GameColor;
-use bevy::text::{FontSize, FontSourceTemplate};
 
 pub fn layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
     cmds.spawn_scene(bsn! {
@@ -15,72 +15,25 @@ pub fn layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
         }
         BackgroundColor({GameColor::BACKGROUND})
         MenuLayout
-    })
-    .with_children(|p| {
-        spawn_headline("Pause", p, &assets);
-        spawn_buttons(p, &assets);
-    });
-}
-
-fn spawn_headline(text: &str, p: &mut ChildSpawnerCommands, assets: &PinballDefenseAssets) {
-    let font = FontSourceTemplate::Handle(assets.menu_font.clone().into());
-    p.spawn_empty().queue_apply_scene(bsn! {
-        Node {
-            width: Val::Percent(100.),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-        }
         Children [
-            (Text({text})
-             TextFont { font: {font}, font_size: FontSize::Px(80.0) }
-             TextColor(Color::srgb_u8(255, 254, 236)))
+            (headline("Pause", 80.0, &assets)),
+            (Node {
+                display: Display::Flex,
+                align_items: AlignItems::Center,
+                align_content: AlignContent::Center,
+                justify_content: JustifyContent::Center,
+                flex_direction: FlexDirection::Column,
+                flex_wrap: FlexWrap::NoWrap,
+                row_gap: Val::Percent(5.),
+                padding: UiRect::horizontal(Val::Percent(5.)),
+             }
+             Children [
+                 (menu_btn::scene(MenuAction::Continue, ButtonStyle::Primary, &assets, UiRect::bottom(Val::Px(10.)))),
+                 (menu_btn::scene(MenuAction::Controls, ButtonStyle::Primary, &assets, UiRect::default())),
+                 (menu_btn::scene(MenuAction::Graphics, ButtonStyle::Primary, &assets, UiRect::default())),
+                 (menu_btn::scene(MenuAction::Sound, ButtonStyle::Primary, &assets, UiRect::default())),
+                 (menu_btn::scene(MenuAction::Quit, ButtonStyle::Primary, &assets, UiRect::top(Val::Px(10.)))),
+             ])
         ]
     });
-}
-
-fn spawn_buttons(p: &mut ChildSpawnerCommands, assets: &PinballDefenseAssets) {
-    p.spawn((Node {
-        display: Display::Flex,
-        align_items: AlignItems::Center,
-        align_content: AlignContent::Center,
-        justify_content: JustifyContent::Center,
-        flex_direction: FlexDirection::Column,
-        flex_wrap: FlexWrap::NoWrap,
-        row_gap: Val::Percent(5.),
-        padding: UiRect::horizontal(Val::Percent(5.)),
-        ..default()
-    },))
-        .with_children(|p| {
-            let margin = UiRect::default();
-            let con_margin = UiRect::bottom(Val::Px(10.));
-            menu_btn::spawn(
-                MenuAction::Continue,
-                ButtonStyle::Primary,
-                p,
-                assets,
-                con_margin,
-            );
-            menu_btn::spawn(
-                MenuAction::Controls,
-                ButtonStyle::Primary,
-                p,
-                assets,
-                margin,
-            );
-            menu_btn::spawn(
-                MenuAction::Graphics,
-                ButtonStyle::Primary,
-                p,
-                assets,
-                margin,
-            );
-            menu_btn::spawn(MenuAction::Sound, ButtonStyle::Primary, p, assets, margin);
-            menu_btn::spawn(
-                MenuAction::Quit,
-                ButtonStyle::Primary,
-                p,
-                assets,
-                UiRect::top(Val::Px(10.)),
-            );
-        });
 }
