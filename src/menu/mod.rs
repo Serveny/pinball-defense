@@ -6,6 +6,7 @@ use crate::prelude::*;
 use crate::settings::{GraphicsSettings, SoundSettings};
 
 mod actions;
+mod load_game;
 mod main_menu;
 mod pause;
 mod settings;
@@ -20,6 +21,8 @@ pub enum MenuState {
     MainMenu,
     Settings,
     PauseMenu,
+    LoadGame,
+    SaveGame,
 }
 
 pub struct MenuPlugin;
@@ -49,8 +52,23 @@ impl Plugin for MenuPlugin {
                 (clear_menu_layout, pause::layout.after(clear_menu_layout)),
             )
             .add_systems(
+                OnEnter(MenuState::LoadGame),
+                (
+                    clear_menu_layout,
+                    load_game::load_game_layout.after(clear_menu_layout),
+                ),
+            )
+            .add_systems(
+                OnEnter(MenuState::SaveGame),
+                (
+                    clear_menu_layout,
+                    load_game::save_game_layout.after(clear_menu_layout),
+                ),
+            )
+            .add_systems(
                 Update,
                 (
+                    ensure_menu_camera,
                     actions::on_menu_action,
                     tools::menu_btn::system,
                     tools::sliders::update_thumb_position,
@@ -96,12 +114,22 @@ impl Plugin for MenuPlugin {
 fn in_menu(state: Res<State<MenuState>>) -> bool {
     matches!(
         *state.get(),
-        MenuState::MainMenu | MenuState::Settings | MenuState::PauseMenu
+        MenuState::MainMenu
+            | MenuState::Settings
+            | MenuState::PauseMenu
+            | MenuState::LoadGame
+            | MenuState::SaveGame
     )
 }
 
 fn enter_main_menu(mut menu_state: ResMut<NextState<MenuState>>) {
     menu_state.set(MenuState::MainMenu);
+}
+
+fn ensure_menu_camera(mut cmds: Commands, q_cam: Query<Entity, With<MenuCamera>>) {
+    if q_cam.iter().next().is_none() {
+        cmds.spawn((Camera2d, MenuCamera));
+    }
 }
 
 fn clear_menu_layout(mut cmds: Commands, q_layout: Query<Entity, With<MenuLayout>>) {
@@ -114,12 +142,19 @@ fn clean_up(
     mut cmds: Commands,
     mut settings_state: ResMut<NextState<SettingsMenuState>>,
     q_layout: Query<Entity, With<MenuLayout>>,
+    q_cam: Query<Entity, With<MenuCamera>>,
 ) {
     settings_state.set(SettingsMenuState::None);
     for id in q_layout.iter() {
+        cmds.entity(id).despawn();
+    }
+    for id in q_cam.iter() {
         cmds.entity(id).despawn();
     }
 }
 
 #[derive(Component, Clone, Default)]
 struct MenuLayout;
+
+#[derive(Component, Clone, Default)]
+struct MenuCamera;

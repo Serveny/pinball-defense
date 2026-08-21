@@ -29,6 +29,7 @@ pub fn layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
              }
              Children [
                  (menu_btn::scene(MenuAction::Continue, ButtonStyle::Primary, &assets, UiRect::bottom(Val::Px(10.)))),
+                 (menu_btn::scene(MenuAction::SaveGame, ButtonStyle::Primary, &assets, UiRect::default())),
                  (menu_btn::scene(MenuAction::Controls, ButtonStyle::Primary, &assets, UiRect::default())),
                  (menu_btn::scene(MenuAction::Graphics, ButtonStyle::Primary, &assets, UiRect::default())),
                  (menu_btn::scene(MenuAction::Sound, ButtonStyle::Primary, &assets, UiRect::default())),

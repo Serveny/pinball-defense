@@ -10,6 +10,7 @@ pub enum MenuAction {
     Continue,
     NewGame,
     LoadGame,
+    SaveGame,
     Settings,
     Back,
     Controls,
@@ -24,6 +25,7 @@ impl MenuAction {
             MenuAction::Continue => "Continue",
             MenuAction::NewGame => "New Game",
             MenuAction::LoadGame => "Load Game",
+            MenuAction::SaveGame => "Save Game",
             MenuAction::Settings => "Settings",
             MenuAction::Back => "Back",
             MenuAction::Controls => "Controls",
@@ -36,7 +38,8 @@ impl MenuAction {
 
 pub fn on_menu_action(
     mut evr: MessageReader<MenuAction>,
-    mut menu_state: ResMut<NextState<MenuState>>,
+    menu_state: Res<State<MenuState>>,
+    mut next_menu_state: ResMut<NextState<MenuState>>,
     mut app_state: ResMut<NextState<AppState>>,
     mut exit_ev: MessageWriter<AppExit>,
     mut settings_state: ResMut<NextState<SettingsMenuState>>,
@@ -46,17 +49,24 @@ pub fn on_menu_action(
         use MenuAction as MA;
         match action {
             MA::Continue => {
-                menu_state.set(MenuState::None);
+                next_menu_state.set(MenuState::None);
                 resume_ev.write(ResumeGameEvent);
             }
-            MA::NewGame | MA::LoadGame => {
-                menu_state.set(MenuState::None);
+            MA::NewGame => {
+                next_menu_state.set(MenuState::None);
                 app_state.set(AppState::Game);
             }
-            MA::Settings => menu_state.set(MenuState::Settings),
+            MA::LoadGame => next_menu_state.set(MenuState::LoadGame),
+            MA::SaveGame => next_menu_state.set(MenuState::SaveGame),
+            MA::Settings => next_menu_state.set(MenuState::Settings),
             MA::Back => {
                 settings_state.set(SettingsMenuState::None);
-                menu_state.set(MenuState::MainMenu);
+                let target = match menu_state.get() {
+                    MenuState::LoadGame => MenuState::MainMenu,
+                    MenuState::SaveGame => MenuState::PauseMenu,
+                    _ => MenuState::MainMenu,
+                };
+                next_menu_state.set(target);
             }
             MA::Controls => settings_state.set(SettingsMenuState::KeyboardControls),
             MA::Graphics => settings_state.set(SettingsMenuState::Graphics),

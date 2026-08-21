@@ -4,7 +4,6 @@ use crate::prelude::*;
 use crate::utils::GameColor;
 
 pub fn layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
-    cmds.spawn((Camera2d, MenuLayout));
     cmds.spawn_scene(bsn! {
         Node {
             display: Display::Grid,
