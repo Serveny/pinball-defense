@@ -1,6 +1,5 @@
 use super::{
-    cfg::CONFIG, enemy::LastDamager, progress::ProgressBarCountUpEvent, EventState, GameState,
-    IngameTime,
+    EventState, GameState, IngameTime, enemy::LastDamager, progress::ProgressBarCountUpEvent,
 };
 use crate::prelude::*;
 use crate::utils::PercentBw0And1;
@@ -105,22 +104,11 @@ pub struct HealthEmptyEvent(pub Entity);
 
 fn health_empty_system(
     mut empty_ev: MessageWriter<HealthEmptyEvent>,
-    mut prog_bar_ev: MessageWriter<ProgressBarCountUpEvent>,
-    q_health: Query<(Entity, &Health, Option<&LastDamager>), Changed<Health>>,
+    q_health: Query<(Entity, &Health), Changed<Health>>,
 ) {
-    for (id, health, last_damager) in q_health.iter() {
+    for (id, health) in q_health.iter() {
         if health.is_empty() {
             empty_ev.write(HealthEmptyEvent(id));
-
-            // Upgrade points for towers
-            if let Some(damager) = last_damager {
-                if let Some(damager_id) = damager.0 {
-                    prog_bar_ev.write(ProgressBarCountUpEvent::new(
-                        damager_id,
-                        CONFIG.tower_enemy_killed_progress,
-                    ));
-                }
-            }
         }
     }
 }
