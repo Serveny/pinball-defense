@@ -10,3 +10,6 @@ target/
 .DS_Store
 .worktrees/
 .agent.lock
+
+# graphify knowledge graph (regenerable via `graphify .`)
+graphify-out/
