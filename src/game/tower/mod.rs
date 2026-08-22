@@ -2,7 +2,7 @@ use self::damage::DamageOverTime;
 use self::speed::SlowDownFactor;
 use self::target::{EnemiesWithinReach, SightRadius, TargetPos};
 use super::audio::SoundEvent;
-use super::ball::CollisionWithBallEvent;
+use super::ball::{CollisionWithBallEvent, PinBall};
 use super::cfg::CONFIG;
 use super::events::collision::GameLayer;
 use super::events::tween_completed::AfterTween;
@@ -61,6 +61,7 @@ impl Plugin for TowerPlugin {
                 Update,
                 (
                     on_progress_system,
+                    on_ball_kick_system,
                     on_spawn_tower_system,
                     on_upgrade_system,
                     on_damage_upgrade_system,
@@ -72,6 +73,7 @@ impl Plugin for TowerPlugin {
                     target::on_enemy_leave_reach_system,
                     target::on_remove_despawned_enemies_from_ewr_system,
                 )
+                    .before(super::ball::clamp_ball_speed_system)
                     .run_if(in_state(EventState::Active)),
             );
     }
@@ -114,10 +116,7 @@ fn tower_bundle(pos: Vec3, sight_radius: f32) -> impl Bundle {
         //
         // Collider
         RigidBody::Kinematic,
-        Restitution {
-            coefficient: 2.,
-            combine_rule: CoefficientCombine::Multiply,
-        },
+        Restitution::from(0.65),
         DebugRender::collider(RED.into()),
         Collider::circle(0.06),
         CollisionLayers::new(GameLayer::Tower, GameLayer::Ball),
@@ -255,6 +254,25 @@ fn on_progress_system(
             sound_ev.write(SoundEvent::TowerHit);
         }
     });
+}
+
+fn on_ball_kick_system(
+    mut evr: MessageReader<CollisionWithBallEvent>,
+    q_tower: Query<&Transform, With<Tower>>,
+    mut q_ball: Query<(&Transform, &mut LinearVelocity), With<PinBall>>,
+) {
+    let Ok((ball_tf, mut ball_vel)) = q_ball.single_mut() else {
+        return;
+    };
+    for CollisionWithBallEvent(tower_id) in evr.read() {
+        let Ok(tower_tf) = q_tower.get(*tower_id) else {
+            continue;
+        };
+        let dir = (ball_tf.translation.truncate() - tower_tf.translation.truncate())
+            .try_normalize()
+            .unwrap_or(Vec2::X);
+        ball_vel.0 += dir * CONFIG.tower_kick_velocity;
+    }
 }
 
 #[derive(Component, Default)]

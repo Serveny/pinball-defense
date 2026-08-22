@@ -108,7 +108,7 @@ fn ball_reset_system(
     }
 }
 
-fn clamp_ball_speed_system(mut q_ball: Query<&mut LinearVelocity, With<PinBall>>) {
+pub(crate) fn clamp_ball_speed_system(mut q_ball: Query<&mut LinearVelocity, With<PinBall>>) {
     for mut velocity in q_ball.iter_mut() {
         let speed = velocity.length();
         if speed > MAX_BALL_SPEED {
