@@ -97,14 +97,14 @@ Important things, to make it playable:
 - Game over mechanic/screen ✅
 - Controls UI ✅
 
-- Main menu:
-  - Load game
-  - Start new game
-  - Options
-  - Exit
+- Main menu: ✅
+  - Load game ✅
+  - Start new game ✅
+  - Options ✅
+  - Exit ✅
 - game state Save/Load system
 - Performance Profiling feature
-- Pause animations if game is paused
+- Pause animations if game is paused ✅
 - Fix hanging ball physics sometimes when hitting a tower
 - Rolling ball visual effect
 

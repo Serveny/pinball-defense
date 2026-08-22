@@ -167,11 +167,13 @@ fn on_set_pause_system(
     evr: MessageReader<PauseGameEvent>,
     mut set_game_state: ResMut<NextState<GameState>>,
     mut physics_time: ResMut<Time<Physics>>,
+    mut virtual_time: ResMut<Time<Virtual>>,
 ) {
     if !evr.is_empty() {
         log!("⏸️ Pause Game");
         set_game_state.set(GameState::Pause);
         physics_time.pause();
+        virtual_time.pause();
     }
 }
 
@@ -182,11 +184,13 @@ fn on_resume_game_system(
     evr: MessageReader<ResumeGameEvent>,
     mut set_game_state: ResMut<NextState<GameState>>,
     mut physics_time: ResMut<Time<Physics>>,
+    mut virtual_time: ResMut<Time<Virtual>>,
 ) {
     if !evr.is_empty() {
         log!("️⏯️ Resume Game");
         set_game_state.set(GameState::Ingame);
         physics_time.unpause();
+        virtual_time.unpause();
     }
 }
 
