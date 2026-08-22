@@ -128,10 +128,26 @@ fn enter_main_menu(mut menu_state: ResMut<NextState<MenuState>>) {
     menu_state.set(MenuState::MainMenu);
 }
 
-fn ensure_menu_camera(mut cmds: Commands, q_cam: Query<Entity, With<MenuCamera>>) {
-    if q_cam.iter().next().is_none() {
-        cmds.spawn((Camera2d, MenuCamera));
+fn ensure_menu_camera(
+    mut cmds: Commands,
+    app_state: Res<State<AppState>>,
+    q_cam: Query<Entity, With<MenuCamera>>,
+) {
+    if q_cam.iter().next().is_some() {
+        return;
     }
+    // During gameplay the pinball camera renders the UI, so no extra menu camera is needed.
+    if app_state.get() == &AppState::Game {
+        return;
+    }
+    cmds.spawn((
+        Camera2d,
+        Camera {
+            order: 1,
+            ..default()
+        },
+        MenuCamera,
+    ));
 }
 
 fn clear_menu_layout(mut cmds: Commands, q_layout: Query<Entity, With<MenuLayout>>) {
