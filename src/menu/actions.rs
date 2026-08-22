@@ -1,4 +1,5 @@
-use super::{MenuState, SettingsMenuState};
+use super::confirm_popup::{self, ConfirmPopup};
+use super::{MenuState, SettingsMenuState, SettingsReturnMenu};
 use crate::AppState;
 use crate::game::ResumeGameEvent;
 use crate::prelude::*;
@@ -17,6 +18,9 @@ pub enum MenuAction {
     Graphics,
     Sound,
     Quit,
+    BackToMainMenu,
+    ConfirmBackToMainMenu,
+    CancelBackToMainMenu,
 }
 
 impl MenuAction {
@@ -32,6 +36,9 @@ impl MenuAction {
             MenuAction::Graphics => "Graphics",
             MenuAction::Sound => "Sound",
             MenuAction::Quit => "Quit",
+            MenuAction::BackToMainMenu => "Main Menu",
+            MenuAction::ConfirmBackToMainMenu => "Back to Main Menu",
+            MenuAction::CancelBackToMainMenu => "Cancel",
         }
     }
 }
@@ -43,7 +50,11 @@ pub fn on_menu_action(
     mut app_state: ResMut<NextState<AppState>>,
     mut exit_ev: MessageWriter<AppExit>,
     mut settings_state: ResMut<NextState<SettingsMenuState>>,
+    mut settings_return: ResMut<SettingsReturnMenu>,
     mut resume_ev: MessageWriter<ResumeGameEvent>,
+    mut cmds: Commands,
+    assets: Res<PinballDefenseAssets>,
+    q_popup: Query<Entity, With<ConfirmPopup>>,
 ) {
     for action in evr.read() {
         use MenuAction as MA;
@@ -58,12 +69,16 @@ pub fn on_menu_action(
             }
             MA::LoadGame => next_menu_state.set(MenuState::LoadGame),
             MA::SaveGame => next_menu_state.set(MenuState::SaveGame),
-            MA::Settings => next_menu_state.set(MenuState::Settings),
+            MA::Settings => {
+                settings_return.0 = menu_state.get().clone();
+                next_menu_state.set(MenuState::Settings);
+            }
             MA::Back => {
                 settings_state.set(SettingsMenuState::None);
                 let target = match menu_state.get() {
                     MenuState::LoadGame => MenuState::MainMenu,
                     MenuState::SaveGame => MenuState::PauseMenu,
+                    MenuState::Settings => settings_return.0.clone(),
                     _ => MenuState::MainMenu,
                 };
                 next_menu_state.set(target);
@@ -73,6 +88,18 @@ pub fn on_menu_action(
             MA::Sound => settings_state.set(SettingsMenuState::Sound),
             MA::Quit => {
                 exit_ev.write(AppExit::Success);
+            }
+            MA::BackToMainMenu => {
+                // TODO: only spawn when the ingame state is newer than the last save.
+                confirm_popup::spawn(&mut cmds, &assets);
+            }
+            MA::ConfirmBackToMainMenu => {
+                confirm_popup::despawn(&mut cmds, &q_popup);
+                next_menu_state.set(MenuState::None);
+                app_state.set(AppState::MainMenu);
+            }
+            MA::CancelBackToMainMenu => {
+                confirm_popup::despawn(&mut cmds, &q_popup);
             }
         }
     }

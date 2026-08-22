@@ -10,7 +10,7 @@ pub fn layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
             width: Val::Percent(100.),
             max_width: Val::Px(300.),
             height: Val::Percent(100.),
-            grid_template_rows: vec![GridTrack::px(80.), GridTrack::auto()],
+            grid_template_rows: vec![GridTrack::px(80.), GridTrack::fr(1.)],
             align_content: AlignContent::Stretch,
         }
         BackgroundColor({GameColor::BACKGROUND})
@@ -19,21 +19,24 @@ pub fn layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
             (headline("Pause", 80.0, &assets)),
             (Node {
                 display: Display::Flex,
-                align_items: AlignItems::Center,
-                align_content: AlignContent::Center,
-                justify_content: JustifyContent::Center,
                 flex_direction: FlexDirection::Column,
-                flex_wrap: FlexWrap::NoWrap,
-                row_gap: Val::Percent(5.),
                 padding: UiRect::horizontal(Val::Percent(5.)),
              }
              Children [
-                 (menu_btn::scene(MenuAction::Continue, ButtonStyle::Primary, &assets, UiRect::bottom(Val::Px(10.)))),
-                 (menu_btn::scene(MenuAction::SaveGame, ButtonStyle::Primary, &assets, UiRect::default())),
-                 (menu_btn::scene(MenuAction::Controls, ButtonStyle::Primary, &assets, UiRect::default())),
-                 (menu_btn::scene(MenuAction::Graphics, ButtonStyle::Primary, &assets, UiRect::default())),
-                 (menu_btn::scene(MenuAction::Sound, ButtonStyle::Primary, &assets, UiRect::default())),
-                 (menu_btn::scene(MenuAction::Quit, ButtonStyle::Primary, &assets, UiRect::top(Val::Px(10.)))),
+                 (Node {
+                     display: Display::Flex,
+                     flex_direction: FlexDirection::Column,
+                     align_items: AlignItems::Center,
+                     justify_content: JustifyContent::Center,
+                     row_gap: Val::Percent(5.),
+                     flex_grow: 1.0,
+                  }
+                  Children [
+                     (menu_btn::scene(MenuAction::Continue, ButtonStyle::Primary, &assets, UiRect::bottom(Val::Px(10.)))),
+                     (menu_btn::scene(MenuAction::SaveGame, ButtonStyle::Primary, &assets, UiRect::default())),
+                     (menu_btn::scene(MenuAction::Settings, ButtonStyle::Primary, &assets, UiRect::default())),
+                  ]),
+                 (menu_btn::scene(MenuAction::BackToMainMenu, ButtonStyle::Secondary, &assets, UiRect::bottom(Val::Px(20.))))
              ])
         ]
     });

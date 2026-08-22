@@ -73,7 +73,7 @@
   - pinball menu fade in/out sound ✅
   - pinball menu active sound ✅
   - pinball menu selected sound
-  - ball rolling sound
+  - ball rolling sound ✅
   - tower mg shoot sound
   - tower microwave sound
   - tower tesla sound
@@ -87,8 +87,6 @@
   - tanks: collision, slow
   - speeder: no collision, very fast, less life points
 - enemy type spawn system
-- main menu
-- load/save system
 - ball collides with enemies until enemy has no life left
 - ui resize on window resize
 

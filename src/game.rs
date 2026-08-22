@@ -111,6 +111,7 @@ impl Plugin for GamePlugin {
                 (on_resume_game_system).run_if(in_state(GameState::Pause)),
             )
             .add_systems(OnEnter(AppState::Game), init_game)
+            .add_systems(OnExit(AppState::Game), clean_up_on_exit_game)
             .add_systems(OnEnter(GameState::GameOver), game_over::spawn)
             .add_systems(
                 Update,
@@ -210,4 +211,27 @@ fn reset(
     q_game_over_screen
         .iter()
         .for_each(|entity| cmds.entity(entity).despawn());
+}
+
+fn clean_up_on_exit_game(
+    mut cmds: Commands,
+    mut game_state: ResMut<NextState<GameState>>,
+    mut physics_time: ResMut<Time<Physics>>,
+    mut virtual_time: ResMut<Time<Virtual>>,
+    q_game: Query<
+        Entity,
+        Or<(
+            With<PinBall>,
+            With<PinballWorld>,
+            With<Camera>,
+            With<DirectionalLight>,
+        )>,
+    >,
+) {
+    game_state.set(GameState::None);
+    physics_time.unpause();
+    virtual_time.unpause();
+    for entity in q_game.iter() {
+        cmds.entity(entity).despawn();
+    }
 }

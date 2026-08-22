@@ -6,6 +6,7 @@ use crate::prelude::*;
 use crate::settings::{GraphicsSettings, SoundSettings};
 
 mod actions;
+mod confirm_popup;
 mod load_game;
 mod main_menu;
 mod pause;
@@ -31,6 +32,7 @@ impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
         app.init_state::<MenuState>()
             .init_state::<SettingsMenuState>()
+            .init_resource::<SettingsReturnMenu>()
             .add_message::<MenuAction>()
             .add_systems(OnEnter(AppState::MainMenu), enter_main_menu)
             .add_systems(
@@ -158,3 +160,12 @@ struct MenuLayout;
 
 #[derive(Component, Clone, Default)]
 struct MenuCamera;
+
+#[derive(Resource, Clone)]
+struct SettingsReturnMenu(MenuState);
+
+impl Default for SettingsReturnMenu {
+    fn default() -> Self {
+        Self(MenuState::MainMenu)
+    }
+}
