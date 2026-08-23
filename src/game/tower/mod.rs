@@ -241,6 +241,7 @@ fn reattach_towers_system(
     q_towers: Query<
         (
             Entity,
+            &Tower,
             &SightRadius,
             Option<&types::gun::GunTower>,
             Option<&types::tesla::TeslaTower>,
@@ -250,10 +251,12 @@ fn reattach_towers_system(
     >,
 ) {
     let Ok(world) = q_world.single() else { return };
-    for (tower_id, sight, gun, tesla, micro) in q_towers.iter() {
+    for (tower_id, tower, sight, gun, tesla, micro) in q_towers.iter() {
         let sight_radius = sight.0;
         let tower_mat = mats.add(tower_material());
-        cmds.entity(tower_id).insert(tower_physics_bundle());
+        cmds.entity(tower_id)
+            .insert(tower_physics_bundle())
+            .insert(Transform::from_translation(tower.pos));
         cmds.entity(world).add_child(tower_id);
         cmds.entity(tower_id).with_children(|p| {
             p.spawn(tower_base_bundle(&assets, &mut mats));

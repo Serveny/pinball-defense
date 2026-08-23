@@ -251,7 +251,9 @@ pub(super) fn on_despawn_system(
 
         // Despawn foundation
         log!("🥲 Despawn foundation {:?}", foundation_id);
-        cmds.entity(foundation_id).remove::<Collider>();
+        cmds.entity(foundation_id)
+            .remove::<Collider>()
+            .remove::<Save>();
         set_despawn_animation(&mut cmds, foundation_id, pos, 3.);
 
         // Disable selected tower light

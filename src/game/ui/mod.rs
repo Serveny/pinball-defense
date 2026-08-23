@@ -1,4 +1,5 @@
 use super::{GameState, camera::PinballCamera};
+use crate::AppState;
 use crate::menu::MenuState;
 use crate::prelude::*;
 use crate::utils::RelEntity;
@@ -47,7 +48,19 @@ impl Plugin for UiPlugin {
                     toggle_ingame_ui_visibility,
                 ),
             )
-            .add_systems(OnExit(UiState::Controls), controls::despawn);
+            .add_systems(OnExit(UiState::Controls), controls::despawn)
+            .add_systems(OnExit(AppState::Game), clean_up);
+    }
+}
+
+fn clean_up(
+    mut cmds: Commands,
+    mut ui_state: ResMut<NextState<UiState>>,
+    q_bars: Query<Entity, With<PosToRelEntity>>,
+) {
+    ui_state.set(UiState::None);
+    for bar_id in q_bars.iter() {
+        cmds.entity(bar_id).despawn();
     }
 }
 
