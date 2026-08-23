@@ -1,11 +1,20 @@
 use crate::prelude::*;
+use bevy::ecs::entity::{EntityMapper, MapEntities};
+use bevy::ecs::reflect::ReflectMapEntities;
 
-#[derive(Component, Clone, Deref, DerefMut)]
-pub struct RelEntity(pub Entity);
+#[derive(Component, Clone, Deref, DerefMut, Reflect)]
+#[reflect(Component, MapEntities)]
+pub struct RelEntity(#[entities] pub Entity);
 
 impl Default for RelEntity {
     fn default() -> Self {
         RelEntity(Entity::PLACEHOLDER)
+    }
+}
+
+impl MapEntities for RelEntity {
+    fn map_entities<M: EntityMapper>(&mut self, mapper: &mut M) {
+        self.0 = mapper.get_mapped(self.0);
     }
 }
 

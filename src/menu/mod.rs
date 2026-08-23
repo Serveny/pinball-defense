@@ -33,6 +33,7 @@ impl Plugin for MenuPlugin {
         app.init_state::<MenuState>()
             .init_state::<SettingsMenuState>()
             .init_resource::<SettingsReturnMenu>()
+            .init_resource::<SavedInPauseMenu>()
             .add_message::<MenuAction>()
             .add_systems(OnEnter(AppState::MainMenu), enter_main_menu)
             .add_systems(
@@ -82,6 +83,13 @@ impl Plugin for MenuPlugin {
             )
             .add_systems(OnEnter(MenuState::None), clean_up)
             .add_systems(
+                OnTransition {
+                    exited: MenuState::None,
+                    entered: MenuState::PauseMenu,
+                },
+                reset_saved_in_pause_menu,
+            )
+            .add_systems(
                 OnEnter(SettingsMenuState::Sound),
                 (
                     settings::clean_up,
@@ -126,6 +134,10 @@ fn in_menu(state: Res<State<MenuState>>) -> bool {
 
 fn enter_main_menu(mut menu_state: ResMut<NextState<MenuState>>) {
     menu_state.set(MenuState::MainMenu);
+}
+
+fn reset_saved_in_pause_menu(mut cmds: Commands) {
+    cmds.remove_resource::<SavedInPauseMenu>();
 }
 
 fn ensure_menu_camera(
@@ -185,3 +197,6 @@ impl Default for SettingsReturnMenu {
         Self(MenuState::MainMenu)
     }
 }
+
+#[derive(Resource, Default)]
+pub struct SavedInPauseMenu;

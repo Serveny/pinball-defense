@@ -14,6 +14,7 @@ use crate::generated::world_1::road_points::ROAD_POINTS;
 use crate::prelude::*;
 use bevy::color::palettes::css::RED;
 use bevy::math::primitives::Sphere;
+use moonshine_save::prelude::Save;
 use std::time::Duration;
 
 mod step;
@@ -26,6 +27,12 @@ impl Plugin for EnemyPlugin {
         app.add_message::<SpawnEnemyEvent>()
             .add_message::<RoadEndReachedEvent>()
             .add_message::<OnEnemyDespawnEvent>()
+            .register_type::<Enemy>()
+            .register_type::<step::Step>()
+            .add_systems(
+                Update,
+                reattach_enemies_system.run_if(in_state(GameState::Ingame)),
+            )
             .add_systems(
                 Update,
                 (walk_system, recover_speed_system).run_if(in_state(GameState::Ingame)),
@@ -43,7 +50,9 @@ impl Plugin for EnemyPlugin {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+#[require(Save)]
 pub struct Enemy {
     step: Step,
     speed: f32,
@@ -105,12 +114,12 @@ fn on_spawn_system(
 #[derive(Component)]
 pub struct LastDamager(pub Option<Entity>);
 
-fn enemy(meshes: &mut Assets<Mesh>, mats: &mut Assets<StandardMaterial>) -> impl Bundle {
+fn enemy_view_bundle(
+    meshes: &mut Assets<Mesh>,
+    mats: &mut Assets<StandardMaterial>,
+) -> impl Bundle {
     (
         Name::new("Enemy"),
-        Enemy::new(),
-        Health::new(100.),
-        LastDamager(None),
         Mesh3d(meshes.add(Mesh::from(Sphere {
             radius: 0.03,
             ..default()
@@ -122,7 +131,6 @@ fn enemy(meshes: &mut Assets<Mesh>, mats: &mut Assets<StandardMaterial>) -> impl
             reflectance: 1.,
             ..default()
         })),
-        Transform::from_translation(ROAD_POINTS[0]),
         Sensor,
         RigidBody::Kinematic,
         Collider::circle(0.03),
@@ -134,6 +142,31 @@ fn enemy(meshes: &mut Assets<Mesh>, mats: &mut Assets<StandardMaterial>) -> impl
             combine_rule: CoefficientCombine::Multiply,
         },
     )
+}
+
+fn enemy(meshes: &mut Assets<Mesh>, mats: &mut Assets<StandardMaterial>) -> impl Bundle {
+    (
+        enemy_view_bundle(meshes, mats),
+        Enemy::new(),
+        Health::new(100.),
+        LastDamager(None),
+        Transform::from_translation(ROAD_POINTS[0]),
+    )
+}
+
+fn reattach_enemies_system(
+    mut cmds: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut mats: ResMut<Assets<StandardMaterial>>,
+    q_world: QueryWorld,
+    q_enemies: Query<Entity, (With<Enemy>, Without<Collider>)>,
+) {
+    let Ok(world) = q_world.single() else { return };
+    for enemy_id in q_enemies.iter() {
+        cmds.entity(enemy_id)
+            .insert(enemy_view_bundle(&mut meshes, &mut mats));
+        cmds.entity(world).add_child(enemy_id);
+    }
 }
 
 fn on_pinball_hit_system(

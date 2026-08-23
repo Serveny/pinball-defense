@@ -6,7 +6,8 @@ use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::RelEntity;
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
+#[reflect(Component)]
 pub struct GunTower;
 
 #[derive(Component)]
@@ -42,32 +43,37 @@ pub fn spawn(
             AimFirstEnemy(None),
             DamageOverTime(100.),
         ),
-        |tower| {
-            let rel_id = tower.target_entity();
-
-            // Children of tower
-            let muzzle_flash_light = |spawner: &mut ChildSpawnerCommands| {
-                spawner.spawn(muzzle_flash_light(g_sett, rel_id, sight_radius));
-            };
-            let mg_barrel = |spawner: &mut ChildSpawnerCommands| {
-                spawner
-                    .spawn(barrel(tower_mat.clone(), assets, rel_id))
-                    .with_children(muzzle_flash_light);
-            };
-            let mg_head = |spawner: &mut ChildSpawnerCommands| {
-                spawner
-                    .spawn(head(tower_mat.clone(), assets, rel_id))
-                    .with_children(mg_barrel);
-            };
-            let mg_mounting = |spawner: &mut ChildSpawnerCommands| {
-                spawner
-                    .spawn(mounting(tower_mat.clone(), assets, rel_id))
-                    .with_children(mg_head);
-            };
-
-            mg_mounting(tower);
-        },
+        |tower| build_view(tower, tower_mat.clone(), assets, g_sett, sight_radius),
     )
+}
+
+pub(crate) fn build_view(
+    tower: &mut ChildSpawnerCommands,
+    tower_mat: Handle<StandardMaterial>,
+    assets: &PinballDefenseGltfAssets,
+    g_sett: &GraphicsSettings,
+    sight_radius: f32,
+) {
+    let rel_id = tower.target_entity();
+    let muzzle_flash_light = |spawner: &mut ChildSpawnerCommands| {
+        spawner.spawn(muzzle_flash_light(g_sett, rel_id, sight_radius));
+    };
+    let mg_barrel = |spawner: &mut ChildSpawnerCommands| {
+        spawner
+            .spawn(barrel(tower_mat.clone(), assets, rel_id))
+            .with_children(muzzle_flash_light);
+    };
+    let mg_head = |spawner: &mut ChildSpawnerCommands| {
+        spawner
+            .spawn(head(tower_mat.clone(), assets, rel_id))
+            .with_children(mg_barrel);
+    };
+    let mg_mounting = |spawner: &mut ChildSpawnerCommands| {
+        spawner
+            .spawn(mounting(tower_mat.clone(), assets, rel_id))
+            .with_children(mg_head);
+    };
+    mg_mounting(tower);
 }
 
 #[derive(Component)]

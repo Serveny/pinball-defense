@@ -4,22 +4,54 @@ use super::{
     actions::MenuAction,
     tools::menu_btn::{self, ButtonStyle, MenuButton, MenuButtonData},
 };
+use crate::game::{list_saves, next_save_path};
 use crate::prelude::*;
 use crate::utils::GameColor;
-use bevy::scene::SceneScope;
 use bevy::text::{FontSize, FontSourceTemplate};
+use std::path::Path;
 
 #[derive(Component, Clone, Default)]
 pub struct SaveList;
 
 pub fn load_game_layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
     cmds.spawn_scene(nav_menu(&assets, "Load Game"));
-    cmds.spawn_scene(save_list_panel(&assets, false));
+    cmds.spawn_scene(save_list_panel()).with_children(|p| {
+        let saves = list_saves();
+        if saves.is_empty() {
+            p.spawn_empty()
+                .apply_scene(empty_message("No saves found", &assets));
+        } else {
+            for path in saves {
+                let label = save_label(&path);
+                let action = MenuAction::Load(path.to_string_lossy().into_owned());
+                p.spawn_empty()
+                    .apply_scene(save_entry(&label, action, &assets));
+            }
+        }
+    });
 }
 
 pub fn save_game_layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
     cmds.spawn_scene(nav_menu(&assets, "Save Game"));
-    cmds.spawn_scene(save_list_panel(&assets, true));
+    cmds.spawn_scene(save_list_panel()).with_children(|p| {
+        let saves = list_saves();
+        if saves.is_empty() {
+            p.spawn_empty()
+                .apply_scene(empty_message("No saves found", &assets));
+        } else {
+            for path in saves {
+                let label = save_label(&path);
+                let action = MenuAction::Save(path.to_string_lossy().into_owned());
+                p.spawn_empty()
+                    .apply_scene(save_entry(&label, action, &assets));
+            }
+        }
+        p.spawn_empty().apply_scene(save_entry(
+            "New Save",
+            MenuAction::Save(next_save_path()),
+            &assets,
+        ));
+    });
 }
 
 fn nav_menu(assets: &PinballDefenseAssets, title: &str) -> impl Scene {
@@ -56,17 +88,8 @@ fn nav_menu(assets: &PinballDefenseAssets, title: &str) -> impl Scene {
     }
 }
 
-fn save_list_panel(assets: &PinballDefenseAssets, show_new_save: bool) -> impl Scene {
+fn save_list_panel() -> impl Scene {
     let bg: Color = Color::srgba_u8(23, 24, 26, 120);
-    let entry: Box<dyn Scene> = if show_new_save {
-        Box::new(SceneScope(save_entry(
-            "New Save",
-            MenuAction::NewGame,
-            assets,
-        )))
-    } else {
-        Box::new(SceneScope(empty_hint_scene(assets)))
-    };
     bsn! {
         Node {
             position_type: PositionType::Absolute,
@@ -81,7 +104,32 @@ fn save_list_panel(assets: &PinballDefenseAssets, show_new_save: bool) -> impl S
         BackgroundColor({bg})
         MenuLayout
         SaveList
-        Children [({entry})]
+    }
+}
+
+fn save_label(path: &Path) -> String {
+    path.file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("Save")
+        .to_string()
+}
+
+fn empty_message(text: &str, assets: &PinballDefenseAssets) -> impl Scene {
+    let text = text.to_string();
+    let font = FontSourceTemplate::Handle(assets.menu_font.clone().into());
+    bsn! {
+        Node {
+            width: Val::Percent(100.),
+            height: Val::Px(65.),
+            justify_content: JustifyContent::FlexStart,
+            align_items: AlignItems::Center,
+            padding: UiRect::horizontal(Val::Px(20.)),
+        }
+        Children [
+            (Text({text})
+             TextFont { font: {font}, font_size: FontSize::Px(40.0) }
+             TextColor(GameColor::GRAY))
+        ]
     }
 }
 
@@ -109,23 +157,6 @@ fn save_entry(label: &str, action: MenuAction, assets: &PinballDefenseAssets) ->
             (Text({label})
              TextFont { font: {font}, font_size: FontSize::Px(40.0) }
              TextColor(color))
-        ]
-    }
-}
-
-fn empty_hint_scene(assets: &PinballDefenseAssets) -> impl Scene {
-    let font = FontSourceTemplate::Handle(assets.menu_font.clone().into());
-    bsn! {
-        Node {
-            width: Val::Percent(100.),
-            height: Val::Px(65.),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-        }
-        Children [
-            (Text("No save games available.")
-             TextFont { font: {font}, font_size: FontSize::Px(28.0) }
-             TextColor(Color::srgb_u8(200, 200, 200)))
         ]
     }
 }

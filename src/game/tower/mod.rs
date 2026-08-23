@@ -1,4 +1,4 @@
-use self::damage::DamageOverTime;
+use self::damage::{DamageAllTargetsInReach, DamageOverTime};
 use self::speed::SlowDownFactor;
 use self::target::{EnemiesWithinReach, SightRadius, TargetPos};
 use super::audio::SoundEvent;
@@ -11,7 +11,7 @@ use super::light::{
     FlashLight, LightOnCollision, SightRadiusLight, contact_light_bundle, sight_radius_light,
 };
 use super::pinball_menu::{PinballMenuTrigger, UpgradeMenuExecuteEvent};
-use super::progress::{ProgressBarCountUpEvent, ProgressBarResetEvent};
+use super::progress::{Progress, ProgressBarCountUpEvent, ProgressBarResetEvent};
 use super::ui;
 use super::{EventState, GameState};
 use crate::game::analog_counter::AnalogCounterSetEvent;
@@ -23,6 +23,7 @@ use crate::utils::RelEntity;
 use bevy::color::palettes::css::{BEIGE, ORANGE, RED};
 use bevy_tweening::lens::TransformPositionLens;
 use bevy_tweening::{Delay, Sequence, Tween, TweenAnim};
+use moonshine_save::prelude::Save;
 use std::time::Duration;
 pub use types::TowerType;
 use types::*;
@@ -41,6 +42,26 @@ impl Plugin for TowerPlugin {
         app.add_message::<SpawnTowerEvent>()
             .add_message::<DamageUpgradeEvent>()
             .add_message::<RangeUpgradeEvent>()
+            .register_type::<Tower>()
+            .register_type::<TowerLevel>()
+            .register_type::<TowerReady>()
+            .register_type::<SightRadius>()
+            .register_type::<DamageOverTime>()
+            .register_type::<SlowDownFactor>()
+            .register_type::<DamageAllTargetsInReach>()
+            .register_type::<types::gun::GunTower>()
+            .register_type::<types::tesla::TeslaTower>()
+            .register_type::<types::microwave::MicrowaveTower>()
+            .register_type::<foundation::TowerFoundation>()
+            .add_systems(
+                Update,
+                (
+                    reattach_towers_system,
+                    foundation::reattach_foundations_system,
+                    foundation::cleanup_build_marks_system,
+                )
+                    .run_if(in_state(GameState::Ingame)),
+            )
             .add_systems(
                 Update,
                 (
@@ -79,7 +100,9 @@ impl Plugin for TowerPlugin {
     }
 }
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Reflect)]
+#[reflect(Component)]
+#[require(Save)]
 pub struct Tower {
     pos: Vec3,
 }
@@ -93,7 +116,8 @@ impl Tower {
 #[derive(Component)]
 pub struct TowerHead;
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
+#[reflect(Component)]
 pub struct TowerReady;
 
 #[derive(Component, Clone, Copy, Debug, Hash, PartialEq, Eq)]
@@ -102,19 +126,25 @@ pub enum TowerUpgrade {
     Range,
 }
 
+const TOWER_CONTACT_COLOR: Color = Color::srgb_u8(115, 27, 7);
+
 fn tower_bundle(pos: Vec3, sight_radius: f32) -> impl Bundle {
     (
-        // General Tower components
         spatial_from_pos(tower_start_pos(pos)),
         Tower::new(pos),
         TowerLevel(0),
-        //
-        // Enemy target system
-        TargetPos(None),
         SightRadius(sight_radius),
+        Progress(0.),
+        tower_physics_bundle(),
+        TweenAnim::new(create_tower_spawn_animator(pos)),
+        AfterTween::ActivateTower,
+    )
+}
+
+fn tower_physics_bundle() -> impl Bundle {
+    (
+        TargetPos(None),
         EnemiesWithinReach::default(),
-        //
-        // Collider
         RigidBody::Kinematic,
         Restitution::from(0.65),
         DebugRender::collider(RED.into()),
@@ -122,10 +152,6 @@ fn tower_bundle(pos: Vec3, sight_radius: f32) -> impl Bundle {
         CollisionLayers::new(GameLayer::Tower, GameLayer::Ball),
         PinballMenuTrigger::Upgrade,
         LightOnCollision,
-        //
-        // Spawn animation
-        TweenAnim::new(create_tower_spawn_animator(pos)),
-        AfterTween::ActivateTower,
     )
 }
 
@@ -206,6 +232,45 @@ fn tower_start_pos(pos: Vec3) -> Vec3 {
     Vec3::new(pos.x, pos.y, pos.z - 0.1)
 }
 
+fn reattach_towers_system(
+    mut cmds: Commands,
+    mut mats: ResMut<Assets<StandardMaterial>>,
+    assets: Res<PinballDefenseGltfAssets>,
+    g_sett: Res<GraphicsSettings>,
+    q_world: QueryWorld,
+    q_towers: Query<
+        (
+            Entity,
+            &SightRadius,
+            Option<&types::gun::GunTower>,
+            Option<&types::tesla::TeslaTower>,
+            Option<&types::microwave::MicrowaveTower>,
+        ),
+        (With<Tower>, Without<Collider>),
+    >,
+) {
+    let Ok(world) = q_world.single() else { return };
+    for (tower_id, sight, gun, tesla, micro) in q_towers.iter() {
+        let sight_radius = sight.0;
+        let tower_mat = mats.add(tower_material());
+        cmds.entity(tower_id).insert(tower_physics_bundle());
+        cmds.entity(world).add_child(tower_id);
+        cmds.entity(tower_id).with_children(|p| {
+            p.spawn(tower_base_bundle(&assets, &mut mats));
+            p.spawn(contact_light_bundle(&g_sett, TOWER_CONTACT_COLOR));
+            p.spawn(tower_sight_sensor_bundle(sight_radius));
+            p.spawn(sight_radius_light(sight_radius));
+            if gun.is_some() {
+                types::gun::build_view(p, tower_mat.clone(), &assets, &g_sett, sight_radius);
+            } else if tesla.is_some() {
+                types::tesla::build_view(p, tower_mat.clone(), &assets, &g_sett, sight_radius);
+            } else if micro.is_some() {
+                types::microwave::build_view(p, tower_mat.clone(), &assets, &g_sett, sight_radius);
+            }
+        });
+    }
+}
+
 #[derive(Message)]
 pub struct SpawnTowerEvent(pub TowerType, pub Vec3);
 
@@ -232,7 +297,7 @@ fn on_spawn_tower_system(
                     }
                 };
             });
-            ui::progress_bar::spawn_transient(&mut cmds, tower_id);
+            ui::progress_bar::spawn_transient(&mut cmds, tower_id, 0.);
             points_ev.write(PointsEvent::TowerBuild);
             sound_ev.write(SoundEvent::TowerBuild);
         }
@@ -275,7 +340,8 @@ fn on_ball_kick_system(
     }
 }
 
-#[derive(Component, Default)]
+#[derive(Component, Default, Reflect)]
+#[reflect(Component)]
 struct TowerLevel(Level);
 
 impl SoundEvent {

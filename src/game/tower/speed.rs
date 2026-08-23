@@ -1,9 +1,10 @@
-use super::target::AimFirstEnemy;
 use super::TowerReady;
+use super::target::AimFirstEnemy;
 use crate::game::enemy::Enemy;
 use crate::prelude::*;
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
+#[reflect(Component)]
 pub(super) struct SlowDownFactor(pub f32);
 
 pub(super) fn afe_slow_down_system(

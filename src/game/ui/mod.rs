@@ -22,6 +22,14 @@ impl Plugin for UiPlugin {
             .add_systems(
                 Update,
                 (
+                    progress_bar::sync_progress_to_entities,
+                    progress_bar::ensure_bars_on_load,
+                )
+                    .run_if(in_state(GameState::Ingame)),
+            )
+            .add_systems(
+                Update,
+                (
                     (controls::keys_to_pos_system, controls::on_resize_system)
                         .run_if(in_state(UiState::Controls)),
                     (

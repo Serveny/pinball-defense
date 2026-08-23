@@ -11,6 +11,7 @@ impl Plugin for ProgressPlugin {
         app.add_message::<ProgressBarCountUpEvent>()
             .add_message::<ProgressBarFullEvent>()
             .add_message::<ProgressBarResetEvent>()
+            .register_type::<Progress>()
             .add_systems(
                 Update,
                 (scale_system, bar_full_system, activate_animation_system)
@@ -23,7 +24,8 @@ impl Plugin for ProgressPlugin {
     }
 }
 
-#[derive(Component, Clone, Default, Deref, DerefMut)]
+#[derive(Component, Clone, Default, Deref, DerefMut, Reflect)]
+#[reflect(Component)]
 pub struct Progress(pub f32);
 
 impl Progress {

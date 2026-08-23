@@ -1,14 +1,15 @@
 use super::animations::RotateAlways;
 use super::{TowerHead, tower_material};
-use crate::game::tower::{ShotLight, TowerReady};
 use crate::game::tower::damage::{DamageAllTargetsInReach, DamageOverTime};
 use crate::game::tower::target::EnemiesWithinReach;
+use crate::game::tower::{ShotLight, TowerReady};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::RelEntity;
 use bevy::color::palettes::css::BLUE;
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
+#[reflect(Component)]
 pub struct TeslaTower;
 
 pub fn spawn(
@@ -33,15 +34,23 @@ pub fn spawn(
             DamageAllTargetsInReach,
             DamageOverTime(15.),
         ),
-        |tower| {
-            tower.spawn(top(tower_mat.clone(), assets));
-            tower.spawn(shot_flash_light(
-                g_sett,
-                tower.target_entity(),
-                sight_radius,
-            ));
-        },
+        |tower| build_view(tower, tower_mat.clone(), assets, g_sett, sight_radius),
     )
+}
+
+pub(crate) fn build_view(
+    tower: &mut ChildSpawnerCommands,
+    tower_mat: Handle<StandardMaterial>,
+    assets: &PinballDefenseGltfAssets,
+    g_sett: &GraphicsSettings,
+    sight_radius: f32,
+) {
+    tower.spawn(top(tower_mat, assets));
+    tower.spawn(shot_flash_light(
+        g_sett,
+        tower.target_entity(),
+        sight_radius,
+    ));
 }
 
 fn top(material: Handle<StandardMaterial>, assets: &PinballDefenseGltfAssets) -> impl Bundle {

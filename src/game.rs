@@ -10,7 +10,9 @@ use self::flipper::FlipperPlugin;
 use self::game_over::GameOverScreen;
 use self::health::HealthPlugin;
 use self::level::LevelPlugin;
+pub use self::level::{LevelHub, PointHub};
 use self::light::LightPlugin;
+pub use self::save::{PendingLoad, SAVE_DIR, list_saves, next_save_path};
 use self::ui::UiState;
 use self::world::{PinballWorld, spawn_pinball_world};
 use crate::AppState;
@@ -23,6 +25,7 @@ use events::PinballEventsPlugin;
 use pinball_menu::PinballMenuPlugin;
 use player_life::PlayerLifePlugin;
 use progress::ProgressPlugin;
+use save::SavePlugin;
 use std::f32::consts::PI;
 use tower::TowerPlugin;
 use wave::WavePlugin;
@@ -45,6 +48,7 @@ mod pinball_menu;
 mod player_life;
 mod progress;
 mod road;
+mod save;
 mod tower;
 mod ui;
 mod wave;
@@ -89,6 +93,7 @@ impl Plugin for GamePlugin {
                 LevelPlugin,
                 AnalogCounterPlugin,
                 AudioPlugin,
+                SavePlugin,
             ))
             .add_plugins((
                 HealthPlugin,

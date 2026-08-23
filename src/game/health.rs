@@ -10,6 +10,8 @@ impl Plugin for HealthPlugin {
     fn build(&self, app: &mut App) {
         app.add_message::<ChangeHealthEvent>()
             .add_message::<HealthEmptyEvent>()
+            .register_type::<Health>()
+            .register_type::<HealthRecovery>()
             .add_systems(
                 Update,
                 (health_empty_system, health_recovery_system).run_if(in_state(GameState::Ingame)),
@@ -20,7 +22,8 @@ impl Plugin for HealthPlugin {
             );
     }
 }
-#[derive(Component)]
+#[derive(Component, Reflect)]
+#[reflect(Component)]
 pub struct Health {
     current: f32,
     max: f32,
@@ -45,6 +48,10 @@ impl Health {
 
     pub fn is_full(&self) -> bool {
         self.current >= self.max
+    }
+
+    pub fn fraction(&self) -> f32 {
+        self.current / self.max
     }
 }
 
@@ -113,7 +120,8 @@ fn health_empty_system(
     }
 }
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Reflect)]
+#[reflect(Component)]
 pub struct HealthRecovery {
     amount_per_second: f32,
     timeout_after_damage: f32,
