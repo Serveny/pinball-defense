@@ -2,10 +2,9 @@ use super::confirm_popup::{self, ConfirmPopup};
 use super::{MenuState, SavedInPauseMenu, SettingsMenuState, SettingsReturnMenu};
 use crate::AppState;
 use crate::game::ResumeGameEvent;
-use crate::game::{LevelHub, PendingLoad, PointHub, SAVE_DIR};
+use crate::game::{load_game, save_game};
 use crate::prelude::*;
 use bevy::app::AppExit;
-use moonshine_save::prelude::*;
 
 #[derive(Message, Component, Debug, Clone, Default)]
 pub enum MenuAction {
@@ -77,62 +76,12 @@ pub fn on_menu_action(
             MA::LoadGame => next_menu_state.set(MenuState::LoadGame),
             MA::SaveGame => next_menu_state.set(MenuState::SaveGame),
             MA::Save(path) => {
-                let _ = std::fs::create_dir_all(SAVE_DIR);
-                cmds.trigger_save(
-                    SaveWorld::default_into_file(path)
-                        .include_resource::<PointHub>()
-                        .include_resource::<LevelHub>()
-                        .exclude_component::<Mesh3d>()
-                        .exclude_component::<MeshMaterial3d<StandardMaterial>>()
-                        .exclude_component::<Name>()
-                        .exclude_component::<LinearVelocity>()
-                        .exclude_component::<AngularVelocity>()
-                        .exclude_component::<Collider>()
-                        .exclude_component::<RigidBody>()
-                        .exclude_component::<CollisionLayers>()
-                        .exclude_component::<CollisionEventsEnabled>()
-                        .exclude_component::<DebugRender>()
-                        .exclude_component::<Sensor>()
-                        .exclude_component::<Mass>()
-                        .exclude_component::<Restitution>()
-                        .exclude_component::<Friction>()
-                        .exclude_component::<SweptCcd>()
-                        .exclude_component::<MaxLinearSpeed>()
-                        .exclude_component::<SleepingDisabled>()
-                        .exclude_component::<ColliderOf>()
-                        .exclude_component::<RigidBodyColliders>()
-                        .exclude_component::<ColliderMassProperties>()
-                        .exclude_component::<ColliderDensity>()
-                        .exclude_component::<ColliderTransform>()
-                        .exclude_component::<ColliderAabb>()
-                        .exclude_component::<ColliderMarker>()
-                        .exclude_component::<ComputedMass>()
-                        .exclude_component::<ComputedAngularInertia>()
-                        .exclude_component::<ComputedCenterOfMass>()
-                        .exclude_component::<Sleeping>()
-                        .exclude_component::<SleepThreshold>()
-                        .exclude_component::<SleepTimer>()
-                        .exclude_component::<Position>()
-                        .exclude_component::<Rotation>()
-                        .exclude_component::<avian2d::collision::collider::EnlargedAabb>()
-                        .exclude_component::<avian2d::dynamics::integrator::VelocityIntegrationData>()
-                        .exclude_component::<avian2d::dynamics::rigid_body::forces::AccumulatedLocalAcceleration>()
-                        .exclude_component::<avian2d::dynamics::solver::solver_body::SolverBody>()
-                        .exclude_component::<avian2d::dynamics::solver::solver_body::SolverBodyInertia>()
-                        .exclude_component::<avian2d::physics_transform::PreSolveDeltaPosition>()
-                        .exclude_component::<avian2d::physics_transform::PreSolveDeltaRotation>()
-                        .exclude_component::<ChildOf>()
-                        .exclude_component::<Children>()
-                        .exclude_component::<GlobalTransform>()
-                        .exclude_component::<bevy::camera::visibility::ViewVisibility>()
-                        .exclude_component::<bevy::camera::visibility::InheritedVisibility>()
-                        .exclude_component::<bevy::camera::visibility::VisibilityClass>(),
-                );
+                save_game(&mut cmds, path.clone());
                 cmds.insert_resource(SavedInPauseMenu);
                 next_menu_state.set(MenuState::PauseMenu);
             }
             MA::Load(path) => {
-                cmds.insert_resource(PendingLoad(path.clone()));
+                load_game(&mut cmds, path.clone());
                 next_menu_state.set(MenuState::None);
                 app_state.set(AppState::Game);
             }

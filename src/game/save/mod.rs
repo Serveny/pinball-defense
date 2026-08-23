@@ -1,3 +1,9 @@
+mod config;
+mod slots;
+
+pub use config::save_world;
+pub use slots::{list_saves, next_save_path};
+
 use super::GameState;
 use crate::prelude::*;
 use crate::utils::RelEntity;
@@ -7,7 +13,7 @@ use std::path::PathBuf;
 pub const SAVE_DIR: &str = "saves";
 
 #[derive(Resource)]
-pub struct PendingLoad(pub String);
+pub struct PendingLoad(pub PathBuf);
 
 pub struct SavePlugin;
 
@@ -31,26 +37,11 @@ fn apply_pending_load(mut cmds: Commands, pending: Option<Res<PendingLoad>>) {
     cmds.remove_resource::<PendingLoad>();
 }
 
-pub fn list_saves() -> Vec<PathBuf> {
-    let Ok(entries) = std::fs::read_dir(SAVE_DIR) else {
-        return Vec::new();
-    };
-    let mut saves: Vec<PathBuf> = entries
-        .filter_map(Result::ok)
-        .map(|entry| entry.path())
-        .filter(|path| path.extension().is_some_and(|ext| ext == "ron"))
-        .collect();
-    saves.sort();
-    saves
+pub fn save_game(cmds: &mut Commands, path: impl Into<PathBuf>) {
+    let _ = std::fs::create_dir_all(SAVE_DIR);
+    cmds.trigger_save(save_world(path));
 }
 
-pub fn next_save_path() -> String {
-    let next = list_saves()
-        .iter()
-        .filter_map(|path| path.file_stem().and_then(|s| s.to_str()))
-        .filter_map(|stem| stem.strip_prefix("slot_"))
-        .filter_map(|n| n.parse::<u32>().ok())
-        .max()
-        .map_or(1, |n| n + 1);
-    format!("{SAVE_DIR}/slot_{next}.ron")
+pub fn load_game(cmds: &mut Commands, path: impl Into<PathBuf>) {
+    cmds.insert_resource(PendingLoad(path.into()));
 }
