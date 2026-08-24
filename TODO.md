@@ -109,3 +109,7 @@ Important things, to make it playable:
 - Activate sound by default in release mode
 - Fix ui progress bars pixel position (Green bar too small, white pixels at top)
 - UI: Show points where they are made: Progress blue, Damage red
+
+- menü sounds: record & add
+- tower shot sounds: record & add
+- better 3d models
