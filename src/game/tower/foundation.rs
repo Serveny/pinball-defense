@@ -140,6 +140,7 @@ pub(super) fn reattach_foundations_system(
 pub(super) fn cleanup_build_marks_system(
     mut cmds: Commands,
     q_foundations: Query<&Transform, With<TowerFoundation>>,
+    q_towers: Query<&super::Tower>,
     q_marks: Query<(Entity, &Transform, Option<&TweenAnim>), With<FoundationBuildMark>>,
 ) {
     for (mark_id, mark_trans, anim) in q_marks.iter() {
@@ -150,6 +151,7 @@ pub(super) fn cleanup_build_marks_system(
         if q_foundations
             .iter()
             .any(|f| f.translation.distance(pos) < 0.01)
+            || q_towers.iter().any(|t| t.pos.truncate().distance(pos.truncate()) < 0.01)
         {
             cmds.entity(mark_id).despawn();
         }

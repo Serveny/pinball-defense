@@ -60,6 +60,7 @@ impl Plugin for TowerPlugin {
                     foundation::reattach_foundations_system,
                     foundation::cleanup_build_marks_system,
                 )
+                    .chain()
                     .run_if(in_state(GameState::Ingame)),
             )
             .add_systems(
@@ -257,6 +258,9 @@ fn reattach_towers_system(
         cmds.entity(tower_id)
             .insert(tower_physics_bundle())
             .insert(Transform::from_translation(tower.pos));
+        if gun.is_some() || micro.is_some() {
+            cmds.entity(tower_id).insert(target::AimFirstEnemy(None));
+        }
         cmds.entity(world).add_child(tower_id);
         cmds.entity(tower_id).with_children(|p| {
             p.spawn(tower_base_bundle(&assets, &mut mats));
