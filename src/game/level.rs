@@ -1,7 +1,7 @@
 use super::{
+    EventState, GameState,
     analog_counter::AnalogCounterSetEvent,
     light::{FlashLight, LevelUpLamp},
-    EventState, GameState,
 };
 use crate::prelude::*;
 use std::time::Duration;
@@ -12,6 +12,8 @@ impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.add_message::<PointsEvent>()
             .add_message::<LevelUpEvent>()
+            .register_type::<PointHub>()
+            .register_type::<LevelHub>()
             .add_systems(OnEnter(GameState::Init), init_resources)
             .add_systems(
                 Update,
@@ -71,10 +73,11 @@ pub type Points = u32;
 pub type Level = u8;
 
 #[derive(Resource, Default, Reflect)]
-
-struct PointHub(Points);
+#[reflect(Resource)]
+pub struct PointHub(pub Points);
 
 #[derive(Resource, Default, Reflect)]
+#[reflect(Resource)]
 pub struct LevelHub {
     level: Level,
     points_level_up: Points,

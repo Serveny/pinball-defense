@@ -31,4 +31,5 @@ bevy_tweening = "0.16.0"
 digits_iterator = "0.1.0"
 bevy_framepace = "0.22.0"
 rand = { version = "0.10.2", features = ["thread_rng"] }
+moonshine-save = "0.7.0"
 #bevy_debug_grid = "0.1"

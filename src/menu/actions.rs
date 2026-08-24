@@ -1,17 +1,20 @@
 use super::confirm_popup::{self, ConfirmPopup};
-use super::{MenuState, SettingsMenuState, SettingsReturnMenu};
+use super::{MenuState, SavedInPauseMenu, SettingsMenuState, SettingsReturnMenu};
 use crate::AppState;
 use crate::game::ResumeGameEvent;
+use crate::game::{load_game, save_game};
 use crate::prelude::*;
 use bevy::app::AppExit;
 
-#[derive(Message, Component, Debug, Clone, Copy, Default)]
+#[derive(Message, Component, Debug, Clone, Default)]
 pub enum MenuAction {
     #[default]
     Continue,
     NewGame,
     LoadGame,
     SaveGame,
+    Save(String),
+    Load(String),
     Settings,
     Back,
     Controls,
@@ -30,6 +33,8 @@ impl MenuAction {
             MenuAction::NewGame => "New Game",
             MenuAction::LoadGame => "Load Game",
             MenuAction::SaveGame => "Save Game",
+            MenuAction::Save(_) => "Save",
+            MenuAction::Load(_) => "Load",
             MenuAction::Settings => "Settings",
             MenuAction::Back => "Back",
             MenuAction::Controls => "Controls",
@@ -55,6 +60,7 @@ pub fn on_menu_action(
     mut cmds: Commands,
     assets: Res<PinballDefenseAssets>,
     q_popup: Query<Entity, With<ConfirmPopup>>,
+    saved_in_pause_menu: Option<Res<SavedInPauseMenu>>,
 ) {
     for action in evr.read() {
         use MenuAction as MA;
@@ -69,6 +75,16 @@ pub fn on_menu_action(
             }
             MA::LoadGame => next_menu_state.set(MenuState::LoadGame),
             MA::SaveGame => next_menu_state.set(MenuState::SaveGame),
+            MA::Save(path) => {
+                save_game(&mut cmds, path.clone());
+                cmds.insert_resource(SavedInPauseMenu);
+                next_menu_state.set(MenuState::PauseMenu);
+            }
+            MA::Load(path) => {
+                load_game(&mut cmds, path.clone());
+                next_menu_state.set(MenuState::None);
+                app_state.set(AppState::Game);
+            }
             MA::Settings => {
                 settings_return.0 = menu_state.get().clone();
                 next_menu_state.set(MenuState::Settings);
@@ -90,8 +106,12 @@ pub fn on_menu_action(
                 exit_ev.write(AppExit::Success);
             }
             MA::BackToMainMenu => {
-                // TODO: only spawn when the ingame state is newer than the last save.
-                confirm_popup::spawn(&mut cmds, &assets);
+                if saved_in_pause_menu.is_some() {
+                    next_menu_state.set(MenuState::None);
+                    app_state.set(AppState::MainMenu);
+                } else {
+                    confirm_popup::spawn(&mut cmds, &assets);
+                }
             }
             MA::ConfirmBackToMainMenu => {
                 confirm_popup::despawn(&mut cmds, &q_popup);

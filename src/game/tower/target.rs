@@ -3,7 +3,8 @@ use crate::game::enemy::{Enemy, OnEnemyDespawnEvent};
 use crate::prelude::*;
 use bevy::platform::collections::HashSet;
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
+#[reflect(Component)]
 pub(super) struct SightRadius(pub f32);
 
 #[derive(Component)]

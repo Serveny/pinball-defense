@@ -1,4 +1,5 @@
 use super::{GameState, camera::PinballCamera};
+use crate::AppState;
 use crate::menu::MenuState;
 use crate::prelude::*;
 use crate::utils::RelEntity;
@@ -23,6 +24,14 @@ impl Plugin for UiPlugin {
             .add_systems(
                 Update,
                 (
+                    progress_bar::sync_progress_to_entities,
+                    progress_bar::ensure_bars_on_load,
+                )
+                    .run_if(in_state(GameState::Ingame)),
+            )
+            .add_systems(
+                Update,
+                (
                     (controls::keys_to_pos_system, controls::on_resize_system)
                         .run_if(in_state(UiState::Controls)),
                     controls::update_keys_pos_system.run_if(in_state(UiState::Controls)),
@@ -42,7 +51,19 @@ impl Plugin for UiPlugin {
                     controls::auto_hide_system.run_if(in_state(UiState::Controls)),
                 ),
             )
-            .add_systems(OnExit(UiState::Controls), controls::despawn);
+            .add_systems(OnExit(UiState::Controls), controls::despawn)
+            .add_systems(OnExit(AppState::Game), clean_up);
+    }
+}
+
+fn clean_up(
+    mut cmds: Commands,
+    mut ui_state: ResMut<NextState<UiState>>,
+    q_bars: Query<Entity, With<PosToRelEntity>>,
+) {
+    ui_state.set(UiState::None);
+    for bar_id in q_bars.iter() {
+        cmds.entity(bar_id).despawn();
     }
 }
 

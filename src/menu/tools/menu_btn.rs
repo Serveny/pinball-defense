@@ -6,7 +6,7 @@ use bevy::text::{FontSize, FontSourceTemplate};
 #[derive(Component, Clone, Default)]
 pub struct MenuButton;
 
-#[derive(Component, Clone, Copy, Default)]
+#[derive(Component, Clone, Default)]
 pub struct MenuButtonData {
     pub action: MenuAction,
     pub style: ButtonStyle,
@@ -73,7 +73,7 @@ pub fn system(
         let resting = data.style.resting_color();
         let target = match *interaction {
             Interaction::Pressed => {
-                action_ev.write(data.action);
+                action_ev.write(data.action.clone());
                 resting
             }
             Interaction::Hovered => GameColor::WHITE,

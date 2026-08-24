@@ -246,11 +246,10 @@ pub(super) fn on_resize_system(
     q_flipper: Query<(&GlobalTransform, &FlipperType)>,
     ball_spawn: Res<BallSpawn>,
 ) {
-    for _ in resize_reader.read() {
+    if resize_reader.read().next().is_some() {
         if let Ok(cam) = q_cam.single() {
             keys_to_pos(q_keys, controls, cam, q_flipper, ball_spawn);
         }
-        return;
     }
 }
 

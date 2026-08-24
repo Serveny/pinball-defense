@@ -1,6 +1,7 @@
 use crate::generated::world_1::road_points::{ROAD_DISTS, ROAD_POINTS};
 use crate::prelude::*;
 
+#[derive(Reflect)]
 pub(super) struct Step {
     pub i_road_point: usize,
     pub direction: Vec3,

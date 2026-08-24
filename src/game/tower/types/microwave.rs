@@ -1,14 +1,15 @@
 use super::{TowerHead, tower_material};
-use crate::game::tower::{ShotLight, TowerReady};
 use crate::game::tower::animations::RotateToTarget;
 use crate::game::tower::speed::SlowDownFactor;
 use crate::game::tower::target::AimFirstEnemy;
+use crate::game::tower::{ShotLight, TowerReady};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::RelEntity;
 use bevy::color::palettes::css::ORANGE_RED;
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
+#[reflect(Component)]
 pub struct MicrowaveTower;
 
 pub fn spawn(
@@ -33,15 +34,23 @@ pub fn spawn(
             AimFirstEnemy(None),
             SlowDownFactor(0.5),
         ),
-        |tower| {
-            let rel_id = tower.target_entity();
-            tower
-                .spawn(head(tower_mat.clone(), assets, rel_id))
-                .with_children(|head| {
-                    head.spawn(slow_down_flash_light(g_sett, rel_id, sight_radius));
-                });
-        },
+        |tower| build_view(tower, tower_mat.clone(), assets, g_sett, sight_radius),
     )
+}
+
+pub(crate) fn build_view(
+    tower: &mut ChildSpawnerCommands,
+    tower_mat: Handle<StandardMaterial>,
+    assets: &PinballDefenseGltfAssets,
+    g_sett: &GraphicsSettings,
+    sight_radius: f32,
+) {
+    let rel_id = tower.target_entity();
+    tower
+        .spawn(head(tower_mat, assets, rel_id))
+        .with_children(|head| {
+            head.spawn(slow_down_flash_light(g_sett, rel_id, sight_radius));
+        });
 }
 
 fn head(

@@ -1,5 +1,9 @@
 use super::PosToRelEntity;
+use crate::game::enemy::Enemy;
+use crate::game::health::Health;
 use crate::game::progress::{Progress, ProgressBarCountUpEvent, ProgressBarResetEvent};
+use crate::game::tower::Tower;
+use crate::game::tower::foundation::TowerFoundation;
 use crate::utils::{PercentBw0And1, RelEntity};
 use bevy::color::palettes::css::RED;
 use bevy::prelude::*;
@@ -65,7 +69,7 @@ pub fn spawn(cmds: &mut Commands, rel_id: Entity, start_percent: PercentBw0And1)
 /// Hidden UI progress bar for a tower/base. It appears for
 /// `TRANSIENT_VISIBLE_SECS` whenever the related entity receives progress
 /// (e.g. the ball hits a tower/foundation).
-pub fn spawn_transient(cmds: &mut Commands, rel_id: Entity) {
+pub fn spawn_transient(cmds: &mut Commands, rel_id: Entity, init_val: PercentBw0And1) {
     cmds.spawn_scene(bsn! {
         Name::new("Tower Progress UI Bar")
         RelEntity({rel_id})
@@ -84,9 +88,9 @@ pub fn spawn_transient(cmds: &mut Commands, rel_id: Entity) {
         BackgroundColor({Color::WHITE})
         Children [
             (ProgressUiBar
-             Progress(0.)
+             Progress({init_val})
              RelEntity({rel_id})
-             Node { width: Val::Percent(0.), height: Val::Percent(100.) }
+             Node { width: Val::Percent({init_val * 100.}), height: Val::Percent(100.) }
              BackgroundColor({PROGRESS_COLOR}))
         ]
     })
@@ -224,6 +228,39 @@ pub(super) fn reset_on_upgrade_system(
                 fill.is_locked = true;
                 fill.is_active_animation = false;
             }
+        }
+    }
+}
+
+pub(super) fn sync_progress_to_entities(
+    q_bars: Query<(&RelEntity, &Progress), With<ProgressUiBar>>,
+    mut q_entities: Query<&mut Progress, Without<ProgressUiBar>>,
+) {
+    for (rel, bar_progress) in q_bars.iter() {
+        if let Ok(mut entity_progress) = q_entities.get_mut(rel.0) {
+            if entity_progress.0 != bar_progress.0 {
+                entity_progress.0 = bar_progress.0;
+            }
+        }
+    }
+}
+
+pub(super) fn ensure_bars_on_load(
+    mut cmds: Commands,
+    q_entities: Query<
+        (Entity, Option<&Progress>, Option<&Health>),
+        Or<(With<Tower>, With<TowerFoundation>, With<Enemy>)>,
+    >,
+    q_bars: Query<&RelEntity, With<ProgressUiBar>>,
+) {
+    for (entity, progress, health) in q_entities.iter() {
+        if q_bars.iter().any(|r| r.0 == entity) {
+            continue;
+        }
+        if let Some(progress) = progress {
+            spawn_transient(&mut cmds, entity, progress.0);
+        } else if let Some(health) = health {
+            spawn(&mut cmds, entity, health.fraction());
         }
     }
 }

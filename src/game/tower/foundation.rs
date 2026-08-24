@@ -5,7 +5,7 @@ use crate::game::events::tween_completed::AfterTween;
 use crate::game::level::{LevelHub, LevelUpEvent, PointsEvent};
 use crate::game::light::{FlashLight, LightOnCollision, contact_light_bundle, disable_flash_light};
 use crate::game::pinball_menu::{PinballMenuTrigger, TowerMenuExecuteEvent};
-use crate::game::progress::{self, ProgressBarCountUpEvent};
+use crate::game::progress::{Progress, ProgressBarCountUpEvent};
 use crate::game::ui;
 use crate::game::world::PinballWorld;
 use crate::prelude::*;
@@ -16,9 +16,12 @@ use bevy_tweening::{
     Delay, Tween,
     lens::{TransformPositionLens, TransformRotationLens},
 };
+use moonshine_save::prelude::Save;
 use std::{f32::consts::PI, time::Duration};
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+#[require(Save)]
 pub struct TowerFoundation {
     hit_progress: f32,
 }
@@ -42,7 +45,6 @@ pub(super) fn on_spawn_system(
     mut cmds: Commands,
     mut evr: MessageReader<LevelUpEvent>,
     mut q_mark: Query<(Entity, &mut FoundationBuildMark, &Transform)>,
-    mut mats: ResMut<Assets<StandardMaterial>>,
     assets: Res<PinballDefenseGltfAssets>,
     q_pb_word: Query<Entity, With<PinballWorld>>,
     g_sett: Res<GraphicsSettings>,
@@ -62,9 +64,9 @@ pub(super) fn on_spawn_system(
                 let mut foundation_id = Entity::PLACEHOLDER;
                 cmds.entity(world_id).with_children(|p| {
                     let hit_progress = level.foundation_hit_progress();
-                    foundation_id = spawn(p, &mut mats, &assets, &g_sett, pos, hit_progress);
+                    foundation_id = spawn(p, &assets, &g_sett, pos, hit_progress);
                 });
-                ui::progress_bar::spawn_transient(&mut cmds, foundation_id);
+                ui::progress_bar::spawn_transient(&mut cmds, foundation_id, 0.);
             }
         }
     }
@@ -72,42 +74,88 @@ pub(super) fn on_spawn_system(
 
 fn spawn(
     spawner: &mut ChildSpawnerCommands,
-    mats: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
     pos: Vec3,
     hit_progress: f32,
 ) -> Entity {
-    let color = Color::srgb_u8(134, 166, 86);
     spawner
         .spawn(ring(assets, pos, hit_progress))
-        .with_children(|p| {
-            let rel_id = p.target_entity();
-            p.spawn(contact_light_bundle(g_sett, color));
-            p.spawn(lid_top(assets));
-            p.spawn(lid_bottom(assets)).with_children(|p| {
-                let bar_trans = Transform::from_translation(Vec3::new(-0.06, 0., 0.));
-                progress::spawn(p, assets, mats, rel_id, bar_trans, color, 0.);
-            });
-        })
+        .with_children(|p| spawn_foundation_children(p, assets, g_sett))
         .id()
 }
 
-fn ring(assets: &PinballDefenseGltfAssets, pos: Vec3, hit_progress: f32) -> impl Bundle {
+fn foundation_view_bundle(assets: &PinballDefenseGltfAssets) -> impl Bundle {
     (
         Name::new("Tower Foundation"),
         Mesh3d(assets.foundation_ring.clone()),
         MeshMaterial3d(assets.foundation_ring_material.clone()),
-        Transform::from_translation(pos),
         Sensor,
         Collider::circle(0.07),
         DebugRender::collider(GREEN.into()),
         CollisionLayers::new(GameLayer::Tower, GameLayer::Ball),
-        TowerFoundation::new(hit_progress),
         LightOnCollision,
         PinballMenuTrigger::Tower,
+    )
+}
+
+fn spawn_foundation_children(
+    p: &mut ChildSpawnerCommands,
+    assets: &PinballDefenseGltfAssets,
+    g_sett: &GraphicsSettings,
+) {
+    let color = Color::srgb_u8(134, 166, 86);
+    p.spawn(contact_light_bundle(g_sett, color));
+    p.spawn(lid_top(assets));
+    p.spawn(lid_bottom(assets));
+}
+
+fn ring(assets: &PinballDefenseGltfAssets, pos: Vec3, hit_progress: f32) -> impl Bundle {
+    (
+        foundation_view_bundle(assets),
+        Transform::from_translation(pos),
+        TowerFoundation::new(hit_progress),
+        Progress(0.),
         TweenAnim::new(spawn_animation(pos)),
     )
+}
+
+pub(super) fn reattach_foundations_system(
+    mut cmds: Commands,
+    assets: Res<PinballDefenseGltfAssets>,
+    g_sett: Res<GraphicsSettings>,
+    q_world: Query<Entity, With<PinballWorld>>,
+    q_foundations: Query<Entity, (With<TowerFoundation>, Without<Collider>)>,
+) {
+    let Ok(world) = q_world.single() else { return };
+    for foundation_id in q_foundations.iter() {
+        cmds.entity(foundation_id)
+            .insert(foundation_view_bundle(&assets));
+        cmds.entity(world).add_child(foundation_id);
+        cmds.entity(foundation_id)
+            .with_children(|p| spawn_foundation_children(p, &assets, &g_sett));
+    }
+}
+
+pub(super) fn cleanup_build_marks_system(
+    mut cmds: Commands,
+    q_foundations: Query<&Transform, With<TowerFoundation>>,
+    q_towers: Query<&super::Tower>,
+    q_marks: Query<(Entity, &Transform, Option<&TweenAnim>), With<FoundationBuildMark>>,
+) {
+    for (mark_id, mark_trans, anim) in q_marks.iter() {
+        if anim.is_some() {
+            continue;
+        }
+        let pos = mark_trans.translation;
+        if q_foundations
+            .iter()
+            .any(|f| f.translation.distance(pos) < 0.01)
+            || q_towers.iter().any(|t| t.pos.truncate().distance(pos.truncate()) < 0.01)
+        {
+            cmds.entity(mark_id).despawn();
+        }
+    }
 }
 
 fn spawn_animation(pos: Vec3) -> Tween {
@@ -205,7 +253,9 @@ pub(super) fn on_despawn_system(
 
         // Despawn foundation
         log!("🥲 Despawn foundation {:?}", foundation_id);
-        cmds.entity(foundation_id).remove::<Collider>();
+        cmds.entity(foundation_id)
+            .remove::<Collider>()
+            .remove::<Save>();
         set_despawn_animation(&mut cmds, foundation_id, pos, 3.);
 
         // Disable selected tower light

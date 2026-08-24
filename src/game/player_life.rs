@@ -1,19 +1,28 @@
 use super::health::{Health, HealthEmptyEvent, HealthRecovery};
+use super::world::QueryWorld;
 use super::{EventState, GameState};
 use crate::prelude::*;
+use moonshine_save::prelude::Save;
 
 pub struct PlayerLifePlugin;
 
 impl Plugin for PlayerLifePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            (on_game_over_system).run_if(in_state(EventState::Active)),
-        );
+        app.register_type::<LifeBar>()
+            .add_systems(
+                Update,
+                reattach_life_bar_system.run_if(in_state(GameState::Ingame)),
+            )
+            .add_systems(
+                Update,
+                (on_game_over_system).run_if(in_state(EventState::Active)),
+            );
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+#[require(Save)]
 pub struct LifeBar;
 
 pub fn spawn_life_bar(
@@ -43,6 +52,31 @@ pub fn spawn_life_bar(
                 1.,
             )
         });
+}
+
+fn reattach_life_bar_system(
+    mut cmds: Commands,
+    assets: Res<PinballDefenseGltfAssets>,
+    mut mats: ResMut<Assets<StandardMaterial>>,
+    q_world: QueryWorld,
+    q_life_bars: Query<(Entity, &Health), (With<LifeBar>, Without<Children>)>,
+) {
+    let Ok(world) = q_world.single() else { return };
+    for (life_bar_id, health) in q_life_bars.iter() {
+        cmds.entity(world).add_child(life_bar_id);
+        cmds.entity(life_bar_id).with_children(|spawner| {
+            let color = Color::srgb_u8(156, 217, 26);
+            super::progress::spawn(
+                spawner,
+                &assets,
+                &mut mats,
+                life_bar_id,
+                Transform::default(),
+                color,
+                health.fraction(),
+            )
+        });
+    }
 }
 
 fn on_game_over_system(
