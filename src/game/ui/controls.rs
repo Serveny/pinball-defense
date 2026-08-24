@@ -72,12 +72,24 @@ pub fn despawn(mut cmds: Commands, q_ui: Query<Entity, With<ControlsUi>>) {
     }
 }
 
-type QKeys<'w, 's, 'a> = Query<'w, 's, (&'a mut Node, &'a UiKey)>;
+type QKeys<'w, 's, 'a> = Query<'w, 's, (&'a mut Node, &'a ComputedNode, &'a UiKey)>;
 
 pub fn keys_to_pos_system(
     q_keys: QKeys,
     controls: Res<KeyboardControls>,
     q_cam: Query<(&GlobalTransform, &Camera), (With<PinballCamera>, Changed<Transform>)>,
+    q_flipper: Query<(&GlobalTransform, &FlipperType)>,
+    ball_spawn: Res<BallSpawn>,
+) {
+    if let Ok(cam) = q_cam.single() {
+        keys_to_pos(q_keys, controls, cam, q_flipper, ball_spawn)
+    }
+}
+
+pub(super) fn update_keys_pos_system(
+    q_keys: QKeys,
+    controls: Res<KeyboardControls>,
+    q_cam: Query<(&GlobalTransform, &Camera), With<PinballCamera>>,
     q_flipper: Query<(&GlobalTransform, &FlipperType)>,
     ball_spawn: Res<BallSpawn>,
 ) {
@@ -130,13 +142,14 @@ fn set_projected_pos(
     cam_trans: &GlobalTransform,
     cam: &Camera,
 ) {
-    let (mut ui_style, _) = q_keys
+    let (mut ui_style, computed, _) = q_keys
         .iter_mut()
-        .find(|(_, ui_key)| ui_key.0 == key)
+        .find(|(_, _, ui_key)| ui_key.0 == key)
         .unwrap_or_else(|| panic!("UI key {:?} not found", key));
     let screen_pos = project_3d_to_2d_screen(obj_pos, cam_trans, cam);
-    ui_style.left = Val::Px(screen_pos.x);
-    ui_style.top = Val::Px(screen_pos.y);
+    let half = computed.size() * computed.inverse_scale_factor() * 0.5;
+    ui_style.left = Val::Px(screen_pos.x - half.x);
+    ui_style.top = Val::Px(screen_pos.y - half.y);
 }
 
 #[derive(Default, Debug, PartialEq, Eq, Hash, Clone, Copy)]
@@ -147,7 +160,7 @@ enum FieldPos {
     Invisible,
 }
 
-const FIELD_HEIGHT_PX: f32 = 55.;
+const FIELD_HEIGHT_PX: f32 = 42.;
 
 #[derive(Component)]
 pub struct UiKey(KeyCode);
@@ -165,7 +178,7 @@ fn spawn_key(
                 Text(format!("{text} ")),
                 TextFont {
                     font: assets.menu_font.clone().into(),
-                    font_size: FontSize::Px(52.0),
+                    font_size: FontSize::Px(40.0),
                     ..default()
                 },
                 TextColor(GameColor::WHITE),
@@ -175,8 +188,8 @@ fn spawn_key(
                 Node {
                     width: Val::Auto,
                     height: Val::Px(FIELD_HEIGHT_PX),
-                    border: UiRect::all(Val::Px(5.0)),
-                    padding: UiRect::new(Val::Px(5.), Val::Px(10.), Val::Px(0.), Val::Px(5.)),
+                    border: UiRect::all(Val::Px(4.0)),
+                    padding: UiRect::new(Val::Px(4.), Val::Px(8.), Val::Px(0.), Val::Px(4.)),
                     ..default()
                 },
                 BorderColor::from(GameColor::WHITE),
@@ -188,7 +201,7 @@ fn spawn_key(
                     Text(format!("{key:?}").replace("Key", "")),
                     TextFont {
                         font: assets.menu_font.clone().into(),
-                        font_size: FontSize::Px(40.0),
+                        font_size: FontSize::Px(32.0),
                         ..default()
                     },
                     TextColor(GameColor::WHITE),
