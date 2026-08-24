@@ -10,6 +10,7 @@ use super::world::WorldFrame;
 use crate::prelude::*;
 use bevy::color::palettes::css::GOLD;
 use bevy::math::primitives::Sphere;
+use moonshine_save::prelude::Save;
 use std::ops::Range;
 
 pub struct BallPlugin;
@@ -18,9 +19,15 @@ impl Plugin for BallPlugin {
     fn build(&self, app: &mut App) {
         app.add_message::<OnBallDespawnEvent>()
             .add_message::<CollisionWithBallEvent>()
+            .register_type::<PinBall>()
             .add_systems(
                 Update,
-                (ball_reset_system, clamp_ball_speed_system).run_if(in_state(GameState::Ingame)),
+                (
+                    reattach_ball_system,
+                    ball_reset_system,
+                    clamp_ball_speed_system,
+                )
+                    .run_if(in_state(GameState::Ingame)),
             )
             .add_systems(
                 Update,
@@ -34,7 +41,9 @@ impl Plugin for BallPlugin {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
+#[reflect(Component)]
+#[require(Save)]
 pub struct PinBall;
 
 pub fn spawn(
@@ -43,8 +52,20 @@ pub fn spawn(
     materials: &mut Assets<StandardMaterial>,
     pos: Vec3,
 ) {
-    let radius = 0.02;
     cmds.spawn((
+        ball_view_bundle(meshes, materials),
+        Transform::from_translation(pos),
+        PinBall,
+        Name::new("Ball"),
+    ));
+}
+
+fn ball_view_bundle(
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+) -> impl Bundle {
+    let radius = 0.02;
+    (
         Mesh3d(meshes.add(Mesh::from(Sphere {
             radius: radius,
             ..default()
@@ -56,26 +77,21 @@ pub fn spawn(
             reflectance: 1.,
             ..default()
         })),
-        Transform::from_translation(pos),
-        (
-            RigidBody::Dynamic,
-            SweptCcd::LINEAR.include_dynamic(false),
-            MaxLinearSpeed(MAX_BALL_SPEED),
-            SleepingDisabled::default(),
-            Collider::circle(radius),
-            CollisionEventsEnabled,
-            DebugRender::collider(GOLD.into()),
-            CollisionLayers::new(
-                GameLayer::Ball,
-                [GameLayer::Enemy, GameLayer::Tower, GameLayer::Map],
-            ),
-            Mass(0.081),
-            Restitution::from(0.65),
-            Friction::from(0.01),
+        RigidBody::Dynamic,
+        SweptCcd::LINEAR.include_dynamic(false),
+        MaxLinearSpeed(MAX_BALL_SPEED),
+        SleepingDisabled::default(),
+        Collider::circle(radius),
+        CollisionEventsEnabled,
+        DebugRender::collider(GOLD.into()),
+        CollisionLayers::new(
+            GameLayer::Ball,
+            [GameLayer::Enemy, GameLayer::Tower, GameLayer::Map],
         ),
-        PinBall,
-        Name::new("Ball"),
-    ));
+        Mass(0.081),
+        Restitution::from(0.65),
+        Friction::from(0.01),
+    )
 }
 
 #[derive(Message)]
@@ -85,6 +101,18 @@ const X_RANGE: Range<f32> = -1.3..1.3;
 const Y_RANGE: Range<f32> = -0.72..0.72;
 const HIT_Y_RANGE: Range<f32> = -0.2..0.12;
 const MAX_BALL_SPEED: f32 = 10.;
+
+fn reattach_ball_system(
+    mut cmds: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    q_ball: Query<Entity, (With<PinBall>, Without<Collider>)>,
+) {
+    for ball_id in q_ball.iter() {
+        cmds.entity(ball_id)
+            .insert(ball_view_bundle(&mut meshes, &mut materials));
+    }
+}
 
 fn ball_reset_system(
     mut cmds: Commands,
