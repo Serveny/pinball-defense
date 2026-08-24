@@ -17,6 +17,7 @@ use loading::LoadingScreenPlugin;
 use menu::MenuPlugin;
 use prelude::*;
 use settings::{GraphicsSettings, SoundSettings};
+use std::path::PathBuf;
 
 mod assets;
 mod game;
@@ -36,6 +37,25 @@ pub enum AppState {
 }
 
 const MAX_FRAME_RATE: f32 = 144.;
+
+#[derive(Resource, Default)]
+pub struct CliArgs {
+    pub load: Option<PathBuf>,
+    pub save: Option<PathBuf>,
+}
+
+fn parse_cli_args() -> CliArgs {
+    let mut args = CliArgs::default();
+    let mut iter = std::env::args().skip(1);
+    while let Some(arg) = iter.next() {
+        match arg.as_str() {
+            "--load" => args.load = iter.next().map(PathBuf::from),
+            "--save" => args.save = iter.next().map(PathBuf::from),
+            _ => {}
+        }
+    }
+    args
+}
 
 fn main() {
     let mut app = App::new();
@@ -67,6 +87,7 @@ fn main() {
     app.insert_resource(GraphicsSettings::high());
 
     app.insert_resource(SoundSettings::default());
+    app.insert_resource(parse_cli_args());
     app.add_plugins((LoadingScreenPlugin, GamePlugin, MenuPlugin))
         .run();
 }

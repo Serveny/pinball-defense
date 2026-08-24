@@ -114,6 +114,10 @@ impl Plugin for GamePlugin {
                 Update,
                 (on_resume_game_system).run_if(in_state(GameState::Pause)),
             )
+            .add_systems(
+                Update,
+                save_and_exit_system.run_if(in_state(GameState::Ingame)),
+            )
             .add_systems(OnEnter(AppState::Game), init_game)
             .add_systems(OnExit(AppState::Game), clean_up_on_exit_game)
             .add_systems(OnEnter(GameState::GameOver), game_over::spawn)
@@ -127,6 +131,18 @@ impl Plugin for GamePlugin {
 
 fn init_game(mut game_state: ResMut<NextState<GameState>>) {
     game_state.set(GameState::Init);
+}
+
+fn save_and_exit_system(
+    mut cmds: Commands,
+    args: Res<crate::CliArgs>,
+    mut exit_ev: MessageWriter<AppExit>,
+) {
+    let Some(path) = &args.save else {
+        return;
+    };
+    save_game(&mut cmds, path.clone());
+    exit_ev.write(AppExit::Success);
 }
 
 fn start_game(

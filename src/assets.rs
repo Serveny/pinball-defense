@@ -176,11 +176,20 @@ fn set_appstate_if_finished(
     mut app_state: ResMut<NextState<AppState>>,
     gltf_load_state: Res<State<AssetsInternalLoadState>>,
     load_state: Res<State<AssetsLoadState>>,
+    args: Res<crate::CliArgs>,
+    mut cmds: Commands,
 ) {
     if *gltf_load_state == AssetsInternalLoadState::Finished
         && *load_state == AssetsLoadState::Finished
     {
-        app_state.set(AppState::MainMenu);
+        if args.load.is_some() || args.save.is_some() {
+            if let Some(path) = &args.load {
+                crate::game::load_game(&mut cmds, path.clone());
+            }
+            app_state.set(AppState::Game);
+        } else {
+            app_state.set(AppState::MainMenu);
+        }
     }
 }
 
