@@ -11,7 +11,7 @@ use super::light::{
     FlashLight, LightOnCollision, SightRadiusLight, contact_light_bundle, sight_radius_light,
 };
 use super::pinball_menu::{PinballMenuTrigger, UpgradeMenuExecuteEvent};
-use super::progress::{ProgressBarCountUpEvent, ProgressBarResetEvent};
+use super::progress::{self, ProgressBarCountUpEvent, ProgressBarResetEvent};
 use super::ui;
 use super::{EventState, GameState};
 use crate::game::analog_counter::AnalogCounterSetEvent;
@@ -169,11 +169,15 @@ fn spawn(
         .spawn(tower_bundle(pos, sight_radius))
         .insert(tower_type_bundle)
         .with_children(|p| {
+            let tower_id = p.target_entity();
             let color = Color::srgb_u8(115, 27, 7);
+            let bar_trans =
+                Transform::from_xyz(0.034, 0., -0.007).with_scale(Vec3::new(0.5, 0.5, 1.));
             p.spawn(tower_base_bundle(assets, mats));
             p.spawn(contact_light_bundle(g_sett, color));
             p.spawn(tower_sight_sensor_bundle(sight_radius));
             p.spawn(sight_radius_light(sight_radius));
+            progress::spawn(p, assets, mats, tower_id, bar_trans, color, 0.);
             add_to_tower(p);
         })
         .id()

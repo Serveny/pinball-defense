@@ -5,7 +5,7 @@ use crate::game::events::tween_completed::AfterTween;
 use crate::game::level::{LevelHub, LevelUpEvent, PointsEvent};
 use crate::game::light::{FlashLight, LightOnCollision, contact_light_bundle, disable_flash_light};
 use crate::game::pinball_menu::{PinballMenuTrigger, TowerMenuExecuteEvent};
-use crate::game::progress::ProgressBarCountUpEvent;
+use crate::game::progress::{self, ProgressBarCountUpEvent};
 use crate::game::ui;
 use crate::game::world::PinballWorld;
 use crate::prelude::*;
@@ -42,6 +42,7 @@ pub(super) fn on_spawn_system(
     mut cmds: Commands,
     mut evr: MessageReader<LevelUpEvent>,
     mut q_mark: Query<(Entity, &mut FoundationBuildMark, &Transform)>,
+    mut mats: ResMut<Assets<StandardMaterial>>,
     assets: Res<PinballDefenseGltfAssets>,
     q_pb_word: Query<Entity, With<PinballWorld>>,
     g_sett: Res<GraphicsSettings>,
@@ -61,7 +62,7 @@ pub(super) fn on_spawn_system(
                 let mut foundation_id = Entity::PLACEHOLDER;
                 cmds.entity(world_id).with_children(|p| {
                     let hit_progress = level.foundation_hit_progress();
-                    foundation_id = spawn(p, &assets, &g_sett, pos, hit_progress);
+                    foundation_id = spawn(p, &mut mats, &assets, &g_sett, pos, hit_progress);
                 });
                 ui::progress_bar::spawn_transient(&mut cmds, foundation_id);
             }
@@ -71,6 +72,7 @@ pub(super) fn on_spawn_system(
 
 fn spawn(
     spawner: &mut ChildSpawnerCommands,
+    mats: &mut Assets<StandardMaterial>,
     assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
     pos: Vec3,
@@ -80,9 +82,13 @@ fn spawn(
     spawner
         .spawn(ring(assets, pos, hit_progress))
         .with_children(|p| {
+            let rel_id = p.target_entity();
             p.spawn(contact_light_bundle(g_sett, color));
             p.spawn(lid_top(assets));
-            p.spawn(lid_bottom(assets));
+            p.spawn(lid_bottom(assets)).with_children(|p| {
+                let bar_trans = Transform::from_translation(Vec3::new(-0.06, 0., 0.));
+                progress::spawn(p, assets, mats, rel_id, bar_trans, color, 0.);
+            });
         })
         .id()
 }

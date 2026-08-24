@@ -18,7 +18,8 @@ impl Plugin for ProgressPlugin {
             )
             .add_systems(
                 Update,
-                (on_count_up_system).run_if(in_state(EventState::Active)),
+                (on_count_up_system, reset_on_upgrade_system)
+                    .run_if(in_state(EventState::Active)),
             );
     }
 }
@@ -53,12 +54,22 @@ fn on_count_up_system(
     mut q_progress: QueryProgressBar,
 ) {
     for ev in evr.read() {
-        if let Some((_, mut progress)) = q_progress.iter_mut().find(|(p, _)| p.0 == ev.rel_id) {
-            let old = progress.0;
-            let new = (old + ev.amount).clamp(0., 1.);
+        for (_, mut progress) in q_progress.iter_mut().filter(|(p, _)| p.0 == ev.rel_id) {
+            let new = (progress.0 + ev.amount).clamp(0., 1.);
             if new != progress.0 {
                 progress.0 = new
             }
+        }
+    }
+}
+
+fn reset_on_upgrade_system(
+    mut evr: MessageReader<ProgressBarResetEvent>,
+    mut q_progress: Query<(&RelEntity, &mut Progress), With<ProgressBar>>,
+) {
+    for ev in evr.read() {
+        for (_, mut progress) in q_progress.iter_mut().filter(|(r, _)| r.0 == ev.rel_id()) {
+            progress.0 = 0.;
         }
     }
 }
