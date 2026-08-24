@@ -98,6 +98,10 @@ impl LevelHub {
     pub fn foundation_hit_progress(&self) -> f32 {
         1. / (self.level as f32 * 3.)
     }
+
+    pub fn level(&self) -> Level {
+        self.level
+    }
 }
 
 #[derive(Message, Clone, Copy)]

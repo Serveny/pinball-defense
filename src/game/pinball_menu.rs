@@ -1,6 +1,6 @@
 use super::ball::{CollisionWithBallEvent, PinBall};
 use super::events::collision::GameLayer;
-use super::level::{Level, LevelUpEvent};
+use super::level::{Level, LevelHub, LevelUpEvent};
 use super::progress::ProgressBarFullEvent;
 use super::tower::{SpawnTowerEvent, TowerType, TowerUpgrade};
 use super::world::QueryWorld;
@@ -35,6 +35,7 @@ impl Plugin for PinballMenuPlugin {
                     on_execute_system,
                     on_ready_system,
                     on_unlock_system,
+                    restore_unlocks_system,
                 )
                     .run_if(in_state(EventState::Active)),
             );
@@ -577,6 +578,22 @@ fn on_unlock_system(
             upgrades.0.push(tower_upgrade);
         }
     }
+}
+
+fn restore_unlocks_system(
+    level: Res<LevelHub>,
+    mut towers: ResMut<UnlockedTowers>,
+    mut upgrades: ResMut<UnlockedUpgrades>,
+) {
+    if !level.is_changed() {
+        return;
+    }
+    towers.0 = std::iter::once(TowerType::Gun)
+        .chain((1..=level.level()).filter_map(new_tower_unlock))
+        .collect();
+    upgrades.0 = (1..=level.level())
+        .filter_map(new_tower_upgrade_unlock)
+        .collect();
 }
 
 fn new_tower_unlock(level: Level) -> Option<TowerType> {

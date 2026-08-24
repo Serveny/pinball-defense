@@ -108,6 +108,7 @@ Important things, to make it playable:
 - Pause animations if game is paused ✅
 - Fix hanging ball physics sometimes when hitting a tower
 - Rolling ball visual effect
+- Extra-Ball-Field: Hit it and the ball starter will insert new ball
 
 - Activate sound by default in release mode
 - Fix ui progress bars pixel position (Green bar too small, white pixels at top)

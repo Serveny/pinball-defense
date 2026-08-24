@@ -2,7 +2,6 @@
 
 - Do not add comments, unless if critical context/intent is genuinely lost without it; never explain what code already reveals.
 - **Rely on documentation**: Do not read the code of the dependencies in first place, only if something documented is not working or no answer is found in the documentation
-- ALWAYS use a git worktree (`./.worktrees`) for coding tasks
 - query graphify for codebase questions
 
 ## Tips
