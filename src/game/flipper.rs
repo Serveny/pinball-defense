@@ -11,7 +11,11 @@ impl Plugin for FlipperPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (flipper_system, sound_system).run_if(in_state(GameState::Ingame)),
+            sound_system.run_if(in_state(GameState::Ingame)),
+        )
+        .add_systems(
+            FixedUpdate,
+            flipper_system.run_if(in_state(GameState::Ingame)),
         )
         .add_systems(
             Update,
@@ -35,7 +39,7 @@ impl Flipper {
     }
 }
 
-#[derive(Component, Debug, PartialEq, Eq)]
+#[derive(Component, Debug, Copy, Clone, PartialEq, Eq)]
 pub enum FlipperType {
     Left = 1,
     Right = -1,

@@ -24,7 +24,6 @@ pub struct WorldFrame;
 
 pub fn spawn_pinball_world(
     mut cmds: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
     mut mats: ResMut<Assets<StandardMaterial>>,
     assets: Res<PinballDefenseGltfAssets>,
     g_sett: Res<GraphicsSettings>,
@@ -32,7 +31,6 @@ pub fn spawn_pinball_world(
     let assets = assets.as_ref();
     let mut pc_id = None;
     let mut lc_id = None;
-    //let mut img_handle: Option<Handle<Image>> = None;
     cmds.spawn((
         PinballWorld,
         Name::new("Pinball World"),
@@ -77,7 +75,7 @@ pub fn spawn_pinball_world(
         super::flipper::spawn_right(fr_pos, p, assets);
 
         spawn_build_marks(p, assets);
-        spawn_road(p, &mut mats, &mut meshes, assets);
+        spawn_road(p, assets);
 
         let life_bar_trans = Transform {
             translation: Vec3::new(1.15, -0.035, -0.05),
@@ -86,7 +84,6 @@ pub fn spawn_pinball_world(
         };
         spawn_life_bar(p, assets, &mut mats, life_bar_trans);
         p.spawn(pinball_menu_glass(assets, &mut mats));
-        //img_handle = Some(spawn_point_display(p, &mut mats, &mut images, assets));
         pc_id = Some(analog_counter::spawn_10_digit(
             p,
             assets,
@@ -117,9 +114,6 @@ pub fn spawn_pinball_world(
     cmds.insert_resource(LevelCounterId(
         lc_id.expect("Level Counter Id can not be None here!"),
     ));
-    //if let Some(img) = img_handle {
-    //spawn_point_display_ui_and_cam(&mut cmds, assets, img);
-    //}
 }
 
 #[cfg(not(debug_assertions))]

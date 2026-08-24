@@ -129,43 +129,30 @@ type QueryContactLight<'w, 's, 'a> = Query<
 #[derive(Component)]
 pub(super) struct FadeOutLight;
 
-fn fade_out_point_light_system(
-    mut q_light: Query<
-        (&mut Visibility, &mut PointLight),
-        (With<FadeOutLight>, Without<FlashLight>),
-    >,
-    time: Res<Time>,
-) {
-    for (mut visi, mut light) in q_light.iter_mut() {
-        if *visi != Visibility::Hidden {
-            let time = time.delta_secs() * LIGHT_INTENSITY;
-            light.intensity -= time;
-            if light.intensity <= 0. {
-                light.intensity = 0.;
-                *visi = Visibility::Hidden;
+macro_rules! fade_out_light_system {
+    ($name:ident, $light:ty) => {
+        fn $name(
+            mut q_light: Query<
+                (&mut Visibility, &mut $light),
+                (With<FadeOutLight>, Without<FlashLight>),
+            >,
+            time: Res<Time>,
+        ) {
+            for (mut visi, mut light) in q_light.iter_mut() {
+                if *visi != Visibility::Hidden {
+                    light.intensity -= time.delta_secs() * LIGHT_INTENSITY;
+                    if light.intensity <= 0. {
+                        light.intensity = 0.;
+                        *visi = Visibility::Hidden;
+                    }
+                }
             }
         }
-    }
+    };
 }
 
-fn fade_out_spot_light_system(
-    mut q_light: Query<
-        (&mut Visibility, &mut SpotLight),
-        (With<FadeOutLight>, Without<FlashLight>),
-    >,
-    time: Res<Time>,
-) {
-    for (mut visi, mut light) in q_light.iter_mut() {
-        if *visi != Visibility::Hidden {
-            let time = time.delta_secs() * LIGHT_INTENSITY;
-            light.intensity -= time;
-            if light.intensity <= 0. {
-                light.intensity = 0.;
-                *visi = Visibility::Hidden;
-            }
-        }
-    }
-}
+fade_out_light_system!(fade_out_point_light_system, PointLight);
+fade_out_light_system!(fade_out_spot_light_system, SpotLight);
 
 #[derive(Component)]
 pub(super) struct SightRadiusLight;

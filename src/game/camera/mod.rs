@@ -9,7 +9,6 @@ use bevy::post_process::bloom::Bloom;
 use bevy::render::render_resource::{TextureViewDescriptor, TextureViewDimension};
 use bevy_tweening::{Lens, Tween, TweenAnim};
 
-mod ball;
 mod dynamic;
 mod fps;
 
@@ -20,10 +19,6 @@ impl Plugin for PinballCameraPlugin {
         app.init_state::<CameraState>()
             .init_resource::<FpsCamSettings>()
             .add_systems(OnEnter(GameState::Init), spawn)
-            .add_systems(
-                Update,
-                ball::follow_ball.run_if(in_state(CameraState::BallCamera)),
-            )
             .add_systems(
                 Update,
                 (fps::on_keyboard_mouse_motion_system, fps::gamepad_input)
@@ -40,7 +35,6 @@ impl Plugin for PinballCameraPlugin {
 pub enum CameraState {
     #[default]
     Dynamic,
-    BallCamera,
     FpsCamera,
 }
 

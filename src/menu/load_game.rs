@@ -16,17 +16,10 @@ pub struct SaveList;
 pub fn load_game_layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
     cmds.spawn_scene(nav_menu(&assets, "Load Game"));
     cmds.spawn_scene(save_list_panel()).with_children(|p| {
-        let saves = list_saves();
-        if saves.is_empty() {
+        spawn_save_entries(p, &assets, |path| MenuAction::Load(path));
+        if list_saves().is_empty() {
             p.spawn_empty()
                 .apply_scene(empty_message("No saves found", &assets));
-        } else {
-            for path in saves {
-                let label = save_label(&path);
-                let action = MenuAction::Load(path.to_string_lossy().into_owned());
-                p.spawn_empty()
-                    .apply_scene(save_entry(&label, action, &assets));
-            }
         }
     });
 }
@@ -34,24 +27,25 @@ pub fn load_game_layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
 pub fn save_game_layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
     cmds.spawn_scene(nav_menu(&assets, "Save Game"));
     cmds.spawn_scene(save_list_panel()).with_children(|p| {
-        let saves = list_saves();
-        if saves.is_empty() {
-            p.spawn_empty()
-                .apply_scene(empty_message("No saves found", &assets));
-        } else {
-            for path in saves {
-                let label = save_label(&path);
-                let action = MenuAction::Save(path.to_string_lossy().into_owned());
-                p.spawn_empty()
-                    .apply_scene(save_entry(&label, action, &assets));
-            }
-        }
+        spawn_save_entries(p, &assets, |path| MenuAction::Save(path));
         p.spawn_empty().apply_scene(save_entry(
             "New Save",
             MenuAction::Save(next_save_path()),
             &assets,
         ));
     });
+}
+
+fn spawn_save_entries(
+    p: &mut ChildSpawnerCommands,
+    assets: &PinballDefenseAssets,
+    to_action: impl Fn(String) -> MenuAction,
+) {
+    for path in list_saves() {
+        let label = save_label(&path);
+        let action = to_action(path.to_string_lossy().into_owned());
+        p.spawn_empty().apply_scene(save_entry(&label, action, assets));
+    }
 }
 
 fn nav_menu(assets: &PinballDefenseAssets, title: &str) -> impl Scene {

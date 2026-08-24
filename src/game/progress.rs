@@ -201,9 +201,6 @@ fn activate_animation_system(mut q_progess: Query<&mut ProgressBar, Changed<Prog
 }
 
 const TOLERANCE: f32 = 0.01;
-fn is_almost_eq(a: f32, b: f32) -> bool {
-    return ((a - TOLERANCE)..(a + TOLERANCE)).contains(&b);
-}
 
 // Makes progress visible
 fn scale_system(
@@ -218,7 +215,7 @@ fn scale_system(
         let mut y = trans.scale.y;
         y += time.delta_secs() * 0.5 * (p - y).signum();
 
-        if is_almost_eq(y, p) {
+        if (y - p).abs() < TOLERANCE {
             y = p;
             bar.is_active_animation = false;
         }

@@ -56,17 +56,16 @@ pub(super) fn key_system(
         ball_starter_state.set(BallStarterState::Fire);
     }
 
-    if key.just_pressed(controls.flipper_left) {
-        set_flipper_status(FlipperType::Left, FlipperStatus::Pushed, &mut q_flipper);
-    }
-    if key.just_pressed(controls.flipper_right) {
-        set_flipper_status(FlipperType::Right, FlipperStatus::Pushed, &mut q_flipper);
-    }
-    if key.just_released(controls.flipper_left) {
-        set_flipper_status(FlipperType::Left, FlipperStatus::Idle, &mut q_flipper);
-    }
-    if key.just_released(controls.flipper_right) {
-        set_flipper_status(FlipperType::Right, FlipperStatus::Idle, &mut q_flipper);
+    for (f_type, key_code) in [
+        (FlipperType::Left, controls.flipper_left),
+        (FlipperType::Right, controls.flipper_right),
+    ] {
+        if key.just_pressed(key_code) {
+            set_flipper_status(f_type, FlipperStatus::Pushed, &mut q_flipper);
+        }
+        if key.just_released(key_code) {
+            set_flipper_status(f_type, FlipperStatus::Idle, &mut q_flipper);
+        }
     }
     if key.just_pressed(controls.pause) {
         pause_ev.write(PauseGameEvent);

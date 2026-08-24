@@ -282,33 +282,19 @@ pub(super) fn on_progress_system(
 
 #[derive(Component)]
 pub struct FoundationBuildMark {
-    i: usize,
     is_available: bool,
 }
 
 impl FoundationBuildMark {
-    pub fn new(i: usize) -> Self {
-        Self {
-            i,
-            is_available: true,
-        }
-    }
-}
-
-impl std::fmt::Display for FoundationBuildMark {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(
-            f,
-            "Build Mark {} - available: {}",
-            self.i, self.is_available
-        )
+    pub fn new() -> Self {
+        Self { is_available: true }
     }
 }
 
 pub fn build_mark(assets: &PinballDefenseGltfAssets, pos: Vec3, i: usize) -> impl Bundle {
     (
         Name::new(format!("Build Mark {i}")),
-        FoundationBuildMark::new(i),
+        FoundationBuildMark::new(),
         Mesh3d(assets.build_mark.clone()),
         MeshMaterial3d(assets.build_mark_material.clone()),
         Transform::from_translation(pos),

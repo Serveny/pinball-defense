@@ -7,7 +7,6 @@ use bevy::asset::Asset;
 use bevy::asset::LoadState;
 use bevy::ecs::resource::Resource;
 use bevy::gltf::{Gltf, GltfAssetLabel, GltfMesh};
-use bevy::platform::collections::HashMap;
 pub use bevy_asset_loader::prelude::*;
 use rand::seq::IndexedRandom;
 use std::env;
@@ -137,10 +136,6 @@ impl<T: Asset> Handles<T> {
         self.0
             .choose(&mut rand::rng())
             .expect("😥 Vector empty, no sound to choose")
-    }
-
-    fn from(value: Handle<T>) -> Self {
-        Self(vec![value])
     }
 }
 pub struct AssetsPlugin;
@@ -307,23 +302,15 @@ fn audio_assets_path(sub_dir: Option<&str>) -> PathBuf {
         .expect("😥 No parent folder of current exe")
         .join(PathBuf::from(format!(
             "../../assets/audio/{}",
-            if let Some(sub_dir) = sub_dir {
-                sub_dir
-            } else {
-                ""
-            }
+            sub_dir.unwrap_or("")
         )))
 }
-
-#[derive(Resource, Default)]
-pub struct PinballDefenseAudioSources(pub HashMap<String, Handles<AudioSource>>);
 
 fn add_audio_resource(mut cmds: Commands, ass: Res<AssetServer>) {
     let audio_dir = audio_assets_path(None);
     let file_name_paths: Vec<(String, PathBuf)> = file_paths(audio_dir);
 
     let mut audio_assets = PinballDefenseAudioAssets::default();
-    let mut handles_map = PinballDefenseAudioSources::default();
     for (i, (_, field)) in PinballDefenseAudioAssets::default()
         .iter_fields()
         .enumerate()
@@ -339,21 +326,16 @@ fn add_audio_resource(mut cmds: Commands, ass: Res<AssetServer>) {
                     let handle = ass.load(path);
                     field.0.push(handle);
                 }
-                handles_map.0.insert(prop_name.clone(), field.clone());
             }
             "bevy_asset::handle::Handle<bevy_audio::audio_source::AudioSource>" => {
                 let file_path = path_by_name(&prop_name, &file_name_paths);
                 let handle: Handle<AudioSource> = ass.load(file_path);
-                handles_map
-                    .0
-                    .insert(prop_name.clone(), Handles::from(handle.clone()));
                 set_field(&mut audio_assets, i, Box::new(handle));
             }
             type_name => println!("🔊 Unknown type in audio asset struct: {}", type_name),
         }
     }
     cmds.insert_resource(audio_assets);
-    cmds.insert_resource(handles_map);
 }
 
 fn path_by_name(name: &str, files: &[(String, PathBuf)]) -> PathBuf {
