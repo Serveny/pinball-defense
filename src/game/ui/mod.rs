@@ -18,7 +18,8 @@ pub struct UiPlugin;
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.init_state::<UiState>()
-            .add_systems(OnEnter(UiState::Controls), controls::spawn)
+            .init_resource::<controls::ControlsUiFade>()
+            .add_systems(OnEnter(UiState::Controls), (controls::spawn, reset_controls_fade))
             .add_systems(
                 Update,
                 (
@@ -37,10 +38,15 @@ impl Plugin for UiPlugin {
                         .chain()
                         .run_if(in_state(GameState::Ingame)),
                     toggle_ingame_ui_visibility,
+                    controls::auto_hide_system.run_if(in_state(UiState::Controls)),
                 ),
             )
             .add_systems(OnExit(UiState::Controls), controls::despawn);
     }
+}
+
+fn reset_controls_fade(mut fade: ResMut<controls::ControlsUiFade>) {
+    fade.reset();
 }
 
 fn toggle_ingame_ui_visibility(

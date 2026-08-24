@@ -8,9 +8,52 @@ use crate::utils::GameColor;
 use bevy::prelude::default;
 use bevy::text::FontSize;
 use bevy::window::WindowResized;
+use std::time::Duration;
 
 #[derive(Component)]
 pub struct ControlsUi;
+
+const HIDE_DELAY_SECS: f32 = 10.;
+const FADE_DURATION_SECS: f32 = 2.;
+
+#[derive(Resource)]
+pub struct ControlsUiFade {
+    timer: Timer,
+}
+
+impl Default for ControlsUiFade {
+    fn default() -> Self {
+        Self {
+            timer: Timer::new(
+                Duration::from_secs_f32(HIDE_DELAY_SECS + FADE_DURATION_SECS),
+                TimerMode::Once,
+            ),
+        }
+    }
+}
+
+impl ControlsUiFade {
+    pub fn reset(&mut self) {
+        self.timer.reset();
+    }
+
+    fn alpha(&self) -> f32 {
+        let elapsed = self.timer.elapsed_secs();
+        if elapsed <= HIDE_DELAY_SECS {
+            1.
+        } else {
+            let fade_t = (elapsed - HIDE_DELAY_SECS) / FADE_DURATION_SECS;
+            (1. - fade_t).max(0.)
+        }
+    }
+
+    fn finished(&self) -> bool {
+        Timer::just_finished(&self.timer)
+    }
+}
+
+#[derive(Component)]
+pub(super) struct FadeableColor(Color);
 
 pub fn spawn(mut cmd: Commands, ctl: Res<KeyboardControls>, ass: Res<PinballDefenseAssets>) {
     use FieldPos::*;
@@ -126,6 +169,7 @@ fn spawn_key(
                     ..default()
                 },
                 TextColor(GameColor::WHITE),
+                FadeableColor(GameColor::WHITE),
             ));
             p.spawn((
                 Node {
@@ -137,6 +181,7 @@ fn spawn_key(
                 },
                 BorderColor::from(GameColor::WHITE),
                 BackgroundColor(Color::NONE),
+                FadeableColor(GameColor::WHITE),
             ))
             .with_children(|p| {
                 p.spawn((
@@ -147,6 +192,7 @@ fn spawn_key(
                         ..default()
                     },
                     TextColor(GameColor::WHITE),
+                    FadeableColor(GameColor::WHITE),
                 ));
             });
         });
@@ -192,5 +238,25 @@ pub(super) fn on_resize_system(
             keys_to_pos(q_keys, controls, cam, q_flipper, ball_spawn);
         }
         return;
+    }
+}
+
+pub(super) fn auto_hide_system(
+    mut fade: ResMut<ControlsUiFade>,
+    mut q_fadeable: Query<(&FadeableColor, &mut TextColor)>,
+    mut q_border: Query<(&FadeableColor, &mut BorderColor)>,
+    time: Res<Time>,
+    mut set_ui_state: ResMut<NextState<crate::game::ui::UiState>>,
+) {
+    fade.timer.tick(time.delta());
+    let alpha = fade.alpha();
+    for (base, mut color) in q_fadeable.iter_mut() {
+        color.0 = base.0.with_alpha(base.0.alpha() * alpha);
+    }
+    for (base, mut border) in q_border.iter_mut() {
+        *border = BorderColor::from(base.0.with_alpha(base.0.alpha() * alpha));
+    }
+    if fade.finished() {
+        set_ui_state.set(crate::game::ui::UiState::None);
     }
 }
