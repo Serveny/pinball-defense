@@ -1,3 +1,4 @@
+use super::ball_starter::BallStarterFireEndEvent;
 use super::enemy::SpawnEnemyEvent;
 use super::GameState;
 use super::IngameTime;
@@ -7,10 +8,17 @@ pub struct WavePlugin;
 
 impl Plugin for WavePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Init), init_resources)
-            .add_systems(Update, (wave_system).run_if(in_state(GameState::Ingame)));
+        app.add_message::<WaveStartedEvent>()
+            .add_systems(OnEnter(GameState::Init), init_resources)
+            .add_systems(
+                Update,
+                (start_wave_system, wave_system).run_if(in_state(GameState::Ingame)),
+            );
     }
 }
+
+#[derive(Message)]
+pub struct WaveStartedEvent;
 
 fn init_resources(mut cmds: Commands) {
     cmds.insert_resource(Wave::default());
@@ -22,6 +30,7 @@ struct Wave {
     enemies_count: usize,
     next_enemy_spawn_time: f32,
     time_between_enemies: f32,
+    started: bool,
 }
 
 impl Default for Wave {
@@ -31,6 +40,7 @@ impl Default for Wave {
             enemies_count: 0,
             next_enemy_spawn_time: 0.,
             time_between_enemies: 1.,
+            started: false,
         }
     }
 }
@@ -61,6 +71,20 @@ impl Wave {
 
 const TIME_BETWEEN_WAVES: f32 = 8.;
 
+fn start_wave_system(
+    mut wave: ResMut<Wave>,
+    mut fire_end_ev: MessageReader<BallStarterFireEndEvent>,
+    mut wave_started_ev: MessageWriter<WaveStartedEvent>,
+    ig_timer: Res<IngameTime>,
+) {
+    if wave.started || fire_end_ev.read().next().is_none() {
+        return;
+    }
+    wave.started = true;
+    wave.prepare_next_wave(**ig_timer);
+    wave_started_ev.write(WaveStartedEvent);
+}
+
 fn wave_system(
     mut wave: ResMut<Wave>,
     mut spawn_enemy_ev: MessageWriter<SpawnEnemyEvent>,
@@ -68,7 +92,7 @@ fn wave_system(
 ) {
     let now = **ig_timer;
     let wave = wave.as_mut();
-    if wave.is_time_to_spawn_enemy(now) {
+    if wave.started && wave.is_time_to_spawn_enemy(now) {
         match wave.is_wave_end() {
             true => wave.prepare_next_wave(now),
             false => {

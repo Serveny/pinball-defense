@@ -3,6 +3,7 @@ use crate::game::KeyboardControls;
 use crate::game::ball_starter::BallSpawn;
 use crate::game::camera::PinballCamera;
 use crate::game::flipper::FlipperType;
+use crate::game::wave::WaveStartedEvent;
 use crate::prelude::*;
 use crate::utils::GameColor;
 use bevy::prelude::default;
@@ -13,12 +14,13 @@ use std::time::Duration;
 #[derive(Component)]
 pub struct ControlsUi;
 
-const HIDE_DELAY_SECS: f32 = 10.;
+const HIDE_DELAY_SECS: f32 = 1.;
 const FADE_DURATION_SECS: f32 = 2.;
 
 #[derive(Resource)]
 pub struct ControlsUiFade {
     timer: Timer,
+    started: bool,
 }
 
 impl Default for ControlsUiFade {
@@ -28,12 +30,19 @@ impl Default for ControlsUiFade {
                 Duration::from_secs_f32(HIDE_DELAY_SECS + FADE_DURATION_SECS),
                 TimerMode::Once,
             ),
+            started: false,
         }
     }
 }
 
 impl ControlsUiFade {
     pub fn reset(&mut self) {
+        self.started = false;
+        self.timer.reset();
+    }
+
+    fn start(&mut self) {
+        self.started = true;
         self.timer.reset();
     }
 
@@ -259,7 +268,14 @@ pub(super) fn auto_hide_system(
     mut q_border: Query<(&FadeableColor, &mut BorderColor)>,
     time: Res<Time>,
     mut set_ui_state: ResMut<NextState<crate::game::ui::UiState>>,
+    mut wave_started_ev: MessageReader<WaveStartedEvent>,
 ) {
+    if wave_started_ev.read().next().is_some() {
+        fade.start();
+    }
+    if !fade.started {
+        return;
+    }
     fade.timer.tick(time.delta());
     let alpha = fade.alpha();
     for (base, mut color) in q_fadeable.iter_mut() {
