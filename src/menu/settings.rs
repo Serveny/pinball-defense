@@ -73,16 +73,31 @@ pub fn clean_up(mut cmds: Commands, q_sett_layout: Query<Entity, With<SettingsMe
 }
 
 pub fn on_changed_sound_settings(
+    mut cmds: Commands,
     sound_sett: Res<SoundSettings>,
+    assets: Res<PinballDefenseAudioAssets>,
     mut q_sound: Query<&mut AudioSink, (With<Sound>, Without<Music>)>,
-    mut q_music: Query<&mut AudioSink, (With<Music>, Without<Sound>)>,
+    mut q_music: Query<(Entity, &mut AudioSink), (With<Music>, Without<Sound>)>,
 ) {
     if sound_sett.is_changed() {
         for mut sound in q_sound.iter_mut() {
             sound.set_volume(Volume::Linear(sound_sett.fx_volume));
         }
-        for mut music in q_music.iter_mut() {
-            music.set_volume(Volume::Linear(sound_sett.music_volume));
+        // music player only if music volume > 0
+        if sound_sett.music_volume > 0. {
+            if let Ok((_, mut music)) = q_music.single_mut() {
+                music.set_volume(Volume::Linear(sound_sett.music_volume));
+            } else {
+                cmds.spawn((
+                    AudioPlayer(assets.background_music.clone()),
+                    PlaybackSettings::LOOP.with_volume(Volume::Linear(sound_sett.music_volume)),
+                    Music,
+                ));
+            }
+        } else {
+            for (music, _) in q_music.iter() {
+                cmds.entity(music).despawn();
+            }
         }
     }
 }

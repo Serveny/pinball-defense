@@ -1,5 +1,6 @@
 use super::{ball::PinBall, EventState, GameState};
 use crate::prelude::*;
+use crate::AppState;
 use crate::utils::Music;
 use crate::{settings::SoundSettings, utils::Sound};
 use bevy::audio::Volume;
@@ -17,6 +18,7 @@ impl Plugin for AudioPlugin {
                     play_ball_rolling_sound.after(stop_all_audio),
                 ),
             )
+            .add_systems(OnEnter(AppState::MainMenu), play_music)
             .add_systems(OnEnter(GameState::Pause), pause_sounds)
             .add_systems(OnEnter(GameState::Ingame), resume_sounds)
             .add_systems(
@@ -115,9 +117,10 @@ enum SoundHandle<'a> {
     Various(&'a Handles<AudioSource>),
 }
 
-fn stop_all_audio(q_audio: Query<&AudioSink>) {
-    for sink in q_audio.iter() {
+fn stop_all_audio(mut cmds: Commands, q_audio: Query<(Entity, &AudioSink)>) {
+    for (entity, sink) in q_audio.iter() {
         sink.stop();
+        cmds.entity(entity).despawn();
     }
 }
 
@@ -125,7 +128,11 @@ fn play_music(
     mut cmds: Commands,
     assets: Res<PinballDefenseAudioAssets>,
     sound_sett: Res<SoundSettings>,
+    q_music: Query<(), With<Music>>,
 ) {
+    if !q_music.is_empty() {
+        return;
+    }
     cmds.spawn((
         AudioPlayer(assets.background_music.clone()),
         PlaybackSettings::LOOP.with_volume(Volume::Linear(sound_sett.music_volume)),
