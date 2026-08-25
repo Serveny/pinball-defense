@@ -1,3 +1,4 @@
+use super::controls::KeyboardControls;
 use super::EventState;
 use super::GameState;
 use super::audio::SoundEvent;
@@ -19,6 +20,7 @@ impl Plugin for BallPlugin {
     fn build(&self, app: &mut App) {
         app.add_message::<OnBallDespawnEvent>()
             .add_message::<CollisionWithBallEvent>()
+            .add_message::<NudgeEvent>()
             .register_type::<PinBall>()
             .add_systems(
                 Update,
@@ -26,6 +28,7 @@ impl Plugin for BallPlugin {
                     reattach_ball_system,
                     ball_reset_system,
                     clamp_ball_speed_system,
+                    nudge_system,
                 )
                     .run_if(in_state(GameState::Ingame)),
             )
@@ -142,6 +145,23 @@ pub(crate) fn clamp_ball_speed_system(mut q_ball: Query<&mut LinearVelocity, Wit
         }
     }
 }
+
+fn nudge_system(
+    key: Res<ButtonInput<KeyCode>>,
+    controls: Res<KeyboardControls>,
+    mut q_ball: Query<Forces, With<PinBall>>,
+    mut nudge_ev: MessageWriter<NudgeEvent>,
+) {
+    if key.just_pressed(controls.nudge) {
+        for mut forces in q_ball.iter_mut() {
+            forces.apply_linear_impulse(Vec2::new(0., 0.1));
+        }
+        nudge_ev.write(NudgeEvent);
+    }
+}
+
+#[derive(Message)]
+pub struct NudgeEvent;
 
 fn on_ball_despawn_system(
     mut evr: MessageReader<OnBallDespawnEvent>,

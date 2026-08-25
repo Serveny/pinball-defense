@@ -1,5 +1,6 @@
 use self::fps::{FpsCamSettings, LookDirection};
 use super::GameState;
+use super::ball::NudgeEvent;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy::camera::Hdr;
@@ -7,6 +8,7 @@ use bevy::core_pipeline::Skybox;
 use bevy::core_pipeline::tonemapping::Tonemapping;
 use bevy::post_process::bloom::Bloom;
 use bevy::render::render_resource::{TextureViewDescriptor, TextureViewDimension};
+use bevy_tweening::lens::TransformPositionLens;
 use bevy_tweening::{Lens, Tween, TweenAnim};
 
 mod dynamic;
@@ -27,6 +29,10 @@ impl Plugin for PinballCameraPlugin {
             .add_systems(
                 Update,
                 dynamic::on_ball_start_cam_system.run_if(in_state(CameraState::Dynamic)),
+            )
+            .add_systems(
+                Update,
+                on_nudge_system.run_if(in_state(CameraState::Dynamic)),
             );
     }
 }
@@ -122,6 +128,47 @@ fn init_tracking_shot() -> Tween {
         std::time::Duration::from_secs(4),
         CamTransformLens::look_static(START_POS, CAM_LOW_POS, LOOK_POS),
     )
+}
+
+fn on_nudge_system(
+    mut cmds: Commands,
+    mut evr: MessageReader<NudgeEvent>,
+    q_cam: Query<(Entity, &Transform), With<PinballCamera>>,
+) {
+    if evr.read().next().is_none() {
+        return;
+    }
+    let Ok((cam, transform)) = q_cam.single() else {
+        return;
+    };
+    let pos = transform.translation;
+    let left = pos + Vec3::new(0., -0.05, 0.);
+    let right = pos + Vec3::new(0., 0.05, 0.);
+    let shake = Tween::new(
+        EaseFunction::QuadraticInOut,
+        std::time::Duration::from_millis(60),
+        TransformPositionLens {
+            start: pos,
+            end: left,
+        },
+    )
+    .then(Tween::new(
+        EaseFunction::QuadraticInOut,
+        std::time::Duration::from_millis(60),
+        TransformPositionLens {
+            start: left,
+            end: right,
+        },
+    ))
+    .then(Tween::new(
+        EaseFunction::QuadraticInOut,
+        std::time::Duration::from_millis(60),
+        TransformPositionLens {
+            start: right,
+            end: pos,
+        },
+    ));
+    cmds.entity(cam).insert(TweenAnim::new(shake));
 }
 
 // NOTE: PNGs do not have any metadata that could indicate they contain a cubemap texture,

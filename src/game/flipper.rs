@@ -9,18 +9,15 @@ pub struct FlipperPlugin;
 
 impl Plugin for FlipperPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            sound_system.run_if(in_state(GameState::Ingame)),
-        )
-        .add_systems(
-            FixedUpdate,
-            flipper_system.run_if(in_state(GameState::Ingame)),
-        )
-        .add_systems(
-            Update,
-            (on_collision_with_ball_system).run_if(in_state(EventState::Active)),
-        );
+        app.add_systems(Update, sound_system.run_if(in_state(GameState::Ingame)))
+            .add_systems(
+                FixedUpdate,
+                flipper_system.run_if(in_state(GameState::Ingame)),
+            )
+            .add_systems(
+                Update,
+                (on_collision_with_ball_system).run_if(in_state(EventState::Active)),
+            );
     }
 }
 
@@ -45,7 +42,7 @@ pub enum FlipperType {
     Right = -1,
 }
 
-#[derive(Component, Debug, Default)]
+#[derive(Component, Debug, Default, Copy, Clone, PartialEq, Eq)]
 pub enum FlipperStatus {
     #[default]
     Idle,

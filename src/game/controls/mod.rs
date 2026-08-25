@@ -14,6 +14,7 @@ pub struct KeyboardControls {
     pub charge_ball_starter: KeyCode,
     pub pause: KeyCode,
     pub toggle_key_ui: KeyCode,
+    pub nudge: KeyCode,
 }
 
 impl Default for KeyboardControls {
@@ -25,6 +26,7 @@ impl Default for KeyboardControls {
             charge_ball_starter: KeyCode::Space,
             pause: KeyCode::KeyP,
             toggle_key_ui: KeyCode::KeyK,
+            nudge: KeyCode::KeyN,
         }
     }
 }
