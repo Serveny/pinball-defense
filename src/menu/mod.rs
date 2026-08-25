@@ -184,7 +184,7 @@ fn clean_up(
 }
 
 #[derive(Component, Clone, Default)]
-struct MenuLayout;
+pub struct MenuLayout;
 
 #[derive(Component, Clone, Default)]
 struct MenuCamera;
