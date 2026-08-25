@@ -86,7 +86,17 @@ fn main() {
     #[cfg(not(debug_assertions))]
     app.insert_resource(GraphicsSettings::high());
 
-    app.insert_resource(SoundSettings::default());
+    #[cfg(debug_assertions)]
+    app.insert_resource(SoundSettings {
+        music_volume: 0.,
+        fx_volume: 0.6,
+    });
+
+    #[cfg(not(debug_assertions))]
+    app.insert_resource(SoundSettings {
+        music_volume: 0.4,
+        fx_volume: 0.8,
+    });
     app.insert_resource(parse_cli_args());
     app.add_plugins((LoadingScreenPlugin, GamePlugin, MenuPlugin))
         .run();
