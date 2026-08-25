@@ -120,7 +120,7 @@ impl Plugin for GamePlugin {
             )
             .add_systems(OnEnter(AppState::Game), init_game)
             .add_systems(OnExit(AppState::Game), clean_up_on_exit_game)
-            .add_systems(OnEnter(GameState::GameOver), game_over::spawn)
+            .add_systems(OnEnter(GameState::GameOver), (game_over::spawn, pause_on_game_over))
             .add_systems(
                 Update,
                 (game_over::btn_system).run_if(in_state(GameState::GameOver)),
@@ -193,8 +193,7 @@ fn on_set_pause_system(
     if !evr.is_empty() {
         log!("⏸️ Pause Game");
         set_game_state.set(GameState::Pause);
-        physics_time.pause();
-        virtual_time.pause();
+        pause_times(&mut physics_time, &mut virtual_time);
     }
 }
 
@@ -210,13 +209,31 @@ fn on_resume_game_system(
     if !evr.is_empty() {
         log!("️⏯️ Resume Game");
         set_game_state.set(GameState::Ingame);
-        physics_time.unpause();
-        virtual_time.unpause();
+        resume_times(&mut physics_time, &mut virtual_time);
     }
+}
+
+fn pause_times(physics_time: &mut Time<Physics>, virtual_time: &mut Time<Virtual>) {
+    physics_time.pause();
+    virtual_time.pause();
+}
+
+fn resume_times(physics_time: &mut Time<Physics>, virtual_time: &mut Time<Virtual>) {
+    physics_time.unpause();
+    virtual_time.unpause();
+}
+
+fn pause_on_game_over(
+    mut physics_time: ResMut<Time<Physics>>,
+    mut virtual_time: ResMut<Time<Virtual>>,
+) {
+    pause_times(&mut physics_time, &mut virtual_time);
 }
 
 fn reset(
     mut cmds: Commands,
+    mut physics_time: ResMut<Time<Physics>>,
+    mut virtual_time: ResMut<Time<Virtual>>,
     q_game_over_screen: Query<
         Entity,
         Or<(
@@ -231,6 +248,7 @@ fn reset(
     q_game_over_screen
         .iter()
         .for_each(|entity| cmds.entity(entity).despawn());
+    resume_times(&mut physics_time, &mut virtual_time);
 }
 
 fn clean_up_on_exit_game(
@@ -249,8 +267,7 @@ fn clean_up_on_exit_game(
     >,
 ) {
     game_state.set(GameState::None);
-    physics_time.unpause();
-    virtual_time.unpause();
+    resume_times(&mut physics_time, &mut virtual_time);
     for entity in q_game.iter() {
         cmds.entity(entity).despawn();
     }
