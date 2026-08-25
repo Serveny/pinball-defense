@@ -101,9 +101,9 @@ Important things, to make it playable:
   - Options ✅
   - Exit ✅
 - game state Save/Load system
-  - ui after back to main menü not resetted (bars visible)
-  - Confim window only if not saved while pause menu open
-  - Fix double progress bar after loading
+  - ui after back to main menü not resetted (bars visible) ✅
+  - Confim window only if not saved while pause menu open ✅
+  - Fix double progress bar after loading ✅
 - Performance Profiling feature
 - Pause animations if game is paused ✅
 - Fix hanging ball physics sometimes when hitting a tower
