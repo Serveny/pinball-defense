@@ -38,9 +38,9 @@ fn init_resources(mut cmds: Commands) {
     cmds.insert_resource(LevelHub::default());
 }
 
-#[derive(Message, Clone, Copy)]
+#[derive(Clone, Copy)]
 #[repr(u32)]
-pub enum PointsEvent {
+pub enum PointsKind {
     BallCollided = 1,
     FlipperHit = 2,
     FoundationHit = 10,
@@ -51,7 +51,7 @@ pub enum PointsEvent {
     TowerBuild = 1000,
 }
 
-impl PointsEvent {
+impl PointsKind {
     fn points(&self) -> Points {
         *self as Points
     }
@@ -63,9 +63,24 @@ const POINT_FACTOR: u32 = 10;
 #[cfg(not(debug_assertions))]
 const POINT_FACTOR: u32 = 1;
 
+#[derive(Message, Clone, Copy)]
+pub struct PointsEvent {
+    pub points: Points,
+    pub pos: Vec3,
+}
+
+impl PointsEvent {
+    pub fn new(kind: PointsKind, pos: Vec3) -> Self {
+        Self {
+            points: kind.points() * POINT_FACTOR,
+            pos,
+        }
+    }
+}
+
 fn on_add_points_system(mut evr: MessageReader<PointsEvent>, mut points: ResMut<PointHub>) {
     for ev in evr.read() {
-        points.0 += ev.points() * POINT_FACTOR;
+        points.0 += ev.points;
     }
 }
 

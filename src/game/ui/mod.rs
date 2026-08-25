@@ -5,6 +5,7 @@ use crate::prelude::*;
 use crate::utils::RelEntity;
 
 mod controls;
+mod floating_text;
 pub mod progress_bar;
 
 #[derive(States, Default, Debug, PartialEq, Eq, Hash, Clone, Copy)]
@@ -44,6 +45,12 @@ impl Plugin for UiPlugin {
                         progress_bar::show_progress_system,
                         progress_bar::hide_after_timeout_system,
                         progress_bar::reset_on_upgrade_system,
+                    )
+                        .chain()
+                        .run_if(in_state(GameState::Ingame)),
+                    (
+                        floating_text::spawn_system,
+                        floating_text::update_system,
                     )
                         .chain()
                         .run_if(in_state(GameState::Ingame)),

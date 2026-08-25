@@ -6,7 +6,7 @@ use super::ball::{CollisionWithBallEvent, PinBall};
 use super::cfg::CONFIG;
 use super::events::collision::GameLayer;
 use super::events::tween_completed::AfterTween;
-use super::level::{Level, PointsEvent};
+use super::level::{Level, PointsEvent, PointsKind};
 use super::light::{
     FlashLight, LightOnCollision, SightRadiusLight, contact_light_bundle, sight_radius_light,
 };
@@ -309,7 +309,7 @@ fn on_spawn_tower_system(
                 };
             });
             ui::progress_bar::spawn_transient(&mut cmds, tower_id, 0.);
-            points_ev.write(PointsEvent::TowerBuild);
+            points_ev.write(PointsEvent::new(PointsKind::TowerBuild, ev.1));
             sound_ev.write(SoundEvent::TowerBuild);
         }
     }
@@ -320,13 +320,13 @@ fn on_progress_system(
     mut evr: MessageReader<CollisionWithBallEvent>,
     mut points_ev: MessageWriter<PointsEvent>,
     mut sound_ev: MessageWriter<SoundEvent>,
-    q_tower: Query<Entity, With<Tower>>,
+    q_tower: Query<(&Transform, Entity), With<Tower>>,
 ) {
     evr.read().for_each(|CollisionWithBallEvent(id)| {
         // *flag != CollisionEventFlags::SENSOR &&
-        if q_tower.contains(*id) {
+        if let Ok((tf, _)) = q_tower.get(*id) {
             prog_bar_ev.write(ProgressBarCountUpEvent::new(*id, CONFIG.tower_hit_progress));
-            points_ev.write(PointsEvent::TowerHit);
+            points_ev.write(PointsEvent::new(PointsKind::TowerHit, tf.translation));
             sound_ev.write(SoundEvent::TowerHit);
         }
     });
@@ -370,14 +370,14 @@ fn on_upgrade_system(
     mut q_light: Query<(Entity, &ChildOf, &mut Visibility), With<FlashLight>>,
     mut points_ev: MessageWriter<PointsEvent>,
     mut reset_ev: MessageWriter<ProgressBarResetEvent>,
-    mut q_tower: Query<&mut TowerLevel>,
+    mut q_tower: Query<(&mut TowerLevel, &Transform)>,
     mut ac_set_ev: MessageWriter<AnalogCounterSetEvent>,
     mut range_upgrade_ev: MessageWriter<RangeUpgradeEvent>,
     mut damage_upgrade_ev: MessageWriter<DamageUpgradeEvent>,
     mut sound_ev: MessageWriter<SoundEvent>,
 ) {
     for ev in evr.read() {
-        let mut tower_level = q_tower
+        let (mut tower_level, tower_tf) = q_tower
             .get_mut(ev.tower_id)
             .unwrap_or_else(|_| panic!("😥 No tower level for id {:?} found", ev.tower_id));
         tower_level.0 += 1;
@@ -386,7 +386,10 @@ fn on_upgrade_system(
             ev.tower_id,
             tower_level.0 as u32,
         ));
-        points_ev.write(PointsEvent::TowerUpgrade);
+        points_ev.write(PointsEvent::new(
+            PointsKind::TowerUpgrade,
+            tower_tf.translation,
+        ));
         reset_ev.write(ProgressBarResetEvent::new(ev.tower_id));
         match ev.upgrade {
             TowerUpgrade::Damage => {

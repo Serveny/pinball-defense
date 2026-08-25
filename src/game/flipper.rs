@@ -1,7 +1,7 @@
 use super::audio::SoundEvent;
 use super::ball::CollisionWithBallEvent;
 use super::events::collision::GameLayer;
-use super::level::PointsEvent;
+use super::level::{PointsEvent, PointsKind};
 use super::{EventState, GameState};
 use crate::prelude::*;
 
@@ -193,11 +193,11 @@ fn sound_system(
 fn on_collision_with_ball_system(
     mut points_ev: MessageWriter<PointsEvent>,
     mut evr: MessageReader<CollisionWithBallEvent>,
-    q_flipper: Query<Entity, With<FlipperCollider>>,
+    q_flipper: Query<(&Transform, Entity), With<FlipperCollider>>,
 ) {
     for ev in evr.read() {
-        if q_flipper.contains(ev.0) {
-            points_ev.write(PointsEvent::FlipperHit);
+        if let Ok((tf, _)) = q_flipper.get(ev.0) {
+            points_ev.write(PointsEvent::new(PointsKind::FlipperHit, tf.translation));
         }
     }
 }
