@@ -5,7 +5,7 @@ use self::walk::{
 use super::audio::SoundEvent;
 use super::events::collision::GameLayer;
 use super::health::{ChangeHealthEvent, Health, HealthEmptyEvent};
-use super::level::PointsEvent;
+use super::level::{PointsEvent, PointsKind};
 use super::{EventState, ui};
 use crate::game::GameState;
 use crate::game::ball::CollisionWithBallEvent;
@@ -181,14 +181,14 @@ fn on_pinball_hit_system(
     mut points_ev: MessageWriter<PointsEvent>,
     mut sound_ev: MessageWriter<SoundEvent>,
     mut health_ev: MessageWriter<ChangeHealthEvent>,
-    q_enemy: Query<Entity, With<Enemy>>,
+    q_enemy: Query<(&Transform, Entity), With<Enemy>>,
 ) {
     for CollisionWithBallEvent(id) in evr.read() {
         // flag == CollisionEventFlags::SENSOR &&
-        if q_enemy.contains(*id) {
+        if let Ok((tf, _)) = q_enemy.get(*id) {
             log!("😵 Pinball hits enemy {:?}", *id);
             health_ev.write(ChangeHealthEvent::new(*id, -100., None));
-            points_ev.write(PointsEvent::BallEnemyHit);
+            points_ev.write(PointsEvent::new(PointsKind::BallEnemyHit, tf.translation));
             sound_ev.write(SoundEvent::BallHitsEnemy);
         }
     }
@@ -202,13 +202,14 @@ fn on_health_empty_system(
     mut evr: MessageReader<HealthEmptyEvent>,
     mut despawn_ev: MessageWriter<OnEnemyDespawnEvent>,
     mut points_ev: MessageWriter<PointsEvent>,
-    q_enemy: Query<Entity, With<Enemy>>,
+    q_enemy: Query<(&Transform, Entity), With<Enemy>>,
 ) {
     for ev in evr.read() {
-        if q_enemy.contains(ev.0) {
+        if let Ok((tf, _)) = q_enemy.get(ev.0) {
+            let pos = tf.translation;
             cmds.entity(ev.0).try_despawn();
             despawn_ev.write(OnEnemyDespawnEvent(ev.0));
-            points_ev.write(PointsEvent::EnemyDied);
+            points_ev.write(PointsEvent::new(PointsKind::EnemyDied, pos));
         }
     }
 }

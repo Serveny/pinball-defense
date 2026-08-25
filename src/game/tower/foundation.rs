@@ -2,7 +2,7 @@ use crate::game::audio::SoundEvent;
 use crate::game::ball::CollisionWithBallEvent;
 use crate::game::events::collision::GameLayer;
 use crate::game::events::tween_completed::AfterTween;
-use crate::game::level::{LevelHub, LevelUpEvent, PointsEvent};
+use crate::game::level::{LevelHub, LevelUpEvent, PointsEvent, PointsKind};
 use crate::game::light::{FlashLight, LightOnCollision, contact_light_bundle, disable_flash_light};
 use crate::game::pinball_menu::{PinballMenuTrigger, TowerMenuExecuteEvent};
 use crate::game::progress::{Progress, ProgressBarCountUpEvent};
@@ -268,13 +268,13 @@ pub(super) fn on_progress_system(
     mut evr: MessageReader<CollisionWithBallEvent>,
     mut points_ev: MessageWriter<PointsEvent>,
     mut sound_ev: MessageWriter<SoundEvent>,
-    q_tower_foundation: Query<&TowerFoundation, With<TowerFoundation>>,
+    q_tower_foundation: Query<(&TowerFoundation, &Transform), With<TowerFoundation>>,
 ) {
     for CollisionWithBallEvent(id) in evr.read() {
         // if *flag == CollisionEventFlags::SENSOR {
-        if let Ok(foundation) = q_tower_foundation.get(*id) {
+        if let Ok((foundation, tf)) = q_tower_foundation.get(*id) {
             prog_bar_ev.write(ProgressBarCountUpEvent::new(*id, foundation.hit_progress));
-            points_ev.write(PointsEvent::FoundationHit);
+            points_ev.write(PointsEvent::new(PointsKind::FoundationHit, tf.translation));
             sound_ev.write(SoundEvent::BallHitsFoundation);
         }
     }

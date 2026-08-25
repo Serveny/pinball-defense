@@ -4,7 +4,7 @@ use super::GameState;
 use super::audio::SoundEvent;
 use super::events::collision::GameLayer;
 use super::health::ChangeHealthEvent;
-use super::level::PointsEvent;
+use super::level::{PointsEvent, PointsKind};
 use super::pinball_menu::PinballMenuEvent;
 use super::player_life::LifeBar;
 use super::world::WorldFrame;
@@ -181,17 +181,26 @@ fn on_collision_with_ball_system(
     coll_ev: MessageReader<CollisionStart>,
     mut coll_with_ball_ev: MessageWriter<CollisionWithBallEvent>,
     mut points_ev: MessageWriter<PointsEvent>,
-    q_ball: Query<Entity, With<PinBall>>,
+    q_ball: Query<(Entity, &Transform), With<PinBall>>,
+    q_wall: Query<Entity, With<WorldFrame>>,
 ) {
+    let Ok((_, ball_tf)) = q_ball.single() else {
+        return;
+    };
     for collidator_id in get_ball_collisions(coll_ev, q_ball) {
         coll_with_ball_ev.write(CollisionWithBallEvent(collidator_id));
-        points_ev.write(PointsEvent::BallCollided);
+        if !q_wall.contains(collidator_id) {
+            points_ev.write(PointsEvent::new(
+                PointsKind::BallCollided,
+                ball_tf.translation,
+            ));
+        }
     }
 }
 
 fn get_ball_collisions(
     mut evr: MessageReader<CollisionStart>,
-    q_ball: Query<Entity, With<PinBall>>,
+    q_ball: Query<(Entity, &Transform), With<PinBall>>,
 ) -> Vec<Entity> {
     evr.read()
         .filter_map(|ev| {
