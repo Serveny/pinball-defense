@@ -55,12 +55,9 @@ pub(super) fn pause_btn_changed(
     mut resume_ev: MessageWriter<ResumeGameEvent>,
 ) {
     for ev in evr.read() {
-        match ev.button {
-            GamepadButton::Start => {
-                menu_state.set(MenuState::None);
-                resume_ev.write(ResumeGameEvent);
-            }
-            _ => {}
+        if ev.button == GamepadButton::Start {
+            menu_state.set(MenuState::None);
+            resume_ev.write(ResumeGameEvent);
         }
     }
 }

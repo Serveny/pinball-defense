@@ -23,12 +23,11 @@ pub(super) fn rotate_to_target_system(
     q_spawner: Query<(&Tower, &TargetPos)>,
 ) {
     for (mut rot_trans, rel_id) in q_rtt.iter_mut() {
-        if let Ok((tower, target_pos)) = q_spawner.get(rel_id.0) {
-            if let Some(target_pos) = target_pos.0 {
+        if let Ok((tower, target_pos)) = q_spawner.get(rel_id.0)
+            && let Some(target_pos) = target_pos.0 {
                 let direction = target_pos.truncate() - tower.pos.truncate();
                 let angle = direction.angle_to(Vec2::Y);
                 rot_trans.rotation = Quat::from_rotation_z(-angle);
             }
-        }
     }
 }

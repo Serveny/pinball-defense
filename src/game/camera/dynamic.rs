@@ -20,12 +20,11 @@ pub(super) fn on_ball_start_cam_system(
                     ball_spawn.0,
                 )));
         };
-    } else if !on_fire_end.is_empty() {
-        if let Ok(cam) = q_cam.single() {
+    } else if !on_fire_end.is_empty()
+        && let Ok(cam) = q_cam.single() {
             cmds.entity(cam)
                 .insert(TweenAnim::new(ball_start_tracking_shot(true, ball_spawn.0)));
         };
-    }
 }
 
 const CAM_BALL_START_POS: Vec3 = Vec3::new(1.7, 0.9, 1.4);

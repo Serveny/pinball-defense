@@ -1,3 +1,5 @@
+#![allow(clippy::type_complexity)]
+
 use avian2d::PhysicsPlugins;
 #[cfg(debug_assertions)]
 use bevy::camera::Hdr;
@@ -116,7 +118,7 @@ fn add_debug_plugins(app: &mut App) {
     app.add_plugins((
         EguiPlugin::default(),
         WorldInspectorPlugin::new().run_if(input_toggle_active(false, KeyCode::F12)),
-        PhysicsDebugPlugin::default(),
+        PhysicsDebugPlugin,
     ))
     .add_systems(OnEnter(AppState::Game), spawn_egui_overlay_camera);
 }

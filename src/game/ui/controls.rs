@@ -255,11 +255,10 @@ pub(super) fn on_resize_system(
     q_flipper: Query<(&GlobalTransform, &FlipperType)>,
     ball_spawn: Res<BallSpawn>,
 ) {
-    if resize_reader.read().next().is_some() {
-        if let Ok(cam) = q_cam.single() {
+    if resize_reader.read().next().is_some()
+        && let Ok(cam) = q_cam.single() {
             keys_to_pos(q_keys, controls, cam, q_flipper, ball_spawn);
         }
-    }
 }
 
 pub(super) fn auto_hide_system(

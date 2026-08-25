@@ -16,7 +16,7 @@ pub struct SaveList;
 pub fn load_game_layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
     cmds.spawn_scene(nav_menu(&assets, "Load Game"));
     cmds.spawn_scene(save_list_panel()).with_children(|p| {
-        spawn_save_entries(p, &assets, |path| MenuAction::Load(path));
+        spawn_save_entries(p, &assets, MenuAction::Load);
         if list_saves().is_empty() {
             p.spawn_empty()
                 .apply_scene(empty_message("No saves found", &assets));
@@ -27,7 +27,7 @@ pub fn load_game_layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
 pub fn save_game_layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
     cmds.spawn_scene(nav_menu(&assets, "Save Game"));
     cmds.spawn_scene(save_list_panel()).with_children(|p| {
-        spawn_save_entries(p, &assets, |path| MenuAction::Save(path));
+        spawn_save_entries(p, &assets, MenuAction::Save);
         p.spawn_empty().apply_scene(save_entry(
             "New Save",
             MenuAction::Save(next_save_path()),

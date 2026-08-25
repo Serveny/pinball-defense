@@ -120,10 +120,7 @@ fn enemy_view_bundle(
 ) -> impl Bundle {
     (
         Name::new("Enemy"),
-        Mesh3d(meshes.add(Mesh::from(Sphere {
-            radius: 0.03,
-            ..default()
-        }))),
+        Mesh3d(meshes.add(Mesh::from(Sphere { radius: 0.03 }))),
         MeshMaterial3d(mats.add(StandardMaterial {
             base_color: RED.into(),
             perceptual_roughness: 0.,

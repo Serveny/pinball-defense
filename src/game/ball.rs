@@ -66,10 +66,7 @@ fn ball_view_bundle(
 ) -> impl Bundle {
     let radius = 0.02;
     (
-        Mesh3d(meshes.add(Mesh::from(Sphere {
-            radius: radius,
-            ..default()
-        }))),
+        Mesh3d(meshes.add(Mesh::from(Sphere { radius }))),
         MeshMaterial3d(materials.add(StandardMaterial {
             base_color: GOLD.into(),
             perceptual_roughness: 0.,
@@ -80,7 +77,7 @@ fn ball_view_bundle(
         RigidBody::Dynamic,
         SweptCcd::LINEAR.include_dynamic(false),
         MaxLinearSpeed(MAX_BALL_SPEED),
-        SleepingDisabled::default(),
+        SleepingDisabled,
         Collider::circle(radius),
         CollisionEventsEnabled,
         DebugRender::collider(GOLD.into()),
@@ -124,11 +121,10 @@ fn ball_reset_system(
     for (entity, transform) in q_ball.iter() {
         let ball_pos = transform.translation;
         if !X_RANGE.contains(&ball_pos.x) || !Y_RANGE.contains(&ball_pos.y) {
-            if ball_pos.x > 1.2 && HIT_Y_RANGE.contains(&ball_pos.y) {
-                if let Ok(lifebar_id) = q_life_bar.single() {
+            if ball_pos.x > 1.2 && HIT_Y_RANGE.contains(&ball_pos.y)
+                && let Ok(lifebar_id) = q_life_bar.single() {
                     health_ev.write(ChangeHealthEvent::new(lifebar_id, -5., None));
                 }
-            }
             log!("🎱 Despawn ball");
             cmds.get_entity(entity).unwrap().despawn();
             evw.write(OnBallDespawnEvent);

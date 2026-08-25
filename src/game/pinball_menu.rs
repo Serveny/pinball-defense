@@ -107,8 +107,8 @@ fn on_menu_event_system(
     q_lights: Query<&mut Visibility, With<PinballMenuElementLight>>,
     sound_ev: MessageWriter<SoundEvent>,
 ) {
-    if let Some(ev) = evr.read().next() {
-        if let Ok((menu_entity, mut status)) = q_pb_menu.single_mut() {
+    if let Some(ev) = evr.read().next()
+        && let Ok((menu_entity, mut status)) = q_pb_menu.single_mut() {
             use PinballMenuEvent::*;
             use PinballMenuStatus::*;
             if let Some(new_status) = match (ev, *status) {
@@ -123,7 +123,6 @@ fn on_menu_event_system(
                 *status = new_status;
             }
         }
-    }
 }
 
 type QueryPinballMenuElements<'w, 's, 'a> =
@@ -140,8 +139,8 @@ fn spawn_system(
     unlocked_towers: Res<UnlockedTowers>,
     unlocked_tower_upgrades: Res<UnlockedUpgrades>,
 ) {
-    if q_pb_menu.is_empty() {
-        if let Ok(trigger) = q_selected.single() {
+    if q_pb_menu.is_empty()
+        && let Ok(trigger) = q_selected.single() {
             log!("🐢 Spawn {trigger:?} menu");
             if let Ok(world_id) = q_pbw.single() {
                 cmds.entity(world_id).with_children(|p| match *trigger {
@@ -155,7 +154,6 @@ fn spawn_system(
                 sound_ev.write(SoundEvent::PbMenuFadeIn);
             }
         }
-    }
 }
 
 #[derive(Component)]

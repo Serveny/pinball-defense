@@ -102,17 +102,16 @@ pub(super) fn despawn_system(
     q_bar: Query<(Entity, &RelEntity), With<PosToRelEntity>>,
 ) {
     for (bar_id, rel_id) in q_bar.iter() {
-        if cmds.get_entity(rel_id.0).is_err() {
-            if let Ok(mut bar) = cmds.get_entity(bar_id) {
+        if cmds.get_entity(rel_id.0).is_err()
+            && let Ok(mut bar) = cmds.get_entity(bar_id) {
                 bar.despawn();
             }
-        }
     }
 }
 
 const TOLERANCE: f32 = 1.;
 fn is_almost_eq(a: f32, b: f32) -> bool {
-    return ((a - TOLERANCE)..(a + TOLERANCE)).contains(&b);
+    ((a - TOLERANCE)..(a + TOLERANCE)).contains(&b)
 }
 
 pub(super) fn activate_animation_system(
@@ -161,13 +160,12 @@ pub(super) fn show_on_hit_system(
 ) {
     for ev in evr.read() {
         let id = ev.rel_id();
-        if let Some((_, mut node, mut fill)) = q_fill.iter_mut().find(|(r, _, _)| r.0 == id) {
-            if fill.is_locked {
+        if let Some((_, mut node, mut fill)) = q_fill.iter_mut().find(|(r, _, _)| r.0 == id)
+            && fill.is_locked {
                 fill.is_locked = false;
                 fill.is_active_animation = true;
                 node.width = Val::Percent(0.);
             }
-        }
         if let Some((_, mut vis, mut bar)) = q_bar.iter_mut().find(|(r, _, _)| r.0 == id) {
             *vis = Visibility::Visible;
             bar.hide_timer.reset();
@@ -237,11 +235,10 @@ pub(super) fn sync_progress_to_entities(
     mut q_entities: Query<&mut Progress, Without<ProgressUiBar>>,
 ) {
     for (rel, bar_progress) in q_bars.iter() {
-        if let Ok(mut entity_progress) = q_entities.get_mut(rel.0) {
-            if entity_progress.0 != bar_progress.0 {
+        if let Ok(mut entity_progress) = q_entities.get_mut(rel.0)
+            && entity_progress.0 != bar_progress.0 {
                 entity_progress.0 = bar_progress.0;
             }
-        }
     }
 }
 

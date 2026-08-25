@@ -165,8 +165,8 @@ fn on_level_up_lamp(
     mut q_lvl_up_lamp: Query<(Entity, &mut Visibility), With<LevelUpLamp>>,
     level_up_ev: MessageReader<LevelUpEvent>,
 ) {
-    if !level_up_ev.is_empty() {
-        if let Ok((lamp_id, mut visi)) = q_lvl_up_lamp.single_mut() {
+    if !level_up_ev.is_empty()
+        && let Ok((lamp_id, mut visi)) = q_lvl_up_lamp.single_mut() {
             *visi = Visibility::Inherited;
             cmds.entity(lamp_id)
                 .insert(FlashLight)
@@ -175,7 +175,6 @@ fn on_level_up_lamp(
                     TimerMode::Once,
                 )));
         }
-    }
 }
 
 fn level_up_animation_system(

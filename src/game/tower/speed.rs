@@ -12,10 +12,9 @@ pub(super) fn afe_slow_down_system(
     q_tower: Query<(&AimFirstEnemy, &SlowDownFactor), With<TowerReady>>,
 ) {
     for (target, slow_factor) in q_tower.iter() {
-        if let Some(enemy_id) = target.0 {
-            if let Ok(mut enemy) = q_enemy.get_mut(enemy_id) {
+        if let Some(enemy_id) = target.0
+            && let Ok(mut enemy) = q_enemy.get_mut(enemy_id) {
                 enemy.slow_down(slow_factor.0);
             }
-        }
     }
 }
