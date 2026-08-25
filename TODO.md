@@ -1,3 +1,45 @@
+# TODO
+
+## Programming 
+
+- combo counter: extra points until ball falls into end, the longer the streak, the higher the amount of extra points per second
+- controller controls & menu
+- enemy types:
+  - normal: no collision
+  - tanks: collision, slow
+  - speeder: no collision, very fast, less life points
+- enemy type spawn system
+- (test that, not shure if good) ball collides with enemies until enemy has no life left
+- Performance Profiling feature
+- Fix hanging ball physics sometimes when hitting a tower
+- Rolling ball visual effect
+- Extra-Ball-Field: Hit it and the ball starter will insert new ball
+- towers get darker texture color, the higher they are upgraded
+- Extra fields:
+  - Extra-Ball-Field: Hit it and the ball starter will insert new ball
+  - Slow-Down-Field: Hit it and the enemies a slower for 5s
+  - Double-Damage-Field: Hit it and ball will make double damage for 5s
+- Fix ui progress bars pixel position (Green bar too small, white pixels at top)
+
+## Audio
+
+- Tower sounds:
+  - tower mg shoot sound
+  - tower microwave sound
+  - tower tesla sound
+  - level up sound
+- menu sounds:
+  - hover
+  - click
+  - slider 
+
+## Modelling/Texturing
+
+- design enemies: normal, tank, speeder
+- extras field (Extra ball, more damage, etc)
+
+# Done
+
 - Remove all shadows in low graphics settings ✅
 - Automatic ball respawn, if it falls to bottom ✅
 - Tower foundation
@@ -55,11 +97,6 @@
 - ball charger model ✅
 - replace level up lights through red level up alarm light at level counter ✅
 - damage upgrades on microwave tower makes enemies slightly more slower ✅
-- towers get darker texture color, the higher they are upgraded
-- camera flips only to ball starter, when ball is in starter area
-- combo counter: extra points until ball falls into end, the longer the streak, the higher the amount of extra points per second
-- controls menu
-- controller controls menu
 - sounds:
   - enemy hit sound ✅
   - ball hits road end sound ✅
@@ -74,46 +111,21 @@
   - pinball menu active sound ✅
   - pinball menu selected sound
   - ball rolling sound ✅
-  - tower mg shoot sound
-  - tower microwave sound
-  - tower tesla sound
-  - level up sound
-- camera option
-- textures
-- design enemy
-- enemies have color codings, more darker means more life/better enemies
-- enemy types:
-  - normal: no collision
-  - tanks: collision, slow
-  - speeder: no collision, very fast, less life points
-- enemy type spawn system
-- ball collides with enemies until enemy has no life left
+- enemies have color codings, more darker means more life/better enemies ✅
 - ui resize on window resize
-
-Important things, to make it playable:
-
 - Game over mechanic/screen ✅
 - Controls UI ✅
-
 - Main menu: ✅
   - Load game ✅
   - Start new game ✅
   - Options ✅
   - Exit ✅
-- game state Save/Load system
+- game state Save/Load system ✅
   - ui after back to main menü not resetted (bars visible) ✅
   - Confim window only if not saved while pause menu open ✅
   - Fix double progress bar after loading ✅
-- Performance Profiling feature
 - Pause animations if game is paused ✅
-- Fix hanging ball physics sometimes when hitting a tower
-- Rolling ball visual effect
-- Extra-Ball-Field: Hit it and the ball starter will insert new ball
-
-- Activate sound by default in release mode
-- Fix ui progress bars pixel position (Green bar too small, white pixels at top)
-- UI: Show points where they are made: Progress blue, Damage red
-
-- menü sounds: record & add
-- tower shot sounds: record & add
-- better 3d models
+- Fix hanging ball physics sometimes when hitting a tower ✅
+- UI: Show points where they are made: Progress blue, Damage red  ✅
+- Activate sound by default in release mode ✅
+- UI: Show points where they are made: Progress blue, Damage red ✅
