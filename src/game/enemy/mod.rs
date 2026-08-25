@@ -5,7 +5,7 @@ use self::walk::{
 use super::audio::SoundEvent;
 use super::events::collision::GameLayer;
 use super::health::{ChangeHealthEvent, Health, HealthEmptyEvent};
-use super::level::{PointsEvent, PointsKind};
+use super::level::{BallCollisionPoints, PointsEvent, PointsKind};
 use super::{EventState, ui};
 use crate::game::GameState;
 use crate::game::ball::CollisionWithBallEvent;
@@ -144,6 +144,7 @@ fn enemy_view_bundle(
         CollisionEventsEnabled,
         DebugRender::default().with_collider_color(color),
         CollisionLayers::new(GameLayer::Enemy, [GameLayer::Ball, GameLayer::Tower]),
+        BallCollisionPoints(15),
         Restitution {
             coefficient: 2.,
             combine_rule: CoefficientCombine::Multiply,
@@ -178,17 +179,14 @@ fn reattach_enemies_system(
 
 fn on_pinball_hit_system(
     mut evr: MessageReader<CollisionWithBallEvent>,
-    mut points_ev: MessageWriter<PointsEvent>,
     mut sound_ev: MessageWriter<SoundEvent>,
     mut health_ev: MessageWriter<ChangeHealthEvent>,
-    q_enemy: Query<(&Transform, Entity), With<Enemy>>,
+    q_enemy: Query<Entity, With<Enemy>>,
 ) {
     for CollisionWithBallEvent(id) in evr.read() {
-        // flag == CollisionEventFlags::SENSOR &&
-        if let Ok((tf, _)) = q_enemy.get(*id) {
+        if q_enemy.contains(*id) {
             log!("😵 Pinball hits enemy {:?}", *id);
             health_ev.write(ChangeHealthEvent::new(*id, -100., None));
-            points_ev.write(PointsEvent::new(PointsKind::BallEnemyHit, tf.translation));
             sound_ev.write(SoundEvent::BallHitsEnemy);
         }
     }

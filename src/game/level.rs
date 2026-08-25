@@ -41,11 +41,6 @@ fn init_resources(mut cmds: Commands) {
 #[derive(Clone, Copy)]
 #[repr(u32)]
 pub enum PointsKind {
-    BallCollided = 1,
-    FlipperHit = 2,
-    FoundationHit = 10,
-    BallEnemyHit = 15,
-    TowerHit = 20,
     EnemyDied = 85,
     TowerUpgrade = 500,
     TowerBuild = 1000,
@@ -76,6 +71,13 @@ impl PointsEvent {
             pos,
         }
     }
+
+    pub fn with_points(points: Points, pos: Vec3) -> Self {
+        Self {
+            points: points * POINT_FACTOR,
+            pos,
+        }
+    }
 }
 
 fn on_add_points_system(mut evr: MessageReader<PointsEvent>, mut points: ResMut<PointHub>) {
@@ -86,6 +88,9 @@ fn on_add_points_system(mut evr: MessageReader<PointsEvent>, mut points: ResMut<
 
 pub type Points = u32;
 pub type Level = u8;
+
+#[derive(Component, Clone, Copy)]
+pub struct BallCollisionPoints(pub Points);
 
 #[derive(Resource, Default, Reflect)]
 #[reflect(Resource)]

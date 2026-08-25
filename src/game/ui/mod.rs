@@ -67,10 +67,14 @@ fn clean_up(
     mut cmds: Commands,
     mut ui_state: ResMut<NextState<UiState>>,
     q_bars: Query<Entity, With<PosToRelEntity>>,
+    q_floating: Query<Entity, With<floating_text::FloatingPoints>>,
 ) {
     ui_state.set(UiState::None);
     for bar_id in q_bars.iter() {
         cmds.entity(bar_id).despawn();
+    }
+    for fp_id in q_floating.iter() {
+        cmds.entity(fp_id).despawn();
     }
 }
 

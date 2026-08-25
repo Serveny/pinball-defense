@@ -6,7 +6,7 @@ use super::ball::{CollisionWithBallEvent, PinBall};
 use super::cfg::CONFIG;
 use super::events::collision::GameLayer;
 use super::events::tween_completed::AfterTween;
-use super::level::{Level, PointsEvent, PointsKind};
+use super::level::{BallCollisionPoints, Level, PointsEvent, PointsKind};
 use super::light::{
     FlashLight, LightOnCollision, SightRadiusLight, contact_light_bundle, sight_radius_light,
 };
@@ -151,6 +151,7 @@ fn tower_physics_bundle() -> impl Bundle {
         DebugRender::collider(RED.into()),
         Collider::circle(0.06),
         CollisionLayers::new(GameLayer::Tower, GameLayer::Ball),
+        BallCollisionPoints(20),
         PinballMenuTrigger::Upgrade,
         LightOnCollision,
     )
@@ -318,15 +319,13 @@ fn on_spawn_tower_system(
 fn on_progress_system(
     mut prog_bar_ev: MessageWriter<ProgressBarCountUpEvent>,
     mut evr: MessageReader<CollisionWithBallEvent>,
-    mut points_ev: MessageWriter<PointsEvent>,
     mut sound_ev: MessageWriter<SoundEvent>,
-    q_tower: Query<(&Transform, Entity), With<Tower>>,
+    q_tower: Query<Entity, With<Tower>>,
 ) {
     evr.read().for_each(|CollisionWithBallEvent(id)| {
         // *flag != CollisionEventFlags::SENSOR &&
-        if let Ok((tf, _)) = q_tower.get(*id) {
+        if q_tower.contains(*id) {
             prog_bar_ev.write(ProgressBarCountUpEvent::new(*id, CONFIG.tower_hit_progress));
-            points_ev.write(PointsEvent::new(PointsKind::TowerHit, tf.translation));
             sound_ev.write(SoundEvent::TowerHit);
         }
     });

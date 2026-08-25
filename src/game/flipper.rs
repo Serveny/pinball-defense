@@ -1,8 +1,6 @@
 use super::audio::SoundEvent;
-use super::ball::CollisionWithBallEvent;
 use super::events::collision::GameLayer;
-use super::level::{PointsEvent, PointsKind};
-use super::{EventState, GameState};
+use super::GameState;
 use crate::prelude::*;
 
 pub struct FlipperPlugin;
@@ -13,10 +11,6 @@ impl Plugin for FlipperPlugin {
             .add_systems(
                 FixedUpdate,
                 flipper_system.run_if(in_state(GameState::Ingame)),
-            )
-            .add_systems(
-                Update,
-                (on_collision_with_ball_system).run_if(in_state(EventState::Active)),
             );
     }
 }
@@ -187,17 +181,5 @@ fn sound_system(
             FlipperStatus::Idle => sound_ev.write(SoundEvent::FlipperRelease),
             FlipperStatus::Pushed => sound_ev.write(SoundEvent::FlipperPress),
         };
-    }
-}
-
-fn on_collision_with_ball_system(
-    mut points_ev: MessageWriter<PointsEvent>,
-    mut evr: MessageReader<CollisionWithBallEvent>,
-    q_flipper: Query<(&Transform, Entity), With<FlipperCollider>>,
-) {
-    for ev in evr.read() {
-        if let Ok((tf, _)) = q_flipper.get(ev.0) {
-            points_ev.write(PointsEvent::new(PointsKind::FlipperHit, tf.translation));
-        }
     }
 }
