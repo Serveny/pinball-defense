@@ -12,7 +12,6 @@ use crate::game::ball::CollisionWithBallEvent;
 use crate::game::world::QueryWorld;
 use crate::generated::world_1::road_points::ROAD_POINTS;
 use crate::prelude::*;
-use bevy::color::palettes::css::RED;
 use bevy::math::primitives::Sphere;
 use moonshine_save::prelude::Save;
 use std::time::Duration;
@@ -57,14 +56,16 @@ pub struct Enemy {
     step: Step,
     speed: f32,
     current_speed: f32,
+    wave: usize,
 }
 
 impl Enemy {
-    pub fn new() -> Self {
+    pub fn new(wave: usize) -> Self {
         Self {
             step: Step::new(1),
             speed: WALK_SPEED,
             current_speed: WALK_SPEED,
+            wave,
         }
     }
 
@@ -87,7 +88,7 @@ impl Enemy {
 }
 
 #[derive(Message)]
-pub struct SpawnEnemyEvent;
+pub struct SpawnEnemyEvent(pub usize);
 
 fn on_spawn_system(
     mut cmds: Commands,
@@ -96,14 +97,14 @@ fn on_spawn_system(
     mut mats: ResMut<Assets<StandardMaterial>>,
     q_pqw: QueryWorld,
 ) {
-    for _ in evr.read() {
+    for SpawnEnemyEvent(wave) in evr.read() {
         let mut enemy_id: Option<Entity> = None;
         let Ok(world) = q_pqw.single() else {
             warn!("[enemy spawn] no world");
             return;
         };
         cmds.entity(world).with_children(|spawner| {
-            enemy_id = Some(spawner.spawn(enemy(&mut meshes, &mut mats)).id());
+            enemy_id = Some(spawner.spawn(enemy(&mut meshes, &mut mats, *wave)).id());
         });
         if let Some(enemy_id) = enemy_id {
             ui::progress_bar::spawn(&mut cmds, enemy_id, 1.);
@@ -114,25 +115,34 @@ fn on_spawn_system(
 #[derive(Component)]
 pub struct LastDamager(pub Option<Entity>);
 
+fn enemy_color(wave: usize) -> Color {
+    let t = (wave as f32 / 100.).min(1.);
+    let hue = 30. + (220. - 30.) * t;
+    let lightness = 0.6 - 0.55 * t;
+    Color::hsl(hue, 0.9, lightness)
+}
+
 fn enemy_view_bundle(
     meshes: &mut Assets<Mesh>,
     mats: &mut Assets<StandardMaterial>,
+    wave: usize,
 ) -> impl Bundle {
+    let color = enemy_color(wave);
     (
         Name::new("Enemy"),
         Mesh3d(meshes.add(Mesh::from(Sphere { radius: 0.03 }))),
         MeshMaterial3d(mats.add(StandardMaterial {
-            base_color: RED.into(),
-            perceptual_roughness: 0.,
-            metallic: 1.,
-            reflectance: 1.,
+            base_color: color,
+            perceptual_roughness: 1.,
+            metallic: 0.,
+            reflectance: 0.,
             ..default()
         })),
         Sensor,
         RigidBody::Kinematic,
         Collider::circle(0.03),
         CollisionEventsEnabled,
-        DebugRender::default().with_collider_color(RED.into()),
+        DebugRender::default().with_collider_color(color),
         CollisionLayers::new(GameLayer::Enemy, [GameLayer::Ball, GameLayer::Tower]),
         Restitution {
             coefficient: 2.,
@@ -141,11 +151,11 @@ fn enemy_view_bundle(
     )
 }
 
-fn enemy(meshes: &mut Assets<Mesh>, mats: &mut Assets<StandardMaterial>) -> impl Bundle {
+fn enemy(meshes: &mut Assets<Mesh>, mats: &mut Assets<StandardMaterial>, wave: usize) -> impl Bundle {
     (
-        enemy_view_bundle(meshes, mats),
-        Enemy::new(),
-        Health::new(100.),
+        enemy_view_bundle(meshes, mats, wave),
+        Enemy::new(wave),
+        Health::new(100. * (1. + wave as f32 * 0.5)),
         LastDamager(None),
         Transform::from_translation(ROAD_POINTS[0]),
     )
@@ -156,12 +166,12 @@ fn reattach_enemies_system(
     mut meshes: ResMut<Assets<Mesh>>,
     mut mats: ResMut<Assets<StandardMaterial>>,
     q_world: QueryWorld,
-    q_enemies: Query<Entity, (With<Enemy>, Without<Collider>)>,
+    q_enemies: Query<(Entity, &Enemy), Without<Collider>>,
 ) {
     let Ok(world) = q_world.single() else { return };
-    for enemy_id in q_enemies.iter() {
+    for (enemy_id, enemy) in q_enemies.iter() {
         cmds.entity(enemy_id)
-            .insert(enemy_view_bundle(&mut meshes, &mut mats));
+            .insert(enemy_view_bundle(&mut meshes, &mut mats, enemy.wave));
         cmds.entity(world).add_child(enemy_id);
     }
 }

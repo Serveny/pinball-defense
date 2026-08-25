@@ -34,6 +34,7 @@ Pinball-Defense is a hybrid **Pinball + Tower Defense** game.
 
 - Cut big tasks into many small ones and use parallel sub agents if possible
 - You are working with cutting edge technology with many changes. Always check the documentation and internet for current best practice
+- cargo builds can take time, set timeouts to 300000 ms
 
 ## graphify
 

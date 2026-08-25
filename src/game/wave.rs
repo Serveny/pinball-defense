@@ -57,7 +57,7 @@ impl Wave {
     fn next_enemy(&mut self, now: f32) -> SpawnEnemyEvent {
         self.enemies_count -= 1;
         self.next_enemy_spawn_time = now + self.time_between_enemies;
-        SpawnEnemyEvent
+        SpawnEnemyEvent(self.number)
     }
 
     fn prepare_next_wave(&mut self, now: f32) {
