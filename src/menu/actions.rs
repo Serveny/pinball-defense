@@ -1,8 +1,8 @@
 use super::confirm_popup::{self, ConfirmPopup};
-use super::{MenuState, SavedInPauseMenu, SettingsMenuState, SettingsReturnMenu};
+use super::{MenuLayout, MenuState, SavedInPauseMenu, SettingsMenuState, SettingsReturnMenu};
 use crate::AppState;
 use crate::game::ResumeGameEvent;
-use crate::game::{load_game, save_game};
+use crate::game::{load_game, save_game, spawn_save_screenshot};
 use crate::prelude::*;
 use bevy::app::AppExit;
 
@@ -60,6 +60,7 @@ pub fn on_menu_action(
     mut cmds: Commands,
     assets: Res<PinballDefenseAssets>,
     q_popup: Query<Entity, With<ConfirmPopup>>,
+    mut q_layout: Query<&mut Visibility, With<MenuLayout>>,
     saved_in_pause_menu: Option<Res<SavedInPauseMenu>>,
 ) {
     for action in evr.read() {
@@ -77,8 +78,10 @@ pub fn on_menu_action(
             MA::SaveGame => next_menu_state.set(MenuState::SaveGame),
             MA::Save(path) => {
                 save_game(&mut cmds, path.clone());
-                cmds.insert_resource(SavedInPauseMenu);
-                next_menu_state.set(MenuState::PauseMenu);
+                for mut vis in &mut q_layout {
+                    *vis = Visibility::Hidden;
+                }
+                spawn_save_screenshot(&mut cmds, path.clone().into());
             }
             MA::Load(path) => {
                 load_game(&mut cmds, path.clone());

@@ -1,8 +1,10 @@
 mod config;
 mod slots;
+pub mod screenshot;
 
 pub use config::save_world;
 pub use slots::{list_saves, next_save_path};
+pub use screenshot::{spawn_save_screenshot, thumbnail_path};
 
 use super::GameState;
 use crate::prelude::*;

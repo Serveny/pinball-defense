@@ -4959,6 +4959,7 @@ dependencies = [
  "bevy_tweening",
  "bevy_window_title_diagnostics",
  "digits_iterator",
+ "image",
  "moonshine-save",
  "rand",
 ]

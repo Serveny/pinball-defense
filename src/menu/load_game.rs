@@ -4,19 +4,24 @@ use super::{
     actions::MenuAction,
     tools::menu_btn::{self, ButtonStyle, MenuButton, MenuButtonData},
 };
-use crate::game::{list_saves, next_save_path};
+use crate::game::{list_saves, next_save_path, thumbnail_path};
 use crate::prelude::*;
 use crate::utils::GameColor;
+use bevy::render::render_resource::{Extent3d, TextureDimension, TextureFormat};
 use bevy::text::{FontSize, FontSourceTemplate};
 use std::path::Path;
 
 #[derive(Component, Clone, Default)]
 pub struct SaveList;
 
-pub fn load_game_layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
+pub fn load_game_layout(
+    mut cmds: Commands,
+    assets: Res<PinballDefenseAssets>,
+    mut image_assets: ResMut<Assets<Image>>,
+) {
     cmds.spawn_scene(nav_menu(&assets, "Load Game"));
     cmds.spawn_scene(save_list_panel()).with_children(|p| {
-        spawn_save_entries(p, &assets, MenuAction::Load);
+        spawn_save_entries(p, &assets, &mut image_assets, MenuAction::Load);
         if list_saves().is_empty() {
             p.spawn_empty()
                 .apply_scene(empty_message("No saves found", &assets));
@@ -24,12 +29,17 @@ pub fn load_game_layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
     });
 }
 
-pub fn save_game_layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
+pub fn save_game_layout(
+    mut cmds: Commands,
+    assets: Res<PinballDefenseAssets>,
+    mut image_assets: ResMut<Assets<Image>>,
+) {
     cmds.spawn_scene(nav_menu(&assets, "Save Game"));
     cmds.spawn_scene(save_list_panel()).with_children(|p| {
-        spawn_save_entries(p, &assets, MenuAction::Save);
+        spawn_save_entries(p, &assets, &mut image_assets, MenuAction::Save);
         p.spawn_empty().apply_scene(save_entry(
             "New Save",
+            None,
             MenuAction::Save(next_save_path()),
             &assets,
         ));
@@ -39,13 +49,39 @@ pub fn save_game_layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
 fn spawn_save_entries(
     p: &mut ChildSpawnerCommands,
     assets: &PinballDefenseAssets,
+    image_assets: &mut Assets<Image>,
     to_action: impl Fn(String) -> MenuAction,
 ) {
     for path in list_saves() {
         let label = save_label(&path);
         let action = to_action(path.to_string_lossy().into_owned());
-        p.spawn_empty().apply_scene(save_entry(&label, action, assets));
+        let thumb = load_thumbnail(&thumbnail_path(&path), image_assets);
+        p.spawn_empty()
+            .apply_scene(save_entry(&label, thumb, action, assets));
     }
+}
+
+fn load_thumbnail(path: &Path, image_assets: &mut Assets<Image>) -> Option<Handle<Image>> {
+    let bytes = std::fs::read(path).ok()?;
+    let dyn_img = image::ImageReader::new(std::io::Cursor::new(&bytes))
+        .with_guessed_format()
+        .ok()?
+        .decode()
+        .ok()?;
+    let rgba = dyn_img.to_rgba8();
+    let (w, h) = rgba.dimensions();
+    let image = Image::new(
+        Extent3d {
+            width: w,
+            height: h,
+            depth_or_array_layers: 1,
+        },
+        TextureDimension::D2,
+        rgba.into_raw(),
+        TextureFormat::Rgba8UnormSrgb,
+        bevy::asset::RenderAssetUsages::default(),
+    );
+    Some(image_assets.add(image))
 }
 
 fn nav_menu(assets: &PinballDefenseAssets, title: &str) -> impl Scene {
@@ -127,11 +163,17 @@ fn empty_message(text: &str, assets: &PinballDefenseAssets) -> impl Scene {
     }
 }
 
-fn save_entry(label: &str, action: MenuAction, assets: &PinballDefenseAssets) -> impl Scene {
+fn save_entry(
+    label: &str,
+    thumb: Option<Handle<Image>>,
+    action: MenuAction,
+    assets: &PinballDefenseAssets,
+) -> impl Scene {
     let label = label.to_string();
     let font = FontSourceTemplate::Handle(assets.menu_font.clone().into());
     let style = ButtonStyle::Primary;
     let color = GameColor::GOLD;
+    let thumb = thumb.unwrap_or_default();
     bsn! {
         #Button
         Button
@@ -144,10 +186,17 @@ fn save_entry(label: &str, action: MenuAction, assets: &PinballDefenseAssets) ->
             justify_content: JustifyContent::FlexStart,
             align_items: AlignItems::Center,
             padding: UiRect::horizontal(Val::Px(20.)),
+            column_gap: Val::Px(15.),
         }
         BorderColor::from(color)
         BackgroundColor(Color::NONE)
         Children [
+            (Node {
+                width: Val::Px(110.),
+                height: Val::Px(55.),
+                flex_shrink: 0.0,
+             }
+             ImageNode { image: {thumb} }),
             (Text({label})
              TextFont { font: {font}, font_size: FontSize::Px(40.0) }
              TextColor(color))

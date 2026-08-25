@@ -11,7 +11,9 @@ use self::game_over::GameOverScreen;
 use self::health::HealthPlugin;
 use self::level::LevelPlugin;
 use self::light::LightPlugin;
-pub use self::save::{list_saves, load_game, next_save_path, save_game};
+pub use self::save::{
+    list_saves, load_game, next_save_path, save_game, spawn_save_screenshot, thumbnail_path,
+};
 use self::ui::UiState;
 use self::world::{PinballWorld, spawn_pinball_world};
 use crate::AppState;

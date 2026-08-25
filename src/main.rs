@@ -25,7 +25,7 @@ mod assets;
 mod game;
 mod generated;
 mod loading;
-mod menu;
+pub mod menu;
 mod prelude;
 mod settings;
 mod utils;
