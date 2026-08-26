@@ -9,6 +9,7 @@ use crate::prelude::*;
 use crate::utils::GameColor;
 use bevy::render::render_resource::{Extent3d, TextureDimension, TextureFormat};
 use bevy::text::{FontSize, FontSourceTemplate};
+use bevy::ui_widgets::ScrollArea;
 use std::path::Path;
 
 #[derive(Component, Clone, Default)]
@@ -20,7 +21,9 @@ pub fn load_game_layout(
     mut image_assets: ResMut<Assets<Image>>,
 ) {
     cmds.spawn_scene(nav_menu(&assets, "Load Game"));
-    cmds.spawn_scene(save_list_panel()).with_children(|p| {
+    let scroll_area = cmds.spawn_scene(save_list_panel()).id();
+    super::tools::scrollbar::spawn(&mut cmds, scroll_area);
+    cmds.entity(scroll_area).with_children(|p| {
         spawn_save_entries(p, &assets, &mut image_assets, MenuAction::Load);
         if list_saves().is_empty() {
             p.spawn_empty()
@@ -35,7 +38,9 @@ pub fn save_game_layout(
     mut image_assets: ResMut<Assets<Image>>,
 ) {
     cmds.spawn_scene(nav_menu(&assets, "Save Game"));
-    cmds.spawn_scene(save_list_panel()).with_children(|p| {
+    let scroll_area = cmds.spawn_scene(save_list_panel()).id();
+    super::tools::scrollbar::spawn(&mut cmds, scroll_area);
+    cmds.entity(scroll_area).with_children(|p| {
         spawn_save_entries(p, &assets, &mut image_assets, MenuAction::Save);
         p.spawn_empty().apply_scene(save_entry(
             "New Save",
@@ -125,15 +130,19 @@ fn save_list_panel() -> impl Scene {
             position_type: PositionType::Absolute,
             left: Val::Px(300.),
             right: Val::Px(0.),
+            top: Val::Px(0.),
+            bottom: Val::Px(0.),
             display: Display::Flex,
             flex_direction: FlexDirection::Column,
             flex_wrap: FlexWrap::NoWrap,
             justify_content: JustifyContent::FlexStart,
             align_content: AlignContent::FlexStart,
+            overflow: Overflow::scroll_y(),
         }
         BackgroundColor({bg})
         MenuLayout
         SaveList
+        ScrollArea
     }
 }
 

@@ -2,6 +2,7 @@ use super::MenuLayout;
 use super::tools::sliders;
 use super::tools::{checkbox, keybox, row};
 use crate::prelude::*;
+use bevy::ui_widgets::ScrollArea;
 use crate::settings::{GraphicsSettings, SoundSettings};
 use crate::utils::reflect::{cast, prop_name};
 use crate::utils::{Music, Sound};
@@ -26,7 +27,9 @@ pub fn layout<TSettings: Resource + Struct>(
     assets: Res<PinballDefenseAssets>,
     settings: Res<TSettings>,
 ) {
-    cmds.spawn_scene(settings_menu_layout()).with_children(|p| {
+    let scroll_area = cmds.spawn_scene(settings_menu_layout()).id();
+    super::tools::scrollbar::spawn(&mut cmds, scroll_area);
+    cmds.entity(scroll_area).with_children(|p| {
         for (i, (_, field)) in settings.iter_fields().enumerate() {
             let prop_name = prop_name(settings.as_ref(), i)
                 .replace('_', " ")
@@ -54,15 +57,19 @@ fn settings_menu_layout() -> impl Scene {
             position_type: PositionType::Absolute,
             left: Val::Px(300.),
             right: Val::Px(0.),
+            top: Val::Px(0.),
+            bottom: Val::Px(0.),
             display: Display::Flex,
             flex_direction: FlexDirection::Column,
             flex_wrap: FlexWrap::NoWrap,
             justify_content: JustifyContent::FlexStart,
             align_content: AlignContent::FlexStart,
+            overflow: Overflow::scroll_y(),
         }
         BackgroundColor({bg})
         MenuLayout
         SettingsMenuLayout
+        ScrollArea
     }
 }
 
