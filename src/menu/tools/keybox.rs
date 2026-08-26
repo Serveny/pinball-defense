@@ -14,7 +14,7 @@ pub fn scene(assets: &PinballDefenseAssets, prop_i: usize, init_val: KeyCode) ->
         Keybox
         Button
         Node {
-            width: Val::Px(130.),
+            width: Val::Px(195.),
             height: Val::Px(55.),
             border: UiRect::all(Val::Px(5.0)),
             margin: UiRect::all(Val::Auto),
@@ -29,7 +29,7 @@ pub fn scene(assets: &PinballDefenseAssets, prop_i: usize, init_val: KeyCode) ->
         Active
         Children [
             (Text({format!("{init_val:?}").replace("Key", "")})
-             TextFont { font: {font}, font_size: FontSize::Px(40.0) }
+             TextFont { font: {font}, font_size: FontSize::Px(32.0) }
              TextColor({GameColor::WHITE}))
         ]
     }

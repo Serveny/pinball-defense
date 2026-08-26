@@ -128,3 +128,5 @@
 - UI: Show points where they are made: Progress blue, Damage red  ✅
 - Activate sound by default in release mode ✅
 - UI: Show points where they are made: Progress blue, Damage red ✅
+- UI scrollbar ✅
+- Game over screen statistics ✅

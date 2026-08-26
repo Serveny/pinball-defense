@@ -1,15 +1,18 @@
 use super::MenuLayout;
 use super::tools::sliders;
 use super::tools::{checkbox, keybox, row};
+use crate::game::KeyboardControls;
 use crate::prelude::*;
+use bevy::text::{FontSize, FontSourceTemplate};
 use bevy::ui_widgets::ScrollArea;
 use crate::settings::{GraphicsSettings, SoundSettings};
 use crate::utils::reflect::{cast, prop_name};
-use crate::utils::{Music, Sound};
+use crate::utils::{GameColor, Music, Sound};
 use bevy::audio::Volume;
 use bevy::camera::Hdr;
 use bevy::post_process::bloom::Bloom;
 use bevy::reflect::structs::Struct;
+use std::any::TypeId;
 
 #[derive(States, Clone, Eq, PartialEq, Debug, Hash, Default)]
 pub enum SettingsMenuState {
@@ -22,6 +25,61 @@ pub enum SettingsMenuState {
 
 const KEY_CODE: &str = "bevy_input::keyboard::KeyCode";
 
+fn header(p: &mut ChildSpawnerCommands, assets: &PinballDefenseAssets, text: &str) {
+    let font = FontSourceTemplate::Handle(assets.menu_font.clone().into());
+    let text = text.to_string();
+    p.spawn_empty().apply_scene(bsn! {
+        Node {
+            width: Val::Percent(100.),
+            height: Val::Px(50.),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            border: UiRect::bottom(Val::Px(2.)),
+        }
+        BorderColor::from(GameColor::GOLD)
+        Children [
+            (Text({text})
+             TextFont { font: {font}, font_size: FontSize::Px(40.0) }
+             TextColor({GameColor::GOLD}))
+        ]
+    });
+}
+
+fn controller_bindings() -> [(&'static str, &'static str); 6] {
+    [
+        ("Flipper Left", "L2"),
+        ("Flipper Right", "R2"),
+        ("Start", "East"),
+        ("Charge / Fire", "South"),
+        ("Pause", "Start"),
+        ("Menu", "Start"),
+    ]
+}
+
+fn controller_label(p: &mut ChildSpawnerCommands, assets: &PinballDefenseAssets, text: &str) {
+    let font = FontSourceTemplate::Handle(assets.menu_font.clone().into());
+    let text = text.to_string();
+    p.spawn_empty().apply_scene(bsn! {
+        Node {
+            width: Val::Px(195.),
+            height: Val::Px(55.),
+            border: UiRect::all(Val::Px(5.0)),
+            margin: UiRect::all(Val::Auto),
+            padding: UiRect::all(Val::Auto),
+            display: Display::Flex,
+            align_content: AlignContent::Center,
+            justify_content: JustifyContent::Center,
+        }
+        BorderColor::from(GameColor::GOLD)
+        BackgroundColor(Color::NONE)
+        Children [
+            (Text({text})
+             TextFont { font: {font}, font_size: FontSize::Px(32.0) }
+             TextColor({GameColor::WHITE}))
+        ]
+    });
+}
+
 pub fn layout<TSettings: Resource + Struct>(
     mut cmds: Commands,
     assets: Res<PinballDefenseAssets>,
@@ -30,6 +88,10 @@ pub fn layout<TSettings: Resource + Struct>(
     let scroll_area = cmds.spawn_scene(settings_menu_layout()).id();
     super::tools::scrollbar::spawn(&mut cmds, scroll_area);
     cmds.entity(scroll_area).with_children(|p| {
+        let is_controls = TypeId::of::<TSettings>() == TypeId::of::<KeyboardControls>();
+        if is_controls {
+            header(p, &assets, "Keyboard");
+        }
         for (i, (_, field)) in settings.iter_fields().enumerate() {
             let prop_name = prop_name(settings.as_ref(), i)
                 .replace('_', " ")
@@ -43,6 +105,14 @@ pub fn layout<TSettings: Resource + Struct>(
                     type_name => println!("🐱 Unknown type in asset struct: {}", type_name),
                 }
             })
+        }
+        if is_controls {
+            header(p, &assets, "Controller");
+            for (action, button) in controller_bindings() {
+                row::spawn(action, p, &assets, |p| {
+                    controller_label(p, &assets, button);
+                });
+            }
         }
     });
 }
