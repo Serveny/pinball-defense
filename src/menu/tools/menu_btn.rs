@@ -1,7 +1,9 @@
 use super::super::actions::MenuAction;
 use crate::prelude::*;
 use crate::utils::GameColor;
+use bevy::input_focus::InputFocus;
 use bevy::text::{FontSize, FontSourceTemplate};
+use bevy::ui::auto_directional_navigation::AutoDirectionalNavigation;
 
 #[derive(Component, Clone, Default)]
 pub struct MenuButton;
@@ -42,6 +44,7 @@ pub fn scene(
         Button
         MenuButton
         MenuButtonData { action: {action}, style: {style} }
+        AutoDirectionalNavigation
         Node {
             width: Val::Percent(100.),
             height: Val::Px(65.),
@@ -78,6 +81,33 @@ pub fn system(
             }
             Interaction::Hovered => GameColor::WHITE,
             Interaction::None => resting,
+        };
+        *border_color = target.into();
+        if let Ok(children) = children.get(entity) {
+            for child in children {
+                if let Ok(mut text_color) = text_query.get_mut(*child) {
+                    *text_color = target.into();
+                }
+            }
+        }
+    }
+}
+
+pub fn focus_system(
+    focus: Res<InputFocus>,
+    mut q_btn: Query<
+        (&MenuButtonData, &mut BorderColor, Entity),
+        (With<Button>, With<MenuButton>),
+    >,
+    children: Query<&Children>,
+    mut text_query: Query<&mut TextColor>,
+) {
+    let focused = focus.get();
+    for (data, mut border_color, entity) in &mut q_btn {
+        let target = if focused == Some(entity) {
+            GameColor::WHITE
+        } else {
+            data.style.resting_color()
         };
         *border_color = target.into();
         if let Ok(children) = children.get(entity) {

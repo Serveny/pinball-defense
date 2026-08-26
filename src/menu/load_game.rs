@@ -9,6 +9,7 @@ use crate::prelude::*;
 use crate::utils::GameColor;
 use bevy::render::render_resource::{Extent3d, TextureDimension, TextureFormat};
 use bevy::text::{FontSize, FontSourceTemplate};
+use bevy::ui::auto_directional_navigation::AutoDirectionalNavigation;
 use bevy::ui_widgets::ScrollArea;
 use std::path::Path;
 
@@ -188,6 +189,7 @@ fn save_entry(
         Button
         MenuButton
         MenuButtonData { action: {action}, style: {style} }
+        AutoDirectionalNavigation
         Node {
             width: Val::Percent(100.),
             height: Val::Px(65.),

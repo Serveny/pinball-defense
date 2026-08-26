@@ -1,12 +1,15 @@
 use self::settings::{on_changed_graphics_settings, on_changed_sound_settings};
 use self::settings::SettingsMenuState;
+use self::tools::menu_btn::MenuButton;
 use crate::AppState;
 use crate::game::KeyboardControls;
 use crate::prelude::*;
 use crate::settings::{GraphicsSettings, SoundSettings};
+use bevy::input_focus::{FocusCause, InputFocus};
 
 mod actions;
 mod confirm_popup;
+mod gamepad;
 mod load_game;
 mod main_menu;
 mod pause;
@@ -37,6 +40,7 @@ impl Plugin for MenuPlugin {
             .init_resource::<SettingsReturnMenu>()
             .init_resource::<SavedInPauseMenu>()
             .add_message::<MenuAction>()
+            .add_plugins(bevy::input_focus::directional_navigation::DirectionalNavigationPlugin)
             .add_systems(OnEnter(AppState::MainMenu), enter_main_menu)
             .add_systems(
                 OnEnter(MenuState::MainMenu),
@@ -76,6 +80,10 @@ impl Plugin for MenuPlugin {
                     ensure_menu_camera,
                     actions::on_menu_action,
                     tools::menu_btn::system,
+                    tools::menu_btn::focus_system,
+                    gamepad::navigation_system,
+                    gamepad::activate_system,
+                    focus_first_menu_button,
                     tools::sliders::update_thumb_position,
                     tools::sliders::update_thumb_style,
                     tools::checkbox::update_mark_visibility,
@@ -133,6 +141,18 @@ fn in_menu(state: Res<State<MenuState>>) -> bool {
             | MenuState::LoadGame
             | MenuState::SaveGame
     )
+}
+
+fn focus_first_menu_button(
+    mut focus: ResMut<InputFocus>,
+    q_btn: Query<Entity, With<MenuButton>>,
+) {
+    if focus.get().is_some_and(|e| q_btn.contains(e)) {
+        return;
+    }
+    if let Some(first) = q_btn.iter().next() {
+        focus.set(first, FocusCause::Navigated);
+    }
 }
 
 fn enter_main_menu(
