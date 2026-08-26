@@ -4,6 +4,7 @@ pub mod checkbox;
 pub mod keybox;
 pub mod menu_btn;
 pub mod row;
+pub mod scrollbar;
 pub mod sliders;
 
 #[derive(Component, Clone, Default)]

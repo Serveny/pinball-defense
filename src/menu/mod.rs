@@ -80,6 +80,7 @@ impl Plugin for MenuPlugin {
                     tools::sliders::update_thumb_style,
                     tools::checkbox::update_mark_visibility,
                     tools::keybox::system,
+                    tools::scrollbar::update_visibility,
                 )
                     .run_if(in_menu),
             )
