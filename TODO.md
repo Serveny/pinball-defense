@@ -13,7 +13,6 @@
 - Performance Profiling feature
 - Fix hanging ball physics sometimes when hitting a tower
 - Rolling ball visual effect
-- Extra-Ball-Field: Hit it and the ball starter will insert new ball
 - towers get darker texture color, the higher they are upgraded
 - Extra fields:
   - Extra-Ball-Field: Hit it and the ball starter will insert new ball
