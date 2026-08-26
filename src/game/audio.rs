@@ -20,6 +20,7 @@ impl Plugin for AudioPlugin {
             )
             .add_systems(OnEnter(AppState::MainMenu), play_music)
             .add_systems(OnEnter(GameState::Pause), pause_sounds)
+            .add_systems(OnEnter(GameState::GameOver), pause_sounds)
             .add_systems(OnEnter(GameState::Ingame), resume_sounds)
             .add_systems(
                 Update,

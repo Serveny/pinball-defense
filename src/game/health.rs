@@ -57,9 +57,9 @@ impl Health {
 
 #[derive(Message)]
 pub struct ChangeHealthEvent {
-    health_id: Entity,
-    amount: f32,
-    damager_id: Option<Entity>,
+    pub health_id: Entity,
+    pub amount: f32,
+    pub damager_id: Option<Entity>,
 }
 
 impl ChangeHealthEvent {

@@ -1,5 +1,5 @@
 use self::settings::{on_changed_graphics_settings, on_changed_sound_settings};
-use self::{actions::MenuAction, settings::SettingsMenuState};
+use self::settings::SettingsMenuState;
 use crate::AppState;
 use crate::game::KeyboardControls;
 use crate::prelude::*;
@@ -12,8 +12,10 @@ mod main_menu;
 mod pause;
 mod settings;
 mod settings_menu;
-mod tools;
+pub mod tools;
 mod utils;
+
+pub use actions::MenuAction;
 
 #[derive(States, Clone, Eq, PartialEq, Debug, Hash, Default)]
 pub enum MenuState {
@@ -132,9 +134,21 @@ fn in_menu(state: Res<State<MenuState>>) -> bool {
     )
 }
 
-fn enter_main_menu(mut menu_state: ResMut<NextState<MenuState>>) {
-    menu_state.set(MenuState::MainMenu);
+fn enter_main_menu(
+    mut cmds: Commands,
+    mut menu_state: ResMut<NextState<MenuState>>,
+    go_to_load: Option<Res<GoToLoadGame>>,
+) {
+    if go_to_load.is_some() {
+        menu_state.set(MenuState::LoadGame);
+        cmds.remove_resource::<GoToLoadGame>();
+    } else {
+        menu_state.set(MenuState::MainMenu);
+    }
 }
+
+#[derive(Resource)]
+pub struct GoToLoadGame;
 
 fn reset_saved_in_pause_menu(mut cmds: Commands) {
     cmds.remove_resource::<SavedInPauseMenu>();

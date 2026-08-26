@@ -27,6 +27,7 @@ use pinball_menu::PinballMenuPlugin;
 use player_life::PlayerLifePlugin;
 use progress::ProgressPlugin;
 use save::SavePlugin;
+use stats::StatsPlugin;
 use std::f32::consts::PI;
 use tower::TowerPlugin;
 use wave::WavePlugin;
@@ -50,6 +51,7 @@ mod player_life;
 mod progress;
 mod road;
 mod save;
+mod stats;
 mod tower;
 mod ui;
 mod wave;
@@ -95,6 +97,7 @@ impl Plugin for GamePlugin {
                 AnalogCounterPlugin,
                 AudioPlugin,
                 SavePlugin,
+                StatsPlugin,
             ))
             .add_plugins((
                 HealthPlugin,
@@ -125,7 +128,11 @@ impl Plugin for GamePlugin {
             .add_systems(OnEnter(GameState::GameOver), (game_over::spawn, pause_on_game_over))
             .add_systems(
                 Update,
-                (game_over::btn_system).run_if(in_state(GameState::GameOver)),
+                (
+                    crate::menu::tools::menu_btn::system,
+                    game_over::action_handler,
+                )
+                    .run_if(in_state(GameState::GameOver)),
             )
             .add_systems(OnExit(GameState::GameOver), reset);
     }
