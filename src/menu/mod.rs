@@ -1,11 +1,12 @@
 use self::settings::{on_changed_graphics_settings, on_changed_sound_settings};
-use self::settings::SettingsMenuState;
+use self::settings::{SettingsMenuLayout, SettingsMenuState};
 use self::tools::menu_btn::MenuButton;
 use crate::AppState;
 use crate::game::KeyboardControls;
 use crate::prelude::*;
 use crate::settings::{GraphicsSettings, SoundSettings};
 use bevy::input_focus::{FocusCause, InputFocus};
+use bevy::ui::auto_directional_navigation::AutoDirectionalNavigation;
 
 mod actions;
 mod confirm_popup;
@@ -81,14 +82,18 @@ impl Plugin for MenuPlugin {
                     actions::on_menu_action,
                     tools::menu_btn::system,
                     tools::menu_btn::focus_system,
+                    tools::focus_hover_system,
                     gamepad::navigation_system,
                     gamepad::activate_system,
-                    focus_first_menu_button,
+                    gamepad::back_system,
+                    focus_first_menu_button.run_if(in_state(SettingsMenuState::None)),
+                    focus_first_settings_widget
+                        .run_if(not(in_state(SettingsMenuState::None))),
                     tools::sliders::update_thumb_position,
                     tools::sliders::update_thumb_style,
                     tools::checkbox::update_mark_visibility,
-                    tools::keybox::system,
                     tools::scrollbar::update_visibility,
+                    confirm_popup::restrict_navigation,
                 )
                     .run_if(in_menu),
             )
@@ -122,6 +127,18 @@ impl Plugin for MenuPlugin {
                 ),
             )
             .add_systems(
+                OnExit(SettingsMenuState::Sound),
+                settings::clean_up,
+            )
+            .add_systems(
+                OnExit(SettingsMenuState::Graphics),
+                settings::clean_up,
+            )
+            .add_systems(
+                OnExit(SettingsMenuState::KeyboardControls),
+                settings::clean_up,
+            )
+            .add_systems(
                 Update,
                 on_changed_graphics_settings.run_if(in_state(SettingsMenuState::Graphics)),
             )
@@ -152,6 +169,28 @@ fn focus_first_menu_button(
     }
     if let Some(first) = q_btn.iter().next() {
         focus.set(first, FocusCause::Navigated);
+    }
+}
+
+fn focus_first_settings_widget(
+    mut focus: ResMut<InputFocus>,
+    q_layout: Query<Entity, With<SettingsMenuLayout>>,
+    q_widget: Query<Entity, With<AutoDirectionalNavigation>>,
+    children: Query<&Children>,
+) {
+    let mut widgets = Vec::new();
+    for layout in &q_layout {
+        for descendant in children.iter_descendants(layout) {
+            if q_widget.contains(descendant) {
+                widgets.push(descendant);
+            }
+        }
+    }
+    if focus.get().is_some_and(|e| widgets.contains(&e)) {
+        return;
+    }
+    if let Some(first) = widgets.first() {
+        focus.set(*first, FocusCause::Navigated);
     }
 }
 

@@ -3,6 +3,7 @@ use super::{
     MenuLayout,
     actions::MenuAction,
     tools::menu_btn::{self, ButtonStyle, MenuButton, MenuButtonData},
+    tools::Focusable,
 };
 use crate::game::{list_saves, next_save_path, thumbnail_path};
 use crate::prelude::*;
@@ -190,6 +191,7 @@ fn save_entry(
         MenuButton
         MenuButtonData { action: {action}, style: {style} }
         AutoDirectionalNavigation
+        Focusable
         Node {
             width: Val::Percent(100.),
             height: Val::Px(65.),

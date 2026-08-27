@@ -19,27 +19,39 @@ pub(super) fn on_btn_changed(
     mut pause_ev: MessageWriter<PauseGameEvent>,
 ) {
     for ev in evr.read() {
+        match ev.button {
+            GamepadButton::LeftTrigger => {
+                set_flipper_status(
+                    FlipperType::Left,
+                    FlipperStatus::by_value(ev.value),
+                    &mut q_flipper,
+                );
+                continue;
+            }
+            GamepadButton::RightTrigger => {
+                set_flipper_status(
+                    FlipperType::Right,
+                    FlipperStatus::by_value(ev.value),
+                    &mut q_flipper,
+                );
+                continue;
+            }
+            GamepadButton::South => {
+                ball_starter_state.set(match ev.state {
+                    ButtonState::Pressed => BallStarterState::Charge,
+                    ButtonState::Released => BallStarterState::Fire,
+                });
+                continue;
+            }
+            _ => {}
+        }
         if ev.state != ButtonState::Pressed {
-            return;
+            continue;
         }
         match ev.button {
             GamepadButton::East if ev.value > 0. => {
                 spawn_ball_ev.write(SpawnBallEvent);
             }
-            GamepadButton::South => ball_starter_state.set(match ev.value == 0. {
-                true => BallStarterState::Fire,
-                false => BallStarterState::Charge,
-            }),
-            GamepadButton::LeftTrigger => set_flipper_status(
-                FlipperType::Left,
-                FlipperStatus::by_value(ev.value),
-                &mut q_flipper,
-            ),
-            GamepadButton::RightTrigger => set_flipper_status(
-                FlipperType::Right,
-                FlipperStatus::by_value(ev.value),
-                &mut q_flipper,
-            ),
             GamepadButton::Start => {
                 pause_ev.write(PauseGameEvent);
                 menu_state.set(MenuState::PauseMenu);
@@ -50,14 +62,12 @@ pub(super) fn on_btn_changed(
 }
 
 pub(super) fn pause_btn_changed(
-    mut evr: MessageReader<GamepadButtonChangedEvent>,
+    gamepads: Query<&Gamepad>,
     mut menu_state: ResMut<NextState<MenuState>>,
     mut resume_ev: MessageWriter<ResumeGameEvent>,
 ) {
-    for ev in evr.read() {
-        if ev.button == GamepadButton::Start {
-            menu_state.set(MenuState::None);
-            resume_ev.write(ResumeGameEvent);
-        }
+    if gamepads.iter().any(|g| g.just_pressed(GamepadButton::Start)) {
+        menu_state.set(MenuState::None);
+        resume_ev.write(ResumeGameEvent);
     }
 }

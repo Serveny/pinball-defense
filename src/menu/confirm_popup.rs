@@ -1,8 +1,10 @@
 use super::actions::MenuAction;
-use super::tools::menu_btn::{self, ButtonStyle};
+use super::tools::menu_btn::{self, ButtonStyle, MenuButton};
 use crate::prelude::*;
 use crate::utils::GameColor;
+use bevy::input_focus::{FocusCause, InputFocus};
 use bevy::text::{FontSize, FontSourceTemplate};
+use bevy::ui::auto_directional_navigation::AutoDirectionalNavigation;
 
 #[derive(Component, Clone, Default)]
 pub struct ConfirmPopup;
@@ -56,5 +58,44 @@ pub fn spawn(cmds: &mut Commands, assets: &PinballDefenseAssets) {
 pub fn despawn(cmds: &mut Commands, q: &Query<Entity, With<ConfirmPopup>>) {
     for id in q.iter() {
         cmds.entity(id).despawn();
+    }
+}
+
+pub fn restrict_navigation(
+    q_popup: Query<Entity, With<ConfirmPopup>>,
+    children: Query<&Children>,
+    q_btn: Query<(Entity, Has<AutoDirectionalNavigation>), With<MenuButton>>,
+    mut focus: ResMut<InputFocus>,
+    mut cmds: Commands,
+) {
+    let Some(popup) = q_popup.iter().next() else {
+        for (btn, has_nav) in &q_btn {
+            if !has_nav {
+                cmds.entity(btn).insert(AutoDirectionalNavigation::default());
+            }
+        }
+        return;
+    };
+
+    let mut popup_btns = Vec::new();
+    for d in children.iter_descendants(popup) {
+        if q_btn.get(d).is_ok() {
+            popup_btns.push(d);
+        }
+    }
+
+    for (btn, has_nav) in &q_btn {
+        let in_popup = popup_btns.contains(&btn);
+        if in_popup && !has_nav {
+            cmds.entity(btn).insert(AutoDirectionalNavigation::default());
+        } else if !in_popup && has_nav {
+            cmds.entity(btn).remove::<AutoDirectionalNavigation>();
+        }
+    }
+
+    if !focus.get().is_some_and(|f| popup_btns.contains(&f))
+        && let Some(first) = popup_btns.first()
+    {
+        focus.set(*first, FocusCause::Navigated);
     }
 }

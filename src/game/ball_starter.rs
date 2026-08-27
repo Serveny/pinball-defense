@@ -197,6 +197,7 @@ fn on_charge_started(
 fn charge_system(
     key: Res<ButtonInput<KeyCode>>,
     controls: Res<KeyboardControls>,
+    gamepads: Query<&Gamepad>,
     mut q_plate: Query<(&mut Transform, &mut LinearVelocity), With<StarterPlate>>,
     mut q_spring: Query<&mut Transform, (With<StarterSpring>, Without<StarterPlate>)>,
     mut state: ResMut<NextState<BallStarterState>>,
@@ -214,7 +215,9 @@ fn charge_system(
 
     update_spring_scale(plate.translation.x, &mut spring.scale);
 
-    if !key.pressed(controls.charge_ball_starter) {
+    let charging = key.pressed(controls.charge_ball_starter)
+        || gamepads.iter().any(|g| g.pressed(GamepadButton::South));
+    if !charging {
         state.set(BallStarterState::Fire);
     }
 }

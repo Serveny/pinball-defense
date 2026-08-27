@@ -64,31 +64,15 @@ pub fn scene(
 }
 
 pub fn system(
-    children: Query<&Children>,
     mut interaction_query: Query<
-        (&Interaction, &mut BorderColor, &MenuButtonData, Entity),
+        (&Interaction, &MenuButtonData),
         (Changed<Interaction>, With<Button>, With<MenuButton>),
     >,
-    mut text_query: Query<&mut TextColor>,
     mut action_ev: MessageWriter<MenuAction>,
 ) {
-    for (interaction, mut border_color, data, entity) in &mut interaction_query {
-        let resting = data.style.resting_color();
-        let target = match *interaction {
-            Interaction::Pressed => {
-                action_ev.write(data.action.clone());
-                resting
-            }
-            Interaction::Hovered => GameColor::WHITE,
-            Interaction::None => resting,
-        };
-        *border_color = target.into();
-        if let Ok(children) = children.get(entity) {
-            for child in children {
-                if let Ok(mut text_color) = text_query.get_mut(*child) {
-                    *text_color = target.into();
-                }
-            }
+    for (interaction, data) in &mut interaction_query {
+        if *interaction == Interaction::Pressed {
+            action_ev.write(data.action.clone());
         }
     }
 }
@@ -96,15 +80,16 @@ pub fn system(
 pub fn focus_system(
     focus: Res<InputFocus>,
     mut q_btn: Query<
-        (&MenuButtonData, &mut BorderColor, Entity),
+        (&MenuButtonData, &mut BorderColor, Entity, Option<&Interaction>),
         (With<Button>, With<MenuButton>),
     >,
     children: Query<&Children>,
     mut text_query: Query<&mut TextColor>,
 ) {
     let focused = focus.get();
-    for (data, mut border_color, entity) in &mut q_btn {
-        let target = if focused == Some(entity) {
+    for (data, mut border_color, entity, interaction) in &mut q_btn {
+        let hovered = interaction.is_some_and(|i| *i == Interaction::Hovered);
+        let target = if focused == Some(entity) || hovered {
             GameColor::WHITE
         } else {
             data.style.resting_color()

@@ -1,3 +1,4 @@
+use super::Focusable;
 use crate::menu::settings::SettingsMenuState;
 use crate::prelude::*;
 use crate::settings::{GraphicsSettings, SoundSettings};
@@ -7,6 +8,7 @@ use bevy::ecs::observer::On;
 use bevy::input_focus::tab_navigation::TabIndex;
 use bevy::picking::hover::Hovered;
 use bevy::ui::Checked;
+use bevy::ui::auto_directional_navigation::AutoDirectionalNavigation;
 use bevy::ui_widgets::{Checkbox, ValueChange, checkbox_self_update};
 
 #[derive(Component, Clone, Default)]
@@ -27,6 +29,8 @@ pub fn scene(prop_i: usize) -> impl Scene {
         BackgroundColor(Color::NONE)
         Hovered::default()
         TabIndex(0)
+        AutoDirectionalNavigation
+        Focusable
         on(checkbox_self_update)
         on(move |change: On<ValueChange<bool>>,
               menu_state: Res<State<SettingsMenuState>>,

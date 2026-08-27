@@ -1,8 +1,9 @@
-use super::{Active, PropIndex};
+use super::{Active, Focusable, PropIndex};
 use crate::prelude::*;
 use crate::utils::GameColor;
 use bevy::color::palettes::css::GRAY;
 use bevy::text::{FontSize, FontSourceTemplate};
+use bevy::ui::auto_directional_navigation::AutoDirectionalNavigation;
 
 #[derive(Component, Clone, Default)]
 pub struct Keybox;
@@ -13,6 +14,8 @@ pub fn scene(assets: &PinballDefenseAssets, prop_i: usize, init_val: KeyCode) ->
         #Key
         Keybox
         Button
+        AutoDirectionalNavigation
+        Focusable
         Node {
             width: Val::Px(195.),
             height: Val::Px(55.),
@@ -42,23 +45,4 @@ pub fn spawn(
     init_val: KeyCode,
 ) {
     p.spawn_empty().apply_scene(scene(assets, prop_i, init_val));
-}
-
-pub fn system(
-    mut interaction_query: Query<
-        (&Interaction, &mut BorderColor),
-        (Changed<Interaction>, With<Button>, With<Keybox>),
-    >,
-) {
-    for (interaction, mut border_color) in &mut interaction_query {
-        match *interaction {
-            Interaction::Pressed => (),
-            Interaction::Hovered => {
-                *border_color = GameColor::WHITE.into();
-            }
-            Interaction::None => {
-                *border_color = GameColor::GOLD.into();
-            }
-        }
-    }
 }

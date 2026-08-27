@@ -1,4 +1,5 @@
 use super::project_3d_to_2d_screen;
+use crate::game::controls::InputKind;
 use crate::game::KeyboardControls;
 use crate::game::ball_starter::BallSpawn;
 use crate::game::camera::PinballCamera;
@@ -67,12 +68,18 @@ pub(super) struct FadeableColor(Color);
 pub fn spawn(mut cmd: Commands, ctl: Res<KeyboardControls>, ass: Res<PinballDefenseAssets>) {
     use FieldPos::*;
     let cmd = &mut cmd;
-    spawn_key(cmd, ctl.flipper_left, &ass, Invisible, "Flipper Left");
-    spawn_key(cmd, ctl.flipper_right, &ass, Invisible, "Flipper Right");
-    spawn_key(cmd, ctl.charge_ball_starter, &ass, Invisible, "Start");
-    spawn_key(cmd, ctl.menu, &ass, TopLeft, "Menu");
-    spawn_key(cmd, ctl.pause, &ass, TopRight(0), "Pause");
-    spawn_key(cmd, ctl.toggle_key_ui, &ass, TopRight(1), "Toggle Keys UI");
+    spawn_key(cmd, KeyId::Key(ctl.flipper_left), &ass, Invisible, "Flipper Left");
+    spawn_key(cmd, KeyId::Key(ctl.flipper_right), &ass, Invisible, "Flipper Right");
+    spawn_key(cmd, KeyId::Key(ctl.charge_ball_starter), &ass, Invisible, "Start");
+    spawn_key(cmd, KeyId::Key(ctl.menu), &ass, TopLeft, "Menu");
+    spawn_key(cmd, KeyId::Key(ctl.pause), &ass, TopRight(0), "Pause");
+    spawn_key(cmd, KeyId::Key(ctl.toggle_key_ui), &ass, TopRight(1), "Toggle Keys UI");
+
+    spawn_key(cmd, KeyId::Button(GamepadButton::LeftTrigger), &ass, Invisible, "Flipper Left");
+    spawn_key(cmd, KeyId::Button(GamepadButton::RightTrigger), &ass, Invisible, "Flipper Right");
+    spawn_key(cmd, KeyId::Button(GamepadButton::East), &ass, Invisible, "Start");
+    spawn_key(cmd, KeyId::Button(GamepadButton::Start), &ass, TopLeft, "Menu");
+    spawn_key(cmd, KeyId::Button(GamepadButton::Start), &ass, TopRight(0), "Pause");
 }
 
 pub fn despawn(mut cmds: Commands, q_ui: Query<Entity, With<ControlsUi>>) {
@@ -86,40 +93,55 @@ type QKeys<'w, 's, 'a> = Query<'w, 's, (&'a mut Node, &'a ComputedNode, &'a UiKe
 pub fn keys_to_pos_system(
     q_keys: QKeys,
     controls: Res<KeyboardControls>,
+    kind: Res<InputKind>,
     q_cam: Query<(&GlobalTransform, &Camera), (With<PinballCamera>, Changed<Transform>)>,
     q_flipper: Query<(&GlobalTransform, &FlipperType)>,
     ball_spawn: Res<BallSpawn>,
 ) {
     if let Ok(cam) = q_cam.single() {
-        keys_to_pos(q_keys, controls, cam, q_flipper, ball_spawn)
+        keys_to_pos(q_keys, controls, *kind, cam, q_flipper, ball_spawn)
     }
 }
 
 pub(super) fn update_keys_pos_system(
     q_keys: QKeys,
     controls: Res<KeyboardControls>,
+    kind: Res<InputKind>,
     q_cam: Query<(&GlobalTransform, &Camera), With<PinballCamera>>,
     q_flipper: Query<(&GlobalTransform, &FlipperType)>,
     ball_spawn: Res<BallSpawn>,
 ) {
     if let Ok(cam) = q_cam.single() {
-        keys_to_pos(q_keys, controls, cam, q_flipper, ball_spawn)
+        keys_to_pos(q_keys, controls, *kind, cam, q_flipper, ball_spawn)
     }
 }
 
 fn keys_to_pos(
     mut q_keys: QKeys,
     controls: Res<KeyboardControls>,
+    kind: InputKind,
     cam: (&GlobalTransform, &Camera),
     q_flipper: Query<(&GlobalTransform, &FlipperType)>,
     ball_spawn: Res<BallSpawn>,
 ) {
     let (cam_trans, cam) = cam;
+    let (fl_left, fl_right, start) = match kind {
+        InputKind::Keyboard => (
+            KeyId::Key(controls.flipper_left),
+            KeyId::Key(controls.flipper_right),
+            KeyId::Key(controls.charge_ball_starter),
+        ),
+        InputKind::Gamepad => (
+            KeyId::Button(GamepadButton::LeftTrigger),
+            KeyId::Button(GamepadButton::RightTrigger),
+            KeyId::Button(GamepadButton::East),
+        ),
+    };
     q_flipper
         .iter()
         .for_each(|(obj_trans, f_type)| match f_type {
             FlipperType::Left => set_projected_pos(
-                controls.flipper_left,
+                fl_left,
                 &mut q_keys,
                 obj_trans.compute_transform().translation,
                 cam_trans,
@@ -127,7 +149,7 @@ fn keys_to_pos(
             ),
             FlipperType::Right => {
                 set_projected_pos(
-                    controls.flipper_right,
+                    fl_right,
                     &mut q_keys,
                     obj_trans.compute_transform().translation,
                     cam_trans,
@@ -135,17 +157,11 @@ fn keys_to_pos(
                 );
             }
         });
-    set_projected_pos(
-        controls.charge_ball_starter,
-        &mut q_keys,
-        ball_spawn.0,
-        cam_trans,
-        cam,
-    );
+    set_projected_pos(start, &mut q_keys, ball_spawn.0, cam_trans, cam);
 }
 
 fn set_projected_pos(
-    key: KeyCode,
+    key: KeyId,
     q_keys: &mut QKeys,
     obj_pos: Vec3,
     cam_trans: &GlobalTransform,
@@ -171,12 +187,27 @@ enum FieldPos {
 
 const FIELD_HEIGHT_PX: f32 = 42.;
 
-#[derive(Component)]
-pub struct UiKey(KeyCode);
+#[derive(Component, Debug, PartialEq, Eq, Hash, Clone, Copy)]
+pub struct UiKey(KeyId);
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+enum KeyId {
+    Key(KeyCode),
+    Button(GamepadButton),
+}
+
+impl KeyId {
+    fn label(self) -> String {
+        match self {
+            KeyId::Key(k) => format!("{k:?}").replace("Key", ""),
+            KeyId::Button(b) => format!("{b:?}"),
+        }
+    }
+}
 
 fn spawn_key(
     p: &mut Commands,
-    key: KeyCode,
+    key: KeyId,
     assets: &PinballDefenseAssets,
     pos: FieldPos,
     text: &str,
@@ -207,7 +238,7 @@ fn spawn_key(
             ))
             .with_children(|p| {
                 p.spawn((
-                    Text(format!("{key:?}").replace("Key", "")),
+                    Text(key.label()),
                     TextFont {
                         font: assets.menu_font.clone().into(),
                         font_size: FontSize::Px(32.0),
@@ -251,14 +282,35 @@ pub(super) fn on_resize_system(
     mut resize_reader: MessageReader<WindowResized>,
     q_keys: QKeys,
     controls: Res<KeyboardControls>,
+    kind: Res<InputKind>,
     q_cam: Query<(&GlobalTransform, &Camera), With<PinballCamera>>,
     q_flipper: Query<(&GlobalTransform, &FlipperType)>,
     ball_spawn: Res<BallSpawn>,
 ) {
     if resize_reader.read().next().is_some()
         && let Ok(cam) = q_cam.single() {
-            keys_to_pos(q_keys, controls, cam, q_flipper, ball_spawn);
+            keys_to_pos(q_keys, controls, *kind, cam, q_flipper, ball_spawn);
         }
+}
+
+pub(super) fn switch_input_kind_system(
+    kind: Res<InputKind>,
+    mut q_keys: Query<(&UiKey, &mut Node)>,
+) {
+    if !kind.is_changed() {
+        return;
+    }
+    for (ui_key, mut node) in q_keys.iter_mut() {
+        let matches = matches!(
+            (ui_key.0, *kind),
+            (KeyId::Key(_), InputKind::Keyboard) | (KeyId::Button(_), InputKind::Gamepad)
+        );
+        node.display = if matches {
+            Display::Flex
+        } else {
+            Display::None
+        };
+    }
 }
 
 pub(super) fn auto_hide_system(

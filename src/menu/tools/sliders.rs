@@ -4,12 +4,14 @@ use crate::settings::{GraphicsSettings, SoundSettings};
 use crate::utils::GameColor;
 use crate::utils::reflect::set_field;
 use bevy::ecs::observer::On;
+use bevy::input_focus::InputFocus;
 use bevy::input_focus::tab_navigation::TabIndex;
 use bevy::picking::hover::Hovered;
 use bevy::ui::Pressed;
+use bevy::ui::auto_directional_navigation::AutoDirectionalNavigation;
 use bevy::ui_widgets::{
-    Slider, SliderOrientation, SliderRange, SliderThumb, SliderValue, TrackClick, ValueChange,
-    slider_self_update,
+    Slider, SliderOrientation, SliderRange, SliderStep, SliderThumb, SliderValue, TrackClick,
+    ValueChange, slider_self_update,
 };
 
 const THUMB_SIZE: f32 = 30.;
@@ -32,8 +34,10 @@ pub fn scene(prop_i: usize, init_val: f32) -> impl Scene {
         }
         SliderValue(init_val)
         SliderRange::new(0., 1.)
+        SliderStep(0.05)
         Hovered::default()
         TabIndex(0)
+        AutoDirectionalNavigation
         on(slider_self_update)
         on(move |change: On<ValueChange<f32>>,
               menu_state: Res<State<SettingsMenuState>>,
@@ -107,12 +111,13 @@ pub fn update_thumb_position(
 }
 
 pub fn update_thumb_style(
+    focus: Res<InputFocus>,
     q_sliders: Query<(Entity, &Hovered, Has<Pressed>), With<Slider>>,
     children: Query<&Children>,
     mut thumbs: Query<&mut BorderColor, With<SliderThumb>>,
 ) {
     for (slider_ent, hovered, pressed) in q_sliders.iter() {
-        let color = if pressed || hovered.0 {
+        let color = if pressed || hovered.0 || focus.get() == Some(slider_ent) {
             GameColor::WHITE
         } else {
             GameColor::GOLD

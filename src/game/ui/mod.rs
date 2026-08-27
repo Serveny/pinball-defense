@@ -55,6 +55,7 @@ impl Plugin for UiPlugin {
                         .chain()
                         .run_if(in_state(GameState::Ingame)),
                     toggle_ingame_ui_visibility,
+                    controls::switch_input_kind_system.run_if(in_state(UiState::Controls)),
                     controls::auto_hide_system.run_if(in_state(UiState::Controls)),
                 ),
             )

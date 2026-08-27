@@ -1,13 +1,19 @@
 use super::actions::MenuAction;
+use super::settings::SettingsMenuState;
 use super::tools::menu_btn::MenuButtonData;
 use crate::prelude::*;
 use bevy::input_focus::InputFocus;
 use bevy::math::CompassOctant;
 use bevy::ui::auto_directional_navigation::AutoDirectionalNavigator;
+use bevy::ui_widgets::{
+    Checkbox, SetSliderValue, Slider, SliderValueChange, ToggleChecked,
+};
 
 pub fn navigation_system(
     gamepads: Query<&Gamepad>,
+    q_slider: Query<(), With<Slider>>,
     mut navigator: AutoDirectionalNavigator,
+    mut commands: Commands,
 ) {
     let mut direction = None;
     for gamepad in &gamepads {
@@ -21,7 +27,35 @@ pub fn navigation_system(
             direction = Some(CompassOctant::East);
         }
     }
-    if let Some(dir) = direction {
+    let Some(dir) = direction else {
+        return;
+    };
+
+    let focused = navigator.input_focus();
+    let is_slider = focused.is_some_and(|e| q_slider.contains(e));
+    if is_slider {
+        match dir {
+            CompassOctant::West => {
+                if let Some(e) = focused {
+                    commands.trigger(SetSliderValue {
+                        entity: e,
+                        change: SliderValueChange::RelativeStep(-1.),
+                    });
+                }
+            }
+            CompassOctant::East => {
+                if let Some(e) = focused {
+                    commands.trigger(SetSliderValue {
+                        entity: e,
+                        change: SliderValueChange::RelativeStep(1.),
+                    });
+                }
+            }
+            _ => {
+                let _ = navigator.navigate(dir);
+            }
+        }
+    } else {
         let _ = navigator.navigate(dir);
     }
 }
@@ -30,7 +64,9 @@ pub fn activate_system(
     gamepads: Query<&Gamepad>,
     focus: Res<InputFocus>,
     q_btn: Query<&MenuButtonData, With<Button>>,
+    q_checkbox: Query<(), With<Checkbox>>,
     mut action_ev: MessageWriter<MenuAction>,
+    mut commands: Commands,
 ) {
     let pressed = gamepads
         .iter()
@@ -38,9 +74,28 @@ pub fn activate_system(
     if !pressed {
         return;
     }
-    if let Some(focused) = focus.get()
-        && let Ok(data) = q_btn.get(focused)
-    {
+    let Some(focused) = focus.get() else {
+        return;
+    };
+    if let Ok(data) = q_btn.get(focused) {
         action_ev.write(data.action.clone());
+    } else if q_checkbox.contains(focused) {
+        commands.trigger(ToggleChecked { entity: focused });
+    }
+}
+
+pub fn back_system(
+    gamepads: Query<&Gamepad>,
+    settings_state: Res<State<SettingsMenuState>>,
+    mut settings_next: ResMut<NextState<SettingsMenuState>>,
+    mut action_ev: MessageWriter<MenuAction>,
+) {
+    if !gamepads.iter().any(|g| g.just_pressed(GamepadButton::East)) {
+        return;
+    }
+    if *settings_state.get() != SettingsMenuState::None {
+        settings_next.set(SettingsMenuState::None);
+    } else {
+        action_ev.write(MenuAction::Back);
     }
 }
