@@ -2,8 +2,9 @@ use super::actions::MenuAction;
 use super::settings::SettingsMenuState;
 use super::tools::menu_btn::MenuButtonData;
 use crate::prelude::*;
-use bevy::input_focus::InputFocus;
+use bevy::input_focus::{FocusCause, InputFocus};
 use bevy::math::CompassOctant;
+use bevy::ui::auto_directional_navigation::AutoDirectionalNavigation;
 use bevy::ui::auto_directional_navigation::AutoDirectionalNavigator;
 use bevy::ui_widgets::{
     Checkbox, SetSliderValue, Slider, SliderValueChange, ToggleChecked,
@@ -12,6 +13,7 @@ use bevy::ui_widgets::{
 pub fn navigation_system(
     gamepads: Query<&Gamepad>,
     q_slider: Query<(), With<Slider>>,
+    q_nav: Query<Entity, With<AutoDirectionalNavigation>>,
     mut navigator: AutoDirectionalNavigator,
     mut commands: Commands,
 ) {
@@ -30,6 +32,17 @@ pub fn navigation_system(
     let Some(dir) = direction else {
         return;
     };
+
+    // A menu change can despawn the previously focused widget; pick a fresh
+    // target so the first D-pad press works instead of failing with NoFocus.
+    if navigator.input_focus().is_none()
+        && let Some(first) = q_nav.iter().next()
+    {
+        navigator
+            .manual_directional_navigation
+            .focus
+            .set(first, FocusCause::Navigated);
+    }
 
     let focused = navigator.input_focus();
     let is_slider = focused.is_some_and(|e| q_slider.contains(e));

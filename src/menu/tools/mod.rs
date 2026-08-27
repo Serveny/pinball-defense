@@ -1,7 +1,8 @@
 use crate::prelude::*;
 use crate::utils::GameColor;
-use bevy::input_focus::InputFocus;
+use bevy::input_focus::{FocusCause, InputFocus};
 use bevy::picking::hover::Hovered;
+use bevy::ui::Interaction;
 
 pub mod checkbox;
 pub mod keybox;
@@ -35,5 +36,25 @@ pub fn focus_hover_system(
         } else {
             GameColor::GOLD
         });
+    }
+}
+
+pub fn hover_focus_system(
+    q_hovered: Query<(Entity, Option<&Hovered>, Option<&Interaction>)>,
+    mut last_hovered: Local<Option<Entity>>,
+    mut focus: ResMut<InputFocus>,
+) {
+    let hovered = q_hovered
+        .iter()
+        .find(|(_, h, i)| {
+            h.is_some_and(|h| h.0)
+                || i.is_some_and(|i| *i == Interaction::Hovered)
+        })
+        .map(|(e, _, _)| e);
+    if hovered != *last_hovered {
+        *last_hovered = hovered;
+        if let Some(target) = hovered {
+            focus.set(target, FocusCause::Navigated);
+        }
     }
 }

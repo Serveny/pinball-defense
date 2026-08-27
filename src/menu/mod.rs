@@ -1,6 +1,5 @@
 use self::settings::{on_changed_graphics_settings, on_changed_sound_settings};
 use self::settings::{SettingsMenuLayout, SettingsMenuState};
-use self::tools::menu_btn::MenuButton;
 use crate::AppState;
 use crate::game::KeyboardControls;
 use crate::prelude::*;
@@ -86,9 +85,8 @@ impl Plugin for MenuPlugin {
                     gamepad::navigation_system,
                     gamepad::activate_system,
                     gamepad::back_system,
-                    focus_first_menu_button.run_if(in_state(SettingsMenuState::None)),
-                    focus_first_settings_widget
-                        .run_if(not(in_state(SettingsMenuState::None))),
+                    tools::hover_focus_system,
+                    focus_first_widget,
                     tools::sliders::update_thumb_position,
                     tools::sliders::update_thumb_style,
                     tools::checkbox::update_mark_visibility,
@@ -108,6 +106,7 @@ impl Plugin for MenuPlugin {
             .add_systems(
                 OnEnter(SettingsMenuState::Sound),
                 (
+                    clear_focus.before(settings::clean_up),
                     settings::clean_up,
                     settings::layout::<SoundSettings>.after(settings::clean_up),
                 ),
@@ -115,6 +114,7 @@ impl Plugin for MenuPlugin {
             .add_systems(
                 OnEnter(SettingsMenuState::Graphics),
                 (
+                    clear_focus.before(settings::clean_up),
                     settings::clean_up,
                     settings::layout::<GraphicsSettings>.after(settings::clean_up),
                 ),
@@ -122,6 +122,7 @@ impl Plugin for MenuPlugin {
             .add_systems(
                 OnEnter(SettingsMenuState::KeyboardControls),
                 (
+                    clear_focus.before(settings::clean_up),
                     settings::clean_up,
                     settings::layout::<KeyboardControls>.after(settings::clean_up),
                 ),
@@ -160,38 +161,38 @@ fn in_menu(state: Res<State<MenuState>>) -> bool {
     )
 }
 
-fn focus_first_menu_button(
-    mut focus: ResMut<InputFocus>,
-    q_btn: Query<Entity, With<MenuButton>>,
-) {
-    if focus.get().is_some_and(|e| q_btn.contains(e)) {
-        return;
-    }
-    if let Some(first) = q_btn.iter().next() {
-        focus.set(first, FocusCause::Navigated);
-    }
-}
-
-fn focus_first_settings_widget(
+// When a menu (or submenu) opens, its widgets are spawned a frame later; the
+// old focus is either gone or dangling, so focus the first widget of the new
+// layout, in spawn order. With the mouse hovering a widget, hover_focus_system
+// keeps control instead.
+fn focus_first_widget(
     mut focus: ResMut<InputFocus>,
     q_layout: Query<Entity, With<SettingsMenuLayout>>,
     q_widget: Query<Entity, With<AutoDirectionalNavigation>>,
     children: Query<&Children>,
 ) {
-    let mut widgets = Vec::new();
+    let valid = focus
+        .get()
+        .is_some_and(|f| q_widget.contains(f) && children.contains(f));
+    if valid {
+        return;
+    }
+    let mut first = None;
     for layout in &q_layout {
         for descendant in children.iter_descendants(layout) {
             if q_widget.contains(descendant) {
-                widgets.push(descendant);
+                first = Some(descendant);
+                break;
             }
         }
     }
-    if focus.get().is_some_and(|e| widgets.contains(&e)) {
-        return;
+    if let Some(first) = first.or_else(|| q_widget.iter().next()) {
+        focus.set(first, FocusCause::Navigated);
     }
-    if let Some(first) = widgets.first() {
-        focus.set(*first, FocusCause::Navigated);
-    }
+}
+
+fn clear_focus(mut focus: ResMut<InputFocus>) {
+    focus.clear();
 }
 
 fn enter_main_menu(
