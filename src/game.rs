@@ -130,6 +130,11 @@ impl Plugin for GamePlugin {
                 Update,
                 (
                     crate::menu::tools::menu_btn::system,
+                    crate::menu::tools::menu_btn::focus_system,
+                    crate::menu::tools::hover_focus_system,
+                    crate::menu::gamepad::navigation_system,
+                    crate::menu::gamepad::activate_system,
+                    crate::menu::focus_first_widget,
                     game_over::action_handler,
                 )
                     .run_if(in_state(GameState::GameOver)),

@@ -88,13 +88,17 @@ fn start_wave_system(
 fn wave_system(
     mut wave: ResMut<Wave>,
     mut spawn_enemy_ev: MessageWriter<SpawnEnemyEvent>,
+    mut wave_started_ev: MessageWriter<WaveStartedEvent>,
     ig_timer: Res<IngameTime>,
 ) {
     let now = **ig_timer;
     let wave = wave.as_mut();
     if wave.started && wave.is_time_to_spawn_enemy(now) {
         match wave.is_wave_end() {
-            true => wave.prepare_next_wave(now),
+            true => {
+                wave.prepare_next_wave(now);
+                wave_started_ev.write(WaveStartedEvent);
+            }
             false => {
                 spawn_enemy_ev.write(wave.next_enemy(now));
             }

@@ -126,11 +126,13 @@ pub fn on_menu_action(
                 exit_ev.write(AppExit::Success);
             }
             MA::BackToMainMenu => {
-                if saved_in_pause_menu.is_some() {
-                    next_menu_state.set(MenuState::None);
-                    app_state.set(AppState::MainMenu);
-                } else {
-                    confirm_popup::spawn(&mut cmds, &assets);
+                if menu_state.get() == &MenuState::PauseMenu {
+                    if saved_in_pause_menu.is_some() {
+                        next_menu_state.set(MenuState::None);
+                        app_state.set(AppState::MainMenu);
+                    } else {
+                        confirm_popup::spawn(&mut cmds, &assets);
+                    }
                 }
             }
             MA::ConfirmBackToMainMenu => {

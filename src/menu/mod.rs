@@ -9,7 +9,7 @@ use bevy::ui::auto_directional_navigation::AutoDirectionalNavigation;
 
 mod actions;
 mod confirm_popup;
-mod gamepad;
+pub mod gamepad;
 mod load_game;
 mod main_menu;
 mod pause;
@@ -165,7 +165,7 @@ fn in_menu(state: Res<State<MenuState>>) -> bool {
 // old focus is either gone or dangling, so focus the first widget of the new
 // layout, in spawn order. With the mouse hovering a widget, hover_focus_system
 // keeps control instead.
-fn focus_first_widget(
+pub fn focus_first_widget(
     mut focus: ResMut<InputFocus>,
     q_layout: Query<Entity, With<SettingsMenuLayout>>,
     q_widget: Query<Entity, With<AutoDirectionalNavigation>>,

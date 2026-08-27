@@ -53,7 +53,7 @@ impl Plugin for ControlsPlugin {
             .add_systems(Update, track_input_kind)
             .add_systems(
                 Update,
-                (pause_key_system, gamepad::pause_btn_changed).run_if(in_state(GameState::Pause)),
+                pause_key_system.run_if(in_state(GameState::Pause)),
             );
     }
 }

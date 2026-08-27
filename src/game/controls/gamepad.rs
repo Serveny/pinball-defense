@@ -4,7 +4,7 @@ use crate::game::{
     ball_starter::BallStarterState,
     flipper::{FlipperStatus, FlipperType},
 };
-use crate::game::{PauseGameEvent, ResumeGameEvent};
+use crate::game::{GameState, PauseGameEvent, ResumeGameEvent};
 use crate::menu::MenuState;
 use crate::prelude::*;
 use bevy::input::gamepad::GamepadButtonChangedEvent;
@@ -17,6 +17,8 @@ pub(super) fn on_btn_changed(
     mut q_flipper: Query<(&mut FlipperStatus, &FlipperType)>,
     mut menu_state: ResMut<NextState<MenuState>>,
     mut pause_ev: MessageWriter<PauseGameEvent>,
+    mut resume_ev: MessageWriter<ResumeGameEvent>,
+    game_state: Res<State<GameState>>,
 ) {
     for ev in evr.read() {
         match ev.button {
@@ -52,22 +54,18 @@ pub(super) fn on_btn_changed(
             GamepadButton::East if ev.value > 0. => {
                 spawn_ball_ev.write(SpawnBallEvent);
             }
-            GamepadButton::Start => {
-                pause_ev.write(PauseGameEvent);
-                menu_state.set(MenuState::PauseMenu);
-            }
+            GamepadButton::Start => match *game_state.get() {
+                GameState::Ingame => {
+                    pause_ev.write(PauseGameEvent);
+                    menu_state.set(MenuState::PauseMenu);
+                }
+                GameState::Pause => {
+                    menu_state.set(MenuState::None);
+                    resume_ev.write(ResumeGameEvent);
+                }
+                _ => {}
+            },
             _ => {}
         }
-    }
-}
-
-pub(super) fn pause_btn_changed(
-    gamepads: Query<&Gamepad>,
-    mut menu_state: ResMut<NextState<MenuState>>,
-    mut resume_ev: MessageWriter<ResumeGameEvent>,
-) {
-    if gamepads.iter().any(|g| g.just_pressed(GamepadButton::Start)) {
-        menu_state.set(MenuState::None);
-        resume_ev.write(ResumeGameEvent);
     }
 }
