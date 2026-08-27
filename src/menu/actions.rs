@@ -1,12 +1,14 @@
 use super::confirm_popup::{self, ConfirmPopup};
+use super::tools::menu_btn::MenuButtonData;
 use super::{MenuLayout, MenuState, SavedInPauseMenu, SettingsMenuState, SettingsReturnMenu};
 use crate::AppState;
 use crate::game::ResumeGameEvent;
 use crate::game::{load_game, save_game, spawn_save_screenshot};
 use crate::prelude::*;
 use bevy::app::AppExit;
+use bevy::input_focus::{FocusCause, InputFocus};
 
-#[derive(Message, Component, Debug, Clone, Default)]
+#[derive(Message, Component, Debug, Clone, Default, PartialEq)]
 pub enum MenuAction {
     #[default]
     Continue,
@@ -54,14 +56,17 @@ pub fn on_menu_action(
     mut next_menu_state: ResMut<NextState<MenuState>>,
     mut app_state: ResMut<NextState<AppState>>,
     mut exit_ev: MessageWriter<AppExit>,
-    mut settings_state: ResMut<NextState<SettingsMenuState>>,
+    settings_state: Res<State<SettingsMenuState>>,
+    mut next_settings_state: ResMut<NextState<SettingsMenuState>>,
     mut settings_return: ResMut<SettingsReturnMenu>,
     mut resume_ev: MessageWriter<ResumeGameEvent>,
     mut cmds: Commands,
     assets: Res<PinballDefenseAssets>,
     q_popup: Query<Entity, With<ConfirmPopup>>,
     mut q_layout: Query<&mut Visibility, With<MenuLayout>>,
+    q_btn: Query<(Entity, &MenuButtonData)>,
     saved_in_pause_menu: Option<Res<SavedInPauseMenu>>,
+    mut focus: ResMut<InputFocus>,
 ) {
     for action in evr.read() {
         use MenuAction as MA;
@@ -93,18 +98,30 @@ pub fn on_menu_action(
                 next_menu_state.set(MenuState::Settings);
             }
             MA::Back => {
-                settings_state.set(SettingsMenuState::None);
-                let target = match menu_state.get() {
-                    MenuState::LoadGame => MenuState::MainMenu,
-                    MenuState::SaveGame => MenuState::PauseMenu,
-                    MenuState::Settings => settings_return.0.clone(),
-                    _ => MenuState::MainMenu,
-                };
-                next_menu_state.set(target);
+                if settings_state.get() != &SettingsMenuState::None {
+                    let return_action = match settings_state.get() {
+                        SettingsMenuState::KeyboardControls => MenuAction::Controls,
+                        SettingsMenuState::Graphics => MenuAction::Graphics,
+                        SettingsMenuState::Sound => MenuAction::Sound,
+                        SettingsMenuState::None => unreachable!(),
+                    };
+                    next_settings_state.set(SettingsMenuState::None);
+                    if let Some((entity, _)) = q_btn.iter().find(|(_, d)| d.action == return_action) {
+                        focus.set(entity, FocusCause::Navigated);
+                    }
+                } else {
+                    let target = match menu_state.get() {
+                        MenuState::LoadGame => MenuState::MainMenu,
+                        MenuState::SaveGame => MenuState::PauseMenu,
+                        MenuState::Settings => settings_return.0.clone(),
+                        _ => MenuState::MainMenu,
+                    };
+                    next_menu_state.set(target);
+                }
             }
-            MA::Controls => settings_state.set(SettingsMenuState::KeyboardControls),
-            MA::Graphics => settings_state.set(SettingsMenuState::Graphics),
-            MA::Sound => settings_state.set(SettingsMenuState::Sound),
+            MA::Controls => next_settings_state.set(SettingsMenuState::KeyboardControls),
+            MA::Graphics => next_settings_state.set(SettingsMenuState::Graphics),
+            MA::Sound => next_settings_state.set(SettingsMenuState::Sound),
             MA::Quit => {
                 exit_ev.write(AppExit::Success);
             }

@@ -1,5 +1,4 @@
 use super::actions::MenuAction;
-use super::settings::SettingsMenuState;
 use super::tools::menu_btn::MenuButtonData;
 use crate::prelude::*;
 use bevy::input_focus::{FocusCause, InputFocus};
@@ -7,7 +6,7 @@ use bevy::math::CompassOctant;
 use bevy::ui::auto_directional_navigation::AutoDirectionalNavigation;
 use bevy::ui::auto_directional_navigation::AutoDirectionalNavigator;
 use bevy::ui_widgets::{
-    Checkbox, SetSliderValue, Slider, SliderValueChange, ToggleChecked,
+    Checkbox, ScrollIntoView, SetSliderValue, Slider, SliderValueChange, ToggleChecked,
 };
 
 pub fn navigation_system(
@@ -17,18 +16,32 @@ pub fn navigation_system(
     mut navigator: AutoDirectionalNavigator,
     mut commands: Commands,
 ) {
+    let focused = navigator.input_focus();
+    let on_slider = focused.is_some_and(|e| q_slider.contains(e));
+
     let mut direction = None;
     for gamepad in &gamepads {
         if gamepad.just_pressed(GamepadButton::DPadUp) {
             direction = Some(CompassOctant::North);
         } else if gamepad.just_pressed(GamepadButton::DPadDown) {
             direction = Some(CompassOctant::South);
-        } else if gamepad.just_pressed(GamepadButton::DPadLeft) {
-            direction = Some(CompassOctant::West);
-        } else if gamepad.just_pressed(GamepadButton::DPadRight) {
-            direction = Some(CompassOctant::East);
+        } else if on_slider && gamepad.just_pressed(GamepadButton::DPadLeft)
+            && let Some(e) = focused
+        {
+            commands.trigger(SetSliderValue {
+                entity: e,
+                change: SliderValueChange::RelativeStep(-1.),
+            });
+        } else if on_slider && gamepad.just_pressed(GamepadButton::DPadRight)
+            && let Some(e) = focused
+        {
+            commands.trigger(SetSliderValue {
+                entity: e,
+                change: SliderValueChange::RelativeStep(1.),
+            });
         }
     }
+
     let Some(dir) = direction else {
         return;
     };
@@ -44,32 +57,9 @@ pub fn navigation_system(
             .set(first, FocusCause::Navigated);
     }
 
-    let focused = navigator.input_focus();
-    let is_slider = focused.is_some_and(|e| q_slider.contains(e));
-    if is_slider {
-        match dir {
-            CompassOctant::West => {
-                if let Some(e) = focused {
-                    commands.trigger(SetSliderValue {
-                        entity: e,
-                        change: SliderValueChange::RelativeStep(-1.),
-                    });
-                }
-            }
-            CompassOctant::East => {
-                if let Some(e) = focused {
-                    commands.trigger(SetSliderValue {
-                        entity: e,
-                        change: SliderValueChange::RelativeStep(1.),
-                    });
-                }
-            }
-            _ => {
-                let _ = navigator.navigate(dir);
-            }
-        }
-    } else {
-        let _ = navigator.navigate(dir);
+    let _ = navigator.navigate(dir);
+    if let Some(focused) = navigator.input_focus() {
+        commands.trigger(ScrollIntoView { entity: focused });
     }
 }
 
@@ -81,9 +71,7 @@ pub fn activate_system(
     mut action_ev: MessageWriter<MenuAction>,
     mut commands: Commands,
 ) {
-    let pressed = gamepads
-        .iter()
-        .any(|g| g.just_pressed(GamepadButton::South));
+    let pressed = gamepads.iter().any(|g| g.just_pressed(GamepadButton::South));
     if !pressed {
         return;
     }
@@ -99,16 +87,10 @@ pub fn activate_system(
 
 pub fn back_system(
     gamepads: Query<&Gamepad>,
-    settings_state: Res<State<SettingsMenuState>>,
-    mut settings_next: ResMut<NextState<SettingsMenuState>>,
     mut action_ev: MessageWriter<MenuAction>,
 ) {
-    if !gamepads.iter().any(|g| g.just_pressed(GamepadButton::East)) {
-        return;
-    }
-    if *settings_state.get() != SettingsMenuState::None {
-        settings_next.set(SettingsMenuState::None);
-    } else {
+    let pressed = gamepads.iter().any(|g| g.just_pressed(GamepadButton::East));
+    if pressed {
         action_ev.write(MenuAction::Back);
     }
 }

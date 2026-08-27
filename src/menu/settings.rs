@@ -1,9 +1,10 @@
 use super::MenuLayout;
 use super::tools::sliders;
-use super::tools::{checkbox, keybox, row};
+use super::tools::{checkbox, keybox, row, Focusable};
 use crate::game::KeyboardControls;
 use crate::prelude::*;
 use bevy::text::{FontSize, FontSourceTemplate};
+use bevy::ui::auto_directional_navigation::AutoDirectionalNavigation;
 use bevy::ui_widgets::ScrollArea;
 use crate::settings::{GraphicsSettings, SoundSettings};
 use crate::utils::reflect::{cast, prop_name};
@@ -70,6 +71,9 @@ fn controller_label(p: &mut ChildSpawnerCommands, assets: &PinballDefenseAssets,
             align_content: AlignContent::Center,
             justify_content: JustifyContent::Center,
         }
+        Button
+        AutoDirectionalNavigation
+        Focusable
         BorderColor::from(GameColor::GOLD)
         BackgroundColor(Color::NONE)
         Children [
