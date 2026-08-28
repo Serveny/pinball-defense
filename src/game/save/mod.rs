@@ -24,9 +24,12 @@ impl Plugin for SavePlugin {
         app.add_observer(save_on_default_event)
             .add_observer(load_on_default_event)
             .register_type::<RelEntity>()
+            // Must run in Init, before the first Ingame frame: level_up_system
+            // would otherwise fire on the default LevelHub (threshold 0) and
+            // spawn a phantom foundation before the save is applied.
             .add_systems(
                 Update,
-                apply_pending_load.run_if(in_state(GameState::Ingame)),
+                apply_pending_load.run_if(in_state(GameState::Init)),
             );
     }
 }

@@ -19,7 +19,11 @@ pub(super) fn on_btn_changed(
     mut pause_ev: MessageWriter<PauseGameEvent>,
     mut resume_ev: MessageWriter<ResumeGameEvent>,
     game_state: Res<State<GameState>>,
+    ball_starter: Res<State<BallStarterState>>,
 ) {
+    if game_state.is_changed() {
+        evr.clear();
+    }
     for ev in evr.read() {
         match ev.button {
             GamepadButton::LeftTrigger => {
@@ -39,10 +43,11 @@ pub(super) fn on_btn_changed(
                 continue;
             }
             GamepadButton::South => {
-                ball_starter_state.set(match ev.state {
-                    ButtonState::Pressed => BallStarterState::Charge,
-                    ButtonState::Released => BallStarterState::Fire,
-                });
+                if ev.state == ButtonState::Pressed {
+                    ball_starter_state.set(BallStarterState::Charge);
+                } else if *ball_starter.get() == BallStarterState::Charge {
+                    ball_starter_state.set(BallStarterState::Fire);
+                }
                 continue;
             }
             _ => {}

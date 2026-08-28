@@ -13,6 +13,7 @@ Pinball-Defense is a hybrid **Pinball + Tower Defense** game.
 - Run: `cargo run`
 - Lint: `cargo clippy`
 - Re-export assets: run Blender scripts in `src/blender_scripts` (e.g. `bpy_export_all_gltf.py`, `bpy_export_mesh_as_polyline.py`)
+- Place worktrees under `.worktrees`
 
 ### Project Structure
 
@@ -34,7 +35,7 @@ Pinball-Defense is a hybrid **Pinball + Tower Defense** game.
 
 - Cut big tasks into many small ones and use parallel sub agents if possible
 - You are working with cutting edge technology with many changes. Always check the documentation and internet for current best practice
-- cargo builds can take time, set timeouts to 300000 ms
+- cargo builds can take time, set timeouts to 612000 ms
 
 ## graphify
 

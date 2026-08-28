@@ -19,6 +19,7 @@
   - Slow-Down-Field: Hit it and the enemies a slower for 5s
   - Double-Damage-Field: Hit it and ball will make double damage for 5s
 - Fix ui progress bars pixel position (Green bar too small, white pixels at top)
+- Show wave count ingame (same like level counter)
 
 ## Audio
 

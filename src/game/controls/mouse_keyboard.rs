@@ -78,6 +78,7 @@ pub(super) fn pause_key_system(
     mut ball_starter_state: ResMut<NextState<BallStarterState>>,
     mut resume_ev: MessageWriter<ResumeGameEvent>,
     mut menu_state: ResMut<NextState<MenuState>>,
+    ball_starter: Res<State<BallStarterState>>,
     controls: Res<KeyboardControls>,
 ) {
     if key.just_released(controls.flipper_left) {
@@ -86,7 +87,9 @@ pub(super) fn pause_key_system(
     if key.just_released(controls.flipper_right) {
         set_flipper_status(FlipperType::Right, FlipperStatus::Idle, &mut q_flipper);
     }
-    if key.just_released(controls.charge_ball_starter) {
+    if key.just_released(controls.charge_ball_starter)
+        && *ball_starter.get() == BallStarterState::Charge
+    {
         ball_starter_state.set(BallStarterState::Fire);
     }
     if key.just_pressed(controls.menu) || key.just_pressed(KeyCode::KeyP) {
