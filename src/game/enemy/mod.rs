@@ -3,6 +3,7 @@ use self::walk::{
     RoadEndReachedEvent, WALK_SPEED, on_road_end_reached_system, recover_speed_system, walk_system,
 };
 use super::audio::SoundEvent;
+use super::ball::PinBall;
 use super::events::collision::GameLayer;
 use super::health::{ChangeHealthEvent, Health, HealthEmptyEvent};
 use super::level::{BallCollisionPoints, PointsEvent, PointsKind};
@@ -12,7 +13,7 @@ use crate::game::ball::CollisionWithBallEvent;
 use crate::game::world::QueryWorld;
 use crate::generated::world_1::road_points::ROAD_POINTS;
 use crate::prelude::*;
-use bevy::math::primitives::Sphere;
+use bevy::math::primitives::{Cone, Cylinder, Sphere};
 use moonshine_save::prelude::Save;
 use std::time::Duration;
 
@@ -54,19 +55,53 @@ impl Plugin for EnemyPlugin {
 #[require(Save)]
 pub struct Enemy {
     step: Step,
+    kind: EnemyKind,
     speed: f32,
     current_speed: f32,
     wave: usize,
 }
 
+#[derive(Component, Reflect, Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[reflect(Default)]
+pub enum EnemyKind {
+    #[default]
+    Normal,
+    Tank,
+    Speeder,
+}
+
+impl EnemyKind {
+    pub fn speed_factor(self) -> f32 {
+        match self {
+            Self::Normal => 1.,
+            Self::Tank => 0.5,
+            Self::Speeder => 3.,
+        }
+    }
+
+    pub fn health_factor(self) -> f32 {
+        match self {
+            Self::Normal => 1.,
+            Self::Tank => 3.,
+            Self::Speeder => 0.5,
+        }
+    }
+}
+
 impl Enemy {
-    pub fn new(wave: usize) -> Self {
+    pub fn new(wave: usize, kind: EnemyKind) -> Self {
+        let speed = WALK_SPEED * kind.speed_factor();
         Self {
             step: Step::new(1),
-            speed: WALK_SPEED,
-            current_speed: WALK_SPEED,
+            kind,
+            speed,
+            current_speed: speed,
             wave,
         }
+    }
+
+    pub fn kind(&self) -> EnemyKind {
+        self.kind
     }
 
     pub fn walk(&mut self, current_pos: Vec3, dur: Duration) -> Option<Vec3> {
@@ -88,7 +123,10 @@ impl Enemy {
 }
 
 #[derive(Message)]
-pub struct SpawnEnemyEvent(pub usize);
+pub struct SpawnEnemyEvent {
+    pub wave: usize,
+    pub kind: EnemyKind,
+}
 
 fn on_spawn_system(
     mut cmds: Commands,
@@ -97,14 +135,14 @@ fn on_spawn_system(
     mut mats: ResMut<Assets<StandardMaterial>>,
     q_pqw: QueryWorld,
 ) {
-    for SpawnEnemyEvent(wave) in evr.read() {
+    for ev in evr.read() {
         let mut enemy_id: Option<Entity> = None;
         let Ok(world) = q_pqw.single() else {
             warn!("[enemy spawn] no world");
             return;
         };
         cmds.entity(world).with_children(|spawner| {
-            enemy_id = Some(spawner.spawn(enemy(&mut meshes, &mut mats, *wave)).id());
+            enemy_id = Some(spawner.spawn(enemy(&mut meshes, &mut mats, ev.wave, ev.kind)).id());
         });
         if let Some(enemy_id) = enemy_id {
             ui::progress_bar::spawn(&mut cmds, enemy_id, 1.);
@@ -126,11 +164,22 @@ fn enemy_view_bundle(
     meshes: &mut Assets<Mesh>,
     mats: &mut Assets<StandardMaterial>,
     wave: usize,
+    kind: EnemyKind,
 ) -> impl Bundle {
     let color = enemy_color(wave);
     (
         Name::new("Enemy"),
-        Mesh3d(meshes.add(Mesh::from(Sphere { radius: 0.03 }))),
+        Mesh3d(meshes.add(match kind {
+            EnemyKind::Normal => Mesh::from(Sphere { radius: 0.03 }),
+            EnemyKind::Tank => Mesh::from(Cylinder {
+                radius: 0.036,
+                half_height: 0.018,
+            }),
+            EnemyKind::Speeder => Mesh::from(Cone {
+                radius: 0.021,
+                height: 0.05,
+            }),
+        })),
         MeshMaterial3d(mats.add(StandardMaterial {
             base_color: color,
             perceptual_roughness: 1.,
@@ -140,11 +189,19 @@ fn enemy_view_bundle(
         })),
         Sensor,
         RigidBody::Kinematic,
-        Collider::circle(0.03),
+        Collider::circle(match kind {
+            EnemyKind::Normal => 0.03,
+            EnemyKind::Tank => 0.036,
+            EnemyKind::Speeder => 0.021,
+        }),
         CollisionEventsEnabled,
         DebugRender::default().with_collider_color(color),
         CollisionLayers::new(GameLayer::Enemy, [GameLayer::Ball, GameLayer::Tower]),
         BallCollisionPoints(15),
+        BallSlowDown(match kind {
+            EnemyKind::Tank => TANK_SLOW_DOWN,
+            _ => 1.,
+        }),
         Restitution {
             coefficient: 2.,
             combine_rule: CoefficientCombine::Multiply,
@@ -152,11 +209,21 @@ fn enemy_view_bundle(
     )
 }
 
-fn enemy(meshes: &mut Assets<Mesh>, mats: &mut Assets<StandardMaterial>, wave: usize) -> impl Bundle {
+const TANK_SLOW_DOWN: f32 = 0.9;
+
+#[derive(Component)]
+pub struct BallSlowDown(pub f32);
+
+fn enemy(
+    meshes: &mut Assets<Mesh>,
+    mats: &mut Assets<StandardMaterial>,
+    wave: usize,
+    kind: EnemyKind,
+) -> impl Bundle {
     (
-        enemy_view_bundle(meshes, mats, wave),
-        Enemy::new(wave),
-        Health::new(100. * (1. + wave as f32 * 0.5)),
+        enemy_view_bundle(meshes, mats, wave, kind),
+        Enemy::new(wave, kind),
+        Health::new(100. * (1. + wave as f32 * 0.5) * kind.health_factor()),
         LastDamager(None),
         Transform::from_translation(ROAD_POINTS[0]),
     )
@@ -171,8 +238,12 @@ fn reattach_enemies_system(
 ) {
     let Ok(world) = q_world.single() else { return };
     for (enemy_id, enemy) in q_enemies.iter() {
-        cmds.entity(enemy_id)
-            .insert(enemy_view_bundle(&mut meshes, &mut mats, enemy.wave));
+        cmds.entity(enemy_id).insert(enemy_view_bundle(
+            &mut meshes,
+            &mut mats,
+            enemy.wave,
+            enemy.kind(),
+        ));
         cmds.entity(world).add_child(enemy_id);
     }
 }
@@ -181,14 +252,21 @@ fn on_pinball_hit_system(
     mut evr: MessageReader<CollisionWithBallEvent>,
     mut sound_ev: MessageWriter<SoundEvent>,
     mut health_ev: MessageWriter<ChangeHealthEvent>,
-    q_enemy: Query<Entity, With<Enemy>>,
+    mut q_ball: Query<&mut LinearVelocity, With<PinBall>>,
+    q_enemy: Query<(&Enemy, &BallSlowDown), With<Enemy>>,
 ) {
     for CollisionWithBallEvent(id) in evr.read() {
-        if q_enemy.contains(*id) {
-            log!("😵 Pinball hits enemy {:?}", *id);
-            health_ev.write(ChangeHealthEvent::new(*id, -100., None));
-            sound_ev.write(SoundEvent::BallHitsEnemy);
+        let Ok((_, slow_down)) = q_enemy.get(*id) else {
+            continue;
+        };
+        log!("😵 Pinball hits enemy {:?}", *id);
+        health_ev.write(ChangeHealthEvent::new(*id, -100., None));
+        if slow_down.0 < 1.
+            && let Ok(mut vel) = q_ball.single_mut()
+        {
+            **vel *= slow_down.0;
         }
+        sound_ev.write(SoundEvent::BallHitsEnemy);
     }
 }
 

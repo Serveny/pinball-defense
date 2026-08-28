@@ -1,4 +1,5 @@
 use super::controls::KeyboardControls;
+use super::enemy::Enemy;
 use super::EventState;
 use super::GameState;
 use super::audio::SoundEvent;
@@ -11,6 +12,7 @@ use super::world::WorldFrame;
 use crate::prelude::*;
 use bevy::color::palettes::css::GOLD;
 use bevy::math::primitives::Sphere;
+use bevy::platform::collections::HashSet;
 use moonshine_save::prelude::Save;
 use std::ops::Range;
 
@@ -29,6 +31,7 @@ impl Plugin for BallPlugin {
                     ball_reset_system,
                     clamp_ball_speed_system,
                     nudge_system,
+                    enemy_ball_overlap_system,
                 )
                     .run_if(in_state(GameState::Ingame)),
             )
@@ -86,7 +89,7 @@ fn ball_view_bundle(
         DebugRender::collider(GOLD.into()),
         CollisionLayers::new(
             GameLayer::Ball,
-            [GameLayer::Enemy, GameLayer::Tower, GameLayer::Map],
+            [GameLayer::Tower, GameLayer::Map],
         ),
         Mass(0.081),
         Restitution::from(0.65),
@@ -225,4 +228,35 @@ fn on_wall_collision_system(
             sound_ev.write(SoundEvent::BallHitsWall);
         }
     }
+}
+
+const ENEMY_OVERLAP_RADIUS: f32 = 0.03;
+
+fn enemy_ball_overlap_system(
+    mut prev_overlapping: Local<HashSet<Entity>>,
+    q_ball: Query<&Transform, With<PinBall>>,
+    q_enemy: Query<(&Transform, &Collider, Entity), With<Enemy>>,
+    mut coll_with_ball_ev: MessageWriter<CollisionWithBallEvent>,
+) {
+    let Ok(ball_pos) = q_ball.single() else {
+        return;
+    };
+    let mut now_overlapping = HashSet::new();
+    for (enemy_pos, collider, enemy_id) in q_enemy.iter() {
+        let radius = collider
+            .shape_scaled()
+            .as_ball()
+            .map_or(0.03, |ball| ball.radius);
+        if ball_pos
+            .translation
+            .xy()
+            .distance_squared(enemy_pos.translation.xy()) <= (radius + ENEMY_OVERLAP_RADIUS).powi(2)
+        {
+            now_overlapping.insert(enemy_id);
+            if !prev_overlapping.contains(&enemy_id) {
+                coll_with_ball_ev.write(CollisionWithBallEvent(enemy_id));
+            }
+        }
+    }
+    *prev_overlapping = now_overlapping;
 }
