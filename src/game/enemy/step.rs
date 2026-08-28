@@ -43,5 +43,6 @@ impl Step {
 }
 
 fn get_direction_to(i: usize) -> Vec3 {
+    let i = i.clamp(1, ROAD_POINTS.len() - 1);
     ROAD_POINTS[i] - ROAD_POINTS[i - 1]
 }
