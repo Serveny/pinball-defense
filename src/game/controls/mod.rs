@@ -1,6 +1,6 @@
 use self::mouse_keyboard::{key_system, mouse_btn_system, pause_key_system};
-use crate::game::flipper::{FlipperStatus, FlipperType};
 use crate::game::GameState;
+use crate::game::flipper::{FlipperStatus, FlipperType};
 use crate::prelude::*;
 use bevy::input::gamepad::GamepadButtonChangedEvent;
 
@@ -51,10 +51,7 @@ impl Plugin for ControlsPlugin {
                     .run_if(in_state(GameState::Ingame)),
             )
             .add_systems(Update, track_input_kind)
-            .add_systems(
-                Update,
-                pause_key_system.run_if(in_state(GameState::Pause)),
-            );
+            .add_systems(Update, pause_key_system.run_if(in_state(GameState::Pause)));
     }
 }
 

@@ -71,7 +71,8 @@ pub fn restrict_navigation(
     let Some(popup) = q_popup.iter().next() else {
         for (btn, has_nav) in &q_btn {
             if !has_nav {
-                cmds.entity(btn).insert(AutoDirectionalNavigation::default());
+                cmds.entity(btn)
+                    .insert(AutoDirectionalNavigation::default());
             }
         }
         return;
@@ -87,7 +88,8 @@ pub fn restrict_navigation(
     for (btn, has_nav) in &q_btn {
         let in_popup = popup_btns.contains(&btn);
         if in_popup && !has_nav {
-            cmds.entity(btn).insert(AutoDirectionalNavigation::default());
+            cmds.entity(btn)
+                .insert(AutoDirectionalNavigation::default());
         } else if !in_popup && has_nav {
             cmds.entity(btn).remove::<AutoDirectionalNavigation>();
         }

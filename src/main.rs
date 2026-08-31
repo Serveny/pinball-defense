@@ -105,7 +105,7 @@ fn main() {
 }
 
 fn set_framerate(mut settings: ResMut<bevy_framepace::FramepaceSettings>) {
-    settings.limiter = Limiter::from_framerate(MAX_FRAME_RATE as f64);
+    settings.limiter = Limiter::from_framerate(f64::from(MAX_FRAME_RATE));
 }
 
 fn add_pysics_settings(app: &mut App) {

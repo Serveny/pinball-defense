@@ -37,30 +37,30 @@ impl GameColor {
 }
 
 pub mod reflect {
+    use bevy::log::warn;
     use bevy::reflect::{Reflect, structs::Struct};
 
     pub fn prop_name(obj: &impl Struct, i: usize) -> String {
         obj.name_at(i)
-            .unwrap_or_else(|| panic!("😭 No name at index {i}"))
-            .to_string()
+            .map_or_else(|| format!("unknown_field_{i}"), str::to_string)
     }
 
-    pub fn get_field_mut(obj: &mut impl Struct, i: usize) -> &mut dyn Reflect {
-        obj.field_at_mut(i)
-            .unwrap_or_else(|| panic!("😭 No object at position {i}"))
-            .try_as_reflect_mut()
-            .unwrap_or_else(|| panic!("😭 Can't convert partial to reflect"))
+    pub fn get_field_mut(obj: &mut impl Struct, i: usize) -> Option<&mut dyn Reflect> {
+        let field = obj.field_at_mut(i)?;
+        field.try_as_reflect_mut()
     }
 
     pub fn set_field(obj: &mut impl Struct, i: usize, prop: Box<dyn Reflect>) {
-        get_field_mut(obj, i)
-            .set(prop)
-            .unwrap_or_else(|error| panic!("😭 Not able to set object at position {i}: {error:?}"));
+        let Some(field) = get_field_mut(obj, i) else {
+            warn!("😭 No object at position {i}");
+            return;
+        };
+        if let Err(error) = field.set(prop) {
+            warn!("😭 Not able to set object at position {i}: {error:?}");
+        }
     }
 
-    pub fn cast<T: Reflect + Copy>(field: &dyn Reflect) -> T {
-        *field
-            .downcast_ref::<T>()
-            .unwrap_or_else(|| panic!("😥 Can't downcast to {}", field.reflect_type_path()))
+    pub fn cast<T: Reflect + Copy>(field: &dyn Reflect) -> Option<T> {
+        field.downcast_ref::<T>().copied()
     }
 }

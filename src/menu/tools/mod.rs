@@ -23,7 +23,12 @@ pub struct Focusable;
 pub fn focus_hover_system(
     focus: Res<InputFocus>,
     mut q: Query<
-        (Entity, &mut BorderColor, Option<&Interaction>, Option<&Hovered>),
+        (
+            Entity,
+            &mut BorderColor,
+            Option<&Interaction>,
+            Option<&Hovered>,
+        ),
         With<Focusable>,
     >,
 ) {
@@ -46,10 +51,7 @@ pub fn hover_focus_system(
 ) {
     let hovered = q_hovered
         .iter()
-        .find(|(_, h, i)| {
-            h.is_some_and(|h| h.0)
-                || i.is_some_and(|i| *i == Interaction::Hovered)
-        })
+        .find(|(_, h, i)| h.is_some_and(|h| h.0) || i.is_some_and(|i| *i == Interaction::Hovered))
         .map(|(e, _, _)| e);
     if hovered != *last_hovered {
         *last_hovered = hovered;

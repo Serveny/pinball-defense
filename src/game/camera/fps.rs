@@ -47,8 +47,10 @@ pub(super) fn on_keyboard_mouse_motion_system(
 
     // Handle keyboard input to move the camera
     let delta_move = Vec2::new(
-        (key_input.pressed(KeyCode::KeyW) as i8 - key_input.pressed(KeyCode::KeyS) as i8) as f32,
-        (key_input.pressed(KeyCode::KeyA) as i8 - key_input.pressed(KeyCode::KeyD) as i8) as f32,
+        f32::from(i8::from(key_input.pressed(KeyCode::KeyW)))
+            - f32::from(i8::from(key_input.pressed(KeyCode::KeyS))),
+        f32::from(i8::from(key_input.pressed(KeyCode::KeyA)))
+            - f32::from(i8::from(key_input.pressed(KeyCode::KeyD))),
     );
 
     query.iter_mut().for_each(|(mut transform, mut cam)| {
@@ -60,7 +62,7 @@ pub(super) fn on_keyboard_mouse_motion_system(
             time.delta_secs(),
             settings.mouse_sensitivity,
             settings.move_speed,
-        )
+        );
     });
 }
 
@@ -87,7 +89,7 @@ pub(super) fn gamepad_input(
                     time.delta_secs(),
                     settings.stick_sensitivity,
                     settings.move_speed,
-                )
+                );
             });
         }
     }

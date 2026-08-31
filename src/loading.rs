@@ -16,7 +16,9 @@ impl Plugin for LoadingScreenPlugin {
 
 fn despawn_layout(mut cmds: Commands, q_layout: Query<Entity, With<LoadingLayout>>) {
     for entity in q_layout {
-        cmds.get_entity(entity).unwrap().despawn();
+        if let Ok(mut entity_cmds) = cmds.get_entity(entity) {
+            entity_cmds.despawn();
+        }
     }
 }
 

@@ -1,5 +1,5 @@
-use self::settings::{on_changed_graphics_settings, on_changed_sound_settings};
 use self::settings::{SettingsMenuLayout, SettingsMenuState};
+use self::settings::{on_changed_graphics_settings, on_changed_sound_settings};
 use crate::AppState;
 use crate::game::KeyboardControls;
 use crate::prelude::*;
@@ -102,52 +102,50 @@ impl Plugin for MenuPlugin {
                     entered: MenuState::PauseMenu,
                 },
                 reset_saved_in_pause_menu,
-            )
-            .add_systems(
-                OnEnter(SettingsMenuState::Sound),
-                (
-                    clear_focus.before(settings::clean_up),
-                    settings::clean_up,
-                    settings::layout::<SoundSettings>.after(settings::clean_up),
-                ),
-            )
-            .add_systems(
-                OnEnter(SettingsMenuState::Graphics),
-                (
-                    clear_focus.before(settings::clean_up),
-                    settings::clean_up,
-                    settings::layout::<GraphicsSettings>.after(settings::clean_up),
-                ),
-            )
-            .add_systems(
-                OnEnter(SettingsMenuState::KeyboardControls),
-                (
-                    clear_focus.before(settings::clean_up),
-                    settings::clean_up,
-                    settings::layout::<KeyboardControls>.after(settings::clean_up),
-                ),
-            )
-            .add_systems(
-                OnExit(SettingsMenuState::Sound),
-                settings::clean_up,
-            )
-            .add_systems(
-                OnExit(SettingsMenuState::Graphics),
-                settings::clean_up,
-            )
-            .add_systems(
-                OnExit(SettingsMenuState::KeyboardControls),
-                settings::clean_up,
-            )
-            .add_systems(
-                Update,
-                on_changed_graphics_settings.run_if(in_state(SettingsMenuState::Graphics)),
-            )
-            .add_systems(
-                Update,
-                on_changed_sound_settings.run_if(in_state(SettingsMenuState::Sound)),
             );
+        add_settings_state_systems(app);
+        app.add_systems(
+            Update,
+            on_changed_graphics_settings.run_if(in_state(SettingsMenuState::Graphics)),
+        )
+        .add_systems(
+            Update,
+            on_changed_sound_settings.run_if(in_state(SettingsMenuState::Sound)),
+        );
     }
+}
+
+fn add_settings_state_systems(app: &mut App) {
+    app.add_systems(
+        OnEnter(SettingsMenuState::Sound),
+        (
+            clear_focus.before(settings::clean_up),
+            settings::clean_up,
+            settings::layout::<SoundSettings>.after(settings::clean_up),
+        ),
+    )
+    .add_systems(
+        OnEnter(SettingsMenuState::Graphics),
+        (
+            clear_focus.before(settings::clean_up),
+            settings::clean_up,
+            settings::layout::<GraphicsSettings>.after(settings::clean_up),
+        ),
+    )
+    .add_systems(
+        OnEnter(SettingsMenuState::KeyboardControls),
+        (
+            clear_focus.before(settings::clean_up),
+            settings::clean_up,
+            settings::layout::<KeyboardControls>.after(settings::clean_up),
+        ),
+    )
+    .add_systems(OnExit(SettingsMenuState::Sound), settings::clean_up)
+    .add_systems(OnExit(SettingsMenuState::Graphics), settings::clean_up)
+    .add_systems(
+        OnExit(SettingsMenuState::KeyboardControls),
+        settings::clean_up,
+    );
 }
 
 fn in_menu(state: Res<State<MenuState>>) -> bool {

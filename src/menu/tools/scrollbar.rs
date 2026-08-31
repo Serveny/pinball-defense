@@ -39,8 +39,7 @@ pub fn update_visibility(
     for (scrollbar, mut vis) in &mut q_scrollbar {
         let scrollable = q_scroll_area
             .get(scrollbar.target)
-            .map(|c| c.content_size().y > c.size().y)
-            .unwrap_or(false);
+            .is_ok_and(|c| c.content_size().y > c.size().y);
         *vis = if scrollable {
             Visibility::Inherited
         } else {

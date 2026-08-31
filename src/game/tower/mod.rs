@@ -26,7 +26,7 @@ use bevy_tweening::{Delay, Sequence, Tween, TweenAnim};
 use moonshine_save::prelude::Save;
 use std::time::Duration;
 pub use types::TowerType;
-use types::*;
+use types::{gun, microwave, tesla};
 
 mod animations;
 mod damage;
@@ -376,14 +376,14 @@ fn on_upgrade_system(
     mut sound_ev: MessageWriter<SoundEvent>,
 ) {
     for ev in evr.read() {
-        let (mut tower_level, tower_tf) = q_tower
-            .get_mut(ev.tower_id)
-            .unwrap_or_else(|_| panic!("😥 No tower level for id {:?} found", ev.tower_id));
+        let Ok((mut tower_level, tower_tf)) = q_tower.get_mut(ev.tower_id) else {
+            continue;
+        };
         tower_level.0 += 1;
         disable_flash_light(&mut cmds, &mut q_light, ev.tower_id);
         ac_set_ev.write(AnalogCounterSetEvent::new(
             ev.tower_id,
-            tower_level.0 as u32,
+            u32::from(tower_level.0),
         ));
         points_ev.write(PointsEvent::new(
             PointsKind::TowerUpgrade,
@@ -443,12 +443,14 @@ fn update_collider_size(
     upgrade_factor: f32,
     tower_id: Entity,
 ) {
-    q_coll
+    let Some((mut transform, _)) = q_coll
         .iter_mut()
         .find(|(_, child_of)| child_of.parent() == tower_id)
-        .expect("No tower sight radius for tower found")
-        .0
-        .scale += upgrade_factor;
+    else {
+        debug!("No tower sight sensor for tower {tower_id}");
+        return;
+    };
+    transform.scale += upgrade_factor;
 }
 
 fn update_sight_radius_light_size(
@@ -456,19 +458,25 @@ fn update_sight_radius_light_size(
     sight_radius: f32,
     tower_id: Entity,
 ) {
-    let (mut light, _) = q_sr_light
+    let Some((mut light, _)) = q_sr_light
         .iter_mut()
         .find(|(_, child_of)| child_of.parent() == tower_id)
-        .expect("No tower sight radius light for tower found");
+    else {
+        debug!("No tower sight radius light for tower {tower_id}");
+        return;
+    };
     light.inner_angle = sight_radius;
     light.outer_angle = sight_radius;
 }
 
 fn update_shot_light_size(q_shot_light: &mut QShotLight, sight_radius: f32, tower_id: Entity) {
-    let (spot, point, _) = q_shot_light
+    let Some((spot, point, _)) = q_shot_light
         .iter_mut()
         .find(|(_, _, rel_id)| rel_id.0 == tower_id)
-        .expect("No shot light for tower found");
+    else {
+        debug!("No shot light for tower {tower_id}");
+        return;
+    };
 
     if let Some(mut light) = spot {
         light.outer_angle = sight_radius;

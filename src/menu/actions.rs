@@ -29,6 +29,7 @@ pub enum MenuAction {
 }
 
 impl MenuAction {
+    #[must_use]
     pub fn label(&self) -> &'static str {
         match self {
             MenuAction::Continue => "Continue",
@@ -98,25 +99,26 @@ pub fn on_menu_action(
                 next_menu_state.set(MenuState::Settings);
             }
             MA::Back => {
-                if settings_state.get() != &SettingsMenuState::None {
-                    let return_action = match settings_state.get() {
-                        SettingsMenuState::KeyboardControls => MenuAction::Controls,
-                        SettingsMenuState::Graphics => MenuAction::Graphics,
-                        SettingsMenuState::Sound => MenuAction::Sound,
-                        SettingsMenuState::None => unreachable!(),
-                    };
-                    next_settings_state.set(SettingsMenuState::None);
-                    if let Some((entity, _)) = q_btn.iter().find(|(_, d)| d.action == return_action) {
-                        focus.set(entity, FocusCause::Navigated);
-                    }
-                } else {
+                if settings_state.get() == &SettingsMenuState::None {
                     let target = match menu_state.get() {
-                        MenuState::LoadGame => MenuState::MainMenu,
                         MenuState::SaveGame => MenuState::PauseMenu,
                         MenuState::Settings => settings_return.0.clone(),
                         _ => MenuState::MainMenu,
                     };
                     next_menu_state.set(target);
+                } else {
+                    let return_action = match settings_state.get() {
+                        SettingsMenuState::KeyboardControls => MenuAction::Controls,
+                        SettingsMenuState::Graphics => MenuAction::Graphics,
+                        SettingsMenuState::Sound => MenuAction::Sound,
+                        #[allow(clippy::unreachable)]
+                        SettingsMenuState::None => unreachable!(),
+                    };
+                    next_settings_state.set(SettingsMenuState::None);
+                    if let Some((entity, _)) = q_btn.iter().find(|(_, d)| d.action == return_action)
+                    {
+                        focus.set(entity, FocusCause::Navigated);
+                    }
                 }
             }
             MA::Controls => next_settings_state.set(SettingsMenuState::KeyboardControls),

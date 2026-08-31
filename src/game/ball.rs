@@ -1,8 +1,8 @@
-use super::controls::KeyboardControls;
-use super::enemy::Enemy;
 use super::EventState;
 use super::GameState;
 use super::audio::SoundEvent;
+use super::controls::KeyboardControls;
+use super::enemy::Enemy;
 use super::events::collision::GameLayer;
 use super::health::ChangeHealthEvent;
 use super::level::{BallCollisionPoints, PointsEvent};
@@ -87,10 +87,7 @@ fn ball_view_bundle(
         Collider::circle(radius),
         CollisionEventsEnabled,
         DebugRender::collider(GOLD.into()),
-        CollisionLayers::new(
-            GameLayer::Ball,
-            [GameLayer::Tower, GameLayer::Map],
-        ),
+        CollisionLayers::new(GameLayer::Ball, [GameLayer::Tower, GameLayer::Map]),
         Mass(0.081),
         Restitution::from(0.65),
         Friction::from(0.01),
@@ -127,12 +124,14 @@ fn ball_reset_system(
     for (entity, transform) in q_ball.iter() {
         let ball_pos = transform.translation;
         if !X_RANGE.contains(&ball_pos.x) || !Y_RANGE.contains(&ball_pos.y) {
-            if ball_pos.x > 1.2 && HIT_Y_RANGE.contains(&ball_pos.y)
-                && let Ok(lifebar_id) = q_life_bar.single() {
-                    health_ev.write(ChangeHealthEvent::new(lifebar_id, -5., None));
-                }
+            if ball_pos.x > 1.2
+                && HIT_Y_RANGE.contains(&ball_pos.y)
+                && let Ok(lifebar_id) = q_life_bar.single()
+            {
+                health_ev.write(ChangeHealthEvent::new(lifebar_id, -5., None));
+            }
             log!("🎱 Despawn ball");
-            cmds.get_entity(entity).unwrap().despawn();
+            cmds.entity(entity).try_despawn();
             evw.write(OnBallDespawnEvent);
         }
     }
@@ -185,7 +184,7 @@ fn on_collision_with_ball_system(
     mut coll_with_ball_ev: MessageWriter<CollisionWithBallEvent>,
     mut points_ev: MessageWriter<PointsEvent>,
     q_ball: Query<(Entity, &Transform), With<PinBall>>,
-    q_wall: Query<Entity, With<WorldFrame>>,
+    q_frame: Query<Entity, With<WorldFrame>>,
     q_points: Query<&BallCollisionPoints>,
 ) {
     let Ok((_, ball_tf)) = q_ball.single() else {
@@ -193,7 +192,7 @@ fn on_collision_with_ball_system(
     };
     for collidator_id in get_ball_collisions(coll_ev, q_ball) {
         coll_with_ball_ev.write(CollisionWithBallEvent(collidator_id));
-        if !q_wall.contains(collidator_id)
+        if !q_frame.contains(collidator_id)
             && let Ok(points) = q_points.get(collidator_id)
         {
             points_ev.write(PointsEvent::with_points(points.0, ball_tf.translation));
@@ -250,7 +249,8 @@ fn enemy_ball_overlap_system(
         if ball_pos
             .translation
             .xy()
-            .distance_squared(enemy_pos.translation.xy()) <= (radius + ENEMY_OVERLAP_RADIUS).powi(2)
+            .distance_squared(enemy_pos.translation.xy())
+            <= (radius + ENEMY_OVERLAP_RADIUS).powi(2)
         {
             now_overlapping.insert(enemy_id);
             if !prev_overlapping.contains(&enemy_id) {

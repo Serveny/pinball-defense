@@ -47,8 +47,8 @@ pub enum PointsKind {
 }
 
 impl PointsKind {
-    fn points(&self) -> Points {
-        *self as Points
+    fn points(self) -> Points {
+        self as Points
     }
 }
 
@@ -110,13 +110,13 @@ impl LevelHub {
 
     fn level_up(&mut self) -> Level {
         self.level += 1;
-        let factor = self.level as Points * 10;
+        let factor = Points::from(self.level) * 10;
         self.points_level_up = factor.pow(2) + factor * 200;
         self.level
     }
 
     pub fn foundation_hit_progress(&self) -> f32 {
-        1. / (self.level as f32 * 3.)
+        1. / (f32::from(self.level) * 3.)
     }
 
     pub fn level(&self) -> Level {
@@ -173,7 +173,7 @@ fn update_level_counter_system(
     lc_id: Res<LevelCounterId>,
 ) {
     if level.is_changed() {
-        ac_set_ev.write(AnalogCounterSetEvent::new(lc_id.0, level.level as u32));
+        ac_set_ev.write(AnalogCounterSetEvent::new(lc_id.0, u32::from(level.level)));
     }
 }
 
@@ -186,15 +186,16 @@ fn on_level_up_lamp(
     level_up_ev: MessageReader<LevelUpEvent>,
 ) {
     if !level_up_ev.is_empty()
-        && let Ok((lamp_id, mut visi)) = q_lvl_up_lamp.single_mut() {
-            *visi = Visibility::Inherited;
-            cmds.entity(lamp_id)
-                .insert(FlashLight)
-                .insert(LevelUpAnimation(Timer::new(
-                    Duration::from_secs(4),
-                    TimerMode::Once,
-                )));
-        }
+        && let Ok((lamp_id, mut visi)) = q_lvl_up_lamp.single_mut()
+    {
+        *visi = Visibility::Inherited;
+        cmds.entity(lamp_id)
+            .insert(FlashLight)
+            .insert(LevelUpAnimation(Timer::new(
+                Duration::from_secs(4),
+                TimerMode::Once,
+            )));
+    }
 }
 
 fn level_up_animation_system(

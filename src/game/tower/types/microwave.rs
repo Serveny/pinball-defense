@@ -100,7 +100,10 @@ pub(in super::super) fn shot_animation_system(
     >,
 ) {
     for (tower_id, enemy_id) in q_gun_tower.iter() {
-        let mut flash = get_flash(&mut q_slow_flash, tower_id);
+        let Some(mut flash) = get_flash(&mut q_slow_flash, tower_id) else {
+            debug!("No slow down flash for tower {tower_id}");
+            continue;
+        };
         match enemy_id.0 {
             Some(_) => {
                 let sin = (time.elapsed_secs() * 16.).sin();
@@ -122,9 +125,8 @@ fn get_flash<'a>(
         With<SlowDownFlashLight>,
     >,
     tower_id: Entity,
-) -> (Mut<'a, Visibility>, Mut<'a, SpotLight>, &'a RelEntity) {
+) -> Option<(Mut<'a, Visibility>, Mut<'a, SpotLight>, &'a RelEntity)> {
     q_muzzle_flash
         .iter_mut()
         .find(|(_, _, rel_id)| rel_id.0 == tower_id)
-        .expect("No muzzle flash for tower found")
 }

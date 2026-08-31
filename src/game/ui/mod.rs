@@ -21,7 +21,10 @@ impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.init_state::<UiState>()
             .init_resource::<controls::ControlsUiFade>()
-            .add_systems(OnEnter(UiState::Controls), (controls::spawn, reset_controls_fade))
+            .add_systems(
+                OnEnter(UiState::Controls),
+                (controls::spawn, reset_controls_fade),
+            )
             .add_systems(
                 Update,
                 (
@@ -48,10 +51,7 @@ impl Plugin for UiPlugin {
                     )
                         .chain()
                         .run_if(in_state(GameState::Ingame)),
-                    (
-                        floating_text::spawn_system,
-                        floating_text::update_system,
-                    )
+                    (floating_text::spawn_system, floating_text::update_system)
                         .chain()
                         .run_if(in_state(GameState::Ingame)),
                     toggle_ingame_ui_visibility,

@@ -50,7 +50,7 @@ pub fn spawn_life_bar(
                 Transform::default(),
                 color,
                 1.,
-            )
+            );
         });
 }
 
@@ -74,7 +74,7 @@ fn reattach_life_bar_system(
                 Transform::default(),
                 color,
                 health.fraction(),
-            )
+            );
         });
     }
 }

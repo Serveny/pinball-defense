@@ -1,6 +1,6 @@
-use super::{ball::PinBall, EventState, GameState};
-use crate::prelude::*;
+use super::{EventState, GameState, ball::PinBall};
 use crate::AppState;
+use crate::prelude::*;
 use crate::utils::Music;
 use crate::{settings::SoundSettings, utils::Sound};
 use bevy::audio::Volume;
@@ -58,7 +58,12 @@ pub enum SoundEvent {
 
 impl SoundEvent {
     fn sound_bundle<'a>(&self, assets: &'a PinballDefenseAudioAssets) -> (SoundHandle<'a>, f32) {
-        use SoundEvent::*;
+        use SoundEvent::{
+            BallHitsEnd, BallHitsEnemy, BallHitsFoundation, BallHitsWall, BallSpawn,
+            BallStarterCharge, BallStarterFire, CounterTick, EnemyReachEnd, FlipperPress,
+            FlipperRelease, PbMenuActive, PbMenuFadeIn, PbMenuFadeOut, TowerBuild, TowerHit,
+            TowerUpgradeDamage, TowerUpgradeRange,
+        };
         let handle = match *self {
             BallSpawn => SoundHandle::Single(&assets.ball_release),
             FlipperPress => SoundHandle::Various(&assets.flipper_press),
@@ -108,7 +113,9 @@ fn on_play_sound_fx_system(
     if sound_sett.fx_volume > 0. {
         for ev in evr.read() {
             let s = ev.sound_bundle(&assets);
-            cmds.spawn(sound(s.0, sound_sett.fx_volume, s.1));
+            if let Some(bundle) = sound(s.0, sound_sett.fx_volume, s.1) {
+                cmds.spawn(bundle);
+            }
         }
     }
 }
@@ -141,18 +148,19 @@ fn play_music(
     ));
 }
 
-fn sound(handle: SoundHandle, vol: f32, speed: f32) -> impl Bundle {
-    (
+fn sound(handle: SoundHandle, vol: f32, speed: f32) -> Option<impl Bundle> {
+    let audio = match handle {
+        SoundHandle::Single(handle) => handle.clone(),
+        SoundHandle::Various(handles) => handles.choose()?.clone(),
+    };
+    Some((
         Name::new("Sound"),
         Sound,
-        AudioPlayer(match handle {
-            SoundHandle::Single(handle) => handle.clone(),
-            SoundHandle::Various(handles) => handles.choose().clone(),
-        }),
+        AudioPlayer(audio),
         PlaybackSettings::ONCE
             .with_volume(Volume::Linear(vol))
             .with_speed(speed),
-    )
+    ))
 }
 
 fn clean_up_sound_system(mut cmds: Commands, q_sound: Query<(Entity, &AudioSink), With<Sound>>) {

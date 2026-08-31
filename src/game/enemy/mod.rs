@@ -142,7 +142,11 @@ fn on_spawn_system(
             return;
         };
         cmds.entity(world).with_children(|spawner| {
-            enemy_id = Some(spawner.spawn(enemy(&mut meshes, &mut mats, ev.wave, ev.kind)).id());
+            enemy_id = Some(
+                spawner
+                    .spawn(enemy(&mut meshes, &mut mats, ev.wave, ev.kind))
+                    .id(),
+            );
         });
         if let Some(enemy_id) = enemy_id {
             ui::progress_bar::spawn(&mut cmds, enemy_id, 1.);
@@ -154,10 +158,15 @@ fn on_spawn_system(
 pub struct LastDamager(pub Option<Entity>);
 
 fn enemy_color(wave: usize) -> Color {
-    let t = (wave as f32 / 100.).min(1.);
+    let t = (wave_sat(wave) / 100.).min(1.);
     let hue = 30. + (220. - 30.) * t;
     let lightness = 0.6 - 0.55 * t;
     Color::hsl(hue, 0.9, lightness)
+}
+
+#[allow(clippy::cast_precision_loss)]
+fn wave_sat(wave: usize) -> f32 {
+    f32::from(u16::try_from(wave).unwrap_or(u16::MAX))
 }
 
 fn enemy_view_bundle(
@@ -223,7 +232,7 @@ fn enemy(
     (
         enemy_view_bundle(meshes, mats, wave, kind),
         Enemy::new(wave, kind),
-        Health::new(100. * (1. + wave as f32 * 0.5) * kind.health_factor()),
+        Health::new(100. * (1. + wave_sat(wave) * 0.5) * kind.health_factor()),
         LastDamager(None),
         Transform::from_translation(ROAD_POINTS[0]),
     )

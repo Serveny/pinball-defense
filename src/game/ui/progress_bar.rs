@@ -103,9 +103,10 @@ pub(super) fn despawn_system(
 ) {
     for (bar_id, rel_id) in q_bar.iter() {
         if cmds.get_entity(rel_id.0).is_err()
-            && let Ok(mut bar) = cmds.get_entity(bar_id) {
-                bar.despawn();
-            }
+            && let Ok(mut bar) = cmds.get_entity(bar_id)
+        {
+            bar.despawn();
+        }
     }
 }
 
@@ -161,11 +162,12 @@ pub(super) fn show_on_hit_system(
     for ev in evr.read() {
         let id = ev.rel_id();
         if let Some((_, mut node, mut fill)) = q_fill.iter_mut().find(|(r, _, _)| r.0 == id)
-            && fill.is_locked {
-                fill.is_locked = false;
-                fill.is_active_animation = true;
-                node.width = Val::Percent(0.);
-            }
+            && fill.is_locked
+        {
+            fill.is_locked = false;
+            fill.is_active_animation = true;
+            node.width = Val::Percent(0.);
+        }
         if let Some((_, mut vis, mut bar)) = q_bar.iter_mut().find(|(r, _, _)| r.0 == id) {
             *vis = Visibility::Visible;
             bar.hide_timer.reset();
@@ -230,15 +232,17 @@ pub(super) fn reset_on_upgrade_system(
     }
 }
 
+#[allow(clippy::float_cmp)]
 pub(super) fn sync_progress_to_entities(
     q_bars: Query<(&RelEntity, &Progress), With<ProgressUiBar>>,
     mut q_entities: Query<&mut Progress, Without<ProgressUiBar>>,
 ) {
     for (rel, bar_progress) in q_bars.iter() {
         if let Ok(mut entity_progress) = q_entities.get_mut(rel.0)
-            && entity_progress.0 != bar_progress.0 {
-                entity_progress.0 = bar_progress.0;
-            }
+            && entity_progress.0 != bar_progress.0
+        {
+            entity_progress.0 = bar_progress.0;
+        }
     }
 }
 

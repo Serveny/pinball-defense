@@ -2,8 +2,8 @@ use super::utils::headline;
 use super::{
     MenuLayout,
     actions::MenuAction,
-    tools::menu_btn::{self, ButtonStyle, MenuButton, MenuButtonData},
     tools::Focusable,
+    tools::menu_btn::{self, ButtonStyle, MenuButton, MenuButtonData},
 };
 use crate::game::{list_saves, next_save_path, thumbnail_path};
 use crate::prelude::*;

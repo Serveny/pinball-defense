@@ -17,7 +17,8 @@ pub fn thumbnail_path(save_path: &std::path::Path) -> PathBuf {
 
 pub fn spawn_save_screenshot(cmds: &mut Commands, save_path: PathBuf) {
     cmds.insert_resource(PendingScreenshot { save_path });
-    cmds.spawn(Screenshot::primary_window()).observe(on_captured);
+    cmds.spawn(Screenshot::primary_window())
+        .observe(on_captured);
 }
 
 fn on_captured(

@@ -19,8 +19,7 @@ impl Plugin for ProgressPlugin {
             )
             .add_systems(
                 Update,
-                (on_count_up_system, reset_on_upgrade_system)
-                    .run_if(in_state(EventState::Active)),
+                (on_count_up_system, reset_on_upgrade_system).run_if(in_state(EventState::Active)),
             );
     }
 }
@@ -51,6 +50,7 @@ impl ProgressBarCountUpEvent {
     }
 }
 
+#[allow(clippy::float_cmp)]
 fn on_count_up_system(
     mut evr: MessageReader<ProgressBarCountUpEvent>,
     mut q_progress: QueryProgressBar,
@@ -59,7 +59,7 @@ fn on_count_up_system(
         for (_, mut progress) in q_progress.iter_mut().filter(|(p, _)| p.0 == ev.rel_id) {
             let new = (progress.0 + ev.amount).clamp(0., 1.);
             if new != progress.0 {
-                progress.0 = new
+                progress.0 = new;
             }
         }
     }

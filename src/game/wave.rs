@@ -34,7 +34,7 @@ struct Wave {
     next_enemy_spawn_time: f32,
     time_between_enemies: f32,
     started: bool,
-    wave_kind: EnemyKind,
+    kind: EnemyKind,
     special_cooldown: usize,
 }
 
@@ -46,7 +46,7 @@ impl Default for Wave {
             next_enemy_spawn_time: 0.,
             time_between_enemies: 1.,
             started: false,
-            wave_kind: EnemyKind::Normal,
+            kind: EnemyKind::Normal,
             special_cooldown: SPECIAL_COOLDOWN,
         }
     }
@@ -66,7 +66,7 @@ impl Wave {
         self.next_enemy_spawn_time = now + self.time_between_enemies;
         SpawnEnemyEvent {
             wave: self.number,
-            kind: spawn_kind(self.wave_kind, self.number),
+            kind: spawn_kind(self.kind, self.number),
         }
     }
 
@@ -75,8 +75,8 @@ impl Wave {
         self.next_enemy_spawn_time = (now + TIME_BETWEEN_WAVES).round();
         self.time_between_enemies *= 0.999;
         self.roll_wave_kind();
-        let count = (self.number as f32 * 1.5) as usize;
-        self.enemies_count = match self.wave_kind {
+        let count = self.number * 3 / 2;
+        self.enemies_count = match self.kind {
             EnemyKind::Tank => count / 3,
             _ => count,
         };
@@ -86,7 +86,7 @@ impl Wave {
     fn roll_wave_kind(&mut self) {
         let mut rng = SmallRng::from_rng(&mut rand::rng());
         let (kind, special) = decide_wave_kind(self.number, self.special_cooldown, &mut rng);
-        self.wave_kind = kind;
+        self.kind = kind;
         self.special_cooldown = if special {
             0
         } else {
@@ -164,14 +164,11 @@ fn wave_system(
     let now = **ig_timer;
     let wave = wave.as_mut();
     if wave.started && wave.is_time_to_spawn_enemy(now) {
-        match wave.is_wave_end() {
-            true => {
-                wave.prepare_next_wave(now);
-                wave_started_ev.write(WaveStartedEvent);
-            }
-            false => {
-                spawn_enemy_ev.write(wave.next_enemy(now));
-            }
+        if wave.is_wave_end() {
+            wave.prepare_next_wave(now);
+            wave_started_ev.write(WaveStartedEvent);
+        } else {
+            spawn_enemy_ev.write(wave.next_enemy(now));
         }
     }
 }
@@ -188,15 +185,18 @@ mod tests {
     #[test]
     fn no_specials_before_wave_ten() {
         let mut rng = StdRng::seed_from_u64(42);
-        assert!(kinds(9, 50, &mut rng) == EnemyKind::Normal);
-        assert!(kinds(1, 50, &mut rng) == EnemyKind::Normal);
-        assert!(kinds(19, 50, &mut rng) != EnemyKind::Speeder || true);
+        assert_eq!(kinds(9, 50, &mut rng), EnemyKind::Normal);
+        assert_eq!(kinds(1, 50, &mut rng), EnemyKind::Normal);
+        assert_ne!(kinds(19, 50, &mut rng), EnemyKind::Speeder);
     }
 
     #[test]
     fn cooldown_blocks_specials() {
         let mut rng = StdRng::seed_from_u64(42);
-        assert!(kinds(100, SPECIAL_COOLDOWN - 1, &mut rng) == EnemyKind::Normal);
+        assert_eq!(
+            kinds(100, SPECIAL_COOLDOWN - 1, &mut rng),
+            EnemyKind::Normal
+        );
     }
 
     #[test]
@@ -214,7 +214,7 @@ mod tests {
         let mut specials = 0;
         for _ in 0..1000 {
             let (_, special) = decide_wave_kind(50, 50, &mut rng);
-            specials += special as usize;
+            specials += usize::from(special);
         }
         assert!((200..400).contains(&specials), "specials: {specials}");
     }
@@ -223,13 +223,13 @@ mod tests {
     fn mixed_waves_respect_unlocks() {
         for n in 0..10 {
             for _ in 0..50 {
-                assert!(spawn_kind(EnemyKind::Normal, n) == EnemyKind::Normal);
+                assert_eq!(spawn_kind(EnemyKind::Normal, n), EnemyKind::Normal);
             }
         }
         for _ in 0..200 {
-            assert!(spawn_kind(EnemyKind::Normal, 12) != EnemyKind::Speeder);
-            assert!(spawn_kind(EnemyKind::Tank, 5) == EnemyKind::Tank);
-            assert!(spawn_kind(EnemyKind::Speeder, 5) == EnemyKind::Speeder);
+            assert_ne!(spawn_kind(EnemyKind::Normal, 12), EnemyKind::Speeder);
+            assert_eq!(spawn_kind(EnemyKind::Tank, 5), EnemyKind::Tank);
+            assert_eq!(spawn_kind(EnemyKind::Speeder, 5), EnemyKind::Speeder);
         }
         let mut has_tank = false;
         let mut has_speeder = false;

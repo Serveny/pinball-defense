@@ -92,9 +92,10 @@ fn on_change_health_system(
 
             // Health recovery
             if let Some(mut recovery) = recovery
-                && ev.amount.is_sign_negative() {
-                    recovery.set_time(ig_time.0);
-                }
+                && ev.amount.is_sign_negative()
+            {
+                recovery.set_time(ig_time.0);
+            }
 
             // Last damager
             if let Some(mut last_damager) = damager {
@@ -137,7 +138,7 @@ impl HealthRecovery {
     }
 
     fn set_time(&mut self, ig_time: f32) {
-        self.time_next_recover = ig_time + self.timeout_after_damage
+        self.time_next_recover = ig_time + self.timeout_after_damage;
     }
 
     fn can_recover(&self, ig_time: f32) -> bool {

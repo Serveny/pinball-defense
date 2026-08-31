@@ -88,12 +88,11 @@ fn edit_eir<F: FnOnce(&mut EnemiesWithinReach, Entity)>(
     f: F,
 ) {
     for (tower_sight_id, enemy_id) in [(id_1, id_2), (id_2, id_1)] {
-        if let Ok(ts_child_of) = q_tower_sight.get(tower_sight_id) {
-            if let Ok(mut eir) = q_eir.get_mut(ts_child_of.parent()) {
-                f(&mut eir, enemy_id);
-                return;
-            }
-            panic!("😭 No 'EnemiesWithinReach' component for tower sight found.");
+        if let Ok(ts_child_of) = q_tower_sight.get(tower_sight_id)
+            && let Ok(mut eir) = q_eir.get_mut(ts_child_of.parent())
+        {
+            f(&mut eir, enemy_id);
+            return;
         }
     }
 }

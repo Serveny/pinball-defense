@@ -47,8 +47,9 @@ pub fn spawn(
 }
 
 fn row_text_color(is_active: bool) -> Color {
-    match is_active {
-        true => GameColor::WHITE,
-        false => GameColor::WHITE.with_alpha(0.5),
+    if is_active {
+        GameColor::WHITE
+    } else {
+        GameColor::WHITE.with_alpha(0.5)
     }
 }

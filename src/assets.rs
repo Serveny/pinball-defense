@@ -127,15 +127,13 @@ pub struct Handles<T: Asset>(pub Vec<Handle<T>>);
 
 impl<T: Asset> Default for Handles<T> {
     fn default() -> Self {
-        Self(Default::default())
+        Self(Vec::default())
     }
 }
 
 impl<T: Asset> Handles<T> {
-    pub fn choose(&self) -> &Handle<T> {
-        self.0
-            .choose(&mut rand::rng())
-            .expect("😥 Vector empty, no sound to choose")
+    pub fn choose(&self) -> Option<&Handle<T>> {
+        self.0.choose(&mut rand::rng())
     }
 }
 pub struct AssetsPlugin;
@@ -219,7 +217,10 @@ fn check_assets_ready(
     loading: Res<GltfHandle>,
 ) {
     match server.load_state(loading.0.id()) {
-        LoadState::Failed(err) => panic!("😭 Failed loading asset: {err}"),
+        LoadState::Failed(err) => {
+            error!("😭 Failed loading asset: {err}");
+            state.set(AssetsInternalLoadState::AssetServerFinished);
+        }
         LoadState::Loaded => state.set(AssetsInternalLoadState::AssetServerFinished),
         _ => (),
     }
@@ -233,9 +234,12 @@ fn add_gltf_resource(
     gltfs: Res<Assets<Gltf>>,
     gltf_handle: Res<GltfHandle>,
 ) {
-    let gltf = gltfs
-        .get(&gltf_handle.0)
-        .expect("😭 Can not load world gltf file!");
+    let Some(gltf) = gltfs.get(&gltf_handle.0) else {
+        error!("😭 Can not load world gltf file!");
+        cmds.insert_resource(PinballDefenseGltfAssets::default());
+        state.set(AssetsInternalLoadState::Finished);
+        return;
+    };
 
     let mut assets = PinballDefenseGltfAssets::default();
     for (i, (_, field)) in PinballDefenseGltfAssets::default()
@@ -245,69 +249,72 @@ fn add_gltf_resource(
         let prop_name = prop_name(&assets, i);
         match field.reflect_type_path() {
             "bevy_asset::handle::Handle<bevy_mesh::mesh::Mesh>" => {
-                let mesh = mesh(&prop_name, gltf, &gltf_meshes);
-                set_field(&mut assets, i, Box::new(mesh));
+                if let Some(mesh) = mesh(&prop_name, gltf, &gltf_meshes) {
+                    set_field(&mut assets, i, Box::new(mesh));
+                } else {
+                    warn!("😭 No mesh for {prop_name}, placeholder stays");
+                }
             }
             "bevy_asset::handle::Handle<bevy_pbr::pbr_material::StandardMaterial>" => {
-                let material = material(&prop_name, gltf, &ass);
-                set_field(&mut assets, i, Box::new(material));
+                if let Some(material) = material(&prop_name, gltf, &ass) {
+                    set_field(&mut assets, i, Box::new(material));
+                } else {
+                    warn!("😭 No material for {prop_name}, placeholder stays");
+                }
             }
-            type_name => println!("🐱 Unknown type in asset struct: {}", type_name),
+            type_name => println!("🐱 Unknown type in asset struct: {type_name}"),
         }
     }
     cmds.insert_resource(assets);
     state.set(AssetsInternalLoadState::Finished);
 }
 
-fn mesh(mesh_name: &str, gltf: &Gltf, gltf_meshes: &Assets<GltfMesh>) -> Handle<Mesh> {
-    gltf_meshes
-        .get(
-            gltf.named_meshes
-                .get(mesh_name)
-                .unwrap_or_else(|| panic!("😭 No mesh with name {mesh_name}")),
-        )
-        .unwrap_or_else(|| panic!("😭 Can not load mesh with name {mesh_name}"))
-        .primitives[0]
-        .mesh
-        .clone()
+fn mesh(mesh_name: &str, gltf: &Gltf, gltf_meshes: &Assets<GltfMesh>) -> Option<Handle<Mesh>> {
+    let primitive = gltf_meshes
+        .get(gltf.named_meshes.get(mesh_name)?)?
+        .primitives
+        .first()?;
+    Some(primitive.mesh.clone())
 }
 
-fn material(material_name: &str, gltf: &Gltf, ass: &AssetServer) -> Handle<StandardMaterial> {
-    let gltf_mat_handle = gltf
-        .named_materials
-        .get(material_name)
-        .unwrap_or_else(|| panic!("😭 No material with name {material_name}"));
+fn material(
+    material_name: &str,
+    gltf: &Gltf,
+    ass: &AssetServer,
+) -> Option<Handle<StandardMaterial>> {
+    let gltf_mat_handle = gltf.named_materials.get(material_name)?;
     // Bevy 0.19: `named_materials` now holds `Handle<GltfMaterial>` instead of
     // `Handle<StandardMaterial>`. Look up the material index and load the
     // corresponding `StandardMaterial` sub-asset via the `/std` label suffix.
-    let index = gltf
-        .materials
-        .iter()
-        .position(|h| h == gltf_mat_handle)
-        .unwrap_or_else(|| panic!("😭 Material {material_name} not found in materials vec"));
-    ass.load(format!(
+    let index = gltf.materials.iter().position(|h| h == gltf_mat_handle)?;
+    Some(ass.load(format!(
         "{}#{}/std",
         GLTF_PATH,
         GltfAssetLabel::Material {
             index,
             is_scale_inverted: false,
         }
-    ))
+    )))
 }
 
-fn audio_assets_path(sub_dir: Option<&str>) -> PathBuf {
-    env::current_exe()
-        .expect("😥 No current exe")
-        .parent()
-        .expect("😥 No parent folder of current exe")
-        .join(PathBuf::from(format!(
-            "../../assets/audio/{}",
-            sub_dir.unwrap_or("")
-        )))
+fn audio_assets_path(sub_dir: Option<&str>) -> Option<PathBuf> {
+    Some(
+        env::current_exe()
+            .ok()?
+            .parent()?
+            .join(PathBuf::from(format!(
+                "../../assets/audio/{}",
+                sub_dir.unwrap_or("")
+            ))),
+    )
 }
 
 fn add_audio_resource(mut cmds: Commands, ass: Res<AssetServer>) {
-    let audio_dir = audio_assets_path(None);
+    let Some(audio_dir) = audio_assets_path(None) else {
+        error!("😥 Can not resolve audio assets folder, skipping audio");
+        cmds.insert_resource(PinballDefenseAudioAssets::default());
+        return;
+    };
     let file_name_paths: Vec<(String, PathBuf)> = file_paths(audio_dir);
 
     let mut audio_assets = PinballDefenseAudioAssets::default();
@@ -318,49 +325,56 @@ fn add_audio_resource(mut cmds: Commands, ass: Res<AssetServer>) {
         let prop_name = prop_name(&audio_assets, i);
         match field.reflect_type_path() {
             "pinball_defense::assets::Handles<bevy_audio::audio_source::AudioSource>" => {
-                let audio_dir = audio_assets_path(Some(&prop_name));
-                let field: &mut Handles<AudioSource> = get_field_mut(&mut audio_assets, i)
-                    .downcast_mut()
-                    .expect("😥 Unexpected: Handles type is no handles type.");
+                let Some(audio_dir) = audio_assets_path(Some(&prop_name)) else {
+                    warn!("😥 Can not resolve audio folder for {prop_name}, skipping");
+                    continue;
+                };
+                let Some(field) = get_field_mut(&mut audio_assets, i)
+                    .and_then(|field| field.downcast_mut::<Handles<AudioSource>>())
+                else {
+                    warn!("😥 Unexpected: Handles type is no handles type.");
+                    continue;
+                };
                 for (_, path) in file_paths(audio_dir) {
                     let handle = ass.load(path);
                     field.0.push(handle);
                 }
             }
             "bevy_asset::handle::Handle<bevy_audio::audio_source::AudioSource>" => {
-                let file_path = path_by_name(&prop_name, &file_name_paths);
-                let handle: Handle<AudioSource> = ass.load(file_path);
-                set_field(&mut audio_assets, i, Box::new(handle));
+                if let Some(file_path) = path_by_name(&prop_name, &file_name_paths) {
+                    let handle: Handle<AudioSource> = ass.load(file_path);
+                    set_field(&mut audio_assets, i, Box::new(handle));
+                } else {
+                    warn!("😥 No file for audio asset {prop_name}, placeholder stays");
+                }
             }
-            type_name => println!("🔊 Unknown type in audio asset struct: {}", type_name),
+            type_name => println!("🔊 Unknown type in audio asset struct: {type_name}"),
         }
     }
     cmds.insert_resource(audio_assets);
 }
 
-fn path_by_name(name: &str, files: &[(String, PathBuf)]) -> PathBuf {
-    files
-        .iter()
-        .find(|file| file.0 == name)
-        .unwrap_or_else(|| panic!("😥 No file with name {name} in audio folder."))
-        .1
-        .clone()
+fn path_by_name(name: &str, files: &[(String, PathBuf)]) -> Option<PathBuf> {
+    Some(files.iter().find(|file| file.0 == name)?.1.clone())
 }
 
 fn file_paths(dir: PathBuf) -> Vec<(String, PathBuf)> {
-    dir.read_dir()
-        .unwrap_or_else(|err| panic!("😥 Can not read audio directory {dir:?} with error {err}"))
-        .map(|file| {
-            let file = file.as_ref().expect("😥 Can not read file");
-            (
-                file.path()
-                    .file_stem()
-                    .expect("😥 Can not stem file")
-                    .to_str()
-                    .expect("😥 Can not convert os string to string")
-                    .to_string(),
-                file.path(),
-            )
+    let Ok(entries) = dir.read_dir() else {
+        warn!("😥 Can not read audio directory {}", dir.display());
+        return Vec::new();
+    };
+    entries
+        .filter_map(|file| {
+            let Ok(file) = file else {
+                warn!("😥 Can not read file entry in {}", dir.display());
+                return None;
+            };
+            let path = file.path();
+            let Some(stem) = path.file_stem().and_then(|stem| stem.to_str()) else {
+                warn!("😥 Can not stem file {}", path.display());
+                return None;
+            };
+            Some((stem.to_string(), path))
         })
         .collect()
 }

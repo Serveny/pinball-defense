@@ -45,7 +45,7 @@ pub fn scene(prop_i: usize) -> impl Scene {
                     set_field(&mut *g_sett, prop_i, Box::new(val));
                 }
                 _ => (),
-            };
+            }
         })
         Children [
             (Name::new("Checkbox Mark")

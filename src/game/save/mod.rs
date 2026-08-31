@@ -1,10 +1,10 @@
 mod config;
-mod slots;
 pub mod screenshot;
+mod slots;
 
 pub use config::save_world;
-pub use slots::{list_saves, next_save_path};
 pub use screenshot::{spawn_save_screenshot, thumbnail_path};
+pub use slots::{list_saves, next_save_path};
 
 use super::GameState;
 use crate::prelude::*;
@@ -27,10 +27,7 @@ impl Plugin for SavePlugin {
             // Must run in Init, before the first Ingame frame: level_up_system
             // would otherwise fire on the default LevelHub (threshold 0) and
             // spawn a phantom foundation before the save is applied.
-            .add_systems(
-                Update,
-                apply_pending_load.run_if(in_state(GameState::Init)),
-            );
+            .add_systems(Update, apply_pending_load.run_if(in_state(GameState::Init)));
     }
 }
 

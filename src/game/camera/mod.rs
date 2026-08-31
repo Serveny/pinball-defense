@@ -81,7 +81,7 @@ fn spawn(
         Hdr,
     ));
     camera.insert(IsDefaultUiCamera);
-    place_skybox(assets, images)
+    place_skybox(assets, images);
 }
 
 const START_POS: Vec3 = Vec3::new(2.9, 1.8, 1.9);
@@ -174,12 +174,17 @@ fn on_nudge_system(
 // NOTE: PNGs do not have any metadata that could indicate they contain a cubemap texture,
 // so they appear as one texture. The following code reconfigures the texture as necessary.
 fn place_skybox(assets: Res<PinballDefenseAssets>, mut images: ResMut<Assets<Image>>) {
-    let mut image = images.get_mut(&assets.skybox).unwrap();
+    let Some(mut image) = images.get_mut(&assets.skybox) else {
+        error!("Skybox image not found");
+        return;
+    };
     if image.texture_descriptor.array_layer_count() == 1 {
         // Read the layer count into a local first so we don't hold an
         // immutable borrow of `image` while calling a `&mut self` method.
         let layers = image.texture_descriptor.size.height / image.texture_descriptor.size.width;
-        image.reinterpret_stacked_2d_as_array(layers).unwrap();
+        if let Err(e) = image.reinterpret_stacked_2d_as_array(layers) {
+            error!("Failed to reinterpret skybox as array: {e}");
+        }
         image.texture_view_descriptor = Some(TextureViewDescriptor {
             dimension: Some(TextureViewDimension::Cube),
             ..default()

@@ -30,6 +30,7 @@ fn init_stats(mut cmds: Commands) {
     cmds.insert_resource(GameStats::default());
 }
 
+#[allow(clippy::cast_possible_truncation)]
 fn track_stats_system(
     mut stats: ResMut<GameStats>,
     mut health_evr: MessageReader<ChangeHealthEvent>,

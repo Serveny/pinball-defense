@@ -1,4 +1,4 @@
-use super::{CamTransformLens, PinballCamera, CAM_LOW_POS, LOOK_POS};
+use super::{CAM_LOW_POS, CamTransformLens, LOOK_POS, PinballCamera};
 use crate::game::ball_starter::{
     BallSpawn, BallStarterChargeStartedEvent, BallStarterFireEndEvent,
 };
@@ -19,12 +19,13 @@ pub(super) fn on_ball_start_cam_system(
                     false,
                     ball_spawn.0,
                 )));
-        };
+        }
     } else if !on_fire_end.is_empty()
-        && let Ok(cam) = q_cam.single() {
-            cmds.entity(cam)
-                .insert(TweenAnim::new(ball_start_tracking_shot(true, ball_spawn.0)));
-        };
+        && let Ok(cam) = q_cam.single()
+    {
+        cmds.entity(cam)
+            .insert(TweenAnim::new(ball_start_tracking_shot(true, ball_spawn.0)));
+    }
 }
 
 const CAM_BALL_START_POS: Vec3 = Vec3::new(1.7, 0.9, 1.4);

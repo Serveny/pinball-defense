@@ -160,7 +160,9 @@ pub(super) fn cleanup_build_marks_system(
         if q_foundations
             .iter()
             .any(|f| f.translation.distance(pos) < 0.01)
-            || q_towers.iter().any(|t| t.pos.truncate().distance(pos.truncate()) < 0.01)
+            || q_towers
+                .iter()
+                .any(|t| t.pos.truncate().distance(pos.truncate()) < 0.01)
         {
             cmds.entity(mark_id).despawn();
         }
@@ -247,10 +249,10 @@ pub(super) fn on_despawn_system(
 ) {
     for ev in evr.read() {
         let foundation_id = ev.foundation_id;
-        let pos = q_foundation
-            .get(foundation_id)
-            .expect("😥 Here should be a foundation.")
-            .translation;
+        let Ok(&transform) = q_foundation.get(foundation_id) else {
+            continue;
+        };
+        let pos = transform.translation;
 
         // Open lids
         q_lids_bottom.iter().for_each(|(lid_id, lid_child_of)| {

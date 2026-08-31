@@ -161,19 +161,25 @@ pub(in super::super) fn shoot_animation_system(
     >,
 ) {
     for (tower_id, enemy_id) in q_gun_tower.iter() {
-        let mut flash = get_flash(&mut q_muzzle_flash, tower_id);
-        match enemy_id.0 {
-            Some(_) => {
-                let sin = (time.elapsed_secs() * 64.).sin();
+        if enemy_id.0.is_some() {
+            let sin = (time.elapsed_secs() * 64.).sin();
+            if let Some((mut barrel, _)) = get_barrel(&mut q_barrel, tower_id) {
+                barrel.translation.y = sin * 0.002;
+            }
+            if let Some(mut flash) = get_flash(&mut q_muzzle_flash, tower_id) {
                 *flash.0 = Visibility::Inherited;
-                get_barrel(&mut q_barrel, tower_id).0.translation.y = sin * 0.002;
                 flash.1.intensity = (sin + 1.) * 32.;
             }
-            None => {
-                if *flash.0 != Visibility::Hidden {
-                    *flash.0 = Visibility::Hidden;
-                    get_barrel(&mut q_barrel, tower_id).0.translation.y = 0.;
-                }
+        } else {
+            if let Some((mut barrel, _)) = get_barrel(&mut q_barrel, tower_id)
+                && barrel.translation.y != 0.
+            {
+                barrel.translation.y = 0.;
+            }
+            if let Some(mut flash) = get_flash(&mut q_muzzle_flash, tower_id)
+                && *flash.0 != Visibility::Hidden
+            {
+                *flash.0 = Visibility::Hidden;
             }
         }
     }
@@ -182,11 +188,8 @@ pub(in super::super) fn shoot_animation_system(
 fn get_barrel<'a>(
     q_barrel: &'a mut Query<(&mut Transform, &RelEntity), With<GunTowerBarrel>>,
     tower_id: Entity,
-) -> (Mut<'a, Transform>, &'a RelEntity) {
-    q_barrel
-        .iter_mut()
-        .find(|(_, rel_id)| rel_id.0 == tower_id)
-        .expect("No barrel for tower found")
+) -> Option<(Mut<'a, Transform>, &'a RelEntity)> {
+    q_barrel.iter_mut().find(|(_, rel_id)| rel_id.0 == tower_id)
 }
 fn get_flash<'a>(
     q_muzzle_flash: &'a mut Query<
@@ -194,9 +197,8 @@ fn get_flash<'a>(
         With<MuzzleFlashLight>,
     >,
     tower_id: Entity,
-) -> (Mut<'a, Visibility>, Mut<'a, SpotLight>, &'a RelEntity) {
+) -> Option<(Mut<'a, Visibility>, Mut<'a, SpotLight>, &'a RelEntity)> {
     q_muzzle_flash
         .iter_mut()
         .find(|(_, _, rel_id)| rel_id.0 == tower_id)
-        .expect("No muzzle flash for tower found")
 }

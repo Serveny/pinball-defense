@@ -9,7 +9,7 @@ use super::player_life::spawn_life_bar;
 use super::road::spawn_road;
 use super::tower::foundation;
 use crate::assets::PinballDefenseGltfAssets;
-use crate::generated::world_1::*;
+use crate::generated::world_1::colliders;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy::color::palettes::css::{RED, TOMATO};
@@ -29,8 +29,6 @@ pub fn spawn_pinball_world(
     g_sett: Res<GraphicsSettings>,
 ) {
     let assets = assets.as_ref();
-    let mut pc_id = None;
-    let mut lc_id = None;
     cmds.spawn((
         PinballWorld,
         Name::new("Pinball World"),
@@ -67,12 +65,12 @@ pub fn spawn_pinball_world(
         super::ball_starter::spawn(p, bs_pos, assets);
 
         // Flipper left
-        let fl_pos = Transform::from_xyz(0.83, -0.32, -0.043);
-        super::flipper::spawn_left(fl_pos, p, assets);
+        let f_left_pos = Transform::from_xyz(0.83, -0.32, -0.043);
+        super::flipper::spawn_left(f_left_pos, p, assets);
 
         // Flipper right
-        let fr_pos = Transform::from_xyz(0.83, 0.246, -0.043);
-        super::flipper::spawn_right(fr_pos, p, assets);
+        let f_right_pos = Transform::from_xyz(0.83, 0.246, -0.043);
+        super::flipper::spawn_right(f_right_pos, p, assets);
 
         spawn_build_marks(p, assets);
         spawn_road(p, assets);
@@ -84,18 +82,11 @@ pub fn spawn_pinball_world(
         };
         spawn_life_bar(p, assets, &mut mats, life_bar_trans);
         p.spawn(pinball_menu_glass(assets, &mut mats));
-        pc_id = Some(analog_counter::spawn_10_digit(
-            p,
-            assets,
-            Vec3::new(0.98, -0.563958, 0.01),
-            None,
-        ));
-        lc_id = Some(analog_counter::spawn_2_digit(
-            p,
-            assets,
-            Transform::from_xyz(0.98, 0.41, 0.01),
-            None,
-        ));
+        let pc = analog_counter::spawn_10_digit(p, assets, Vec3::new(0.98, -0.563_958, 0.01), None);
+        p.commands_mut().insert_resource(PointCounterId(pc));
+        let lc =
+            analog_counter::spawn_2_digit(p, assets, Transform::from_xyz(0.98, 0.41, 0.01), None);
+        p.commands_mut().insert_resource(LevelCounterId(lc));
         let level_lamp_pos = Vec3::new(1., 0.31, 0.06);
         spawn_lamp(
             p,
@@ -107,13 +98,6 @@ pub fn spawn_pinball_world(
             LevelUpLamp,
         );
     });
-
-    cmds.insert_resource(PointCounterId(
-        pc_id.expect("Point Counter Id can not be None here!"),
-    ));
-    cmds.insert_resource(LevelCounterId(
-        lc_id.expect("Level Counter Id can not be None here!"),
-    ));
 }
 
 #[cfg(not(debug_assertions))]

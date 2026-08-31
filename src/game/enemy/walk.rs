@@ -13,16 +13,15 @@ pub(super) fn walk_system(
     time: Res<Time>,
 ) {
     for (enemy_id, mut trans, mut enemy) in q_enemy.iter_mut() {
-        match enemy.walk(trans.translation, time.delta()) {
-            Some(pos) => trans.translation = pos,
-            None => {
-                // Reminder: If you need infos about the enemy, overgive only infos, not enemy id
-                end_reached_ev.write(RoadEndReachedEvent);
+        if let Some(pos) = enemy.walk(trans.translation, time.delta()) {
+            trans.translation = pos;
+        } else {
+            // Reminder: If you need infos about the enemy, overgive only infos, not enemy id
+            end_reached_ev.write(RoadEndReachedEvent);
 
-                // Delete enemy here, to prevent double events
-                cmds.entity(enemy_id).try_despawn();
-            }
-        };
+            // Delete enemy here, to prevent double events
+            cmds.entity(enemy_id).try_despawn();
+        }
     }
 }
 

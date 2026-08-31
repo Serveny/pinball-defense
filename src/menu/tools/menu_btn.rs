@@ -22,7 +22,7 @@ pub enum ButtonStyle {
 }
 
 impl ButtonStyle {
-    fn resting_color(&self) -> Color {
+    fn resting_color(self) -> Color {
         match self {
             ButtonStyle::Primary => GameColor::GOLD,
             ButtonStyle::Secondary => GameColor::GRAY,
@@ -80,7 +80,12 @@ pub fn system(
 pub fn focus_system(
     focus: Res<InputFocus>,
     mut q_btn: Query<
-        (&MenuButtonData, &mut BorderColor, Entity, Option<&Interaction>),
+        (
+            &MenuButtonData,
+            &mut BorderColor,
+            Entity,
+            Option<&Interaction>,
+        ),
         (With<Button>, With<MenuButton>),
     >,
     children: Query<&Children>,

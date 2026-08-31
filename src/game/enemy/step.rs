@@ -14,9 +14,12 @@ impl Step {
         let dir = get_direction_to(i_point);
         Self {
             i_road_point: i_point,
-            distance_to_walk: ROAD_DISTS[i_point - 1],
+            distance_to_walk: i_point
+                .checked_sub(1)
+                .and_then(|i| ROAD_DISTS.get(i).copied())
+                .unwrap_or(0.),
             distance_walked: 0.,
-            direction: dir.normalize(),
+            direction: dir.normalize_or_zero(),
         }
     }
 
@@ -30,7 +33,10 @@ impl Step {
     }
 
     pub fn start_pos(&self) -> Vec3 {
-        ROAD_POINTS[self.i_road_point - 1]
+        ROAD_POINTS
+            .get(self.i_road_point.saturating_sub(1))
+            .copied()
+            .unwrap_or(Vec3::ZERO)
     }
 
     pub fn is_reached_point(&self) -> bool {
@@ -43,6 +49,9 @@ impl Step {
 }
 
 fn get_direction_to(i: usize) -> Vec3 {
-    let i = i.clamp(1, ROAD_POINTS.len() - 1);
-    ROAD_POINTS[i] - ROAD_POINTS[i - 1]
+    let i = i.clamp(1, ROAD_POINTS.len().saturating_sub(1).max(1));
+    match (ROAD_POINTS.get(i), ROAD_POINTS.get(i - 1)) {
+        (Some(a), Some(b)) => *a - *b,
+        _ => Vec3::ZERO,
+    }
 }

@@ -1,9 +1,9 @@
-use super::{set_flipper_status, KeyboardControls};
+use super::{KeyboardControls, set_flipper_status};
 use crate::game::ball_starter::{BallStarterState, SpawnBallEvent};
 use crate::game::camera::CameraState;
 use crate::game::flipper::{FlipperStatus, FlipperType};
 use crate::game::ui::UiState;
-use crate::game::{ball, GameState, PauseGameEvent, ResumeGameEvent};
+use crate::game::{GameState, PauseGameEvent, ResumeGameEvent, ball};
 use crate::menu::MenuState;
 use crate::prelude::*;
 use bevy::window::{CursorGrabMode, CursorOptions, PrimaryWindow};

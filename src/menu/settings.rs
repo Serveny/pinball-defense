@@ -1,11 +1,8 @@
 use super::MenuLayout;
 use super::tools::sliders;
-use super::tools::{checkbox, keybox, row, Focusable};
+use super::tools::{Focusable, checkbox, keybox, row};
 use crate::game::KeyboardControls;
 use crate::prelude::*;
-use bevy::text::{FontSize, FontSourceTemplate};
-use bevy::ui::auto_directional_navigation::AutoDirectionalNavigation;
-use bevy::ui_widgets::ScrollArea;
 use crate::settings::{GraphicsSettings, SoundSettings};
 use crate::utils::reflect::{cast, prop_name};
 use crate::utils::{GameColor, Music, Sound};
@@ -13,6 +10,9 @@ use bevy::audio::Volume;
 use bevy::camera::Hdr;
 use bevy::post_process::bloom::Bloom;
 use bevy::reflect::structs::Struct;
+use bevy::text::{FontSize, FontSourceTemplate};
+use bevy::ui::auto_directional_navigation::AutoDirectionalNavigation;
+use bevy::ui_widgets::ScrollArea;
 use std::any::TypeId;
 
 #[derive(States, Clone, Eq, PartialEq, Debug, Hash, Default)]
@@ -100,15 +100,30 @@ pub fn layout<TSettings: Resource + Struct>(
             let prop_name = prop_name(settings.as_ref(), i)
                 .replace('_', " ")
                 .replace("is", "");
-            let field = field.try_as_reflect().expect("Can't cast as reflect");
+            let Some(field) = field.try_as_reflect() else {
+                warn!("Settings field {prop_name} can't be cast as reflect");
+                continue;
+            };
             row::spawn(&prop_name, p, &assets, |p| {
                 match field.reflect_type_path() {
-                    "bool" => checkbox::spawn(p, i, cast::<bool>(field)),
-                    "f32" => sliders::spawn(p, i, cast::<f32>(field)),
-                    KEY_CODE => keybox::spawn(p, &assets, i, cast::<KeyCode>(field)),
-                    type_name => println!("🐱 Unknown type in asset struct: {}", type_name),
+                    "bool" => {
+                        if let Some(val) = cast::<bool>(field) {
+                            checkbox::spawn(p, i, val);
+                        }
+                    }
+                    "f32" => {
+                        if let Some(val) = cast::<f32>(field) {
+                            sliders::spawn(p, i, val);
+                        }
+                    }
+                    KEY_CODE => {
+                        if let Some(val) = cast::<KeyCode>(field) {
+                            keybox::spawn(p, &assets, i, val);
+                        }
+                    }
+                    type_name => println!("🐱 Unknown type in asset struct: {type_name}"),
                 }
-            })
+            });
         }
         if is_controls {
             header(p, &assets, "Controller");

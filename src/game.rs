@@ -125,7 +125,10 @@ impl Plugin for GamePlugin {
             )
             .add_systems(OnEnter(AppState::Game), init_game)
             .add_systems(OnExit(AppState::Game), clean_up_on_exit_game)
-            .add_systems(OnEnter(GameState::GameOver), (game_over::spawn, pause_on_game_over))
+            .add_systems(
+                OnEnter(GameState::GameOver),
+                (game_over::spawn, pause_on_game_over),
+            )
             .add_systems(
                 Update,
                 (

@@ -84,10 +84,12 @@ fn on_add_flashlight_system(
     mut q_light: Query<(&mut Visibility, &ChildOf, Entity), With<ContactLight>>,
 ) {
     for ev in evr.read() {
-        let (mut visi, _, light_id) = q_light
+        let Some((mut visi, _, light_id)) = q_light
             .iter_mut()
             .find(|(_, child_of, _)| child_of.parent() == ev.0)
-            .expect("Parent should have ContactLight as child");
+        else {
+            continue;
+        };
 
         cmds.entity(light_id).insert(FlashLight);
         *visi = Visibility::Inherited;
@@ -105,10 +107,12 @@ pub(super) fn disable_flash_light(
     q_light: &mut Query<(Entity, &ChildOf, &mut Visibility), With<FlashLight>>,
     parent_id: Entity,
 ) {
-    let (entity, _, mut visi) = q_light
+    let Some((entity, _, mut visi)) = q_light
         .iter_mut()
         .find(|(_, child_of, _)| child_of.parent() == parent_id)
-        .expect("Here should be the selected parend 🫢");
+    else {
+        return;
+    };
     log!("Disable flashlight for {:?}", parent_id);
     *visi = Visibility::Hidden;
     cmds.entity(entity).remove::<FlashLight>();

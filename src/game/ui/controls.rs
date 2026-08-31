@@ -1,8 +1,8 @@
 use super::project_3d_to_2d_screen;
-use crate::game::controls::InputKind;
 use crate::game::KeyboardControls;
 use crate::game::ball_starter::BallSpawn;
 use crate::game::camera::PinballCamera;
+use crate::game::controls::InputKind;
 use crate::game::flipper::FlipperType;
 use crate::game::wave::WaveStartedEvent;
 use crate::prelude::*;
@@ -66,20 +66,74 @@ impl ControlsUiFade {
 pub(super) struct FadeableColor(Color);
 
 pub fn spawn(mut cmd: Commands, ctl: Res<KeyboardControls>, ass: Res<PinballDefenseAssets>) {
-    use FieldPos::*;
+    use FieldPos::{Invisible, TopLeft, TopRight};
     let cmd = &mut cmd;
-    spawn_key(cmd, KeyId::Key(ctl.flipper_left), &ass, Invisible, "Flipper Left");
-    spawn_key(cmd, KeyId::Key(ctl.flipper_right), &ass, Invisible, "Flipper Right");
-    spawn_key(cmd, KeyId::Key(ctl.charge_ball_starter), &ass, Invisible, "Start");
+    spawn_key(
+        cmd,
+        KeyId::Key(ctl.flipper_left),
+        &ass,
+        Invisible,
+        "Flipper Left",
+    );
+    spawn_key(
+        cmd,
+        KeyId::Key(ctl.flipper_right),
+        &ass,
+        Invisible,
+        "Flipper Right",
+    );
+    spawn_key(
+        cmd,
+        KeyId::Key(ctl.charge_ball_starter),
+        &ass,
+        Invisible,
+        "Start",
+    );
     spawn_key(cmd, KeyId::Key(ctl.menu), &ass, TopLeft, "Menu");
     spawn_key(cmd, KeyId::Key(ctl.pause), &ass, TopRight(0), "Pause");
-    spawn_key(cmd, KeyId::Key(ctl.toggle_key_ui), &ass, TopRight(1), "Toggle Keys UI");
+    spawn_key(
+        cmd,
+        KeyId::Key(ctl.toggle_key_ui),
+        &ass,
+        TopRight(1),
+        "Toggle Keys UI",
+    );
 
-    spawn_key(cmd, KeyId::Button(GamepadButton::LeftTrigger), &ass, Invisible, "Flipper Left");
-    spawn_key(cmd, KeyId::Button(GamepadButton::RightTrigger), &ass, Invisible, "Flipper Right");
-    spawn_key(cmd, KeyId::Button(GamepadButton::East), &ass, Invisible, "Start");
-    spawn_key(cmd, KeyId::Button(GamepadButton::Start), &ass, TopLeft, "Menu");
-    spawn_key(cmd, KeyId::Button(GamepadButton::Start), &ass, TopRight(0), "Pause");
+    spawn_key(
+        cmd,
+        KeyId::Button(GamepadButton::LeftTrigger),
+        &ass,
+        Invisible,
+        "Flipper Left",
+    );
+    spawn_key(
+        cmd,
+        KeyId::Button(GamepadButton::RightTrigger),
+        &ass,
+        Invisible,
+        "Flipper Right",
+    );
+    spawn_key(
+        cmd,
+        KeyId::Button(GamepadButton::East),
+        &ass,
+        Invisible,
+        "Start",
+    );
+    spawn_key(
+        cmd,
+        KeyId::Button(GamepadButton::Start),
+        &ass,
+        TopLeft,
+        "Menu",
+    );
+    spawn_key(
+        cmd,
+        KeyId::Button(GamepadButton::Start),
+        &ass,
+        TopRight(0),
+        "Pause",
+    );
 }
 
 pub fn despawn(mut cmds: Commands, q_ui: Query<Entity, With<ControlsUi>>) {
@@ -99,7 +153,7 @@ pub fn keys_to_pos_system(
     ball_spawn: Res<BallSpawn>,
 ) {
     if let Ok(cam) = q_cam.single() {
-        keys_to_pos(q_keys, controls, *kind, cam, q_flipper, ball_spawn)
+        keys_to_pos(q_keys, controls, *kind, cam, q_flipper, ball_spawn);
     }
 }
 
@@ -112,7 +166,7 @@ pub(super) fn update_keys_pos_system(
     ball_spawn: Res<BallSpawn>,
 ) {
     if let Ok(cam) = q_cam.single() {
-        keys_to_pos(q_keys, controls, *kind, cam, q_flipper, ball_spawn)
+        keys_to_pos(q_keys, controls, *kind, cam, q_flipper, ball_spawn);
     }
 }
 
@@ -167,10 +221,12 @@ fn set_projected_pos(
     cam_trans: &GlobalTransform,
     cam: &Camera,
 ) {
-    let (mut ui_style, computed, _) = q_keys
-        .iter_mut()
-        .find(|(_, _, ui_key)| ui_key.0 == key)
-        .unwrap_or_else(|| panic!("UI key {:?} not found", key));
+    let Some((mut ui_style, computed, _)) =
+        q_keys.iter_mut().find(|(_, _, ui_key)| ui_key.0 == key)
+    else {
+        debug!("UI key {key:?} not found");
+        return;
+    };
     let screen_pos = project_3d_to_2d_screen(obj_pos, cam_trans, cam);
     let half = computed.size() * computed.inverse_scale_factor() * 0.5;
     ui_style.left = Val::Px(screen_pos.x - half.x);
@@ -267,7 +323,7 @@ fn field_node(pos: FieldPos) -> Node {
             style.left = Val::Px(10.);
         }
         FieldPos::TopRight(pos) => {
-            style.top = Val::Px(10. + (pos as f32) * (FIELD_HEIGHT_PX + 5.));
+            style.top = Val::Px(10. + f32::from(pos) * (FIELD_HEIGHT_PX + 5.));
             style.right = Val::Px(10.);
         }
         FieldPos::Invisible => {
@@ -288,9 +344,10 @@ pub(super) fn on_resize_system(
     ball_spawn: Res<BallSpawn>,
 ) {
     if resize_reader.read().next().is_some()
-        && let Ok(cam) = q_cam.single() {
-            keys_to_pos(q_keys, controls, *kind, cam, q_flipper, ball_spawn);
-        }
+        && let Ok(cam) = q_cam.single()
+    {
+        keys_to_pos(q_keys, controls, *kind, cam, q_flipper, ball_spawn);
+    }
 }
 
 pub(super) fn switch_input_kind_system(

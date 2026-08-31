@@ -108,21 +108,20 @@ fn on_menu_event_system(
     sound_ev: MessageWriter<SoundEvent>,
 ) {
     if let Some(ev) = evr.read().next()
-        && let Ok((menu_entity, mut status)) = q_pb_menu.single_mut() {
-            use PinballMenuEvent::*;
-            use PinballMenuStatus::*;
-            if let Some(new_status) = match (ev, *status) {
-                (Disable, Activated) => {
-                    Some(despawn(cmds, q_lights, q_pbm_el, menu_entity, sound_ev))
-                }
-                (SetReady, Disabled) => Some(Ready),
-                (Deactivate, Activated) => Some(deactivate(cmds, q_lights, q_pbm_el)),
-                (Activate, Ready) => Some(activate(cmds, q_lights, q_pbm_el, sound_ev)),
-                _ => None,
-            } {
-                *status = new_status;
-            }
+        && let Ok((menu_entity, mut status)) = q_pb_menu.single_mut()
+    {
+        use PinballMenuEvent::{Activate, Deactivate, Disable, SetReady};
+        use PinballMenuStatus::{Activated, Disabled, Ready};
+        if let Some(new_status) = match (ev, *status) {
+            (Disable, Activated) => Some(despawn(cmds, q_lights, q_pbm_el, menu_entity, sound_ev)),
+            (SetReady, Disabled) => Some(Ready),
+            (Deactivate, Activated) => Some(deactivate(cmds, q_lights, q_pbm_el)),
+            (Activate, Ready) => Some(activate(cmds, q_lights, q_pbm_el, sound_ev)),
+            _ => None,
+        } {
+            *status = new_status;
         }
+    }
 }
 
 type QueryPinballMenuElements<'w, 's, 'a> =
@@ -140,20 +139,21 @@ fn spawn_system(
     unlocked_tower_upgrades: Res<UnlockedUpgrades>,
 ) {
     if q_pb_menu.is_empty()
-        && let Ok(trigger) = q_selected.single() {
-            log!("🐢 Spawn {trigger:?} menu");
-            if let Ok(world_id) = q_pbw.single() {
-                cmds.entity(world_id).with_children(|p| match *trigger {
-                    PinballMenuTrigger::Tower => {
-                        spawn_tower_menu(p, &assets, &g_sett, &unlocked_towers, MENU_POS)
-                    }
-                    PinballMenuTrigger::Upgrade => {
-                        spawn_upgrade_menu(p, &assets, &g_sett, &unlocked_tower_upgrades, MENU_POS)
-                    }
-                });
-                sound_ev.write(SoundEvent::PbMenuFadeIn);
-            }
+        && let Ok(trigger) = q_selected.single()
+    {
+        log!("🐢 Spawn {trigger:?} menu");
+        if let Ok(world_id) = q_pbw.single() {
+            cmds.entity(world_id).with_children(|p| match *trigger {
+                PinballMenuTrigger::Tower => {
+                    spawn_tower_menu(p, &assets, &g_sett, &unlocked_towers, MENU_POS);
+                }
+                PinballMenuTrigger::Upgrade => {
+                    spawn_upgrade_menu(p, &assets, &g_sett, &unlocked_tower_upgrades, MENU_POS);
+                }
+            });
+            sound_ev.write(SoundEvent::PbMenuFadeIn);
         }
+    }
 }
 
 #[derive(Component)]
@@ -170,8 +170,8 @@ fn spawn_tower_menu(
     pos: Vec3,
 ) {
     spawner.spawn(menu(pos)).with_children(|spawner| {
-        let mut angles = CardAngles::new(unlocked_towers.0.len() as u8);
-        for tower in unlocked_towers.0.iter() {
+        let mut angles = CardAngles::new(u8::try_from(unlocked_towers.0.len()).unwrap_or(u8::MAX));
+        for tower in &unlocked_towers.0 {
             spawn_menu_element(*tower, spawner, assets, g_sett, angles.next(), 0.1);
         }
     });
@@ -194,8 +194,9 @@ fn spawn_upgrade_menu(
     pos: Vec3,
 ) {
     spawner.spawn(menu_element(pos)).with_children(|spawner| {
-        let mut angles = CardAngles::new(unlocked_tower_upgrades.0.len() as u8);
-        for tower_upgrade in unlocked_tower_upgrades.0.iter() {
+        let mut angles =
+            CardAngles::new(u8::try_from(unlocked_tower_upgrades.0.len()).unwrap_or(u8::MAX));
+        for tower_upgrade in &unlocked_tower_upgrades.0 {
             spawn_menu_element(*tower_upgrade, spawner, assets, g_sett, angles.next(), 0.1);
         }
     });
@@ -649,7 +650,7 @@ struct CardAngles {
 
 impl CardAngles {
     fn new(count: u8) -> Self {
-        let angle_add = -0.39 * 2. / count as f32;
+        let angle_add = -0.39 * 2. / f32::from(count);
         let mut angle = 0.39;
 
         // Place elements middle

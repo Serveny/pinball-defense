@@ -90,18 +90,18 @@ pub(in super::super) fn shot_animation_system(
     mut q_shot_flash: Query<(&mut Visibility, &mut PointLight, &RelEntity), With<ShotFlashLight>>,
 ) {
     for (tower_id, ewr) in q_tesla.iter() {
-        let mut flash = get_flash(&mut q_shot_flash, tower_id);
-        match ewr.0.is_empty() {
-            false => {
-                let sin = (time.elapsed_secs() * 32.).sin();
-                *flash.0 = Visibility::Inherited;
-                flash.1.intensity = (sin + 1.) * 32.;
+        let Some(mut iflash) = get_flash(&mut q_shot_flash, tower_id) else {
+            debug!("No shot flash for tower {tower_id}");
+            continue;
+        };
+        if ewr.0.is_empty() {
+            if *iflash.0 != Visibility::Hidden {
+                *iflash.0 = Visibility::Hidden;
             }
-            true => {
-                if *flash.0 != Visibility::Hidden {
-                    *flash.0 = Visibility::Hidden;
-                }
-            }
+        } else {
+            let sin = (time.elapsed_secs() * 32.).sin();
+            *iflash.0 = Visibility::Inherited;
+            iflash.1.intensity = (sin + 1.) * 32.;
         }
     }
 }
@@ -112,9 +112,8 @@ fn get_flash<'a>(
         With<ShotFlashLight>,
     >,
     tower_id: Entity,
-) -> (Mut<'a, Visibility>, Mut<'a, PointLight>, &'a RelEntity) {
+) -> Option<(Mut<'a, Visibility>, Mut<'a, PointLight>, &'a RelEntity)> {
     q_muzzle_flash
         .iter_mut()
         .find(|(_, _, rel_id)| rel_id.0 == tower_id)
-        .expect("No muzzle flash for tower found")
 }

@@ -1,8 +1,8 @@
-use super::{audio::SoundEvent, EventState, GameState};
+use super::{EventState, GameState, audio::SoundEvent};
 use crate::prelude::*;
 extern crate digits_iterator;
 use crate::utils::RelEntity;
-use digits_iterator::*;
+use digits_iterator::DigitsExtension;
 use std::f32::consts::{PI, TAU};
 
 pub struct AnalogCounterPlugin;
@@ -50,7 +50,7 @@ impl Digit {
     }
 
     fn set_rot_to(&mut self, number: u8) -> f32 {
-        let target_rot = (number as f32 * NUMBER_ROT).rem_euclid(TAU);
+        let target_rot = (f32::from(number) * NUMBER_ROT).rem_euclid(TAU);
         self.current_rot = target_rot;
         self.is_active = false;
         TAU - target_rot
@@ -62,6 +62,7 @@ impl Digit {
         -rotation_to_add
     }
 
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     fn is_on_number(&self) -> Option<u8> {
         let num_rot = self.current_rot.rem_euclid(NUMBER_ROT);
         if !(ROT_TOLERANCE..=ROT_TOLERANCE_MAX).contains(&num_rot) {
@@ -92,7 +93,8 @@ fn on_set_system(
         if let Some((counter_id, _)) = q_counter.iter().find(|(_, rel_id)| rel_id.0 == ev.rel_id) {
             for (i, number) in ev.number.digits().rev().enumerate() {
                 if let Some((mut digit, _)) = q_digit.iter_mut().find(|(digit_comp, child_of)| {
-                    child_of.parent() == counter_id && digit_comp.position == i as u8
+                    child_of.parent() == counter_id
+                        && digit_comp.position == u8::try_from(i).unwrap_or(u8::MAX)
                 }) {
                     digit.set_number(number);
                 } else {
@@ -122,7 +124,7 @@ pub fn spawn_10_digit(
                 Name::new("Analog Counter Digit"),
                 Mesh3d(assets.analog_counter_cylinder.clone()),
                 MeshMaterial3d(assets.analog_counter_cylinder_material.clone()),
-                Transform::from_xyz(0., i as f32 * -0.0242 + 0.096, -0.005),
+                Transform::from_xyz(0., f32::from(i) * -0.0242 + 0.096, -0.005),
                 Digit::new(i),
             ));
         }
@@ -167,7 +169,7 @@ pub fn spawn_2_digit(
                 Name::new("Analog Counter Digit"),
                 Mesh3d(assets.analog_counter_cylinder.clone()),
                 MeshMaterial3d(assets.analog_counter_cylinder_material.clone()),
-                Transform::from_xyz(0., i as f32 * -0.022 + 0.012, -0.005),
+                Transform::from_xyz(0., f32::from(i) * -0.022 + 0.012, -0.005),
                 Digit::new(i),
             ));
         }

@@ -187,9 +187,10 @@ fn on_charge_started(
     sound_ev.write(SoundEvent::BallStarterCharge);
     for (mut plate, mut velocity) in q_plate.iter_mut() {
         plate.translation.x = plate.translation.x.clamp(STARTER_MIN_X, STARTER_MAX_X);
-        velocity.x = match plate.translation.x < STARTER_MAX_X {
-            true => CHARGE_SPEED,
-            false => 0.,
+        velocity.x = if plate.translation.x < STARTER_MAX_X {
+            CHARGE_SPEED
+        } else {
+            0.
         };
     }
 }

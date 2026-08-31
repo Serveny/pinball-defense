@@ -1,6 +1,6 @@
+use super::GameState;
 use super::audio::SoundEvent;
 use super::events::collision::GameLayer;
-use super::GameState;
 use crate::prelude::*;
 
 pub struct FlipperPlugin;
@@ -45,15 +45,16 @@ pub enum FlipperStatus {
 
 impl FlipperStatus {
     pub fn by_value(val: f32) -> FlipperStatus {
-        match val < 0.5 {
-            true => FlipperStatus::Idle,
-            false => FlipperStatus::Pushed,
+        if val < 0.5 {
+            FlipperStatus::Idle
+        } else {
+            FlipperStatus::Pushed
         }
     }
 }
 
 impl FlipperType {
-    fn signum(&self) -> f32 {
+    fn signum(self) -> f32 {
         match self {
             FlipperType::Left => -1.,
             FlipperType::Right => 1.,
@@ -149,8 +150,8 @@ fn flipper_system(
     )>,
     time: Res<Time>,
 ) {
-    let dt = time.delta_secs();
     const MAX_ANGLE: f32 = 0.4;
+    let dt = time.delta_secs();
     for (status, mut flipper, f_type, rotation, mut ang_vel) in q_flipper.iter_mut() {
         let sig = f_type.signum();
         let curr = rotation.as_radians();

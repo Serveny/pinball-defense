@@ -1,14 +1,14 @@
 use super::set_flipper_status;
 use crate::game::ball_starter::SpawnBallEvent;
+use crate::game::{GameState, PauseGameEvent, ResumeGameEvent};
 use crate::game::{
     ball_starter::BallStarterState,
     flipper::{FlipperStatus, FlipperType},
 };
-use crate::game::{GameState, PauseGameEvent, ResumeGameEvent};
 use crate::menu::MenuState;
 use crate::prelude::*;
-use bevy::input::gamepad::GamepadButtonChangedEvent;
 use bevy::input::ButtonState;
+use bevy::input::gamepad::GamepadButtonChangedEvent;
 
 pub(super) fn on_btn_changed(
     mut evr: MessageReader<GamepadButtonChangedEvent>,

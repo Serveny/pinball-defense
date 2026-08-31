@@ -34,3 +34,18 @@ rand = { version = "0.10.2", features = ["thread_rng"] }
 moonshine-save = "0.7.0"
 image = { version = "0.25", default-features = false, features = ["png"] }
 #bevy_debug_grid = "0.1"
+
+[lints.clippy]
+pedantic = { level = "deny", priority = -1 }
+needless_pass_by_value = "allow"
+unwrap_used = "deny"
+expect_used = "deny"
+indexing_slicing = "deny"
+unreachable = "deny"
+unimplemented = "deny"
+unchecked_time_subtraction = "deny"
+todo = "deny"
+string_slice = "deny"
+panic_in_result_fn = "deny"
+panic = "deny"
+exit = "deny"

@@ -25,14 +25,16 @@ pub fn navigation_system(
             direction = Some(CompassOctant::North);
         } else if gamepad.just_pressed(GamepadButton::DPadDown) {
             direction = Some(CompassOctant::South);
-        } else if on_slider && gamepad.just_pressed(GamepadButton::DPadLeft)
+        } else if on_slider
+            && gamepad.just_pressed(GamepadButton::DPadLeft)
             && let Some(e) = focused
         {
             commands.trigger(SetSliderValue {
                 entity: e,
                 change: SliderValueChange::RelativeStep(-1.),
             });
-        } else if on_slider && gamepad.just_pressed(GamepadButton::DPadRight)
+        } else if on_slider
+            && gamepad.just_pressed(GamepadButton::DPadRight)
             && let Some(e) = focused
         {
             commands.trigger(SetSliderValue {
@@ -71,7 +73,9 @@ pub fn activate_system(
     mut action_ev: MessageWriter<MenuAction>,
     mut commands: Commands,
 ) {
-    let pressed = gamepads.iter().any(|g| g.just_pressed(GamepadButton::South));
+    let pressed = gamepads
+        .iter()
+        .any(|g| g.just_pressed(GamepadButton::South));
     if !pressed {
         return;
     }
@@ -85,10 +89,7 @@ pub fn activate_system(
     }
 }
 
-pub fn back_system(
-    gamepads: Query<&Gamepad>,
-    mut action_ev: MessageWriter<MenuAction>,
-) {
+pub fn back_system(gamepads: Query<&Gamepad>, mut action_ev: MessageWriter<MenuAction>) {
     let pressed = gamepads.iter().any(|g| g.just_pressed(GamepadButton::East));
     if pressed {
         action_ev.write(MenuAction::Back);

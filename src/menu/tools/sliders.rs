@@ -52,7 +52,7 @@ pub fn scene(prop_i: usize, init_val: f32) -> impl Scene {
                     set_field(&mut *g_sett, prop_i, Box::new(val));
                 }
                 _ => (),
-            };
+            }
         })
         Children [
             (Name::new("Slider Track")
