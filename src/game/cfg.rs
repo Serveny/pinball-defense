@@ -1,19 +1,9 @@
-#[cfg(not(debug_assertions))]
 pub const CONFIG: PinballDefenseConfig = PinballDefenseConfig {
     tower_hit_progress: 1. / 15.,
     damage_upgrade_factor: 1.2,
     range_upgade_factor: 0.01,
     slow_down_upgrade_factor: 0.98,
-    tower_kick_velocity: 3.,
-};
-
-#[cfg(debug_assertions)]
-pub const CONFIG: PinballDefenseConfig = PinballDefenseConfig {
-    tower_hit_progress: 1.,
-    damage_upgrade_factor: 1.2,
-    range_upgade_factor: 0.01,
-    slow_down_upgrade_factor: 0.98,
-    tower_kick_velocity: 3.,
+    tower_kick_velocity: 2.,
 };
 
 pub struct PinballDefenseConfig {

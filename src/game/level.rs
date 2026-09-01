@@ -52,10 +52,6 @@ impl PointsKind {
     }
 }
 
-#[cfg(debug_assertions)]
-const POINT_FACTOR: u32 = 10;
-
-#[cfg(not(debug_assertions))]
 const POINT_FACTOR: u32 = 1;
 
 #[derive(Message, Clone, Copy)]

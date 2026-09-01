@@ -100,7 +100,6 @@ pub fn spawn_pinball_world(
     });
 }
 
-#[cfg(not(debug_assertions))]
 const TOWER_POSIS: [Vec3; 20] = [
     Vec3::new(-0.7, -0.49, -0.04),
     Vec3::new(-1.035, 0., -0.04),
@@ -122,13 +121,6 @@ const TOWER_POSIS: [Vec3; 20] = [
     Vec3::new(-0.5, 0., -0.04),
     Vec3::new(-1.1, -0.55, -0.04),
     Vec3::new(0.11, 0.17, -0.04),
-];
-
-#[cfg(debug_assertions)]
-const TOWER_POSIS: [Vec3; 3] = [
-    Vec3::new(-0.3, -0.17, -0.04),
-    Vec3::new(0.1, -0.51, -0.04),
-    Vec3::new(-0.5, 0.4, -0.04),
 ];
 
 fn spawn_build_marks(spawner: &mut ChildSpawnerCommands, assets: &PinballDefenseGltfAssets) {

@@ -83,11 +83,7 @@ fn main() {
     #[cfg(debug_assertions)]
     add_debug_plugins(&mut app);
 
-    #[cfg(debug_assertions)]
     app.insert_resource(GraphicsSettings::low());
-
-    #[cfg(not(debug_assertions))]
-    app.insert_resource(GraphicsSettings::high());
 
     #[cfg(debug_assertions)]
     app.insert_resource(SoundSettings {
