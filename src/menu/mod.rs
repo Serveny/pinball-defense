@@ -1,3 +1,4 @@
+use self::load_game::SaveList;
 use self::settings::{SettingsMenuLayout, SettingsMenuState};
 use self::settings::{on_changed_graphics_settings, on_changed_sound_settings};
 use crate::AppState;
@@ -166,6 +167,7 @@ fn in_menu(state: Res<State<MenuState>>) -> bool {
 pub fn focus_first_widget(
     mut focus: ResMut<InputFocus>,
     q_layout: Query<Entity, With<SettingsMenuLayout>>,
+    q_save_list: Query<Entity, With<SaveList>>,
     q_widget: Query<Entity, With<AutoDirectionalNavigation>>,
     children: Query<&Children>,
 ) {
@@ -176,7 +178,7 @@ pub fn focus_first_widget(
         return;
     }
     let mut first = None;
-    for layout in &q_layout {
+    for layout in q_layout.iter().chain(q_save_list.iter()) {
         for descendant in children.iter_descendants(layout) {
             if q_widget.contains(descendant) {
                 first = Some(descendant);
