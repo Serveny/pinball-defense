@@ -14,3 +14,5 @@ saves/
 
 # graphify knowledge graph (regenerable via `graphify .`)
 graphify-out/
+
+.omo

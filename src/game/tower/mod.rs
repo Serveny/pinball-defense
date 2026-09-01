@@ -30,6 +30,7 @@ use types::{gun, microwave, tesla};
 
 mod animations;
 mod damage;
+pub mod fx;
 pub mod foundation;
 mod speed;
 mod target;
@@ -42,6 +43,7 @@ impl Plugin for TowerPlugin {
         app.add_message::<SpawnTowerEvent>()
             .add_message::<DamageUpgradeEvent>()
             .add_message::<RangeUpgradeEvent>()
+            .init_resource::<fx::MuzzleEffectAssets>()
             .register_type::<Tower>()
             .register_type::<TowerLevel>()
             .register_type::<TowerReady>()
@@ -74,6 +76,7 @@ impl Plugin for TowerPlugin {
                     target::aim_first_enemy_system,
                     target::target_pos_by_afe_system,
                     types::gun::shoot_animation_system,
+                    fx::spawn_gun_effects_system,
                     types::microwave::shot_animation_system,
                     types::tesla::shot_animation_system,
                 )

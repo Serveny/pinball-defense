@@ -68,6 +68,7 @@ fn main() {
             ..default()
         }),
         bevy_framepace::FramepacePlugin,
+        bevy_hanabi::prelude::HanabiPlugin,
         FrameTimeDiagnosticsPlugin::default(),
         TweeningPlugin,
         WindowTitleLoggerDiagnosticsPlugin::default(),

@@ -33,6 +33,7 @@ bevy_framepace = "0.22.0"
 rand = { version = "0.10.2", features = ["thread_rng"] }
 moonshine-save = "0.7.0"
 image = { version = "0.25", default-features = false, features = ["png"] }
+bevy_hanabi = { version = "0.19.0", default-features = false, features = ["3d"] }
 #bevy_debug_grid = "0.1"
 
 [lints.clippy]

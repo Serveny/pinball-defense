@@ -1,10 +1,12 @@
 use super::animations::RotateToTarget;
 use super::target::AimFirstEnemy;
 use crate::game::tower::damage::DamageOverTime;
+use crate::game::tower::fx::GunFiringEffects;
 use crate::game::tower::{ShotLight, TowerHead, TowerReady, tower_material};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::RelEntity;
+use bevy_hanabi::prelude::*;
 
 #[derive(Component, Reflect)]
 #[reflect(Component)]
@@ -159,27 +161,33 @@ pub(in super::super) fn shoot_animation_system(
         (&mut Visibility, &mut SpotLight, &RelEntity),
         With<MuzzleFlashLight>,
     >,
+    mut q_effects: Query<(&mut EffectSpawner, &RelEntity), With<GunFiringEffects>>,
 ) {
     for (tower_id, enemy_id) in q_gun_tower.iter() {
-        if enemy_id.0.is_some() {
-            let sin = (time.elapsed_secs() * 64.).sin();
-            if let Some((mut barrel, _)) = get_barrel(&mut q_barrel, tower_id) {
+        let firing = enemy_id.0.is_some();
+        if let Some((mut barrel, _)) = get_barrel(&mut q_barrel, tower_id) {
+            if firing {
+                let sin = (time.elapsed_secs() * 64.).sin();
                 barrel.translation.y = sin * 0.002;
-            }
-            if let Some(mut flash) = get_flash(&mut q_muzzle_flash, tower_id) {
-                *flash.0 = Visibility::Inherited;
-                flash.1.intensity = (sin + 1.) * 32.;
-            }
-        } else {
-            if let Some((mut barrel, _)) = get_barrel(&mut q_barrel, tower_id)
-                && barrel.translation.y != 0.
-            {
+            } else if barrel.translation.y != 0. {
                 barrel.translation.y = 0.;
             }
-            if let Some(mut flash) = get_flash(&mut q_muzzle_flash, tower_id)
-                && *flash.0 != Visibility::Hidden
-            {
+        }
+        if let Some(mut flash) = get_flash(&mut q_muzzle_flash, tower_id) {
+            if firing {
+                let sin = (time.elapsed_secs() * 64.).sin();
+                *flash.0 = Visibility::Inherited;
+                flash.1.intensity = (sin + 1.) * 32.;
+            } else if *flash.0 != Visibility::Hidden {
                 *flash.0 = Visibility::Hidden;
+            }
+        }
+        for (mut spawner, rel_id) in q_effects.iter_mut() {
+            if rel_id.0 != tower_id {
+                continue;
+            }
+            if spawner.active != firing {
+                spawner.active = firing;
             }
         }
     }
