@@ -17,7 +17,6 @@ pub(super) fn on_btn_changed(
     mut q_flipper: Query<(&mut FlipperStatus, &FlipperType)>,
     mut menu_state: ResMut<NextState<MenuState>>,
     mut pause_ev: MessageWriter<PauseGameEvent>,
-    mut resume_ev: MessageWriter<ResumeGameEvent>,
     game_state: Res<State<GameState>>,
     ball_starter: Res<State<BallStarterState>>,
 ) {
@@ -59,18 +58,31 @@ pub(super) fn on_btn_changed(
             GamepadButton::East if ev.value > 0. => {
                 spawn_ball_ev.write(SpawnBallEvent);
             }
-            GamepadButton::Start => match *game_state.get() {
-                GameState::Ingame => {
-                    pause_ev.write(PauseGameEvent);
-                    menu_state.set(MenuState::PauseMenu);
-                }
-                GameState::Pause => {
-                    menu_state.set(MenuState::None);
-                    resume_ev.write(ResumeGameEvent);
-                }
-                _ => {}
-            },
+            GamepadButton::Start if *game_state.get() == GameState::Ingame => {
+                pause_ev.write(PauseGameEvent);
+                menu_state.set(MenuState::PauseMenu);
+            }
             _ => {}
+        }
+    }
+}
+
+pub(super) fn pause_btn_changed(
+    mut evr: MessageReader<GamepadButtonChangedEvent>,
+    mut resume_ev: MessageWriter<ResumeGameEvent>,
+    mut menu_state: ResMut<NextState<MenuState>>,
+    game_state: Res<State<GameState>>,
+) {
+    if game_state.is_changed() {
+        evr.clear();
+    }
+    for ev in evr.read() {
+        if ev.button == GamepadButton::Start
+            && ev.state == ButtonState::Pressed
+            && *game_state.get() == GameState::Pause
+        {
+            menu_state.set(MenuState::None);
+            resume_ev.write(ResumeGameEvent);
         }
     }
 }
