@@ -9,6 +9,7 @@ pub struct PlayerLifePlugin;
 impl Plugin for PlayerLifePlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<LifeBar>()
+            .init_resource::<GameOverDelay>()
             .add_systems(
                 Update,
                 reattach_life_bar_system.run_if(in_state(GameState::Ingame)),
@@ -16,9 +17,19 @@ impl Plugin for PlayerLifePlugin {
             .add_systems(
                 Update,
                 (on_game_over_system).run_if(in_state(EventState::Active)),
+            )
+            .add_systems(
+                Update,
+                delayed_game_over_system.run_if(in_state(GameState::Ingame)),
             );
     }
 }
+
+// Life bar animates at 0.5/s in progress::scale_system, so a full bar needs 2s to drain
+const GAME_OVER_ANIMATION_SECS: f32 = 2.0;
+
+#[derive(Resource, Default, Deref, DerefMut)]
+pub(crate) struct GameOverDelay(Option<f32>);
 
 #[derive(Component, Reflect)]
 #[reflect(Component)]
@@ -81,16 +92,31 @@ fn reattach_life_bar_system(
 
 fn on_game_over_system(
     mut evr: MessageReader<HealthEmptyEvent>,
-    mut game_state: ResMut<NextState<GameState>>,
-    mut ev_state: ResMut<NextState<EventState>>,
+    mut game_over_delay: ResMut<GameOverDelay>,
     q_life_bar: Query<Entity, With<LifeBar>>,
 ) {
     for ev in evr.read() {
-        let rel_id = ev.0;
-        if q_life_bar.contains(rel_id) {
+        if q_life_bar.contains(ev.0) {
             println!("Game Over");
-            game_state.set(GameState::GameOver);
-            ev_state.set(EventState::Inactive);
+            **game_over_delay = Some(GAME_OVER_ANIMATION_SECS);
         }
+    }
+}
+
+fn delayed_game_over_system(
+    time: Res<Time>,
+    mut game_over_delay: ResMut<GameOverDelay>,
+    mut game_state: ResMut<NextState<GameState>>,
+    mut ev_state: ResMut<NextState<EventState>>,
+) {
+    let Some(remaining) = **game_over_delay else {
+        return;
+    };
+    let remaining = remaining - time.delta_secs();
+    **game_over_delay = Some(remaining);
+    if remaining <= 0. {
+        **game_over_delay = None;
+        game_state.set(GameState::GameOver);
+        ev_state.set(EventState::Inactive);
     }
 }

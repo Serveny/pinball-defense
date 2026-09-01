@@ -172,6 +172,7 @@ fn start_game(
     ev_state.set(EventState::Active);
     ui_state.set(UiState::Controls);
     cmds.insert_resource(IngameTime::default());
+    cmds.insert_resource(player_life::GameOverDelay::default());
 }
 
 #[derive(Resource, Deref, DerefMut, Default)]
