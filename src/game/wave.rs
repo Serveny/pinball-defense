@@ -2,7 +2,7 @@ use super::GameState;
 use super::IngameTime;
 use super::analog_counter::AnalogCounterSetEvent;
 use super::ball_starter::BallStarterFireEndEvent;
-use super::enemy::{EnemyKind, SpawnEnemyEvent};
+use super::enemy::{Enemy, EnemyKind, SpawnEnemyEvent};
 use crate::prelude::*;
 use rand::RngExt;
 use rand::SeedableRng;
@@ -190,12 +190,17 @@ fn wave_system(
     mut spawn_enemy_ev: MessageWriter<SpawnEnemyEvent>,
     mut wave_started_ev: MessageWriter<WaveStartedEvent>,
     ig_timer: Res<IngameTime>,
+    q_enemy: Query<(), With<Enemy>>,
 ) {
     let now = **ig_timer;
     let wave = wave.as_mut();
     if wave.started && wave.is_time_to_spawn_enemy(now) {
         if wave.is_wave_end() {
-            wave.prepare_next_wave(now);
+            if q_enemy.is_empty() {
+                wave.prepare_next_wave(now);
+            } else {
+                wave.next_enemy_spawn_time = now + 1.;
+            }
         } else {
             if wave.announce_pending {
                 wave_started_ev.write(WaveStartedEvent {
