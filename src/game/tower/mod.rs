@@ -44,6 +44,7 @@ impl Plugin for TowerPlugin {
             .add_message::<DamageUpgradeEvent>()
             .add_message::<RangeUpgradeEvent>()
             .init_resource::<fx::MuzzleEffectAssets>()
+            .init_resource::<fx::tesla::TeslaEffectAssets>()
             .register_type::<Tower>()
             .register_type::<TowerLevel>()
             .register_type::<TowerReady>()
@@ -79,6 +80,8 @@ impl Plugin for TowerPlugin {
                     fx::spawn_gun_effects_system,
                     types::microwave::shot_animation_system,
                     types::tesla::shot_animation_system,
+                    fx::tesla::maintain_arcs_system,
+                    fx::tesla::update_arcs_system,
                 )
                     .run_if(in_state(GameState::Ingame)),
             )

@@ -5,6 +5,7 @@ use bevy_hanabi::prelude::*;
 
 mod barrel_smoke;
 mod muzzle_flash;
+pub(in super::super) mod tesla;
 
 use barrel_smoke::asset as barrel_smoke_asset;
 use muzzle_flash::asset as muzzle_flash_asset;
