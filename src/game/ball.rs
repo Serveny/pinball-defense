@@ -57,13 +57,15 @@ pub fn spawn(
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
     pos: Vec3,
-) {
-    cmds.spawn((
-        ball_view_bundle(meshes, materials),
-        Transform::from_translation(pos),
-        PinBall,
-        Name::new("Ball"),
-    ));
+) -> Entity {
+    cmds
+        .spawn((
+            ball_view_bundle(meshes, materials),
+            Transform::from_translation(pos),
+            PinBall,
+            Name::new("Ball"),
+        ))
+        .id()
 }
 
 fn ball_view_bundle(

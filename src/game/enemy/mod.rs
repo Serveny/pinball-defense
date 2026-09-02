@@ -1,7 +1,5 @@
 use self::step::Step;
-use self::walk::{
-    RoadEndReachedEvent, WALK_SPEED, on_road_end_reached_system, recover_speed_system, walk_system,
-};
+use self::walk::{RoadEndReachedEvent, WALK_SPEED, on_road_end_reached_system, walk_system};
 use super::audio::SoundEvent;
 use super::ball::PinBall;
 use super::events::collision::GameLayer;
@@ -19,6 +17,8 @@ use std::time::Duration;
 
 mod step;
 mod walk;
+
+pub(crate) use walk::recover_speed_system;
 
 pub struct EnemyPlugin;
 

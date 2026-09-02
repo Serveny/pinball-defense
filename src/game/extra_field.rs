@@ -1,7 +1,9 @@
 use super::EventState;
 use super::GameState;
 use super::ball::CollisionWithBallEvent;
+use super::enemy::recover_speed_system;
 use super::events::collision::GameLayer;
+use super::extra_field_effects::{on_extra_field_fire_system, slow_reapply_system};
 use super::level::{BallCollisionPoints, LevelHub, LevelUpEvent};
 use super::light::{LightOnCollision, contact_light_bundle};
 use super::progress::{
@@ -34,6 +36,15 @@ impl Plugin for ExtraFieldPlugin {
             .add_systems(
                 Update,
                 (on_charge_system, on_fire_system).run_if(in_state(EventState::Active)),
+            )
+            .add_systems(
+                Update,
+                (on_extra_field_fire_system).run_if(in_state(EventState::Active)),
+            )
+            .add_systems(
+                Update,
+                (slow_reapply_system.after(recover_speed_system))
+                    .run_if(in_state(GameState::Ingame)),
             );
     }
 }
@@ -86,11 +97,10 @@ impl ExtraField {
     }
 }
 
-#[allow(dead_code)]
 #[derive(Message)]
 pub struct ExtraFieldFireEvent(pub ExtraFieldKind);
 
-#[allow(dead_code, clippy::struct_field_names)]
+#[allow(clippy::struct_field_names)]
 #[derive(Resource, Default)]
 pub struct ActiveEffects {
     pub slow_until: f32,
@@ -99,7 +109,6 @@ pub struct ActiveEffects {
 }
 
 impl ActiveEffects {
-    #[allow(dead_code)]
     pub fn is_active(&self, now: f32, which: ExtraFieldKind) -> bool {
         match which {
             ExtraFieldKind::SlowDown => now < self.slow_until,

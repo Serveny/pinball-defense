@@ -42,6 +42,7 @@ mod controls;
 mod enemy;
 mod events;
 mod extra_field;
+mod extra_field_effects;
 mod flipper;
 mod game_over;
 mod health;

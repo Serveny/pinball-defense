@@ -1,0 +1,64 @@
+use super::ball::{self};
+use super::ball_starter::BallSpawn;
+use super::enemy::Enemy;
+use super::extra_field::{ActiveEffects, ExtraFieldFireEvent, ExtraFieldKind};
+use super::IngameTime;
+use crate::prelude::*;
+use moonshine_save::prelude::Save;
+
+const EFFECT_SECS: f32 = 5.;
+
+#[derive(Component)]
+pub struct BonusBall;
+
+pub fn on_extra_field_fire_system(
+    mut cmds: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut evr: MessageReader<ExtraFieldFireEvent>,
+    mut effects: ResMut<ActiveEffects>,
+    ig_time: Res<IngameTime>,
+    ball_spawn: Res<BallSpawn>,
+) {
+    for ExtraFieldFireEvent(kind) in evr.read() {
+        match kind {
+            ExtraFieldKind::SlowDown => effects.slow_until = **ig_time + EFFECT_SECS,
+            ExtraFieldKind::DoubleDamage => effects.double_damage_until = **ig_time + EFFECT_SECS,
+            ExtraFieldKind::InstaKill => effects.insta_kill_until = **ig_time + EFFECT_SECS,
+            ExtraFieldKind::ExtraBall => {
+                let ball_id = ball::spawn(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
+                cmds.entity(ball_id).insert(BonusBall).remove::<Save>();
+                log!("✨ Extra ball inserted");
+            }
+        }
+    }
+}
+
+pub fn slow_reapply_system(
+    effects: Res<ActiveEffects>,
+    ig_time: Res<IngameTime>,
+    mut q_enemy: Query<&mut Enemy>,
+) {
+    if !effects.is_active(**ig_time, ExtraFieldKind::SlowDown) {
+        return;
+    }
+    for mut enemy in q_enemy.iter_mut() {
+        enemy.slow_down(0.5);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn extra_field_effect_active_boundary() {
+        let mut effects = ActiveEffects::default();
+        assert!(!effects.is_active(0.0, ExtraFieldKind::SlowDown));
+        effects.slow_until = 5.;
+        assert!(effects.is_active(4.9, ExtraFieldKind::SlowDown));
+        assert!(!effects.is_active(5., ExtraFieldKind::SlowDown));
+        assert!(!effects.is_active(5.1, ExtraFieldKind::SlowDown));
+        assert!(!effects.is_active(4.9, ExtraFieldKind::ExtraBall));
+    }
+}

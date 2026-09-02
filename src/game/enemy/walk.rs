@@ -43,7 +43,7 @@ pub(super) fn on_road_end_reached_system(
     }
 }
 
-pub(super) fn recover_speed_system(time: Res<Time>, mut q_enemy: Query<&mut Enemy>) {
+pub(crate) fn recover_speed_system(time: Res<Time>, mut q_enemy: Query<&mut Enemy>) {
     for mut enemy in q_enemy.iter_mut() {
         if enemy.current_speed < enemy.speed {
             enemy.current_speed += time.delta_secs() * 0.2;
