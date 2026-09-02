@@ -258,8 +258,6 @@ fn reattach_enemies_system(
     }
 }
 
-const BALL_DAMAGE: f32 = 250.;
-
 fn on_pinball_hit_system(
     mut evr: MessageReader<CollisionWithBallEvent>,
     mut sound_ev: MessageWriter<SoundEvent>,
