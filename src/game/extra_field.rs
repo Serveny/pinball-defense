@@ -27,6 +27,7 @@ pub struct ExtraFieldPlugin;
 impl Plugin for ExtraFieldPlugin {
     fn build(&self, app: &mut App) {
         app.add_message::<ExtraFieldFireEvent>()
+            .add_message::<ExtraFieldUnlockEvent>()
             .init_resource::<ActiveEffects>()
             .add_systems(OnEnter(GameState::Init), init_resources)
             .add_systems(
@@ -107,6 +108,20 @@ impl ExtraField {
 
 #[derive(Message)]
 pub struct ExtraFieldFireEvent(pub ExtraFieldKind);
+
+#[derive(Message)]
+pub struct ExtraFieldUnlockEvent(pub ExtraFieldKind);
+
+impl ExtraFieldKind {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::ExtraBall => "EXTRA BALL FIELD",
+            Self::SlowDown => "SLOW-DOWN FIELD",
+            Self::DoubleDamage => "DOUBLE-DAMAGE FIELD",
+            Self::InstaKill => "INSTA-KILL FIELD",
+        }
+    }
+}
 
 #[allow(clippy::struct_field_names)]
 #[derive(Resource, Default)]
@@ -209,6 +224,7 @@ fn activate_field(
     assets: &PinballDefenseGltfAssets,
     mats: &mut Assets<StandardMaterial>,
 ) {
+    cmds.write_message(ExtraFieldUnlockEvent(kind));
     cmds.entity(field_id)
         .insert((
             Sensor,

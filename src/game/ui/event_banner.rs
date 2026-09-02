@@ -110,6 +110,10 @@ fn level_up_unlocks(level: Level) -> String {
     format!("\nUnlocks\n{}", unlocks.join("\n"))
 }
 
+fn extra_field_unlock_line(kind: crate::game::extra_field::ExtraFieldKind) -> String {
+    format!("EXTRA FIELD: {}", kind.label())
+}
+
 fn hue_gradient_line(hue: f32, alpha: f32) -> BackgroundGradient {
     BackgroundGradient(vec![Gradient::Linear(LinearGradient::to_right(vec![
         ColorStop::auto(Color::NONE),
@@ -222,6 +226,30 @@ pub(super) fn on_level_up_system(
             slot,
             &assets,
         );
+    }
+}
+
+pub(super) fn on_extra_field_unlock_system(
+    mut evr: MessageReader<crate::game::extra_field::ExtraFieldUnlockEvent>,
+    mut q_banner: Query<&mut Text, With<BannerKind>>,
+    q_banner_kind: Query<&BannerKind>,
+) {
+    for crate::game::extra_field::ExtraFieldUnlockEvent(kind) in evr.read() {
+        let line = extra_field_unlock_line(*kind);
+        for (mut text, banner_kind) in q_banner.iter_mut().zip(q_banner_kind.iter()) {
+            let BannerType::LevelUp { .. } = banner_kind.0 else {
+                continue;
+            };
+            if text.to_string().contains(&line) {
+                continue;
+            }
+            let existing = text.to_string();
+            if existing.contains("Unlocks") {
+                text.0 = format!("{existing}{line}\n");
+            } else {
+                text.0 = format!("{existing}\nUnlocks\n{line}\n");
+            }
+        }
     }
 }
 
