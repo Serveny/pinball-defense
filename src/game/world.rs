@@ -26,6 +26,7 @@ pub struct WorldFrame;
 pub fn spawn_pinball_world(
     mut cmds: Commands,
     mut mats: ResMut<Assets<StandardMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
     gltf_assets: Res<PinballDefenseGltfAssets>,
     tex_assets: Res<PinballDefenseAssets>,
     g_sett: Res<GraphicsSettings>,
@@ -75,6 +76,7 @@ pub fn spawn_pinball_world(
         super::flipper::spawn_right(f_right_pos, p, assets);
 
         spawn_build_marks(p, assets);
+        super::extra_field::spawn_fields(p, &mut meshes, &mut mats, &g_sett, EXTRA_FIELD_POSIS);
         spawn_road(p, assets);
 
         let life_bar_trans = Transform {
@@ -141,6 +143,13 @@ const TOWER_POSIS: [Vec3; 20] = [
     Vec3::new(-0.5, 0., -0.04),
     Vec3::new(-1.1, -0.55, -0.04),
     Vec3::new(0.11, 0.17, -0.04),
+];
+
+const EXTRA_FIELD_POSIS: [Vec3; 4] = [
+    Vec3::new(-1.05, 0.45, -0.04),
+    Vec3::new(-0.55, 0.62, -0.04),
+    Vec3::new(0.45, 0.62, -0.04),
+    Vec3::new(-1.03, -0.38, -0.04),
 ];
 
 fn spawn_build_marks(spawner: &mut ChildSpawnerCommands, assets: &PinballDefenseGltfAssets) {

@@ -41,6 +41,7 @@ mod cfg;
 mod controls;
 mod enemy;
 mod events;
+mod extra_field;
 mod flipper;
 mod game_over;
 mod health;
@@ -105,6 +106,7 @@ impl Plugin for GamePlugin {
                 LightPlugin,
                 FlipperPlugin,
                 BallStarterPlugin,
+                extra_field::ExtraFieldPlugin,
                 self::ui::UiPlugin,
             ))
             .add_systems(
