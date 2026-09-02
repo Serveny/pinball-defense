@@ -10,6 +10,7 @@ use bevy::color::Hsva;
 use bevy::ui::{BackgroundGradient, BoxShadow, ColorStop, Gradient, LinearGradient};
 
 const BANNER_SECS: f32 = 2.;
+const LEVEL_UP_EXTRA_SECS: f32 = 3.;
 const SLIDE_DIST_PX: f32 = 24.;
 const SLIDE_IN_SECS: f32 = 0.25;
 const FADE_OUT_FRACTION: f32 = 0.8;
@@ -22,6 +23,19 @@ const BASE_HIT_THRESHOLD: f32 = 0.3;
 pub(super) struct EventBanner {
     timer: Timer,
     slot: u32,
+}
+
+impl EventBanner {
+    fn new(kind: BannerType) -> Self {
+        let secs = match kind {
+            BannerType::LevelUp { .. } => BANNER_SECS + LEVEL_UP_EXTRA_SECS,
+            _ => BANNER_SECS,
+        };
+        Self {
+            timer: Timer::from_seconds(secs, TimerMode::Once),
+            slot: 0,
+        }
+    }
 }
 
 #[derive(Component)]
@@ -108,8 +122,8 @@ fn hue_gradient_line(hue: f32, alpha: f32) -> BackgroundGradient {
 fn banner_background(hue: f32, alpha: f32) -> BackgroundGradient {
     BackgroundGradient(vec![Gradient::Linear(LinearGradient::to_right(vec![
         ColorStop::auto(Color::NONE),
-        ColorStop::auto(Hsva::new(hue, 0.8, 0.4, 0.14 * alpha)),
-        ColorStop::auto(Hsva::new(hue + 30., 0.8, 0.5, 0.26 * alpha)),
+        ColorStop::auto(Hsva::new(hue, 0.8, 0.4, 0.07 * alpha)),
+        ColorStop::auto(Hsva::new(hue + 30., 0.8, 0.5, 0.13 * alpha)),
         ColorStop::auto(Color::NONE),
     ]))])
 }
@@ -118,16 +132,13 @@ fn spawn_banner(
     cmds: &mut Commands,
     kind: BannerType,
     wave: usize,
-    slot: u32,
+    _slot: u32,
     assets: &PinballDefenseAssets,
 ) {
     let hue = kind.hue();
     cmds.spawn((
         Name::new("Event Banner"),
-        EventBanner {
-            timer: Timer::from_seconds(BANNER_SECS, TimerMode::Once),
-            slot,
-        },
+        EventBanner::new(kind),
         BannerKind(kind),
         Node {
             position_type: PositionType::Absolute,
