@@ -234,12 +234,12 @@ fn activate_field(
 
 fn on_level_up_field_system(
     mut cmds: Commands,
-    evr: MessageReader<LevelUpEvent>,
+    mut evr: MessageReader<LevelUpEvent>,
     q_field: Query<(Entity, &ExtraField, Has<Collider>)>,
     assets: Res<PinballDefenseGltfAssets>,
     mut mats: ResMut<Assets<StandardMaterial>>,
 ) {
-    if evr.is_empty() {
+    if evr.read().next().is_none() {
         return;
     }
     let mut rng = SmallRng::from_rng(&mut rand::rng());
@@ -261,12 +261,12 @@ fn on_level_up_field_system(
 fn restore_fields_system(
     mut cmds: Commands,
     level: Res<LevelHub>,
-    evr: MessageReader<LevelUpEvent>,
+    mut evr: MessageReader<LevelUpEvent>,
     q_field: Query<(Entity, &ExtraField, Has<Collider>)>,
     assets: Res<PinballDefenseGltfAssets>,
     mut mats: ResMut<Assets<StandardMaterial>>,
 ) {
-    if !level.is_changed() || !evr.is_empty() {
+    if !level.is_changed() || evr.read().next().is_some() {
         return;
     }
     let target = (u32::from(level.level()) / 3).min(4) as usize;
