@@ -257,6 +257,8 @@ fn reattach_enemies_system(
     }
 }
 
+const BALL_DAMAGE: f32 = 250.;
+
 fn on_pinball_hit_system(
     mut evr: MessageReader<CollisionWithBallEvent>,
     mut sound_ev: MessageWriter<SoundEvent>,
@@ -269,7 +271,7 @@ fn on_pinball_hit_system(
             continue;
         };
         log!("😵 Pinball hits enemy {:?}", *id);
-        health_ev.write(ChangeHealthEvent::new(*id, -100., None));
+        health_ev.write(ChangeHealthEvent::new(*id, -BALL_DAMAGE, None));
         if slow_down.0 < 1.
             && let Ok(mut vel) = q_ball.single_mut()
         {
