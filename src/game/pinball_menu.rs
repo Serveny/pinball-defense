@@ -570,10 +570,14 @@ fn on_unlock_system(
     mut upgrades: ResMut<UnlockedUpgrades>,
 ) {
     for ev in evr.read() {
-        if let Some(tower_type) = new_tower_unlock(ev.0) {
+        if let Some(tower_type) = new_tower_unlock(ev.0)
+            && !towers.0.contains(&tower_type)
+        {
             towers.0.push(tower_type);
         }
-        if let Some(tower_upgrade) = new_tower_upgrade_unlock(ev.0) {
+        if let Some(tower_upgrade) = new_tower_upgrade_unlock(ev.0)
+            && !upgrades.0.contains(&tower_upgrade)
+        {
             upgrades.0.push(tower_upgrade);
         }
     }
@@ -581,18 +585,27 @@ fn on_unlock_system(
 
 fn restore_unlocks_system(
     level: Res<LevelHub>,
+    mut lvl_up_ev: MessageWriter<LevelUpEvent>,
     mut towers: ResMut<UnlockedTowers>,
     mut upgrades: ResMut<UnlockedUpgrades>,
 ) {
     if !level.is_changed() {
         return;
     }
+    let previous = towers.0.clone();
     towers.0 = std::iter::once(TowerType::Gun)
         .chain((1..=level.level()).filter_map(new_tower_unlock))
         .collect();
     upgrades.0 = (1..=level.level())
         .filter_map(new_tower_upgrade_unlock)
         .collect();
+    for lvl in 1..=level.level() {
+        if let Some(tower_type) = new_tower_unlock(lvl)
+            && !previous.contains(&tower_type)
+        {
+            lvl_up_ev.write(LevelUpEvent(lvl));
+        }
+    }
 }
 
 pub(crate) fn new_tower_unlock(level: Level) -> Option<TowerType> {
