@@ -93,7 +93,7 @@ fn level_up_unlocks(level: Level) -> String {
         Some(TowerUpgrade::Damage) => unlocks.push("TOWER DAMAGE UPGRADE".into()),
         None => {}
     }
-    unlocks.join("\n")
+    format!("\nUnlocks\n{}", unlocks.join("\n"))
 }
 
 fn hue_gradient_line(hue: f32, alpha: f32) -> BackgroundGradient {
