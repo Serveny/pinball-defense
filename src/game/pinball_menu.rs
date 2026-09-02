@@ -585,11 +585,12 @@ fn on_unlock_system(
 
 fn restore_unlocks_system(
     level: Res<LevelHub>,
+    mut evr: MessageReader<LevelUpEvent>,
     mut lvl_up_ev: MessageWriter<LevelUpEvent>,
     mut towers: ResMut<UnlockedTowers>,
     mut upgrades: ResMut<UnlockedUpgrades>,
 ) {
-    if !level.is_changed() {
+    if !level.is_changed() || evr.read().next().is_some() {
         return;
     }
     let previous = towers.0.clone();
