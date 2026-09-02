@@ -596,11 +596,13 @@ fn restore_unlocks_system(
 }
 
 pub(crate) fn new_tower_unlock(level: Level) -> Option<TowerType> {
-    match level {
-        3 => Some(TowerType::Tesla),
-        5 => Some(TowerType::Microwave),
-        _ => None,
-    }
+    let locked_types = [TowerType::Tesla, TowerType::Microwave];
+    let unlock_level = |idx: usize| Level::try_from(idx + 2).unwrap_or(Level::MAX);
+    locked_types
+        .into_iter()
+        .enumerate()
+        .find(|(idx, _)| unlock_level(*idx) == level)
+        .map(|(_, tower_type)| tower_type)
 }
 
 pub(crate) fn new_tower_upgrade_unlock(level: Level) -> Option<TowerUpgrade> {
