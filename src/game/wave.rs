@@ -196,19 +196,19 @@ fn wave_system(
     let wave = wave.as_mut();
     if wave.started && wave.is_time_to_spawn_enemy(now) {
         if wave.is_wave_end() {
+            wave.prepare_next_wave(now);
+        } else if wave.announce_pending {
             if q_enemy.is_empty() {
-                wave.prepare_next_wave(now);
-            } else {
-                wave.next_enemy_spawn_time = now + 1.;
-            }
-        } else {
-            if wave.announce_pending {
                 wave_started_ev.write(WaveStartedEvent {
                     number: wave.number,
                     kind: wave.kind,
                 });
                 wave.announce_pending = false;
+                spawn_enemy_ev.write(wave.next_enemy(now));
+            } else {
+                wave.next_enemy_spawn_time = now + 1.;
             }
+        } else {
             spawn_enemy_ev.write(wave.next_enemy(now));
         }
     }
