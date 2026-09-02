@@ -1,5 +1,6 @@
 use super::GameState;
 use super::IngameTime;
+use super::analog_counter::AnalogCounterSetEvent;
 use super::ball_starter::BallStarterFireEndEvent;
 use super::enemy::{EnemyKind, SpawnEnemyEvent};
 use crate::prelude::*;
@@ -15,13 +16,38 @@ impl Plugin for WavePlugin {
             .add_systems(OnEnter(GameState::Init), init_resources)
             .add_systems(
                 Update,
-                (start_wave_system, wave_system).run_if(in_state(GameState::Ingame)),
+                (start_wave_system, wave_system, update_wave_counter_system)
+                    .chain()
+                    .run_if(in_state(GameState::Ingame)),
             );
     }
 }
 
 #[derive(Message)]
 pub struct WaveStartedEvent;
+
+#[derive(Resource)]
+pub struct WaveCounterId(pub Entity);
+
+impl Default for WaveCounterId {
+    fn default() -> Self {
+        Self(Entity::from_bits(0))
+    }
+}
+
+fn update_wave_counter_system(
+    wave: Res<Wave>,
+    wave_started_ev: MessageReader<WaveStartedEvent>,
+    mut ac_set_ev: MessageWriter<AnalogCounterSetEvent>,
+    wc_id: Res<WaveCounterId>,
+) {
+    if !wave_started_ev.is_empty() {
+        ac_set_ev.write(AnalogCounterSetEvent::new(
+            wc_id.0,
+            u32::try_from(wave.number).unwrap_or(u32::MAX),
+        ));
+    }
+}
 
 fn init_resources(mut cmds: Commands) {
     cmds.insert_resource(Wave::default());

@@ -20,6 +20,9 @@ pub struct PinballDefenseAssets {
 
     #[asset(path = "fonts/hemi_head.otf")]
     pub menu_font: Handle<Font>,
+
+    #[asset(path = "textures/mini_sign_wave.png")]
+    pub mini_sign_wave: Handle<Image>,
 }
 
 #[derive(Resource, Reflect, Default)]

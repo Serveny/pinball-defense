@@ -155,6 +155,7 @@ pub fn spawn_2_digit(
     assets: &PinballDefenseGltfAssets,
     transform: Transform,
     rel_id: Option<Entity>,
+    sign_material: &Handle<StandardMaterial>,
 ) -> Entity {
     let mut counter = spawner.spawn((
         Name::new("Analog Counter Casing 2 Digit"),
@@ -174,9 +175,9 @@ pub fn spawn_2_digit(
             ));
         }
         spawner.spawn((
-            Name::new("Level Sign"),
+            Name::new("Sign"),
             Mesh3d(assets.level_sign.clone()),
-            MeshMaterial3d(assets.level_sign_material.clone()),
+            MeshMaterial3d(sign_material.clone()),
             Transform::from_xyz(-0.055, 0., 0.047),
         ));
         spawner.spawn((
