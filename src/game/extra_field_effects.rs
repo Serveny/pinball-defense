@@ -3,6 +3,7 @@ use super::ball_starter::BallSpawn;
 use super::enemy::Enemy;
 use super::extra_field::{ActiveEffects, ExtraFieldFireEvent, ExtraFieldKind};
 use super::IngameTime;
+use super::audio::SoundEvent;
 use crate::prelude::*;
 use moonshine_save::prelude::Save;
 
@@ -17,6 +18,7 @@ pub fn on_extra_field_fire_system(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut evr: MessageReader<ExtraFieldFireEvent>,
     mut effects: ResMut<ActiveEffects>,
+    mut sound_ev: MessageWriter<SoundEvent>,
     ig_time: Res<IngameTime>,
     ball_spawn: Res<BallSpawn>,
 ) {
@@ -28,7 +30,7 @@ pub fn on_extra_field_fire_system(
             ExtraFieldKind::ExtraBall => {
                 let ball_id = ball::spawn(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
                 cmds.entity(ball_id).insert(BonusBall).remove::<Save>();
-                log!("✨ Extra ball inserted");
+                sound_ev.write(SoundEvent::ExtraFieldFire);
             }
         }
     }

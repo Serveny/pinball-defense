@@ -1,11 +1,15 @@
 use super::EventState;
 use super::GameState;
+use super::IngameTime;
+use super::audio::SoundEvent;
 use super::ball::CollisionWithBallEvent;
 use super::enemy::recover_speed_system;
 use super::events::collision::GameLayer;
 use super::extra_field_effects::{on_extra_field_fire_system, slow_reapply_system};
 use super::level::{BallCollisionPoints, LevelHub, LevelUpEvent};
-use super::light::{LightOnCollision, contact_light_bundle};
+use super::light::{
+    ContactLight, FlashLight, LightOnCollision, contact_light_bundle, disable_flash_light,
+};
 use super::progress::{
     ProgressBarCountUpEvent, ProgressBarFullEvent, ProgressBarResetEvent, self,
 };
@@ -45,6 +49,10 @@ impl Plugin for ExtraFieldPlugin {
                 Update,
                 (slow_reapply_system.after(recover_speed_system))
                     .run_if(in_state(GameState::Ingame)),
+            )
+            .add_systems(
+                Update,
+                (effect_flash_system).run_if(in_state(GameState::Ingame)),
             );
     }
 }
@@ -53,7 +61,7 @@ fn init_resources(mut cmds: Commands) {
     cmds.insert_resource(ActiveEffects::default());
 }
 
-#[derive(Component, Reflect, Clone, Copy)]
+#[derive(Component, Reflect, Clone, Copy, PartialEq, Eq)]
 pub enum ExtraFieldKind {
     ExtraBall,
     SlowDown,
@@ -283,6 +291,7 @@ fn restore_fields_system(
 
 fn on_charge_system(
     mut prog_bar_ev: MessageWriter<ProgressBarCountUpEvent>,
+    mut sound_ev: MessageWriter<SoundEvent>,
     mut evr: MessageReader<CollisionWithBallEvent>,
     q_field: Query<&ExtraField>,
 ) {
@@ -292,6 +301,7 @@ fn on_charge_system(
                 *id,
                 charge_amount(field.kind().hits_needed()),
             ));
+            sound_ev.write(SoundEvent::ExtraFieldHit);
         }
     }
 }
@@ -307,6 +317,52 @@ fn on_fire_system(
             fire_ev.write(ExtraFieldFireEvent(field.kind()));
             reset_ev.write(ProgressBarResetEvent::new(*id));
         }
+    }
+}
+
+fn effect_flash_system(
+    mut cmds: Commands,
+    q_field: Query<(Entity, &ExtraField)>,
+    mut q_light_off: Query<(Entity, &ChildOf, &mut Visibility), (With<ContactLight>, Without<FlashLight>)>,
+    mut q_light_on: Query<(Entity, &ChildOf, &mut Visibility), With<FlashLight>>,
+    effects: Res<ActiveEffects>,
+    ig_time: Res<IngameTime>,
+    mut prev_active: Local<[bool; 3]>,
+) {
+    for (i, kind) in [
+        ExtraFieldKind::SlowDown,
+        ExtraFieldKind::DoubleDamage,
+        ExtraFieldKind::InstaKill,
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        let now_active = effects.is_active(**ig_time, kind);
+        let Some(prev) = prev_active.get_mut(i) else {
+            continue;
+        };
+        if now_active && !*prev {
+            for (field_id, field) in q_field.iter() {
+                if field.kind() != kind {
+                    continue;
+                }
+                if let Some((light_id, _, mut visi)) = q_light_off
+                    .iter_mut()
+                    .find(|(_, child_of, _)| child_of.parent() == field_id)
+                {
+                    cmds.entity(light_id).insert(FlashLight);
+                    *visi = Visibility::Inherited;
+                }
+            }
+        } else if *prev && !now_active {
+            for (field_id, field) in q_field.iter() {
+                if field.kind() != kind {
+                    continue;
+                }
+                disable_flash_light(&mut cmds, &mut q_light_on, field_id);
+            }
+        }
+        *prev = now_active;
     }
 }
 

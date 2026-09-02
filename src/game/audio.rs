@@ -54,15 +54,17 @@ pub enum SoundEvent {
     PbMenuFadeIn,
     PbMenuFadeOut,
     PbMenuActive,
+    ExtraFieldHit,
+    ExtraFieldFire,
 }
 
 impl SoundEvent {
     fn sound_bundle<'a>(&self, assets: &'a PinballDefenseAudioAssets) -> (SoundHandle<'a>, f32) {
         use SoundEvent::{
             BallHitsEnd, BallHitsEnemy, BallHitsFoundation, BallHitsWall, BallSpawn,
-            BallStarterCharge, BallStarterFire, CounterTick, EnemyReachEnd, FlipperPress,
-            FlipperRelease, PbMenuActive, PbMenuFadeIn, PbMenuFadeOut, TowerBuild, TowerHit,
-            TowerUpgradeDamage, TowerUpgradeRange,
+            BallStarterCharge, BallStarterFire, CounterTick, EnemyReachEnd, ExtraFieldFire,
+            ExtraFieldHit, FlipperPress, FlipperRelease, PbMenuActive, PbMenuFadeIn, PbMenuFadeOut,
+            TowerBuild, TowerHit, TowerUpgradeDamage, TowerUpgradeRange,
         };
         let handle = match *self {
             BallSpawn => SoundHandle::Single(&assets.ball_release),
@@ -71,7 +73,7 @@ impl SoundEvent {
             TowerHit => SoundHandle::Various(&assets.tower_hit),
             BallHitsEnd => SoundHandle::Single(&assets.ball_hits_end),
             BallHitsEnemy => SoundHandle::Single(&assets.ball_hits_enemy),
-            BallHitsFoundation => SoundHandle::Various(&assets.ball_hits_foundation),
+            BallHitsFoundation | ExtraFieldHit => SoundHandle::Various(&assets.ball_hits_foundation),
             BallHitsWall => SoundHandle::Various(&assets.ball_hits_wall),
             EnemyReachEnd => SoundHandle::Single(&assets.enemy_reach_end),
             TowerBuild => SoundHandle::Single(&assets.tower_build),
@@ -82,7 +84,7 @@ impl SoundEvent {
             BallStarterFire => SoundHandle::Single(&assets.ball_starter_fire),
             PbMenuFadeIn => SoundHandle::Single(&assets.pb_menu_fade_in),
             PbMenuFadeOut => SoundHandle::Single(&assets.pb_menu_fade_out),
-            PbMenuActive => SoundHandle::Single(&assets.pb_menu_active),
+            PbMenuActive | ExtraFieldFire => SoundHandle::Single(&assets.pb_menu_active),
         };
         let speed = match handle {
             SoundHandle::Single(_) => 1.,
