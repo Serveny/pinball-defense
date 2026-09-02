@@ -1,7 +1,7 @@
-use super::ball::{self};
+use super::ball::{self, PinBall};
 use super::ball_starter::BallSpawn;
 use super::enemy::Enemy;
-use super::extra_field::{ActiveEffects, ExtraFieldFireEvent, ExtraFieldKind};
+use super::extra_field::{ActiveEffects, ExtraFieldFireEvent, ExtraFieldKind, lane_occupied};
 use super::IngameTime;
 use super::audio::SoundEvent;
 use crate::prelude::*;
@@ -21,6 +21,7 @@ pub fn on_extra_field_fire_system(
     mut sound_ev: MessageWriter<SoundEvent>,
     ig_time: Res<IngameTime>,
     ball_spawn: Res<BallSpawn>,
+    q_ball: Query<&Transform, With<PinBall>>,
 ) {
     for ExtraFieldFireEvent(kind) in evr.read() {
         match kind {
@@ -28,9 +29,15 @@ pub fn on_extra_field_fire_system(
             ExtraFieldKind::DoubleDamage => effects.double_damage_until = **ig_time + EFFECT_SECS,
             ExtraFieldKind::InstaKill => effects.insta_kill_until = **ig_time + EFFECT_SECS,
             ExtraFieldKind::ExtraBall => {
-                let ball_id = ball::spawn(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
-                cmds.entity(ball_id).insert(BonusBall).remove::<Save>();
-                sound_ev.write(SoundEvent::ExtraFieldFire);
+                let balls: Vec<Vec3> = q_ball.iter().map(|tf| tf.translation).collect();
+                if lane_occupied(ball_spawn.0, &balls) {
+                    // ponytail: skipped spawn when lane occupied; queue if it matters in playtesting
+                    log!("🚫 Extra ball skipped: lane occupied");
+                } else {
+                    let ball_id = ball::spawn(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
+                    cmds.entity(ball_id).insert(BonusBall).remove::<Save>();
+                    sound_ev.write(SoundEvent::ExtraFieldFire);
+                }
             }
         }
     }

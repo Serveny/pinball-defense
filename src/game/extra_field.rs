@@ -129,6 +129,15 @@ impl ActiveEffects {
 
 const FIELD_RADIUS: f32 = 0.05;
 
+const LANE_BOUNDS: (f32, f32, f32, f32) = (0.9, 1.15, 0.55, 0.75); // (x_min, x_max, y_min, y_max)
+
+pub fn lane_occupied(_pos: Vec3, balls: &[Vec3]) -> bool {
+    let (x_min, x_max, y_min, y_max) = LANE_BOUNDS;
+    balls.iter().any(|ball| {
+        ball.x >= x_min && ball.x <= x_max && ball.y >= y_min && ball.y <= y_max
+    })
+}
+
 fn pick_random_inactive<R: RngExt>(
     rng: &mut R,
     kinds: &[Option<ExtraFieldKind>],
@@ -412,5 +421,13 @@ mod tests {
         assert_eq!(charge_amount(4), 0.25);
         assert_eq!(charge_amount(8), 0.125);
         assert!(charge_amount(0).is_finite());
+    }
+
+    #[test]
+    fn extra_field_lane_occupied_guard() {
+        assert!(!lane_occupied(Vec3::new(1.02, 0.657, 0.), &[]));
+        assert!(lane_occupied(Vec3::new(1.02, 0.657, 0.), &[Vec3::new(1.02, 0.657, 0.)]));
+        assert!(!lane_occupied(Vec3::new(1.02, 0.657, 0.), &[Vec3::new(0., 0., 0.)]));
+        assert!(!lane_occupied(Vec3::new(1.02, 0.657, 0.), &[Vec3::new(1.2, 0.657, 0.)]));
     }
 }
