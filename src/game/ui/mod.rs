@@ -5,6 +5,7 @@ use crate::prelude::*;
 use crate::utils::RelEntity;
 
 mod controls;
+mod event_banner;
 mod floating_text;
 pub mod progress_bar;
 
@@ -54,10 +55,22 @@ impl Plugin for UiPlugin {
                     (floating_text::spawn_system, floating_text::update_system)
                         .chain()
                         .run_if(in_state(GameState::Ingame)),
+                    event_banner::banner_update_system.run_if(in_state(GameState::Ingame)),
                     toggle_ingame_ui_visibility,
                     controls::switch_input_kind_system.run_if(in_state(UiState::Controls)),
                     controls::auto_hide_system.run_if(in_state(UiState::Controls)),
                 ),
+            )
+            .add_systems(
+                Update,
+                (
+                    event_banner::on_level_up_system,
+                    event_banner::on_wave_started_system,
+                    event_banner::on_upgrade_ready_system,
+                    event_banner::on_tower_upgraded_system,
+                    event_banner::on_base_hit_system,
+                )
+                    .run_if(in_state(GameState::Ingame)),
             )
             .add_systems(OnExit(UiState::Controls), controls::despawn)
             .add_systems(OnExit(AppState::Game), clean_up);
@@ -69,6 +82,7 @@ fn clean_up(
     mut ui_state: ResMut<NextState<UiState>>,
     q_bars: Query<Entity, With<PosToRelEntity>>,
     q_floating: Query<Entity, With<floating_text::FloatingPoints>>,
+    q_banners: Query<Entity, With<event_banner::EventBanner>>,
 ) {
     ui_state.set(UiState::None);
     for bar_id in q_bars.iter() {
@@ -76,6 +90,9 @@ fn clean_up(
     }
     for fp_id in q_floating.iter() {
         cmds.entity(fp_id).despawn();
+    }
+    for banner_id in q_banners.iter() {
+        cmds.entity(banner_id).despawn();
     }
 }
 

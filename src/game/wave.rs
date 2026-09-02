@@ -23,8 +23,11 @@ impl Plugin for WavePlugin {
     }
 }
 
-#[derive(Message)]
-pub struct WaveStartedEvent;
+#[derive(Message, Clone, Copy)]
+pub struct WaveStartedEvent {
+    pub number: usize,
+    pub kind: EnemyKind,
+}
 
 #[derive(Resource)]
 pub struct WaveCounterId(pub Entity);
@@ -62,6 +65,7 @@ struct Wave {
     started: bool,
     kind: EnemyKind,
     special_cooldown: usize,
+    announce_pending: bool,
 }
 
 impl Default for Wave {
@@ -74,6 +78,7 @@ impl Default for Wave {
             started: false,
             kind: EnemyKind::Normal,
             special_cooldown: SPECIAL_COOLDOWN,
+            announce_pending: false,
         }
     }
 }
@@ -106,6 +111,7 @@ impl Wave {
             EnemyKind::Tank => count / 3,
             _ => count,
         };
+        self.announce_pending = true;
         log!("🏄‍♂️ Wave end. Wait until {}", self.next_enemy_spawn_time);
     }
 
@@ -170,7 +176,6 @@ const TIME_BETWEEN_WAVES: f32 = 12.;
 fn start_wave_system(
     mut wave: ResMut<Wave>,
     mut fire_end_ev: MessageReader<BallStarterFireEndEvent>,
-    mut wave_started_ev: MessageWriter<WaveStartedEvent>,
     ig_timer: Res<IngameTime>,
 ) {
     if wave.started || fire_end_ev.read().next().is_none() {
@@ -178,7 +183,6 @@ fn start_wave_system(
     }
     wave.started = true;
     wave.prepare_next_wave(**ig_timer);
-    wave_started_ev.write(WaveStartedEvent);
 }
 
 fn wave_system(
@@ -192,8 +196,14 @@ fn wave_system(
     if wave.started && wave.is_time_to_spawn_enemy(now) {
         if wave.is_wave_end() {
             wave.prepare_next_wave(now);
-            wave_started_ev.write(WaveStartedEvent);
         } else {
+            if wave.announce_pending {
+                wave_started_ev.write(WaveStartedEvent {
+                    number: wave.number,
+                    kind: wave.kind,
+                });
+                wave.announce_pending = false;
+            }
             spawn_enemy_ev.write(wave.next_enemy(now));
         }
     }

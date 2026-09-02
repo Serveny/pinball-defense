@@ -156,8 +156,8 @@ fn spawn_system(
     }
 }
 
-#[derive(Component)]
-enum PinballMenu {
+#[derive(Component, Debug, Clone, Copy, PartialEq)]
+pub enum PinballMenu {
     Tower,
     Upgrade,
 }
@@ -595,7 +595,7 @@ fn restore_unlocks_system(
         .collect();
 }
 
-fn new_tower_unlock(level: Level) -> Option<TowerType> {
+pub(crate) fn new_tower_unlock(level: Level) -> Option<TowerType> {
     match level {
         3 => Some(TowerType::Tesla),
         5 => Some(TowerType::Microwave),
@@ -603,7 +603,7 @@ fn new_tower_unlock(level: Level) -> Option<TowerType> {
     }
 }
 
-fn new_tower_upgrade_unlock(level: Level) -> Option<TowerUpgrade> {
+pub(crate) fn new_tower_upgrade_unlock(level: Level) -> Option<TowerUpgrade> {
     match level {
         4 => Some(TowerUpgrade::Range),
         6 => Some(TowerUpgrade::Damage),

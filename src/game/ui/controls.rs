@@ -4,7 +4,6 @@ use crate::game::ball_starter::BallSpawn;
 use crate::game::camera::PinballCamera;
 use crate::game::controls::InputKind;
 use crate::game::flipper::FlipperType;
-use crate::game::wave::WaveStartedEvent;
 use crate::prelude::*;
 use crate::utils::GameColor;
 use bevy::prelude::default;
@@ -15,7 +14,7 @@ use std::time::Duration;
 #[derive(Component)]
 pub struct ControlsUi;
 
-const HIDE_DELAY_SECS: f32 = 1.;
+const HIDE_DELAY_SECS: f32 = 7.;
 const FADE_DURATION_SECS: f32 = 2.;
 
 #[derive(Resource)]
@@ -376,9 +375,8 @@ pub(super) fn auto_hide_system(
     mut q_border: Query<(&FadeableColor, &mut BorderColor)>,
     time: Res<Time>,
     mut set_ui_state: ResMut<NextState<crate::game::ui::UiState>>,
-    mut wave_started_ev: MessageReader<WaveStartedEvent>,
 ) {
-    if wave_started_ev.read().next().is_some() {
+    if !fade.started {
         fade.start();
     }
     if !fade.started {
