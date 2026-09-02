@@ -13,6 +13,8 @@
 - slowdown tower: Slows enemies in radius down
 - tesla tower: Damages every enemy in radius constantly
 - machine gun tower: Damages one enemy in radius unit dead
+- mortar tower: Shoots mortar, hits all enemies in explosion radius, but long reload time
+- flame thrower tower: Hits all enemies in a cone, ground burns for seconds, will do extra damage
 
 ### Pinball Part
 

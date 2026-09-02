@@ -13,7 +13,7 @@ Pinball-Defense is a hybrid **Pinball + Tower Defense** game.
 - Run: `cargo run`
 - Lint: `cargo clippy`
 - Re-export assets: run Blender scripts in `src/blender_scripts` (e.g. `bpy_export_all_gltf.py`, `bpy_export_mesh_as_polyline.py`)
-- Place worktrees under `.worktrees`
+- Use worktree slots under `.worktrees` for any coding task — never the main checkout, never a fresh worktree. Load the `worktree-slot` skill (`.agents/skills/worktree-slot/SKILL.md`) and use `.agents/skills/worktree-slot/slot.sh` (claim/release/list).
 
 ### Project Structure
 
