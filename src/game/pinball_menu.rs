@@ -584,9 +584,9 @@ fn on_unlock_system(
 }
 
 fn restore_unlocks_system(
+    mut cmds: Commands,
     level: Res<LevelHub>,
     mut evr: MessageReader<LevelUpEvent>,
-    mut lvl_up_ev: MessageWriter<LevelUpEvent>,
     mut towers: ResMut<UnlockedTowers>,
     mut upgrades: ResMut<UnlockedUpgrades>,
 ) {
@@ -604,7 +604,7 @@ fn restore_unlocks_system(
         if let Some(tower_type) = new_tower_unlock(lvl)
             && !previous.contains(&tower_type)
         {
-            lvl_up_ev.write(LevelUpEvent(lvl));
+            cmds.write_message(LevelUpEvent(lvl));
         }
     }
 }
