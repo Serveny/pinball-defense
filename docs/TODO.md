@@ -18,8 +18,11 @@
   - Extra-Ball-Field: Hit it and the ball starter will insert new ball
   - Slow-Down-Field: Hit it and the enemies a slower for 5s
   - Double-Damage-Field: Hit it and ball will make double damage for 5s
+  - Insta-Kill-Field: Hit it and for 5s the ball will kill every enemy it hits instantly
 - Fix ui progress bars pixel position (Green bar too small, white pixels at top)
 - Show wave count ingame (same like level counter)
+- Show particle effects on hit (enemy, tower, foundation, extra)
+- Game over menu: Pause game -> Activate free cam, update UI
 
 ## Audio
 
