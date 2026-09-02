@@ -342,17 +342,17 @@ fn on_ball_kick_system(
     q_tower: Query<&Transform, With<Tower>>,
     mut q_ball: Query<(&Transform, &mut LinearVelocity), With<PinBall>>,
 ) {
-    let Ok((ball_tf, mut ball_vel)) = q_ball.single_mut() else {
-        return;
-    };
     for CollisionWithBallEvent(tower_id) in evr.read() {
         let Ok(tower_tf) = q_tower.get(*tower_id) else {
             continue;
         };
-        let dir = (ball_tf.translation.truncate() - tower_tf.translation.truncate())
-            .try_normalize()
-            .unwrap_or(Vec2::X);
-        ball_vel.0 += dir * CONFIG.tower_kick_velocity;
+        // ponytail: applies to all balls; per-ball attribution needs an event refactor
+        for (ball_tf, mut ball_vel) in q_ball.iter_mut() {
+            let dir = (ball_tf.translation.truncate() - tower_tf.translation.truncate())
+                .try_normalize()
+                .unwrap_or(Vec2::X);
+            ball_vel.0 += dir * CONFIG.tower_kick_velocity;
+        }
     }
 }
 

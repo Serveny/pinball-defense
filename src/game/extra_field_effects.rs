@@ -34,6 +34,16 @@ pub fn on_extra_field_fire_system(
     }
 }
 
+pub fn ball_damage(effects: &ActiveEffects, now: f32, enemy_max_health: f32) -> f32 {
+    if effects.is_active(now, ExtraFieldKind::InstaKill) {
+        -enemy_max_health
+    } else if effects.is_active(now, ExtraFieldKind::DoubleDamage) {
+        -200.
+    } else {
+        -100.
+    }
+}
+
 pub fn slow_reapply_system(
     effects: Res<ActiveEffects>,
     ig_time: Res<IngameTime>,
@@ -60,5 +70,17 @@ mod tests {
         assert!(!effects.is_active(5., ExtraFieldKind::SlowDown));
         assert!(!effects.is_active(5.1, ExtraFieldKind::SlowDown));
         assert!(!effects.is_active(4.9, ExtraFieldKind::ExtraBall));
+    }
+
+    #[test]
+    fn extra_field_ball_damage_modes() {
+        let mut effects = ActiveEffects::default();
+        assert_eq!(ball_damage(&effects, 10., 300.), -100.);
+        effects.double_damage_until = 5.;
+        assert_eq!(ball_damage(&effects, 4.9, 300.), -200.);
+        assert_eq!(ball_damage(&effects, 5., 300.), -100.);
+        effects.insta_kill_until = 20.;
+        assert_eq!(ball_damage(&effects, 15., 300.), -300.);
+        assert_eq!(ball_damage(&effects, 20., 300.), -100.);
     }
 }

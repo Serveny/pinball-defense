@@ -53,6 +53,10 @@ impl Health {
     pub fn fraction(&self) -> f32 {
         self.current / self.max
     }
+
+    pub fn max(&self) -> f32 {
+        self.max
+    }
 }
 
 #[derive(Message)]

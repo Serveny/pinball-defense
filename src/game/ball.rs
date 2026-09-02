@@ -4,6 +4,7 @@ use super::audio::SoundEvent;
 use super::controls::KeyboardControls;
 use super::enemy::Enemy;
 use super::events::collision::GameLayer;
+use super::extra_field_effects::BonusBall;
 use super::health::ChangeHealthEvent;
 use super::level::{BallCollisionPoints, PointsEvent};
 use super::pinball_menu::PinballMenuEvent;
@@ -12,7 +13,7 @@ use super::world::WorldFrame;
 use crate::prelude::*;
 use bevy::color::palettes::css::GOLD;
 use bevy::math::primitives::Sphere;
-use bevy::platform::collections::HashSet;
+use bevy::platform::collections::{HashMap, HashSet};
 use moonshine_save::prelude::Save;
 use std::ops::Range;
 
@@ -120,15 +121,16 @@ fn ball_reset_system(
     mut cmds: Commands,
     mut evw: MessageWriter<OnBallDespawnEvent>,
     mut health_ev: MessageWriter<ChangeHealthEvent>,
-    q_ball: Query<(Entity, &Transform), With<PinBall>>,
+    q_ball: Query<(Entity, &Transform, Option<&BonusBall>), With<PinBall>>,
     q_life_bar: Query<Entity, With<LifeBar>>,
 ) {
-    for (entity, transform) in q_ball.iter() {
+    for (entity, transform, bonus) in q_ball.iter() {
         let ball_pos = transform.translation;
         if !X_RANGE.contains(&ball_pos.x) || !Y_RANGE.contains(&ball_pos.y) {
-            if ball_pos.x > 1.2
-                && HIT_Y_RANGE.contains(&ball_pos.y)
-                && let Ok(lifebar_id) = q_life_bar.single()
+            if bonus.is_none()
+                && ball_pos.x > 1.2
+                    && HIT_Y_RANGE.contains(&ball_pos.y)
+                    && let Ok(lifebar_id) = q_life_bar.single()
             {
                 health_ev.write(ChangeHealthEvent::new(lifebar_id, -5., None));
             }
@@ -171,10 +173,14 @@ fn on_ball_despawn_system(
     mut evr: MessageReader<OnBallDespawnEvent>,
     mut pm_status_ev: MessageWriter<PinballMenuEvent>,
     mut sound_ev: MessageWriter<SoundEvent>,
+    q_ball: Query<(), With<PinBall>>,
 ) {
     if evr.read().next().is_some() {
-        pm_status_ev.write(PinballMenuEvent::Deactivate);
-        sound_ev.write(SoundEvent::BallHitsEnd);
+        // ponytail: counts the draining ball too; menu stays active while any other ball remains
+        if q_ball.iter().count() <= 1 {
+            pm_status_ev.write(PinballMenuEvent::Deactivate);
+            sound_ev.write(SoundEvent::BallHitsEnd);
+        }
     }
 }
 
@@ -182,41 +188,29 @@ fn on_ball_despawn_system(
 pub struct CollisionWithBallEvent(pub Entity);
 
 fn on_collision_with_ball_system(
-    coll_ev: MessageReader<CollisionStart>,
+    mut coll_ev: MessageReader<CollisionStart>,
     mut coll_with_ball_ev: MessageWriter<CollisionWithBallEvent>,
     mut points_ev: MessageWriter<PointsEvent>,
     q_ball: Query<(Entity, &Transform), With<PinBall>>,
     q_frame: Query<Entity, With<WorldFrame>>,
     q_points: Query<&BallCollisionPoints>,
 ) {
-    let Ok((_, ball_tf)) = q_ball.single() else {
-        return;
-    };
-    for collidator_id in get_ball_collisions(coll_ev, q_ball) {
-        coll_with_ball_ev.write(CollisionWithBallEvent(collidator_id));
-        if !q_frame.contains(collidator_id)
-            && let Ok(points) = q_points.get(collidator_id)
+    for ev in coll_ev.read() {
+        let (ball_id, other_id) = if q_ball.contains(ev.collider1) {
+            (ev.collider1, ev.collider2)
+        } else if q_ball.contains(ev.collider2) {
+            (ev.collider2, ev.collider1)
+        } else {
+            continue;
+        };
+        coll_with_ball_ev.write(CollisionWithBallEvent(other_id));
+        if !q_frame.contains(other_id)
+            && let Ok(points) = q_points.get(other_id)
+            && let Ok((_, ball_tf)) = q_ball.get(ball_id)
         {
             points_ev.write(PointsEvent::with_points(points.0, ball_tf.translation));
         }
     }
-}
-
-fn get_ball_collisions(
-    mut evr: MessageReader<CollisionStart>,
-    q_ball: Query<(Entity, &Transform), With<PinBall>>,
-) -> Vec<Entity> {
-    evr.read()
-        .filter_map(|ev| {
-            if q_ball.contains(ev.collider1) {
-                Some(ev.collider2)
-            } else if q_ball.contains(ev.collider2) {
-                Some(ev.collider1)
-            } else {
-                None
-            }
-        })
-        .collect()
 }
 
 fn on_wall_collision_system(
@@ -234,31 +228,31 @@ fn on_wall_collision_system(
 const ENEMY_OVERLAP_RADIUS: f32 = 0.03;
 
 fn enemy_ball_overlap_system(
-    mut prev_overlapping: Local<HashSet<Entity>>,
-    q_ball: Query<&Transform, With<PinBall>>,
+    mut prev_overlapping: Local<HashMap<Entity, HashSet<Entity>>>,
+    q_ball: Query<(Entity, &Transform), With<PinBall>>,
     q_enemy: Query<(&Transform, &Collider, Entity), With<Enemy>>,
     mut coll_with_ball_ev: MessageWriter<CollisionWithBallEvent>,
 ) {
-    let Ok(ball_pos) = q_ball.single() else {
-        return;
-    };
-    let mut now_overlapping = HashSet::new();
-    for (enemy_pos, collider, enemy_id) in q_enemy.iter() {
-        let radius = collider
-            .shape_scaled()
-            .as_ball()
-            .map_or(0.03, |ball| ball.radius);
-        if ball_pos
-            .translation
-            .xy()
-            .distance_squared(enemy_pos.translation.xy())
-            <= (radius + ENEMY_OVERLAP_RADIUS).powi(2)
-        {
-            now_overlapping.insert(enemy_id);
-            if !prev_overlapping.contains(&enemy_id) {
-                coll_with_ball_ev.write(CollisionWithBallEvent(enemy_id));
+    for (ball_id, ball_tf) in q_ball.iter() {
+        let prev = prev_overlapping.entry(ball_id).or_default();
+        let mut now_overlapping = HashSet::new();
+        for (enemy_pos, collider, enemy_id) in q_enemy.iter() {
+            let radius = collider
+                .shape_scaled()
+                .as_ball()
+                .map_or(0.03, |ball| ball.radius);
+            if ball_tf
+                .translation
+                .xy()
+                .distance_squared(enemy_pos.translation.xy())
+                <= (radius + ENEMY_OVERLAP_RADIUS).powi(2)
+            {
+                now_overlapping.insert(enemy_id);
+                if !prev.contains(&enemy_id) {
+                    coll_with_ball_ev.write(CollisionWithBallEvent(enemy_id));
+                }
             }
         }
+        *prev = now_overlapping;
     }
-    *prev_overlapping = now_overlapping;
 }

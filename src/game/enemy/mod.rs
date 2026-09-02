@@ -3,9 +3,10 @@ use self::walk::{RoadEndReachedEvent, WALK_SPEED, on_road_end_reached_system, wa
 use super::audio::SoundEvent;
 use super::ball::PinBall;
 use super::events::collision::GameLayer;
+use super::extra_field::ActiveEffects;
 use super::health::{ChangeHealthEvent, Health, HealthEmptyEvent};
 use super::level::{BallCollisionPoints, PointsEvent, PointsKind};
-use super::{EventState, ui};
+use super::{EventState, IngameTime, ui};
 use crate::game::GameState;
 use crate::game::ball::CollisionWithBallEvent;
 use crate::game::world::QueryWorld;
@@ -264,18 +265,25 @@ fn on_pinball_hit_system(
     mut sound_ev: MessageWriter<SoundEvent>,
     mut health_ev: MessageWriter<ChangeHealthEvent>,
     mut q_ball: Query<&mut LinearVelocity, With<PinBall>>,
-    q_enemy: Query<(&Enemy, &BallSlowDown), With<Enemy>>,
+    q_enemy: Query<(&Enemy, &BallSlowDown, &Health), With<Enemy>>,
+    effects: Res<ActiveEffects>,
+    ig_time: Res<IngameTime>,
 ) {
     for CollisionWithBallEvent(id) in evr.read() {
-        let Ok((_, slow_down)) = q_enemy.get(*id) else {
+        let Ok((_, slow_down, health)) = q_enemy.get(*id) else {
             continue;
         };
         log!("😵 Pinball hits enemy {:?}", *id);
-        health_ev.write(ChangeHealthEvent::new(*id, -BALL_DAMAGE, None));
-        if slow_down.0 < 1.
-            && let Ok(mut vel) = q_ball.single_mut()
-        {
-            **vel *= slow_down.0;
+        health_ev.write(ChangeHealthEvent::new(
+            *id,
+            crate::game::extra_field_effects::ball_damage(&effects, **ig_time, health.max()),
+            None,
+        ));
+        if slow_down.0 < 1. {
+            // ponytail: applies to all balls; per-ball attribution needs an event refactor
+            for mut vel in q_ball.iter_mut() {
+                **vel *= slow_down.0;
+            }
         }
         sound_ev.write(SoundEvent::BallHitsEnemy);
     }
