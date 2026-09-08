@@ -73,7 +73,9 @@ impl SoundEvent {
             TowerHit => SoundHandle::Various(&assets.tower_hit),
             BallHitsEnd => SoundHandle::Single(&assets.ball_hits_end),
             BallHitsEnemy => SoundHandle::Single(&assets.ball_hits_enemy),
-            BallHitsFoundation | ExtraFieldHit => SoundHandle::Various(&assets.ball_hits_foundation),
+            BallHitsFoundation | ExtraFieldHit => {
+                SoundHandle::Various(&assets.ball_hits_foundation)
+            }
             BallHitsWall => SoundHandle::Various(&assets.ball_hits_wall),
             EnemyReachEnd => SoundHandle::Single(&assets.enemy_reach_end),
             TowerBuild => SoundHandle::Single(&assets.tower_build),

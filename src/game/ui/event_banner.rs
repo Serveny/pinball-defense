@@ -289,7 +289,13 @@ pub(super) fn on_tower_upgraded_system(
 ) {
     for ev in evr.read() {
         let slot = u32::try_from(q_banner.iter().count()).unwrap_or(0);
-        spawn_banner(&mut cmds, BannerType::Upgraded(ev.upgrade), 0, slot, &assets);
+        spawn_banner(
+            &mut cmds,
+            BannerType::Upgraded(ev.upgrade),
+            0,
+            slot,
+            &assets,
+        );
     }
 }
 
@@ -329,10 +335,7 @@ pub(super) fn banner_update_system(
     mut cmds: Commands,
     time: Res<Time>,
     mut q_banner: QBanner,
-    mut q_root_gradient: Query<
-        &mut BackgroundGradient,
-        (With<EventBanner>, Without<BannerLine>),
-    >,
+    mut q_root_gradient: Query<&mut BackgroundGradient, (With<EventBanner>, Without<BannerLine>)>,
     mut q_line_gradient: Query<(&ChildOf, &mut BackgroundGradient), With<BannerLine>>,
     mut q_text: Query<(&ChildOf, &mut TextColor)>,
 ) {

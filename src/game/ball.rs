@@ -59,14 +59,13 @@ pub fn spawn(
     materials: &mut Assets<StandardMaterial>,
     pos: Vec3,
 ) -> Entity {
-    cmds
-        .spawn((
-            ball_view_bundle(meshes, materials),
-            Transform::from_translation(pos),
-            PinBall,
-            Name::new("Ball"),
-        ))
-        .id()
+    cmds.spawn((
+        ball_view_bundle(meshes, materials),
+        Transform::from_translation(pos),
+        PinBall,
+        Name::new("Ball"),
+    ))
+    .id()
 }
 
 fn ball_view_bundle(
@@ -129,8 +128,8 @@ fn ball_reset_system(
         if !X_RANGE.contains(&ball_pos.x) || !Y_RANGE.contains(&ball_pos.y) {
             if bonus.is_none()
                 && ball_pos.x > 1.2
-                    && HIT_Y_RANGE.contains(&ball_pos.y)
-                    && let Ok(lifebar_id) = q_life_bar.single()
+                && HIT_Y_RANGE.contains(&ball_pos.y)
+                && let Ok(lifebar_id) = q_life_bar.single()
             {
                 health_ev.write(ChangeHealthEvent::new(lifebar_id, -5., None));
             }
