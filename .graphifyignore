@@ -1,0 +1,8 @@
+# audio files - sound effects, no extractable knowledge
+*.ogg
+*.wav
+*.mp3
+
+# binary working files
+*.psd
+*.blend1

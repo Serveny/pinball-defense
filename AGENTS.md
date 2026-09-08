@@ -39,7 +39,7 @@ Pinball-Defense is a hybrid **Pinball + Tower Defense** game.
 
 ## graphify
 
-Knowledge graph at `graphify-out/graph.json` (scoped to `src/`).
+Knowledge graph at `graphify-out/graph.json` (project root, full project: `src/`, `assets/`, docs).
 
 - For codebase questions, query the graph first: `graphify query "…"`, `graphify path "A" "B"`, `graphify explain "X"` — before reading source.
 - After code changes, run `graphify update src` (AST-only, free).
