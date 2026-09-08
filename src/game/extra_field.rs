@@ -10,9 +10,7 @@ use super::level::{BallCollisionPoints, LevelHub, LevelUpEvent};
 use super::light::{
     ContactLight, FlashLight, LightOnCollision, contact_light_bundle, disable_flash_light,
 };
-use super::progress::{
-    ProgressBarCountUpEvent, ProgressBarFullEvent, ProgressBarResetEvent, self,
-};
+use super::progress::{self, ProgressBarCountUpEvent, ProgressBarFullEvent, ProgressBarResetEvent};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy::color::palettes::css::{BLUE, GOLD, ORANGE, RED};
@@ -148,15 +146,12 @@ const LANE_BOUNDS: (f32, f32, f32, f32) = (0.9, 1.15, 0.55, 0.75); // (x_min, x_
 
 pub fn lane_occupied(_pos: Vec3, balls: &[Vec3]) -> bool {
     let (x_min, x_max, y_min, y_max) = LANE_BOUNDS;
-    balls.iter().any(|ball| {
-        ball.x >= x_min && ball.x <= x_max && ball.y >= y_min && ball.y <= y_max
-    })
+    balls
+        .iter()
+        .any(|ball| ball.x >= x_min && ball.x <= x_max && ball.y >= y_min && ball.y <= y_max)
 }
 
-fn pick_random_inactive<R: RngExt>(
-    rng: &mut R,
-    kinds: &[Option<ExtraFieldKind>],
-) -> Option<usize> {
+fn pick_random_inactive<R: RngExt>(rng: &mut R, kinds: &[Option<ExtraFieldKind>]) -> Option<usize> {
     let inactive: Vec<usize> = kinds
         .iter()
         .enumerate()
@@ -186,9 +181,10 @@ pub fn spawn_fields(
     posis: [Vec3; 4],
 ) {
     for (kind, pos) in KINDS.iter().zip(posis) {
-        p.spawn(field_bundle(meshes, mats, *kind, pos)).with_children(|p| {
-            p.spawn(contact_light_bundle(g_sett, kind.color()));
-        });
+        p.spawn(field_bundle(meshes, mats, *kind, pos))
+            .with_children(|p| {
+                p.spawn(contact_light_bundle(g_sett, kind.color()));
+            });
     }
 }
 
@@ -348,7 +344,10 @@ fn on_fire_system(
 fn effect_flash_system(
     mut cmds: Commands,
     q_field: Query<(Entity, &ExtraField)>,
-    mut q_light_off: Query<(Entity, &ChildOf, &mut Visibility), (With<ContactLight>, Without<FlashLight>)>,
+    mut q_light_off: Query<
+        (Entity, &ChildOf, &mut Visibility),
+        (With<ContactLight>, Without<FlashLight>),
+    >,
     mut q_light_on: Query<(Entity, &ChildOf, &mut Visibility), With<FlashLight>>,
     effects: Res<ActiveEffects>,
     ig_time: Res<IngameTime>,
@@ -432,6 +431,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::float_cmp)]
     fn extra_field_charge_amount_is_inverse_of_hits() {
         assert_eq!(charge_amount(2), 0.5);
         assert_eq!(charge_amount(4), 0.25);
@@ -442,8 +442,17 @@ mod tests {
     #[test]
     fn extra_field_lane_occupied_guard() {
         assert!(!lane_occupied(Vec3::new(1.02, 0.657, 0.), &[]));
-        assert!(lane_occupied(Vec3::new(1.02, 0.657, 0.), &[Vec3::new(1.02, 0.657, 0.)]));
-        assert!(!lane_occupied(Vec3::new(1.02, 0.657, 0.), &[Vec3::new(0., 0., 0.)]));
-        assert!(!lane_occupied(Vec3::new(1.02, 0.657, 0.), &[Vec3::new(1.2, 0.657, 0.)]));
+        assert!(lane_occupied(
+            Vec3::new(1.02, 0.657, 0.),
+            &[Vec3::new(1.02, 0.657, 0.)]
+        ));
+        assert!(!lane_occupied(
+            Vec3::new(1.02, 0.657, 0.),
+            &[Vec3::new(0., 0., 0.)]
+        ));
+        assert!(!lane_occupied(
+            Vec3::new(1.02, 0.657, 0.),
+            &[Vec3::new(1.2, 0.657, 0.)]
+        ));
     }
 }

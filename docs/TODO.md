@@ -3,12 +3,6 @@
 ## Programming 
 
 - combo counter: extra points until ball falls into end, the longer the streak, the higher the amount of extra points per second
-- controller controls & menu
-- enemy types:
-  - normal: no collision
-  - tanks: collision, slow
-  - speeder: no collision, very fast, less life points
-- enemy type spawn system
 - (test that, not shure if good) ball collides with enemies until enemy has no life left
 - Performance Profiling feature
 - Fix hanging ball physics sometimes when hitting a tower
@@ -20,7 +14,6 @@
   - Double-Damage-Field: Hit it and ball will make double damage for 5s
   - Insta-Kill-Field: Hit it and for 5s the ball will kill every enemy it hits instantly
 - Fix ui progress bars pixel position (Green bar too small, white pixels at top)
-- Show wave count ingame (same like level counter)
 - Show particle effects on hit (enemy, tower, foundation, extra)
 - Game over menu: Pause game -> Activate free cam, update UI
 
@@ -35,6 +28,8 @@
   - hover
   - click
   - slider 
+- Level Up sound
+- Next wave sound
 
 ## Modelling/Texturing
 
@@ -134,3 +129,10 @@
 - UI: Show points where they are made: Progress blue, Damage red ✅
 - UI scrollbar ✅
 - Game over screen statistics ✅
+- controller controls & menu ✅
+- enemy types:  ✅
+  - normal: no collision  ✅
+  - tanks: collision, slow ✅
+  - speeder: no collision, very fast, less life points ✅
+- enemy type spawn system ✅
+- Show wave count ingame (same like level counter) ✅

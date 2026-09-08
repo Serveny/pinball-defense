@@ -1,9 +1,9 @@
+use super::IngameTime;
+use super::audio::SoundEvent;
 use super::ball::{self, PinBall};
 use super::ball_starter::BallSpawn;
 use super::enemy::Enemy;
 use super::extra_field::{ActiveEffects, ExtraFieldFireEvent, ExtraFieldKind, lane_occupied};
-use super::IngameTime;
-use super::audio::SoundEvent;
 use crate::prelude::*;
 use moonshine_save::prelude::Save;
 
@@ -82,6 +82,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::float_cmp)]
     fn extra_field_ball_damage_modes() {
         let mut effects = ActiveEffects::default();
         assert_eq!(ball_damage(&effects, 10., 300.), -100.);
