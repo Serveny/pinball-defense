@@ -30,8 +30,8 @@ use types::{gun, microwave, tesla};
 
 mod animations;
 mod damage;
-pub mod fx;
 pub mod foundation;
+pub mod fx;
 mod speed;
 mod target;
 mod types;

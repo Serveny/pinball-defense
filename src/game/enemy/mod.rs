@@ -170,6 +170,12 @@ fn wave_sat(wave: usize) -> f32 {
     f32::from(u16::try_from(wave).unwrap_or(u16::MAX))
 }
 
+#[allow(clippy::cast_precision_loss)]
+fn difficulty_sat(wave: usize) -> f32 {
+    let w = f32::from(u16::try_from(wave).unwrap_or(u16::MAX));
+    w + 0.15 * (w - 18.).max(0.).powf(1.8)
+}
+
 fn enemy_view_bundle(
     meshes: &mut Assets<Mesh>,
     mats: &mut Assets<StandardMaterial>,
@@ -233,7 +239,7 @@ fn enemy(
     (
         enemy_view_bundle(meshes, mats, wave, kind),
         Enemy::new(wave, kind),
-        Health::new(100. * (1. + wave_sat(wave) * 0.5) * kind.health_factor()),
+        Health::new(100. * (1. + difficulty_sat(wave) * 0.5) * kind.health_factor()),
         LastDamager(None),
         Transform::from_translation(ROAD_POINTS[0]),
     )

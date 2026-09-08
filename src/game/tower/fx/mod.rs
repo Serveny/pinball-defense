@@ -40,8 +40,9 @@ pub(in super::super) fn spawn_gun_effects_system(
     mut cmds: Commands,
 ) {
     for (barrel_id, rel_id) in q_barrels.iter() {
-        cmds.entity(barrel_id).insert(GunEffectsSpawned).with_children(
-            |barrel| {
+        cmds.entity(barrel_id)
+            .insert(GunEffectsSpawned)
+            .with_children(|barrel| {
                 for (name, handle) in [
                     ("Muzzle Flash Effect", muzzle_assets.flash.clone()),
                     ("Barrel Smoke Effect", muzzle_assets.smoke.clone()),
@@ -54,7 +55,6 @@ pub(in super::super) fn spawn_gun_effects_system(
                         RelEntity(rel_id.0),
                     ));
                 }
-            },
-        );
+            });
     }
 }

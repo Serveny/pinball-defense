@@ -10,19 +10,19 @@ use bevy::light::NotShadowCaster;
 use bevy::mesh::{Indices, PrimitiveTopology, VertexAttributeValues};
 use bevy_hanabi::{
     AccelModifier, AlphaMode, Attribute, ColorOverLifetimeModifier, EffectAsset, EffectSpawner,
-    Gradient, LinearDragModifier, Module, ParticleEffect, RoundModifier,
-    SetAttributeModifier, SetPositionSphereModifier, SetVelocitySphereModifier,
-    ShapeDimension, SimulationSpace, SizeOverLifetimeModifier, SpawnerSettings,
+    Gradient, LinearDragModifier, Module, ParticleEffect, RoundModifier, SetAttributeModifier,
+    SetPositionSphereModifier, SetVelocitySphereModifier, ShapeDimension, SimulationSpace,
+    SizeOverLifetimeModifier, SpawnerSettings,
 };
 
 const IMPACT_SEGMENTS: usize = 12;
 const BOLT_ORIGIN_Z: f32 = 0.078;
-const BOLT_WIDTH: f32 = 0.003;
-const BOLT_JITTER: f32 = 0.02;
+const BOLT_WIDTH: f32 = 0.006;
+const BOLT_JITTER: f32 = 0.04;
 const SPARK_BURST: f32 = 12.;
 const SPARK_PERIOD: f32 = 0.04;
 const SMOKE_RATE: f32 = 20.;
-const FLASH_RANGE: f32 = 0.05;
+const FLASH_RANGE: f32 = 0.1;
 
 #[derive(Resource)]
 pub(in super::super) struct TeslaEffectAssets {
@@ -36,10 +36,9 @@ impl FromWorld for TeslaEffectAssets {
         let bolt_mat = world
             .resource_mut::<Assets<StandardMaterial>>()
             .add(StandardMaterial {
-                base_color: Color::srgba(0.35, 0.65, 1., 1.),
+                base_color: Color::WHITE,
                 emissive: LinearRgba::rgb(1.2, 2.5, 5.),
                 unlit: true,
-                alpha_mode: bevy::material::AlphaMode::Add,
                 ..default()
             });
         let mut effects = world.resource_mut::<Assets<EffectAsset>>();
@@ -147,22 +146,32 @@ fn smoke_asset() -> EffectAsset {
 }
 
 fn bolt_mesh(segments: usize) -> Mesh {
-    let vert_count = (segments + 1) * 2;
+    let vert_count = (segments + 1) * 8;
+    let edge_lin = Color::srgb(0.35, 0.65, 1.).to_linear();
+    let edge = [edge_lin.red, edge_lin.green, edge_lin.blue, 1.];
+    let core = [2.5, 2.5, 2.5, 1.];
     let mut positions = Vec::with_capacity(vert_count);
+    let mut colors = Vec::with_capacity(vert_count);
     for _ in 0..=segments {
-        positions.push([0., 0., 0.]);
-        positions.push([0., 0., 0.]);
+        for color in [edge, core, core, edge, edge, core, core, edge] {
+            positions.push([0., 0., 0.]);
+            colors.push(color);
+        }
     }
-    let mut indices = Vec::with_capacity(segments * 6);
+    let mut indices = Vec::with_capacity(segments * 48);
     for seg in 0..segments {
-        let base = u16::try_from(seg * 2).unwrap_or(u16::MAX);
-        indices.extend([base, base + 1, base + 2, base + 1, base + 3, base + 2]);
+        let row = u16::try_from(seg * 8).unwrap_or(u16::MAX);
+        for col in 0..8u16 {
+            let base = row + col;
+            indices.extend([base, base + 8, base + 1, base + 1, base + 8, base + 9]);
+        }
     }
     Mesh::new(
         PrimitiveTopology::TriangleList,
         RenderAssetUsages::default(),
     )
     .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_COLOR, colors)
     .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, vec![[0., 0., 1.]; vert_count])
     .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, vec![[0., 0.]; vert_count])
     .with_inserted_indices(Indices::U16(indices))
@@ -193,10 +202,7 @@ pub(in super::super) fn maintain_arcs_system(
     mut meshes: ResMut<Assets<Mesh>>,
     assets: Option<Res<TeslaEffectAssets>>,
     q_towers: Query<(Entity, &EnemiesWithinReach), (With<TeslaTower>, With<TowerReady>)>,
-    mut q_bolts: Query<
-        (&mut TeslaArcTarget, &mut Visibility, &RelEntity),
-        With<TeslaBolt>,
-    >,
+    mut q_bolts: Query<(&mut TeslaArcTarget, &mut Visibility, &RelEntity), With<TeslaBolt>>,
 ) {
     let Some(assets) = assets else { return };
     for (tower_id, ewr) in q_towers.iter() {
@@ -265,7 +271,13 @@ pub(in super::super) fn update_arcs_system(
     time: Res<Time>,
     mut meshes: ResMut<Assets<Mesh>>,
     q_bolts: Query<
-        (Entity, &TeslaArcTarget, &GlobalTransform, &Mesh3d, &Visibility),
+        (
+            Entity,
+            &TeslaArcTarget,
+            &GlobalTransform,
+            &Mesh3d,
+            &Visibility,
+        ),
         With<TeslaBolt>,
     >,
     q_targets: Query<&GlobalTransform, With<Enemy>>,
@@ -283,11 +295,11 @@ pub(in super::super) fn update_arcs_system(
     >,
     mut q_flash: Query<(&mut Transform, &mut PointLight, &ChildOf), With<TeslaImpactFlash>>,
 ) {
-    let frame = time.elapsed_secs() * 32.;
+    let frame = time.elapsed_secs() * 6.;
     for (bolt_id, target, bolt_gtf, mesh_handle, vis) in q_bolts.iter() {
         let active = *vis == Visibility::Inherited && q_targets.contains(target.0);
-        let Some(Ok(target_pos)) = active
-            .then(|| q_targets.get(target.0).map(GlobalTransform::translation))
+        let Some(Ok(target_pos)) =
+            active.then(|| q_targets.get(target.0).map(GlobalTransform::translation))
         else {
             for (mut tf, mut spawner, child_of) in q_sparks.iter_mut() {
                 if child_of.parent() == bolt_id {
@@ -324,17 +336,34 @@ pub(in super::super) fn update_arcs_system(
         let dir = to_target.try_normalize().unwrap_or(Vec3::Z);
         let side = dir.cross(Vec3::Z).try_normalize().unwrap_or(Vec3::X);
         #[allow(clippy::cast_precision_loss)]
-        let segment_count = pos.len() as f32 / 2. - 1.;
-        for (seg, [a, b]) in pos.as_chunks_mut::<2>().0.iter_mut().enumerate() {
+        let segment_count = pos.len() as f32 / 8. - 1.;
+        for (seg, strip) in pos.as_chunks_mut::<8>().0.iter_mut().enumerate() {
+            let [
+                edge_a,
+                core_a,
+                core_b,
+                edge_b,
+                edge_c,
+                core_c,
+                core_d,
+                edge_d,
+            ] = strip;
             #[allow(clippy::cast_precision_loss)]
             let seg = seg as f32;
             let t = seg / segment_count;
             let envelope = (t * (1. - t) * 4.).sqrt();
-            let jag = (hash01(seg * 7.31 + frame) - 0.5) * BOLT_JITTER * envelope;
-            let p = to_target * t + side * jag;
+            let jag_side = (hash01(seg * 7.31 + frame) - 0.5) * BOLT_JITTER * envelope;
+            let jag_up = (hash01(seg * 3.97 + frame * 1.3) - 0.5) * BOLT_JITTER * envelope;
+            let p = to_target * t + side * jag_side + Vec3::Z * jag_up;
             let half = BOLT_WIDTH * (1. + envelope);
-            *a = (p - side * half).to_array();
-            *b = (p + side * half).to_array();
+            *edge_a = (p - side * half).to_array();
+            *core_a = (p - side * half * 0.75).to_array();
+            *core_b = (p + side * half * 0.75).to_array();
+            *edge_b = (p + side * half).to_array();
+            *edge_c = (p - Vec3::Z * half).to_array();
+            *core_c = (p - Vec3::Z * half * 0.75).to_array();
+            *core_d = (p + Vec3::Z * half * 0.75).to_array();
+            *edge_d = (p + Vec3::Z * half).to_array();
         }
         for (mut tf, mut spawner, child_of) in q_sparks.iter_mut() {
             if child_of.parent() == bolt_id {
@@ -352,7 +381,7 @@ pub(in super::super) fn update_arcs_system(
             if child_of.parent() == bolt_id {
                 tf.translation = to_target;
                 let sin = (time.elapsed_secs() * 48.).sin();
-                light.intensity = (sin + 1.) * 24.;
+                light.intensity = (sin + 1.) * 160.;
             }
         }
     }

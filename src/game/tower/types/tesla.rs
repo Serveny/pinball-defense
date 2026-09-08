@@ -32,7 +32,7 @@ pub fn spawn(
             Name::new("Tesla Tower"),
             TeslaTower,
             DamageAllTargetsInReach,
-            DamageOverTime(15.),
+            DamageOverTime(50.),
         ),
         |tower| build_view(tower, tower_mat.clone(), assets, g_sett, sight_radius),
     )
