@@ -1,7 +1,7 @@
 use super::effects::ActiveEffects;
 use super::{ExtraField, ExtraFieldKind, ExtraFieldUnlockEvent, KINDS};
 use crate::game::IngameTime;
-use crate::game::level::{BallCollisionPoints, LevelHub, LevelUpEvent};
+use crate::game::level::{BallCollisionPoints, LevelHub};
 use crate::game::light::{
     ContactLight, FlashLight, LightOnCollision, contact_light_bundle, disable_flash_light,
 };
@@ -9,9 +9,6 @@ use crate::game::progress::{RadialProgressCasing, spawn_radial};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy_tweening::{Tween, TweenAnim, lens::TransformPositionLens};
-use rand::RngExt;
-use rand::SeedableRng;
-use rand::rngs::SmallRng;
 use std::time::Duration;
 
 const BUTTON_PRESS_DEPTH: f32 = 0.003;
@@ -28,15 +25,8 @@ pub(super) fn lane_occupied(_pos: Vec3, balls: &[Vec3]) -> bool {
         .any(|ball| ball.x >= x_min && ball.x <= x_max && ball.y >= y_min && ball.y <= y_max)
 }
 
-fn pick_random_inactive<R: RngExt>(rng: &mut R, kinds: &[Option<ExtraFieldKind>]) -> Option<usize> {
-    let inactive: Vec<usize> = kinds
-        .iter()
-        .enumerate()
-        .filter_map(|(i, kind)| kind.is_none().then_some(i))
-        .collect();
-    (!inactive.is_empty())
-        .then(|| rng.random_range(0..inactive.len()))
-        .and_then(|i| inactive.get(i).copied())
+fn pick_next_inactive(kinds: &[Option<ExtraFieldKind>]) -> Option<usize> {
+    kinds.iter().position(Option::is_none)
 }
 
 pub fn spawn_fields(p: &mut ChildSpawnerCommands, g_sett: &GraphicsSettings, posis: [Vec3; 4]) {
@@ -117,71 +107,35 @@ fn release_tween() -> Tween {
     )
 }
 
-pub(super) fn on_level_up_field_system(
-    mut cmds: Commands,
-    mut evr: MessageReader<LevelUpEvent>,
-    q_field: Query<(Entity, &ExtraField, Has<Collider>)>,
-    assets: Res<PinballDefenseGltfAssets>,
-    tex: Res<PinballDefenseAssets>,
-    mut mats: ResMut<Assets<StandardMaterial>>,
-) {
-    if evr.read().next().is_none() {
-        return;
-    }
-    let mut rng = SmallRng::from_rng(&mut rand::rng());
-    let fields: Vec<(Entity, ExtraFieldKind, bool)> = q_field
-        .iter()
-        .map(|(id, field, active)| (id, field.kind(), active))
-        .collect();
-    let kinds: Vec<Option<ExtraFieldKind>> = fields
-        .iter()
-        .map(|(_, kind, active)| active.then_some(*kind))
-        .collect();
-    if let Some(i) = pick_random_inactive(&mut rng, &kinds)
-        && let Some(&(field_id, kind, _)) = fields.get(i)
-    {
-        activate_field(&mut cmds, field_id, kind, &assets, &tex, &mut mats);
-    }
-}
-
-pub(super) fn restore_fields_system(
+pub(super) fn update_fields_system(
     mut cmds: Commands,
     level: Res<LevelHub>,
-    mut evr: MessageReader<LevelUpEvent>,
     q_field: Query<(Entity, &ExtraField, Has<Collider>)>,
     assets: Res<PinballDefenseGltfAssets>,
     tex: Res<PinballDefenseAssets>,
     mut mats: ResMut<Assets<StandardMaterial>>,
 ) {
-    if !level.is_changed() || evr.read().next().is_some() {
+    if !level.is_changed() {
         return;
     }
-    let target = (u32::from(level.level()) / 3).min(4) as usize;
-    let active = q_field.iter().filter(|(_, _, active)| *active).count();
-    let mut missing = target.saturating_sub(active);
-    if missing == 0 {
-        return;
-    }
-    let mut rng = SmallRng::from_rng(&mut rand::rng());
+    let target = (u32::from(level.level()) / 4).min(4) as usize;
     let mut kinds: Vec<Option<ExtraFieldKind>> = q_field
         .iter()
-        .map(|(_, field, is_active)| is_active.then_some(field.kind()))
+        .map(|(_, field, active)| active.then_some(field.kind()))
         .collect();
     let entities: Vec<Entity> = q_field.iter().map(|(id, _, _)| id).collect();
-    while missing > 0 {
-        let Some(i) = pick_random_inactive(&mut rng, &kinds) else {
+    while kinds.iter().filter(|k| k.is_some()).count() < target
+        && let Some(i) = pick_next_inactive(&kinds)
+        && let Some(&field_id) = entities.get(i)
+    {
+        let Some(kind) = q_field.get(field_id).ok().map(|(_, field, _)| field.kind())
+        else {
             break;
         };
-        let Some(&field_id) = entities.get(i) else {
-            break;
-        };
-        if let Ok((_, field, _)) = q_field.get(field_id) {
-            if let Some(kind_slot) = kinds.get_mut(i) {
-                *kind_slot = Some(field.kind());
-            }
-            activate_field(&mut cmds, field_id, field.kind(), &assets, &tex, &mut mats);
+        if let Some(slot) = kinds.get_mut(i) {
+            *slot = Some(kind);
         }
-        missing -= 1;
+        activate_field(&mut cmds, field_id, kind, &assets, &tex, &mut mats);
     }
 }
 
@@ -237,40 +191,23 @@ pub(super) fn effect_flash_system(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rand::rngs::StdRng;
 
     #[test]
     fn extra_field_pick_returns_none_when_all_active() {
-        let mut rng = StdRng::seed_from_u64(42);
         let kinds = [
             Some(ExtraFieldKind::ExtraBall),
             Some(ExtraFieldKind::SlowDown),
             Some(ExtraFieldKind::DoubleDamage),
             Some(ExtraFieldKind::InstaKill),
         ];
-        assert_eq!(pick_random_inactive(&mut rng, &kinds), None);
+        assert_eq!(pick_next_inactive(&kinds), None);
     }
 
     #[test]
-    fn extra_field_pick_returns_some_when_inactive_exist() {
-        let mut rng = StdRng::seed_from_u64(42);
+    fn extra_field_pick_returns_first_inactive() {
         let kinds = [Some(ExtraFieldKind::ExtraBall), None, None, None];
-        assert!(pick_random_inactive(&mut rng, &kinds).is_some());
-    }
-
-    #[test]
-    fn extra_field_pick_never_returns_active_kind() {
-        let mut rng = StdRng::seed_from_u64(7);
-        let kinds = [
-            Some(ExtraFieldKind::ExtraBall),
-            None,
-            Some(ExtraFieldKind::InstaKill),
-            None,
-        ];
-        for _ in 0..100 {
-            let picked = pick_random_inactive(&mut rng, &kinds).unwrap();
-            assert!(kinds[picked].is_none());
-        }
+        assert_eq!(pick_next_inactive(&kinds), Some(1));
+        assert_eq!(pick_next_inactive(&[None, None, None, None]), Some(0));
     }
 
     #[test]

@@ -20,11 +20,7 @@ impl Plugin for ExtraFieldPlugin {
             .add_systems(OnEnter(GameState::Init), init_resources)
             .add_systems(
                 Update,
-                (
-                    field::on_level_up_field_system,
-                    field::restore_fields_system.after(field::on_level_up_field_system),
-                )
-                    .run_if(in_state(EventState::Active)),
+                field::update_fields_system.run_if(in_state(EventState::Active)),
             )
             .add_systems(
                 Update,
