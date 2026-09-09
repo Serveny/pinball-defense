@@ -35,11 +35,11 @@ impl FromWorld for ExtraFxAssets {
 fn trail_asset(name: &str, base: Vec4) -> EffectAsset {
     let mut module = Module::default();
     let center = module.lit(Vec3::ZERO);
-    let radius = module.lit(0.003);
-    let speed = module.lit(0.05);
+    let radius = module.lit(0.008);
+    let speed = module.lit(0.02);
     let age = module.lit(0.);
-    let lifetime = module.lit(0.15);
-    let drag = module.lit(3.);
+    let lifetime = module.lit(0.35);
+    let drag = module.lit(2.);
     let round = RoundModifier::ellipse(&mut module);
 
     let mut color = Gradient::new();
@@ -48,12 +48,12 @@ fn trail_asset(name: &str, base: Vec4) -> EffectAsset {
     color.add_key(1., Vec4::ZERO);
 
     let mut size = Gradient::new();
-    size.add_key(0., Vec3::splat(0.006));
-    size.add_key(1., Vec3::splat(0.001));
+    size.add_key(0., Vec3::splat(0.022));
+    size.add_key(1., Vec3::splat(0.004));
 
     EffectAsset::new(
-        32,
-        SpawnerSettings::rate(100.0.into()).with_starts_active(false),
+        256,
+        SpawnerSettings::rate(200.0.into()).with_starts_active(false),
         module,
     )
     .with_name(name)
@@ -94,12 +94,12 @@ fn snow_asset() -> EffectAsset {
     color.add_key(1., Vec4::new(0.6, 0.8, 1., 0.));
 
     let mut size = Gradient::new();
-    size.add_key(0., Vec3::splat(0.002));
-    size.add_key(1., Vec3::splat(0.004));
+    size.add_key(0., Vec3::splat(0.004));
+    size.add_key(1., Vec3::splat(0.008));
 
     EffectAsset::new(
-        128,
-        SpawnerSettings::rate(50.0.into()).with_starts_active(false),
+        256,
+        SpawnerSettings::rate(80.0.into()).with_starts_active(false),
         module,
     )
     .with_name("freeze_snow")
@@ -191,22 +191,32 @@ pub(super) fn toggle_fx_system(
 ) {
     let now = **ig_time;
     let insta = effects.is_active(now, ExtraFieldKind::InstaKill);
+    let double = effects.is_active(now, ExtraFieldKind::DoubleDamage);
+    let frozen = effects.is_active(now, ExtraFieldKind::SlowDown);
     for (mut spawner, trail) in q_trails.iter_mut() {
         let active = match trail.0 {
             ExtraFieldKind::InstaKill => insta,
-            ExtraFieldKind::DoubleDamage => {
-                effects.is_active(now, ExtraFieldKind::DoubleDamage) && !insta
-            }
+            ExtraFieldKind::DoubleDamage => double && !insta,
             _ => false,
         };
         if spawner.active != active {
             spawner.active = active;
         }
     }
-    let frozen = effects.is_active(now, ExtraFieldKind::SlowDown);
     for mut spawner in q_snow.iter_mut() {
         if spawner.active != frozen {
             spawner.active = frozen;
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn trail_asset_compiles() {
+        let _ = trail_asset("test", Vec4::new(1., 0., 0., 1.));
+        let _ = snow_asset();
     }
 }
