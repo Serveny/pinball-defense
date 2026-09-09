@@ -108,12 +108,13 @@ impl Wave {
     fn prepare_next_wave(&mut self, now: f32) {
         self.number += 1;
         self.next_enemy_spawn_time = (now + TIME_BETWEEN_WAVES).round();
-        self.time_between_enemies *= 0.999;
+        self.time_between_enemies =
+            (BASE_TIME_BETWEEN_ENEMIES * 0.97f32.powi(i32::try_from(self.number).unwrap_or(i32::MAX)))
+                .max(MIN_TIME_BETWEEN_ENEMIES);
         self.roll_wave_kind();
-        let count = self.number * 3 / 2;
         self.enemies_count = match self.kind {
-            EnemyKind::Tank => count / 3,
-            _ => count,
+            EnemyKind::Tank => enemies_per_wave(self.number) / 3,
+            _ => enemies_per_wave(self.number),
         };
         self.announce_pending = true;
         log!("🏄‍♂️ Wave end. Wait until {}", self.next_enemy_spawn_time);
@@ -183,7 +184,14 @@ fn spawn_kind(wave_kind: EnemyKind, number: usize) -> EnemyKind {
     }
 }
 
+#[allow(clippy::cast_precision_loss, clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+fn enemies_per_wave(wave: usize) -> usize {
+    (f32::from(u16::try_from(wave).unwrap_or(u16::MAX)).powf(1.25)) as usize
+}
+
 const TIME_BETWEEN_WAVES: f32 = 12.;
+const BASE_TIME_BETWEEN_ENEMIES: f32 = 1.;
+const MIN_TIME_BETWEEN_ENEMIES: f32 = 0.3;
 
 fn start_wave_system(
     mut wave: ResMut<Wave>,
@@ -237,6 +245,22 @@ mod tests {
 
     fn kinds<R: RngExt>(number: usize, cooldown: usize, rng: &mut R) -> EnemyKind {
         decide_wave_kind(number, cooldown, rng).0
+    }
+
+    #[test]
+    fn enemy_count_grows_sublinearly() {
+        assert_eq!(enemies_per_wave(1), 1);
+        assert_eq!(enemies_per_wave(2), 2);
+        assert_eq!(enemies_per_wave(5), 7);
+        assert_eq!(enemies_per_wave(10), 17);
+        assert_eq!(enemies_per_wave(50), 132);
+        assert_eq!(enemies_per_wave(100), 316);
+        for wave in [1, 10, 50, 100] {
+            assert!(
+                enemies_per_wave(wave) > enemies_per_wave(wave - 1),
+                "wave {wave} must grow"
+            );
+        }
     }
 
     #[test]

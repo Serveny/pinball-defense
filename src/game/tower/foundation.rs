@@ -51,7 +51,10 @@ pub(super) fn on_spawn_system(
     g_sett: Res<GraphicsSettings>,
     level: Res<LevelHub>,
 ) {
-    for _ in evr.read() {
+    for LevelUpEvent(new_level) in evr.read() {
+        if new_level % 2 == 0 {
+            continue;
+        }
         if let Some((mark_id, mut mark, trans)) = q_mark.iter_mut().find(|mark| mark.1.is_available)
         {
             let pos = trans.translation;
