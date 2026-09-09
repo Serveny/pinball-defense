@@ -10,6 +10,8 @@ claim   Rent the next free .worktrees/slot-N, reset it to main, mark it with the
 release Finish a task: merge/cherry-pick ALL commits into main first, then run.
         Refuses if the slot has uncommitted changes (incl. untracked files)
         or unmerged commits on slot-N (next claim would reset --hard main).
+        Run only on explicit user request; agents must not merge into main
+        on their own.
 list    Show slots: free or busy (with slug and age).
 EOF
 }
