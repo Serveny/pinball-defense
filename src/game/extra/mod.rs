@@ -20,11 +20,7 @@ impl Plugin for ExtraFieldPlugin {
             .add_systems(OnEnter(GameState::Init), init_resources)
             .add_systems(
                 Update,
-                (
-                    field::on_level_up_field_system,
-                    field::restore_fields_system.after(field::on_level_up_field_system),
-                )
-                    .run_if(in_state(EventState::Active)),
+                field::update_fields_system.run_if(in_state(EventState::Active)),
             )
             .add_systems(
                 Update,
@@ -62,10 +58,10 @@ pub enum ExtraFieldKind {
     InstaKill,
 }
 
-pub const SLOW_DOWN_HITS: u32 = 2;
-pub const DOUBLE_DAMAGE_HITS: u32 = 4;
-pub const EXTRA_BALL_HITS: u32 = 6;
-pub const INSTA_KILL_HITS: u32 = 8;
+pub const SLOW_DOWN_HITS: u32 = 4;
+pub const DOUBLE_DAMAGE_HITS: u32 = 8;
+pub const EXTRA_BALL_HITS: u32 = 12;
+pub const INSTA_KILL_HITS: u32 = 16;
 
 impl ExtraFieldKind {
     pub fn color(self) -> Color {

@@ -9,7 +9,7 @@ use crate::game::enemy::Enemy;
 use crate::prelude::*;
 use moonshine_save::prelude::Save;
 
-const EFFECT_SECS: f32 = 5.;
+const EFFECT_SECS: f32 = 10.;
 
 #[derive(Component)]
 pub struct BonusBall;
