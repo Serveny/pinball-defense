@@ -1,6 +1,7 @@
 mod charge;
 pub(crate) mod effects;
 mod field;
+mod fx;
 
 pub use effects::ActiveEffects;
 pub use field::spawn_fields;
@@ -17,6 +18,7 @@ impl Plugin for ExtraFieldPlugin {
         app.add_message::<ExtraFieldFireEvent>()
             .add_message::<ExtraFieldUnlockEvent>()
             .init_resource::<ActiveEffects>()
+            .init_resource::<fx::ExtraFxAssets>()
             .add_systems(OnEnter(GameState::Init), init_resources)
             .add_systems(
                 Update,
@@ -36,12 +38,18 @@ impl Plugin for ExtraFieldPlugin {
                 (
                     effects::slow_reapply_system.after(recover_speed_system),
                     charge::rewind_on_effect_end_system,
+                    fx::toggle_fx_system,
                 )
                     .run_if(in_state(GameState::Ingame)),
             )
             .add_systems(
                 Update,
-                field::effect_flash_system.run_if(in_state(GameState::Ingame)),
+                (
+                    field::effect_flash_system,
+                    fx::spawn_ball_trails_system,
+                    fx::spawn_enemy_snow_system,
+                )
+                    .run_if(in_state(GameState::Ingame)),
             );
     }
 }
