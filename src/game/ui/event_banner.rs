@@ -110,7 +110,7 @@ fn level_up_unlocks(level: Level) -> String {
     format!("\nUnlocks\n{}", unlocks.join("\n"))
 }
 
-fn extra_field_unlock_line(kind: crate::game::extra_field::ExtraFieldKind) -> String {
+fn extra_field_unlock_line(kind: crate::game::extra::ExtraFieldKind) -> String {
     format!("EXTRA FIELD: {}", kind.label())
 }
 
@@ -230,11 +230,11 @@ pub(super) fn on_level_up_system(
 }
 
 pub(super) fn on_extra_field_unlock_system(
-    mut evr: MessageReader<crate::game::extra_field::ExtraFieldUnlockEvent>,
+    mut evr: MessageReader<crate::game::extra::ExtraFieldUnlockEvent>,
     mut q_banner: Query<&mut Text, With<BannerKind>>,
     q_banner_kind: Query<&BannerKind>,
 ) {
-    for crate::game::extra_field::ExtraFieldUnlockEvent(kind) in evr.read() {
+    for crate::game::extra::ExtraFieldUnlockEvent(kind) in evr.read() {
         let line = extra_field_unlock_line(*kind);
         for (mut text, banner_kind) in q_banner.iter_mut().zip(q_banner_kind.iter()) {
             let BannerType::LevelUp { .. } = banner_kind.0 else {

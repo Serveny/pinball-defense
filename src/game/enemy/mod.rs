@@ -3,7 +3,7 @@ use self::walk::{RoadEndReachedEvent, WALK_SPEED, on_road_end_reached_system, wa
 use super::audio::SoundEvent;
 use super::ball::PinBall;
 use super::events::collision::GameLayer;
-use super::extra_field::ActiveEffects;
+use super::extra::ActiveEffects;
 use super::health::{ChangeHealthEvent, Health, HealthEmptyEvent};
 use super::level::{BallCollisionPoints, PointsEvent, PointsKind};
 use super::{EventState, IngameTime, ui};
@@ -280,7 +280,7 @@ fn on_pinball_hit_system(
         log!("😵 Pinball hits enemy {:?}", *id);
         health_ev.write(ChangeHealthEvent::new(
             *id,
-            crate::game::extra_field_effects::ball_damage(&effects, **ig_time, health.max()),
+            super::extra::effects::ball_damage(&effects, **ig_time, health.max()),
             None,
         ));
         if slow_down.0 < 1. {

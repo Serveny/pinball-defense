@@ -2,19 +2,6 @@
 
 Pinball-Defense is a hybrid **Pinball + Tower Defense** game. 
 
-### Tech Stack
-
-- **Rust** (edition 2024) + **Bevy 0.19**
-- **avian2d 0.7** (2D physics), **bevy_asset_loader**, **bevy_tweening**, **moonshine-save**
-- Blender (3D models + path generation via Python scripts in `src/blender_scripts`)
-
-### Development
-
-- Run: `cargo run`
-- Lint: `cargo clippy`
-- Re-export assets: run Blender scripts in `src/blender_scripts` (e.g. `bpy_export_all_gltf.py`, `bpy_export_mesh_as_polyline.py`)
-- If asked for worktrees, use slots under `.worktrees`, load the `worktree-slot` skill (`.agents/skills/worktree-slot/SKILL.md`) and use `.agents/skills/worktree-slot/slot.sh` (claim/release/list).
-
 ### Project Structure
 
 - `src/main.rs` — app entry, plugin wiring
@@ -24,6 +11,14 @@ Pinball-Defense is a hybrid **Pinball + Tower Defense** game.
 - `src/blender_scripts/` — Python export scripts
 - `assets/` — models, textures, etc.
 - `saves/` — savegame data
+
+### Development
+
+- For any Blender task, connect via the project MCP server `blender` (stdio → `blender-mcp` → TCP → Blender add-on on port 9876). Blender must be running with the MCP add-on enabled; if no tools answer, ask the user to start the add-on before falling back to headless `blender --background --python` scripts.
+- Run: `cargo run`
+- Lint: `cargo clippy`
+- Re-export assets: run Blender scripts in `src/blender_scripts` (e.g. `bpy_export_all_gltf.py`, `bpy_export_mesh_as_polyline.py`)
+- If asked for worktrees, use slots under `.worktrees`, load the `worktree-slot` skill (`.agents/skills/worktree-slot/SKILL.md`) and use `.agents/skills/worktree-slot/slot.sh` (claim/release/list).
 
 ## Rules
 

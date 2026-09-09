@@ -1,9 +1,11 @@
-use super::IngameTime;
-use super::audio::SoundEvent;
-use super::ball::{self, PinBall};
-use super::ball_starter::BallSpawn;
-use super::enemy::Enemy;
-use super::extra_field::{ActiveEffects, ExtraFieldFireEvent, ExtraFieldKind, lane_occupied};
+use super::ExtraFieldFireEvent;
+use super::ExtraFieldKind;
+use super::field::lane_occupied;
+use crate::game::IngameTime;
+use crate::game::audio::SoundEvent;
+use crate::game::ball::{self, PinBall};
+use crate::game::ball_starter::BallSpawn;
+use crate::game::enemy::Enemy;
 use crate::prelude::*;
 use moonshine_save::prelude::Save;
 
@@ -12,7 +14,7 @@ const EFFECT_SECS: f32 = 5.;
 #[derive(Component)]
 pub struct BonusBall;
 
-pub fn on_extra_field_fire_system(
+pub(super) fn on_extra_field_fire_system(
     mut cmds: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -28,16 +30,17 @@ pub fn on_extra_field_fire_system(
             ExtraFieldKind::SlowDown => effects.slow_until = **ig_time + EFFECT_SECS,
             ExtraFieldKind::DoubleDamage => effects.double_damage_until = **ig_time + EFFECT_SECS,
             ExtraFieldKind::InstaKill => effects.insta_kill_until = **ig_time + EFFECT_SECS,
-            ExtraFieldKind::ExtraBall => {
-                let balls: Vec<Vec3> = q_ball.iter().map(|tf| tf.translation).collect();
-                if lane_occupied(ball_spawn.0, &balls) {
-                    // ponytail: skipped spawn when lane occupied; queue if it matters in playtesting
-                    log!("🚫 Extra ball skipped: lane occupied");
-                } else {
-                    let ball_id = ball::spawn(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
-                    cmds.entity(ball_id).insert(BonusBall).remove::<Save>();
-                    sound_ev.write(SoundEvent::ExtraFieldFire);
-                }
+            ExtraFieldKind::ExtraBall => effects.extra_ball_until = **ig_time + EFFECT_SECS,
+        }
+        if let ExtraFieldKind::ExtraBall = kind {
+            let balls: Vec<Vec3> = q_ball.iter().map(|tf| tf.translation).collect();
+            if lane_occupied(ball_spawn.0, &balls) {
+                // ponytail: skipped spawn when lane occupied; queue if it matters in playtesting
+                log!("🚫 Extra ball skipped: lane occupied");
+            } else {
+                let ball_id = ball::spawn(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
+                cmds.entity(ball_id).insert(BonusBall).remove::<Save>();
+                sound_ev.write(SoundEvent::ExtraFieldFire);
             }
         }
     }
@@ -53,7 +56,7 @@ pub fn ball_damage(effects: &ActiveEffects, now: f32, enemy_max_health: f32) -> 
     }
 }
 
-pub fn slow_reapply_system(
+pub(super) fn slow_reapply_system(
     effects: Res<ActiveEffects>,
     ig_time: Res<IngameTime>,
     mut q_enemy: Query<&mut Enemy>,
@@ -63,6 +66,26 @@ pub fn slow_reapply_system(
     }
     for mut enemy in q_enemy.iter_mut() {
         enemy.slow_down(0.5);
+    }
+}
+
+#[derive(Resource, Default)]
+#[allow(clippy::struct_field_names)]
+pub struct ActiveEffects {
+    pub slow_until: f32,
+    pub double_damage_until: f32,
+    pub insta_kill_until: f32,
+    pub extra_ball_until: f32,
+}
+
+impl ActiveEffects {
+    pub fn is_active(&self, now: f32, which: ExtraFieldKind) -> bool {
+        match which {
+            ExtraFieldKind::SlowDown => now < self.slow_until,
+            ExtraFieldKind::DoubleDamage => now < self.double_damage_until,
+            ExtraFieldKind::InstaKill => now < self.insta_kill_until,
+            ExtraFieldKind::ExtraBall => now < self.extra_ball_until,
+        }
     }
 }
 
@@ -79,6 +102,9 @@ mod tests {
         assert!(!effects.is_active(5., ExtraFieldKind::SlowDown));
         assert!(!effects.is_active(5.1, ExtraFieldKind::SlowDown));
         assert!(!effects.is_active(4.9, ExtraFieldKind::ExtraBall));
+        effects.extra_ball_until = 5.;
+        assert!(effects.is_active(4.9, ExtraFieldKind::ExtraBall));
+        assert!(!effects.is_active(5., ExtraFieldKind::ExtraBall));
     }
 
     #[test]

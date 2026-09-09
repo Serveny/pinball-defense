@@ -11,11 +11,22 @@
 - Extra fields:
   - Extra-Ball-Field: Hit it and the ball starter will insert new ball
   - Slow-Down-Field: Hit it and the enemies a slower for 5s
+    - Add freeze effect on enemies
   - Double-Damage-Field: Hit it and ball will make double damage for 5s
   - Insta-Kill-Field: Hit it and for 5s the ball will kill every enemy it hits instantly
 - Fix ui progress bars pixel position (Green bar too small, white pixels at top)
 - Show particle effects on hit (enemy, tower, foundation, extra)
 - Game over menu: Pause game -> Activate free cam, update UI
+- Waves: More enemies and smaller gaps between enemies with every wave
+- Fix ball can't get out of starter
+- Fix extra ball starter
+- New foundation only every second level
+- Color of ball changes to extra color if instakill or double damage hit
+- extra ball more rare
+- lost ball more damage
+- Fix: tower hit should only effect ball which hitted the tower, not all balls
+- Fix wave number save
+- Glowing 3D progress bars
 
 ## Audio
 
@@ -30,109 +41,15 @@
   - slider 
 - Level Up sound
 - Next wave sound
+- Extra hit sound
+  - Extra-Ball-Field
+  - Slow-Down-Field
+  - Double-Damage-Field
+  - Insta-Kill 
+- Music change if extra was hit
 
 ## Modelling/Texturing
 
 - design enemies: normal, tank, speeder
 - extras field (Extra ball, more damage, etc)
-
-# Done
-
-- Remove all shadows in low graphics settings ✅
-- Automatic ball respawn, if it falls to bottom ✅
-- Tower foundation
-  - hit collider ✅
-  - status bar ✅
-  - blink light, when status bar is 100% on the tower foundation, which is selected to upgrade ✅
-  - animation for tower building ✅
-- show ingame tower menu, when status bar full ✅
-- menu spawn animation ✅
-- menu despawn animation ✅
-- loading screen ✅
-- enemy path following ✅
-- despawn enemy at path end ✅
-- collision with pinball and enemy ✅
-- enemy constant walk speed ✅
-- wave system: every wave one enemy more ✅
-- life system: progress bar get smaller when enemy reaches end ✅
-- life system: recovery of life over time ✅
-- performance: make lights invisible if not needed ✅
-- walk system without tweening ✅
-- optimize walk path ✅
-- enemy life bar ✅
-- refactor with multiple event reader ✅
-- point display (vintage style) ✅
-- generic pinball tower menu for variable count of cards ✅
-- point system ✅
-- tower progess bar reset after upgrade ✅
-- level display ✅
-- tower level ✅
-- towers logic
-  - target system ✅
-  - shoot/damage system ✅
-  - (special effects)
-  - upgrade system ✅
-- generate some flipper test sound files ✅
-- audio asset loading system ✅
-- audio player system ✅
-- menu elements always in same order ✅
-- enemy life points ✅
-- fix recovery system ✅
-- pinball enemy hit takes 100 life points ✅
-- pinball hits end makes damage ✅
-- build markings ✅
-- one foundation spawn with one level ✅
-- level up light fx ✅
-- tower muzzle lights size to sight range ✅
-- sight radius light ✅
-- update sight radius light range at upgrade ✅
-- pause function ✅
-- pause menu ✅
-- audio settings menu ✅
-- hit count of foundation depends on which level they got spawned ✅
-- graphics settings menu ✅
-- bloom setting ✅
-- ball charger model ✅
-- replace level up lights through red level up alarm light at level counter ✅
-- damage upgrades on microwave tower makes enemies slightly more slower ✅
-- sounds:
-  - enemy hit sound ✅
-  - ball hits road end sound ✅
-  - enemy reached road end sound ✅
-  - tower build sound ✅
-  - tower upgrade sound ✅
-  - foundation hit sound ✅
-  - multiple foundation hit sounds ✅
-  - analog counter sound ✅
-  - ball charger/starter sound ✅
-  - pinball menu fade in/out sound ✅
-  - pinball menu active sound ✅
-  - pinball menu selected sound
-  - ball rolling sound ✅
-- enemies have color codings, more darker means more life/better enemies ✅
-- ui resize on window resize
-- Game over mechanic/screen ✅
-- Controls UI ✅
-- Main menu: ✅
-  - Load game ✅
-  - Start new game ✅
-  - Options ✅
-  - Exit ✅
-- game state Save/Load system ✅
-  - ui after back to main menü not resetted (bars visible) ✅
-  - Confim window only if not saved while pause menu open ✅
-  - Fix double progress bar after loading ✅
-- Pause animations if game is paused ✅
-- Fix hanging ball physics sometimes when hitting a tower ✅
-- UI: Show points where they are made: Progress blue, Damage red  ✅
-- Activate sound by default in release mode ✅
-- UI: Show points where they are made: Progress blue, Damage red ✅
-- UI scrollbar ✅
-- Game over screen statistics ✅
-- controller controls & menu ✅
-- enemy types:  ✅
-  - normal: no collision  ✅
-  - tanks: collision, slow ✅
-  - speeder: no collision, very fast, less life points ✅
-- enemy type spawn system ✅
-- Show wave count ingame (same like level counter) ✅
+- Ring progress bar (Circle with rotationg half circle as bar fill)

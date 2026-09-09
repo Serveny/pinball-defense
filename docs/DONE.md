@@ -1,0 +1,101 @@
+
+# Done
+
+- Remove all shadows in low graphics settings ✅
+- Automatic ball respawn, if it falls to bottom ✅
+- Tower foundation
+  - hit collider ✅
+  - status bar ✅
+  - blink light, when status bar is 100% on the tower foundation, which is selected to upgrade ✅
+  - animation for tower building ✅
+- show ingame tower menu, when status bar full ✅
+- menu spawn animation ✅
+- menu despawn animation ✅
+- loading screen ✅
+- enemy path following ✅
+- despawn enemy at path end ✅
+- collision with pinball and enemy ✅
+- enemy constant walk speed ✅
+- wave system: every wave one enemy more ✅
+- life system: progress bar get smaller when enemy reaches end ✅
+- life system: recovery of life over time ✅
+- performance: make lights invisible if not needed ✅
+- walk system without tweening ✅
+- optimize walk path ✅
+- enemy life bar ✅
+- refactor with multiple event reader ✅
+- point display (vintage style) ✅
+- generic pinball tower menu for variable count of cards ✅
+- point system ✅
+- tower progess bar reset after upgrade ✅
+- level display ✅
+- tower level ✅
+- towers logic
+  - target system ✅
+  - shoot/damage system ✅
+  - (special effects)
+  - upgrade system ✅
+- generate some flipper test sound files ✅
+- audio asset loading system ✅
+- audio player system ✅
+- menu elements always in same order ✅
+- enemy life points ✅
+- fix recovery system ✅
+- pinball enemy hit takes 100 life points ✅
+- pinball hits end makes damage ✅
+- build markings ✅
+- one foundation spawn with one level ✅
+- level up light fx ✅
+- tower muzzle lights size to sight range ✅
+- sight radius light ✅
+- update sight radius light range at upgrade ✅
+- pause function ✅
+- pause menu ✅
+- audio settings menu ✅
+- hit count of foundation depends on which level they got spawned ✅
+- graphics settings menu ✅
+- bloom setting ✅
+- ball charger model ✅
+- replace level up lights through red level up alarm light at level counter ✅
+- damage upgrades on microwave tower makes enemies slightly more slower ✅
+- sounds:
+  - enemy hit sound ✅
+  - ball hits road end sound ✅
+  - enemy reached road end sound ✅
+  - tower build sound ✅
+  - tower upgrade sound ✅
+  - foundation hit sound ✅
+  - multiple foundation hit sounds ✅
+  - analog counter sound ✅
+  - ball charger/starter sound ✅
+  - pinball menu fade in/out sound ✅
+  - pinball menu active sound ✅
+  - pinball menu selected sound
+  - ball rolling sound ✅
+- enemies have color codings, more darker means more life/better enemies ✅
+- ui resize on window resize
+- Game over mechanic/screen ✅
+- Controls UI ✅
+- Main menu: ✅
+  - Load game ✅
+  - Start new game ✅
+  - Options ✅
+  - Exit ✅
+- game state Save/Load system ✅
+  - ui after back to main menü not resetted (bars visible) ✅
+  - Confim window only if not saved while pause menu open ✅
+  - Fix double progress bar after loading ✅
+- Pause animations if game is paused ✅
+- Fix hanging ball physics sometimes when hitting a tower ✅
+- UI: Show points where they are made: Progress blue, Damage red  ✅
+- Activate sound by default in release mode ✅
+- UI: Show points where they are made: Progress blue, Damage red ✅
+- UI scrollbar ✅
+- Game over screen statistics ✅
+- controller controls & menu ✅
+- enemy types:  ✅
+  - normal: no collision  ✅
+  - tanks: collision, slow ✅
+  - speeder: no collision, very fast, less life points ✅
+- enemy type spawn system ✅
+- Show wave count ingame (same like level counter) ✅

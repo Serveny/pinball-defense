@@ -4,7 +4,7 @@ use super::audio::SoundEvent;
 use super::controls::KeyboardControls;
 use super::enemy::Enemy;
 use super::events::collision::GameLayer;
-use super::extra_field_effects::BonusBall;
+use super::extra::effects::BonusBall;
 use super::health::ChangeHealthEvent;
 use super::level::{BallCollisionPoints, PointsEvent};
 use super::pinball_menu::PinballMenuEvent;

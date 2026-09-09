@@ -23,6 +23,18 @@ pub struct PinballDefenseAssets {
 
     #[asset(path = "textures/mini_sign_wave.png")]
     pub mini_sign_wave: Handle<Image>,
+
+    #[asset(path = "textures/extra_fields/extra_ball.png")]
+    pub extra_ball_icon: Handle<Image>,
+
+    #[asset(path = "textures/extra_fields/slow_down.png")]
+    pub slow_down_icon: Handle<Image>,
+
+    #[asset(path = "textures/extra_fields/double_damage.png")]
+    pub double_damage_icon: Handle<Image>,
+
+    #[asset(path = "textures/extra_fields/instakill.png")]
+    pub insta_kill_icon: Handle<Image>,
 }
 
 #[derive(Resource, Reflect, Default)]
@@ -66,9 +78,17 @@ pub struct PinballDefenseGltfAssets {
     pub progress_bar: Handle<Mesh>,
     pub progress_bar_frame: Handle<Mesh>,
 
+    // Radial progress bar
+    pub radial_progress_bar: Handle<Mesh>,
+    pub radial_progress_casing: Handle<Mesh>,
+
     // Road
     pub road_mesh: Handle<Mesh>,
     pub road_material: Handle<StandardMaterial>,
+
+    // Extra field
+    pub extra_field: Handle<Mesh>,
+    pub extra_field_ring: Handle<Mesh>,
 
     // Tower
     pub tower_base: Handle<Mesh>,
@@ -192,7 +212,7 @@ fn set_appstate_if_finished(
 #[derive(Resource, Default)]
 struct GltfHandle(Handle<Gltf>);
 
-const GLTF_PATH: &str = "models/gltf/world.glb";
+const GLTF_PATH: &str = "models/world.glb";
 
 fn init_gltf_load(mut cmds: Commands, ass: Res<AssetServer>) {
     let handle = ass.load(GLTF_PATH);
