@@ -62,10 +62,10 @@ pub enum ExtraFieldKind {
     InstaKill,
 }
 
-pub const SLOW_DOWN_HITS: u32 = 2;
-pub const DOUBLE_DAMAGE_HITS: u32 = 4;
-pub const EXTRA_BALL_HITS: u32 = 6;
-pub const INSTA_KILL_HITS: u32 = 8;
+pub const SLOW_DOWN_HITS: u32 = 4;
+pub const DOUBLE_DAMAGE_HITS: u32 = 8;
+pub const EXTRA_BALL_HITS: u32 = 12;
+pub const INSTA_KILL_HITS: u32 = 16;
 
 impl ExtraFieldKind {
     pub fn color(self) -> Color {
