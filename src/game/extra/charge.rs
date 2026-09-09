@@ -24,7 +24,7 @@ pub(super) fn on_charge_system(
     effects: Res<ActiveEffects>,
     ig_time: Res<IngameTime>,
 ) {
-    for CollisionWithBallEvent(id) in evr.read() {
+    for CollisionWithBallEvent(_, id) in evr.read() {
         if let Ok(field) = q_field.get(*id) {
             let rewinding = q_bar
                 .iter()

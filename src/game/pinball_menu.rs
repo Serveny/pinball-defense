@@ -425,7 +425,7 @@ fn on_execute_system(
     q_upgrade_menu_els: QueryUpgradeMenuEls,
     q_selected: Query<(Entity, &Transform), With<PinballMenuSelected>>,
 ) {
-    for CollisionWithBallEvent(id) in evr.read() {
+    for CollisionWithBallEvent(_, id) in evr.read() {
         let Ok(pb_menu) = q_pb_menu.single() else {
             continue;
         };

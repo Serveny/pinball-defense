@@ -184,7 +184,7 @@ fn on_ball_despawn_system(
 }
 
 #[derive(Message, Debug)]
-pub struct CollisionWithBallEvent(pub Entity);
+pub struct CollisionWithBallEvent(pub Entity, pub Entity);
 
 fn on_collision_with_ball_system(
     mut coll_ev: MessageReader<CollisionStart>,
@@ -202,7 +202,7 @@ fn on_collision_with_ball_system(
         } else {
             continue;
         };
-        coll_with_ball_ev.write(CollisionWithBallEvent(other_id));
+        coll_with_ball_ev.write(CollisionWithBallEvent(ball_id, other_id));
         if !q_frame.contains(other_id)
             && let Ok(points) = q_points.get(other_id)
             && let Ok((_, ball_tf)) = q_ball.get(ball_id)
@@ -218,7 +218,7 @@ fn on_wall_collision_system(
     q_wall: Query<Entity, With<WorldFrame>>,
 ) {
     for ev in evr.read() {
-        if q_wall.contains(ev.0) {
+        if q_wall.contains(ev.1) {
             sound_ev.write(SoundEvent::BallHitsWall);
         }
     }
@@ -248,7 +248,7 @@ fn enemy_ball_overlap_system(
             {
                 now_overlapping.insert(enemy_id);
                 if !prev.contains(&enemy_id) {
-                    coll_with_ball_ev.write(CollisionWithBallEvent(enemy_id));
+                    coll_with_ball_ev.write(CollisionWithBallEvent(ball_id, enemy_id));
                 }
             }
         }
