@@ -328,7 +328,7 @@ fn on_progress_system(
     mut sound_ev: MessageWriter<SoundEvent>,
     q_tower: Query<Entity, With<Tower>>,
 ) {
-    evr.read().for_each(|CollisionWithBallEvent(id)| {
+    evr.read().for_each(|CollisionWithBallEvent(_, id)| {
         // *flag != CollisionEventFlags::SENSOR &&
         if q_tower.contains(*id) {
             prog_bar_ev.write(ProgressBarCountUpEvent::new(*id, CONFIG.tower_hit_progress));
@@ -342,17 +342,17 @@ fn on_ball_kick_system(
     q_tower: Query<&Transform, With<Tower>>,
     mut q_ball: Query<(&Transform, &mut LinearVelocity), With<PinBall>>,
 ) {
-    for CollisionWithBallEvent(tower_id) in evr.read() {
+    for CollisionWithBallEvent(ball_id, tower_id) in evr.read() {
         let Ok(tower_tf) = q_tower.get(*tower_id) else {
             continue;
         };
-        // ponytail: applies to all balls; per-ball attribution needs an event refactor
-        for (ball_tf, mut ball_vel) in q_ball.iter_mut() {
-            let dir = (ball_tf.translation.truncate() - tower_tf.translation.truncate())
-                .try_normalize()
-                .unwrap_or(Vec2::X);
-            ball_vel.0 += dir * CONFIG.tower_kick_velocity;
-        }
+        let Ok((ball_tf, mut ball_vel)) = q_ball.get_mut(*ball_id) else {
+            continue;
+        };
+        let dir = (ball_tf.translation.truncate() - tower_tf.translation.truncate())
+            .try_normalize()
+            .unwrap_or(Vec2::X);
+        ball_vel.0 += dir * CONFIG.tower_kick_velocity;
     }
 }
 

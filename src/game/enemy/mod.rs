@@ -273,7 +273,7 @@ fn on_pinball_hit_system(
     effects: Res<ActiveEffects>,
     ig_time: Res<IngameTime>,
 ) {
-    for CollisionWithBallEvent(id) in evr.read() {
+    for CollisionWithBallEvent(ball_id, id) in evr.read() {
         let Ok((_, slow_down, health)) = q_enemy.get(*id) else {
             continue;
         };
@@ -283,11 +283,10 @@ fn on_pinball_hit_system(
             crate::game::extra_field_effects::ball_damage(&effects, **ig_time, health.max()),
             None,
         ));
-        if slow_down.0 < 1. {
-            // ponytail: applies to all balls; per-ball attribution needs an event refactor
-            for mut vel in q_ball.iter_mut() {
-                **vel *= slow_down.0;
-            }
+        if slow_down.0 < 1.
+            && let Ok(mut vel) = q_ball.get_mut(*ball_id)
+        {
+            **vel *= slow_down.0;
         }
         sound_ev.write(SoundEvent::BallHitsEnemy);
     }

@@ -316,7 +316,7 @@ fn on_charge_system(
     mut evr: MessageReader<CollisionWithBallEvent>,
     q_field: Query<&ExtraField>,
 ) {
-    for CollisionWithBallEvent(id) in evr.read() {
+    for CollisionWithBallEvent(_, id) in evr.read() {
         if let Ok(field) = q_field.get(*id) {
             prog_bar_ev.write(ProgressBarCountUpEvent::new(
                 *id,

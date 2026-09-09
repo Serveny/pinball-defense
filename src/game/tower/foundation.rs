@@ -280,7 +280,7 @@ pub(super) fn on_progress_system(
     mut sound_ev: MessageWriter<SoundEvent>,
     q_tower_foundation: Query<&TowerFoundation, With<TowerFoundation>>,
 ) {
-    for CollisionWithBallEvent(id) in evr.read() {
+    for CollisionWithBallEvent(_, id) in evr.read() {
         // if *flag == CollisionEventFlags::SENSOR {
         if let Ok(foundation) = q_tower_foundation.get(*id) {
             prog_bar_ev.write(ProgressBarCountUpEvent::new(*id, foundation.hit_progress));
