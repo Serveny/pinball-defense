@@ -118,7 +118,10 @@ fn hue_shifted(hue: f32, alpha: f32) -> Color {
 }
 
 fn level_up_unlocks(level: Level) -> String {
-    let mut unlocks: Vec<String> = vec!["NEW TOWER FOUNDATION".into()];
+    let mut unlocks: Vec<String> = Vec::new();
+    if crate::game::tower::foundation::spawns_on_level_up(level) {
+        unlocks.push("NEW TOWER FOUNDATION".into());
+    }
     match crate::game::pinball_menu::new_tower_unlock(level) {
         Some(TowerType::Tesla) => unlocks.push("TESLA TOWER".into()),
         Some(TowerType::Microwave) => unlocks.push("MICROWAVE TOWER".into()),

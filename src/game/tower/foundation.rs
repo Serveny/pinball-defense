@@ -2,7 +2,7 @@ use crate::game::audio::SoundEvent;
 use crate::game::ball::CollisionWithBallEvent;
 use crate::game::events::collision::GameLayer;
 use crate::game::events::tween_completed::AfterTween;
-use crate::game::level::{BallCollisionPoints, LevelHub, LevelUpEvent};
+use crate::game::level::{BallCollisionPoints, Level, LevelHub, LevelUpEvent};
 use crate::game::light::{FlashLight, LightOnCollision, contact_light_bundle, disable_flash_light};
 use crate::game::pinball_menu::{PinballMenuTrigger, TowerMenuExecuteEvent};
 use crate::game::progress::{self, Progress, ProgressBarCountUpEvent};
@@ -41,6 +41,27 @@ pub(super) struct TowerFoundationTop;
 #[derive(Component)]
 pub(super) struct TowerFoundationBottom;
 
+pub(crate) fn spawns_on_level_up(new_level: Level) -> bool {
+    new_level % 2 == 1
+}
+
+fn spawns_on_event(new_level: Level, current_level: Level) -> bool {
+    spawns_on_level_up(new_level) && new_level == current_level
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn foundation_replayed_level_ups_do_not_spawn() {
+        assert!(spawns_on_event(5, 5));
+        assert!(!spawns_on_event(4, 4));
+        assert!(!spawns_on_event(3, 10));
+        assert!(!spawns_on_event(2, 10));
+    }
+}
+
 pub(super) fn on_spawn_system(
     mut cmds: Commands,
     mut evr: MessageReader<LevelUpEvent>,
@@ -52,7 +73,7 @@ pub(super) fn on_spawn_system(
     level: Res<LevelHub>,
 ) {
     for LevelUpEvent(new_level) in evr.read() {
-        if new_level % 2 == 0 {
+        if !spawns_on_event(*new_level, level.level()) {
             continue;
         }
         if let Some((mark_id, mut mark, trans)) = q_mark.iter_mut().find(|mark| mark.1.is_available)
