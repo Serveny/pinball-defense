@@ -3,7 +3,7 @@ use self::walk::{RoadEndReachedEvent, WALK_SPEED, on_road_end_reached_system, wa
 use super::audio::SoundEvent;
 use super::ball::PinBall;
 use super::events::collision::GameLayer;
-use super::extra::ActiveEffects;
+use super::extra::{ActiveEffects, ExtraFieldKind};
 use super::health::{ChangeHealthEvent, Health, HealthEmptyEvent};
 use super::level::{BallCollisionPoints, PointsEvent, PointsKind};
 use super::{EventState, IngameTime, ui};
@@ -37,6 +37,10 @@ impl Plugin for EnemyPlugin {
             .add_systems(
                 Update,
                 (walk_system, recover_speed_system).run_if(in_state(GameState::Ingame)),
+            )
+            .add_systems(
+                Update,
+                freeze_tint_system.run_if(in_state(GameState::Ingame)),
             )
             .add_systems(
                 Update,
@@ -289,6 +293,27 @@ fn on_pinball_hit_system(
             **vel *= slow_down.0;
         }
         sound_ev.write(SoundEvent::BallHitsEnemy);
+    }
+}
+
+const FREEZE_TINT: Color = Color::srgb(0.6, 0.8, 1.);
+
+fn freeze_tint_system(
+    effects: Res<ActiveEffects>,
+    ig_time: Res<IngameTime>,
+    mut q_enemy: Query<(&Enemy, &MeshMaterial3d<StandardMaterial>)>,
+    mut mats: ResMut<Assets<StandardMaterial>>,
+) {
+    let frozen = effects.is_active(**ig_time, ExtraFieldKind::SlowDown);
+    for (enemy, mesh_material) in q_enemy.iter_mut() {
+        let Some(mut mat) = mats.get_mut(&mesh_material.0) else {
+            continue;
+        };
+        mat.base_color = if frozen {
+            FREEZE_TINT
+        } else {
+            enemy_color(enemy.wave)
+        };
     }
 }
 

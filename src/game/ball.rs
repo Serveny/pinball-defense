@@ -5,13 +5,15 @@ use super::controls::KeyboardControls;
 use super::enemy::Enemy;
 use super::events::collision::GameLayer;
 use super::extra::effects::BonusBall;
+use super::extra::{ActiveEffects, ExtraFieldKind};
 use super::health::ChangeHealthEvent;
 use super::level::{BallCollisionPoints, PointsEvent};
 use super::pinball_menu::PinballMenuEvent;
 use super::player_life::LifeBar;
 use super::world::WorldFrame;
+use crate::game::IngameTime;
 use crate::prelude::*;
-use bevy::color::palettes::css::GOLD;
+use bevy::color::palettes::css::{GOLD, ORANGE, RED};
 use bevy::math::primitives::Sphere;
 use bevy::platform::collections::{HashMap, HashSet};
 use moonshine_save::prelude::Save;
@@ -33,6 +35,7 @@ impl Plugin for BallPlugin {
                     clamp_ball_speed_system,
                     nudge_system,
                     enemy_ball_overlap_system,
+                    ball_tint_system,
                 )
                     .run_if(in_state(GameState::Ingame)),
             )
@@ -103,6 +106,26 @@ const X_RANGE: Range<f32> = -1.3..1.3;
 const Y_RANGE: Range<f32> = -0.72..0.72;
 const HIT_Y_RANGE: Range<f32> = -0.2..0.12;
 const MAX_BALL_SPEED: f32 = 10.;
+
+fn ball_tint_system(
+    effects: Res<ActiveEffects>,
+    ig_time: Res<IngameTime>,
+    mut q_ball: Query<&MeshMaterial3d<StandardMaterial>, With<PinBall>>,
+    mut mats: ResMut<Assets<StandardMaterial>>,
+) {
+    let color = if effects.is_active(**ig_time, ExtraFieldKind::InstaKill) {
+        RED.into()
+    } else if effects.is_active(**ig_time, ExtraFieldKind::DoubleDamage) {
+        ORANGE.into()
+    } else {
+        GOLD.into()
+    };
+    for mesh_material in q_ball.iter_mut() {
+        if let Some(mut mat) = mats.get_mut(&mesh_material.0) {
+            mat.base_color = color;
+        }
+    }
+}
 
 fn reattach_ball_system(
     mut cmds: Commands,
