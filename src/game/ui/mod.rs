@@ -66,6 +66,7 @@ impl Plugin for UiPlugin {
                 (
                     event_banner::on_level_up_system,
                     event_banner::on_extra_field_unlock_system,
+                    event_banner::on_extra_fire_system,
                     event_banner::on_wave_started_system,
                     event_banner::on_upgrade_ready_system,
                     event_banner::on_tower_upgraded_system,

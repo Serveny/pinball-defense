@@ -52,6 +52,7 @@ pub(super) enum BannerType {
     UpgradeReady,
     Upgraded(TowerUpgrade),
     BaseHit,
+    Extra(crate::game::extra::ExtraFieldKind),
 }
 
 impl BannerType {
@@ -63,6 +64,7 @@ impl BannerType {
             BannerType::UpgradeReady => "UPGRADE READY".into(),
             BannerType::Upgraded(_) => "TOWER UPGRADED".into(),
             BannerType::BaseHit => "BASE UNDER ATTACK".into(),
+            BannerType::Extra(kind) => kind.label().into(),
         }
     }
 
@@ -74,6 +76,7 @@ impl BannerType {
             BannerType::Upgraded(TowerUpgrade::Damage) => Some("DAMAGE".into()),
             BannerType::Upgraded(TowerUpgrade::Range) => Some("RANGE".into()),
             BannerType::UpgradeReady => Some("HIT THE UPGRADE CARD WITH THE BALL".into()),
+            BannerType::Extra(kind) => Some(format!("EXTRA TRIGGERED\n{}", extra_effect_text(kind))),
             _ => None,
         }
     }
@@ -87,7 +90,26 @@ impl BannerType {
             BannerType::UpgradeReady => 140.,
             BannerType::Upgraded(TowerUpgrade::Damage) | BannerType::BaseHit => 0.,
             BannerType::Upgraded(TowerUpgrade::Range) => 195.,
+            BannerType::Extra(kind) => extra_hue(kind),
         }
+    }
+}
+
+fn extra_hue(kind: crate::game::extra::ExtraFieldKind) -> f32 {
+    match kind {
+        crate::game::extra::ExtraFieldKind::ExtraBall => 50.,
+        crate::game::extra::ExtraFieldKind::SlowDown => 210.,
+        crate::game::extra::ExtraFieldKind::DoubleDamage => 30.,
+        crate::game::extra::ExtraFieldKind::InstaKill => 0.,
+    }
+}
+
+fn extra_effect_text(kind: crate::game::extra::ExtraFieldKind) -> String {
+    match kind {
+        crate::game::extra::ExtraFieldKind::ExtraBall => "BONUS BALL SPAWNED".into(),
+        crate::game::extra::ExtraFieldKind::SlowDown => "ENEMIES SLOWED FOR 5s".into(),
+        crate::game::extra::ExtraFieldKind::DoubleDamage => "DOUBLE DAMAGE FOR 5s".into(),
+        crate::game::extra::ExtraFieldKind::InstaKill => "INSTA-KILL FOR 5s".into(),
     }
 }
 
@@ -296,6 +318,18 @@ pub(super) fn on_tower_upgraded_system(
             slot,
             &assets,
         );
+    }
+}
+
+pub(super) fn on_extra_fire_system(
+    mut evr: MessageReader<crate::game::extra::ExtraFieldFireEvent>,
+    mut cmds: Commands,
+    assets: Res<PinballDefenseAssets>,
+    q_banner: Query<(), With<EventBanner>>,
+) {
+    for crate::game::extra::ExtraFieldFireEvent(kind) in evr.read() {
+        let slot = u32::try_from(q_banner.iter().count()).unwrap_or(0);
+        spawn_banner(&mut cmds, BannerType::Extra(*kind), 0, slot, &assets);
     }
 }
 
