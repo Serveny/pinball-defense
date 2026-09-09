@@ -7,8 +7,9 @@ Usage: slot.sh claim <task-slug> | release <slot> | list
 
 claim   Rent the next free .worktrees/slot-N, reset it to main, mark it with the slug.
         Never delete a slot directory: its target/ is the warm build cache.
-release Finish a task: save your work first (commit or merge), then run.
-        Removes only the .task marker; refuses if the slot has uncommitted changes.
+release Finish a task: merge/cherry-pick ALL commits into main first, then run.
+        Refuses if the slot has uncommitted changes (incl. untracked files)
+        or unmerged commits on slot-N (next claim would reset --hard main).
 list    Show slots: free or busy (with slug and age).
 EOF
 }
@@ -60,8 +61,13 @@ case "$cmd" in
       echo "$d has no .task marker" >&2
       exit 1
     fi
-    if [ -n "$(git -C "$d" status --porcelain --untracked-files=no)" ]; then
-      echo "refusing: $d has uncommitted changes. Commit/merge your work first, then release again." >&2
+    if [ -n "$(git -C "$d" status --porcelain)" ]; then
+      echo "refusing: $d has uncommitted changes (incl. untracked). Commit/merge your work first, then release again." >&2
+      echo "  discard on purpose? git -C '$d' reset --hard main && git -C '$d' clean -fd && rm '$d/.task'" >&2
+      exit 1
+    fi
+    if [ -n "$(git -C "$d" log --oneline main.."$(git -C "$d" rev-parse --abbrev-ref HEAD)")" ]; then
+      echo "refusing: $d has unmerged commits on $(git -C "$d" rev-parse --abbrev-ref HEAD). Merge/cherry-pick them into main first." >&2
       echo "  discard on purpose? git -C '$d' reset --hard main && git -C '$d' clean -fd && rm '$d/.task'" >&2
       exit 1
     fi

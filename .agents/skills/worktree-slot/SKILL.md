@@ -1,6 +1,6 @@
 ---
 name: worktree-slot
-description: Persistent worktree slots for this repo. Use whenever starting any coding task — claim a slot under .worktrees via .agents/skills/worktree-slot/slot.sh, work there, release it after committing. Slots keep target/ warm (no full Rust rebuilds).
+description: Persistent worktree slots for this repo. Use whenever starting any coding task — claim a slot under .worktrees via .agents/skills/worktree-slot/slot.sh, work there, release it only once its work is fully merged into main. Slots keep target/ warm (no full Rust rebuilds).
 ---
 
 # Slot system — persistent worktrees
@@ -23,10 +23,11 @@ Run from anywhere (inside slots included) — the script resolves the main repo 
 
 1. `claim <task-slug>` — first free slot is reset to `main` (`reset --hard` + `clean -fd`; only task leftovers are discarded, `target/` and ignored files stay) and marked with your slug + timestamp. Slots are created lazily up to 4.
 2. Do the work in the printed slot path; commit there on branch `slot-N`.
-3. `release <slot>` — refuses with a recovery hint if uncommitted changes remain; otherwise removes only the `.task` marker. Your committed work stays on branch `slot-N` until merged/cherry-picked.
+3. `release <slot>` — refuses unless ALL work in the slot is already in `main`. That means: no uncommitted changes (tracked or untracked) AND no unmerged commits (every `slot-N` commit merged/cherry-picked into `main`). Verify with `git -C <slot> log main..slot-N` — must be empty. Releasing with unmerged commits is a bug, not a valid state: the next `claim` runs `reset --hard main` on the slot, which silently destroys that work.
 
 ## Rules
 
+- Release is safe only when the slot is fully clean and fully merged. Never release with any unmerged commit or any uncommitted change left in the slot.
 - Never delete a slot directory or its `target/`.
 - Never call `git worktree remove` on a slot; `release` never does either.
 - If `claim` fails with "branch already exists" or "no free slot", run `list` and check `git branch --list 'slot-*'` for stale branches (`git branch -D slot-N` when its worktree is gone and its work is merged or abandoned).
