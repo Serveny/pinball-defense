@@ -4,6 +4,7 @@ use super::analog_counter::AnalogCounterSetEvent;
 use super::ball_starter::BallStarterFireEndEvent;
 use super::enemy::{Enemy, EnemyKind, SpawnEnemyEvent};
 use crate::prelude::*;
+use moonshine_save::load::Loaded;
 use rand::RngExt;
 use rand::SeedableRng;
 use rand::rngs::SmallRng;
@@ -13,6 +14,8 @@ pub struct WavePlugin;
 impl Plugin for WavePlugin {
     fn build(&self, app: &mut App) {
         app.add_message::<WaveStartedEvent>()
+            .register_type::<Wave>()
+            .add_observer(on_loaded_sync_wave)
             .add_systems(OnEnter(GameState::Init), init_resources)
             .add_systems(
                 Update,
@@ -56,8 +59,9 @@ fn init_resources(mut cmds: Commands) {
     cmds.insert_resource(Wave::default());
 }
 
-#[derive(Resource)]
-struct Wave {
+#[derive(Resource, Reflect)]
+#[reflect(Resource)]
+pub struct Wave {
     number: usize,
     enemies_count: usize,
     next_enemy_spawn_time: f32,
@@ -113,6 +117,14 @@ impl Wave {
         };
         self.announce_pending = true;
         log!("🏄‍♂️ Wave end. Wait until {}", self.next_enemy_spawn_time);
+    }
+
+    fn sync_to_loaded_state(&mut self, now: f32) {
+        if self.number > 0 {
+            self.started = true;
+            self.announce_pending = true;
+            self.next_enemy_spawn_time = (now + TIME_BETWEEN_WAVES).round();
+        }
     }
 
     fn roll_wave_kind(&mut self) {
@@ -183,6 +195,10 @@ fn start_wave_system(
     }
     wave.started = true;
     wave.prepare_next_wave(**ig_timer);
+}
+
+fn on_loaded_sync_wave(_: On<Loaded>, mut wave: ResMut<Wave>, ig_timer: Res<IngameTime>) {
+    wave.sync_to_loaded_state(**ig_timer);
 }
 
 fn wave_system(

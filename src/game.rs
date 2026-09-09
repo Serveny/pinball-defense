@@ -167,14 +167,18 @@ fn save_and_exit_system(
 
 fn start_game(
     mut cmds: Commands,
-    mut game_state: ResMut<NextState<GameState>>,
+    game_state: Res<State<GameState>>,
+    mut next_game_state: ResMut<NextState<GameState>>,
     mut ev_state: ResMut<NextState<EventState>>,
     mut ui_state: ResMut<NextState<UiState>>,
 ) {
-    game_state.set(GameState::Ingame);
+    let fresh_start = game_state.get() != &GameState::Pause;
+    if fresh_start {
+        cmds.insert_resource(IngameTime::default());
+    }
+    next_game_state.set(GameState::Ingame);
     ev_state.set(EventState::Active);
     ui_state.set(UiState::Controls);
-    cmds.insert_resource(IngameTime::default());
     cmds.insert_resource(player_life::GameOverDelay::default());
 }
 
