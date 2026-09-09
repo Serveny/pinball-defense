@@ -104,7 +104,9 @@ impl Wave {
     fn prepare_next_wave(&mut self, now: f32) {
         self.number += 1;
         self.next_enemy_spawn_time = (now + TIME_BETWEEN_WAVES).round();
-        self.time_between_enemies *= 0.999;
+        self.time_between_enemies =
+            (BASE_TIME_BETWEEN_ENEMIES * 0.97f32.powi(i32::try_from(self.number).unwrap_or(i32::MAX)))
+                .max(MIN_TIME_BETWEEN_ENEMIES);
         self.roll_wave_kind();
         let count = self.number * 3 / 2;
         self.enemies_count = match self.kind {
@@ -172,6 +174,8 @@ fn spawn_kind(wave_kind: EnemyKind, number: usize) -> EnemyKind {
 }
 
 const TIME_BETWEEN_WAVES: f32 = 12.;
+const BASE_TIME_BETWEEN_ENEMIES: f32 = 1.;
+const MIN_TIME_BETWEEN_ENEMIES: f32 = 0.15;
 
 fn start_wave_system(
     mut wave: ResMut<Wave>,

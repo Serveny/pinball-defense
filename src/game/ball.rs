@@ -131,7 +131,7 @@ fn ball_reset_system(
                 && HIT_Y_RANGE.contains(&ball_pos.y)
                 && let Ok(lifebar_id) = q_life_bar.single()
             {
-                health_ev.write(ChangeHealthEvent::new(lifebar_id, -5., None));
+                health_ev.write(ChangeHealthEvent::new(lifebar_id, -10., None));
             }
             log!("🎱 Despawn ball");
             cmds.entity(entity).try_despawn();
