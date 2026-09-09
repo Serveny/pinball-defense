@@ -5,10 +5,10 @@ use crate::game::IngameTime;
 use crate::prelude::*;
 use bevy::math::{Vec3, Vec4};
 use bevy_hanabi::{
-    AccelModifier, AlphaMode, Attribute, ColorOverLifetimeModifier, EffectAsset, EffectSpawner,
-    Gradient, LinearDragModifier, Module, ParticleEffect, RoundModifier, SetAttributeModifier,
-    SetPositionSphereModifier, SetVelocitySphereModifier, SetVelocityTangentModifier,
-    ShapeDimension, SimulationSpace, SizeOverLifetimeModifier, SpawnerSettings,
+    AlphaMode, Attribute, ColorOverLifetimeModifier, ConformToSphereModifier, EffectAsset,
+    EffectSpawner, Gradient, LinearDragModifier, Module, ParticleEffect, RoundModifier,
+    SetAttributeModifier, SetPositionSphereModifier, SetVelocitySphereModifier, ShapeDimension,
+    SimulationSpace, SizeOverLifetimeModifier, SpawnerSettings, TangentAccelModifier,
 };
 
 const RED_TRAIL: Vec4 = Vec4::new(3., 0.3, 0.2, 1.);
@@ -78,14 +78,11 @@ fn trail_asset(name: &str, base: Vec4) -> EffectAsset {
 
 fn snow_asset() -> EffectAsset {
     let mut module = Module::default();
-    let origin = module.lit(Vec3::ZERO);
-    let radius = module.lit(0.035);
-    let swirl = module.lit(0.12);
-    let axis = module.lit(Vec3::Z);
+    let center = module.lit(Vec3::Z * 0.04);
+    let radius = module.lit(0.045);
     let age = module.lit(0.);
-    let lifetime = module.lit(0.6);
+    let lifetime = module.lit(0.8);
     let drag = module.lit(1.2);
-    let gravity = AccelModifier::constant(&mut module, Vec3::Z * -0.12);
     let round = RoundModifier::ellipse(&mut module);
 
     let mut color = Gradient::new();
@@ -97,6 +94,12 @@ fn snow_asset() -> EffectAsset {
     size.add_key(0., Vec3::splat(0.004));
     size.add_key(1., Vec3::splat(0.008));
 
+    let z_axis = module.lit(Vec3::Z);
+    let tang_accel = module.lit(0.2);
+    let conf_infl = module.lit(0.1);
+    let conf_att = module.lit(0.5);
+    let conf_max = module.lit(0.5);
+
     EffectAsset::new(
         256,
         SpawnerSettings::rate(80.0.into()).with_starts_active(false),
@@ -106,18 +109,14 @@ fn snow_asset() -> EffectAsset {
     .with_simulation_space(SimulationSpace::Local)
     .with_alpha_mode(AlphaMode::Blend)
     .init(SetPositionSphereModifier {
-        center: origin,
+        center,
         radius,
-        dimension: ShapeDimension::Volume,
-    })
-    .init(SetVelocityTangentModifier {
-        origin,
-        axis,
-        speed: swirl,
+        dimension: ShapeDimension::Surface,
     })
     .init(SetAttributeModifier::new(Attribute::AGE, age))
     .init(SetAttributeModifier::new(Attribute::LIFETIME, lifetime))
-    .update(gravity)
+    .update(TangentAccelModifier::new(center, z_axis, tang_accel))
+    .update(ConformToSphereModifier::new(center, radius, conf_infl, conf_att, conf_max))
     .update(LinearDragModifier::new(drag))
     .render(round)
     .render(ColorOverLifetimeModifier::new(color))
@@ -215,8 +214,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn trail_asset_compiles() {
-        let _ = trail_asset("test", Vec4::new(1., 0., 0., 1.));
-        let _ = snow_asset();
+    fn particle_assets_generate_shaders() {
+        let asset1 = trail_asset("test", Vec4::new(1., 0., 0., 1.));
+        let asset2 = snow_asset();
+
+        assert!(bevy_hanabi::EffectShaderSources::generate(&asset1, None, 0).is_ok());
+        assert!(bevy_hanabi::EffectShaderSources::generate(&asset2, None, 0).is_ok());
     }
 }
