@@ -1,5 +1,9 @@
 # TODO
 
+## Documentation
+
+- Write unlocks overview markdown
+
 ## Programming 
 
 - combo counter: extra points until ball falls into end, the longer the streak, the higher the amount of extra points per second
@@ -27,6 +31,7 @@
 - Fix: tower hit should only effect ball which hitted the tower, not all balls
 - Fix wave number save
 - Glowing 3D progress bars
+- Some levels unlock double ball damage
 
 ## Audio
 
