@@ -16,6 +16,7 @@ use bevy::math::primitives::{Cone, Cylinder, Sphere};
 use moonshine_save::prelude::Save;
 use std::time::Duration;
 
+mod animation;
 mod step;
 mod walk;
 
@@ -25,7 +26,8 @@ pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_message::<SpawnEnemyEvent>()
+        app.add_plugins(animation::EnemyAnimationPlugin)
+            .add_message::<SpawnEnemyEvent>()
             .add_message::<RoadEndReachedEvent>()
             .add_message::<OnEnemyDespawnEvent>()
             .register_type::<Enemy>()
@@ -66,7 +68,7 @@ pub struct Enemy {
     wave: usize,
 }
 
-#[derive(Component, Reflect, Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[derive(Component, Reflect, Clone, Copy, Debug, PartialEq, Eq, Hash, Default)]
 #[reflect(Default)]
 pub enum EnemyKind {
     #[default]
