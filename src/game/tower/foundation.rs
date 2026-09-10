@@ -42,7 +42,7 @@ pub(super) struct TowerFoundationTop;
 pub(super) struct TowerFoundationBottom;
 
 pub(crate) fn spawns_on_level_up(new_level: Level) -> bool {
-    new_level % 2 == 1
+    new_level < 3 || new_level.is_multiple_of(2)
 }
 
 fn spawns_on_event(new_level: Level, current_level: Level) -> bool {

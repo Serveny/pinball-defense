@@ -5,6 +5,7 @@ use crate::game::IngameTime;
 use crate::game::audio::SoundEvent;
 use crate::game::ball::{self, PinBall};
 use crate::game::ball_starter::BallSpawn;
+use crate::game::cfg::CONFIG;
 use crate::game::enemy::Enemy;
 use crate::prelude::*;
 use moonshine_save::prelude::Save;
@@ -50,9 +51,9 @@ pub fn ball_damage(effects: &ActiveEffects, now: f32, enemy_max_health: f32) -> 
     if effects.is_active(now, ExtraFieldKind::InstaKill) {
         -enemy_max_health
     } else if effects.is_active(now, ExtraFieldKind::DoubleDamage) {
-        -200.
+        -2. * CONFIG.ball_enemy_damage
     } else {
-        -100.
+        -CONFIG.ball_enemy_damage
     }
 }
 
@@ -111,12 +112,15 @@ mod tests {
     #[allow(clippy::float_cmp)]
     fn extra_field_ball_damage_modes() {
         let mut effects = ActiveEffects::default();
-        assert_eq!(ball_damage(&effects, 10., 300.), -100.);
+        assert_eq!(ball_damage(&effects, 10., 300.), -CONFIG.ball_enemy_damage);
         effects.double_damage_until = 5.;
-        assert_eq!(ball_damage(&effects, 4.9, 300.), -200.);
-        assert_eq!(ball_damage(&effects, 5., 300.), -100.);
+        assert_eq!(
+            ball_damage(&effects, 4.9, 300.),
+            -2. * CONFIG.ball_enemy_damage
+        );
+        assert_eq!(ball_damage(&effects, 5., 300.), -CONFIG.ball_enemy_damage);
         effects.insta_kill_until = 20.;
         assert_eq!(ball_damage(&effects, 15., 300.), -300.);
-        assert_eq!(ball_damage(&effects, 20., 300.), -100.);
+        assert_eq!(ball_damage(&effects, 20., 300.), -CONFIG.ball_enemy_damage);
     }
 }
