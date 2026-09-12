@@ -148,6 +148,7 @@ const PLATE_SIZE: Vec2 = Vec2::new(0.2, 0.085);
 const STARTER_MIN_X: f32 = -0.107;
 const STARTER_MAX_X: f32 = 0.;
 const CHARGE_SPEED: f32 = 0.24;
+const AUTO_LAUNCH_DELAY_SECS: f32 = 1.;
 const FIRE_SPEED_MIN: f32 = -0.9;
 const FIRE_SPEED_MAX: f32 = -2.1;
 const SPRING_SCALE_X_MIN: f32 = 0.35;
@@ -187,7 +188,17 @@ fn auto_launch_system(
     mut q_spring: Query<&mut Transform, (With<StarterSpring>, Without<StarterPlate>)>,
     mut state: ResMut<NextState<BallStarterState>>,
     mut q_starter: Query<Entity, With<BallStarter>>,
+    mut delay: Local<Option<f32>>,
+    time: Res<Time>,
 ) {
+    let Some(start) = *delay else {
+        *delay = Some(time.elapsed_secs());
+        return;
+    };
+    if time.elapsed_secs() - start < AUTO_LAUNCH_DELAY_SECS {
+        return;
+    }
+    *delay = None;
     let Ok((mut plate, mut velocity)) = q_plate.single_mut() else {
         return;
     };
