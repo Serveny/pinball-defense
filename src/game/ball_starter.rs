@@ -13,6 +13,7 @@ impl Plugin for BallStarterPlugin {
             .add_message::<SpawnBallEvent>()
             .add_message::<BallStarterChargeStartedEvent>()
             .add_message::<BallStarterFireEndEvent>()
+            .init_resource::<AutoLaunchDelay>()
             .add_systems(Startup, setup)
             .add_systems(OnEnter(BallStarterState::Idle), on_enter_idle)
             .add_systems(
@@ -24,8 +25,7 @@ impl Plugin for BallStarterPlugin {
             .add_systems(
                 Update,
                 (auto_launch_system).run_if(
-                    in_state(BallStarterState::AutoLaunch)
-                        .and_then(in_state(GameState::Ingame)),
+                    in_state(BallStarterState::AutoLaunch).and_then(in_state(GameState::Ingame)),
                 ),
             )
             .add_systems(
@@ -43,10 +43,7 @@ impl Plugin for BallStarterPlugin {
                 fire_system
                     .run_if(in_state(BallStarterState::Fire).and_then(in_state(GameState::Ingame))),
             )
-            .add_systems(
-                OnExit(BallStarterState::Fire),
-                clear_auto_launch,
-            );
+            .add_systems(OnExit(BallStarterState::Fire), clear_auto_launch);
     }
 }
 
@@ -148,7 +145,7 @@ const PLATE_SIZE: Vec2 = Vec2::new(0.2, 0.085);
 const STARTER_MIN_X: f32 = -0.107;
 const STARTER_MAX_X: f32 = 0.;
 const CHARGE_SPEED: f32 = 0.24;
-const AUTO_LAUNCH_DELAY_SECS: f32 = 1.;
+const AUTO_LAUNCH_DELAY_SECS: f32 = 2.;
 const FIRE_SPEED_MIN: f32 = -0.9;
 const FIRE_SPEED_MAX: f32 = -2.1;
 const SPRING_SCALE_X_MIN: f32 = 0.35;
@@ -178,33 +175,51 @@ fn spawn_ball_at_charge(
 #[derive(Component)]
 pub struct AutoLaunch;
 
-fn on_enter_auto_launch(mut sound_ev: MessageWriter<SoundEvent>) {
-    sound_ev.write(SoundEvent::BallStarterCharge);
+#[derive(Resource)]
+struct AutoLaunchDelay(Timer);
+
+impl FromWorld for AutoLaunchDelay {
+    fn from_world(_: &mut World) -> Self {
+        Self(Timer::from_seconds(AUTO_LAUNCH_DELAY_SECS, TimerMode::Once))
+    }
+}
+
+fn on_enter_auto_launch(
+    mut cmds: Commands,
+    mut delay: ResMut<AutoLaunchDelay>,
+    q_starter: Query<Entity, With<BallStarter>>,
+) {
+    delay.0.reset();
+    for starter_id in q_starter.iter() {
+        cmds.entity(starter_id).insert(AutoLaunch);
+    }
 }
 
 fn auto_launch_system(
-    mut cmds: Commands,
+    mut sound_ev: MessageWriter<SoundEvent>,
+    mut charged: Local<bool>,
     mut q_plate: Query<(&mut Transform, &mut LinearVelocity), With<StarterPlate>>,
     mut q_spring: Query<&mut Transform, (With<StarterSpring>, Without<StarterPlate>)>,
     mut state: ResMut<NextState<BallStarterState>>,
-    mut q_starter: Query<Entity, With<BallStarter>>,
-    mut delay: Local<Option<f32>>,
+    mut delay: ResMut<AutoLaunchDelay>,
     time: Res<Time>,
 ) {
-    let Some(start) = *delay else {
-        *delay = Some(time.elapsed_secs());
-        return;
-    };
-    if time.elapsed_secs() - start < AUTO_LAUNCH_DELAY_SECS {
-        return;
-    }
-    *delay = None;
     let Ok((mut plate, mut velocity)) = q_plate.single_mut() else {
         return;
     };
     let Ok(mut spring) = q_spring.single_mut() else {
         return;
     };
+    plate.translation.x = plate.translation.x.clamp(STARTER_MIN_X, STARTER_MAX_X);
+    delay.0.tick(time.delta());
+    if !delay.0.is_finished() {
+        velocity.x = 0.;
+        return;
+    }
+    if !*charged {
+        *charged = true;
+        sound_ev.write(SoundEvent::BallStarterCharge);
+    }
     if plate.translation.x < STARTER_MAX_X {
         velocity.x = CHARGE_SPEED;
         update_spring_scale(plate.translation.x, &mut spring.scale);
@@ -213,9 +228,7 @@ fn auto_launch_system(
     plate.translation.x = STARTER_MAX_X;
     velocity.x = 0.;
     update_spring_scale(plate.translation.x, &mut spring.scale);
-    for starter_id in q_starter.iter_mut() {
-        cmds.entity(starter_id).insert(AutoLaunch);
-    }
+    *charged = false;
     state.set(BallStarterState::Fire);
 }
 
