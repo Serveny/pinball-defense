@@ -106,9 +106,9 @@ pub fn activate_system(
     mut action_ev: MessageWriter<MenuAction>,
     mut commands: Commands,
 ) {
-    let pressed = gamepads.iter().any(|g| g.just_pressed(GamepadButton::South))
-        || keys.just_pressed(KeyCode::Enter);
-    if !pressed {
+    let gamepad_pressed = gamepads.iter().any(|g| g.just_pressed(GamepadButton::South));
+    let key_pressed = keys.just_pressed(KeyCode::Enter);
+    if !gamepad_pressed && !key_pressed {
         return;
     }
     let Some(focused) = focus.get() else {
@@ -116,7 +116,7 @@ pub fn activate_system(
     };
     if let Ok(data) = q_btn.get(focused) {
         action_ev.write(data.action.clone());
-    } else if q_checkbox.contains(focused) {
+    } else if q_checkbox.contains(focused) && gamepad_pressed {
         commands.trigger(ToggleChecked { entity: focused });
     }
 }
