@@ -5,7 +5,7 @@ use super::ball::PinBall;
 use super::events::collision::GameLayer;
 use super::extra::{ActiveEffects, ExtraFieldKind};
 use super::health::{ChangeHealthEvent, Health, HealthEmptyEvent};
-use super::level::{BallCollisionPoints, PointsEvent, PointsKind};
+use super::level::{BallCollisionPoints, LevelHub, PointsEvent, PointsKind};
 use super::{EventState, IngameTime, ui};
 use crate::game::GameState;
 use crate::game::ball::CollisionWithBallEvent;
@@ -182,6 +182,10 @@ fn difficulty_sat(wave: usize) -> f32 {
     w + 0.15 * (w - 18.).max(0.).powf(1.8)
 }
 
+pub(crate) fn enemy_base_health(wave: usize) -> f32 {
+    100. * (1. + difficulty_sat(wave) * 0.5)
+}
+
 fn enemy_view_bundle(
     meshes: &mut Assets<Mesh>,
     mats: &mut Assets<StandardMaterial>,
@@ -245,7 +249,7 @@ fn enemy(
     (
         enemy_view_bundle(meshes, mats, wave, kind),
         Enemy::new(wave, kind),
-        Health::new(100. * (1. + difficulty_sat(wave) * 0.5) * kind.health_factor()),
+        Health::new(enemy_base_health(wave) * kind.health_factor()),
         LastDamager(None),
         Transform::from_translation(ROAD_POINTS[0]),
     )
@@ -278,6 +282,7 @@ fn on_pinball_hit_system(
     q_enemy: Query<(&Enemy, &BallSlowDown, &Health), With<Enemy>>,
     effects: Res<ActiveEffects>,
     ig_time: Res<IngameTime>,
+    level: Res<LevelHub>,
 ) {
     for CollisionWithBallEvent(ball_id, id) in evr.read() {
         let Ok((_, slow_down, health)) = q_enemy.get(*id) else {
@@ -286,7 +291,7 @@ fn on_pinball_hit_system(
         log!("😵 Pinball hits enemy {:?}", *id);
         health_ev.write(ChangeHealthEvent::new(
             *id,
-            super::extra::effects::ball_damage(&effects, **ig_time, health.max()),
+            super::extra::effects::ball_damage(&effects, **ig_time, health.max(), level.level()),
             None,
         ));
         if slow_down.0 < 1.

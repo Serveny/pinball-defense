@@ -291,6 +291,7 @@ pub(super) fn ensure_bars_on_load(
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::float_cmp)]
     use super::*;
     use crate::game::extra::ExtraFieldKind;
     use bevy::ecs::system::RunSystemOnce;
