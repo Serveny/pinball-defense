@@ -260,5 +260,24 @@ fn stopped_and_paused_preserve_heading() {
 fn turn_takes_short_route_across_pi() {
     let direction = Vec3::new((-PI + 0.1).cos(), (-PI + 0.1).sin(), 0.0);
     let (_, _, yaw) = motion(Vec3::ZERO, direction, PI - 0.1, 0.1);
-    assert!((yaw - 2.0).abs() < 1e-5);
+    assert!(yaw > 0.0, "short route across pi is a left turn");
+    assert!(yaw * 0.1 < 0.2, "turn must not overshoot the target");
+}
+
+#[test]
+fn turn_eases_over_half_a_second() {
+    let target = Vec3::Y;
+    let mut heading = 0.0;
+    let mut elapsed = 0.0;
+    let mut speed_sum = 0.0;
+    while (signed_angle(FRAC_PI_2 - heading)).abs() > 0.01 {
+        let (speed, next, _) = motion(Vec3::ZERO, target, heading, 1.0 / 60.0);
+        assert!(speed > 0.0, "movement must continue while turning");
+        speed_sum += speed;
+        heading = next;
+        elapsed += 1.0 / 60.0;
+        assert!(elapsed < 3.0, "turn never settles onto target heading");
+    }
+    assert!(elapsed > 0.3, "turn snaps instead of easing");
+    assert!(speed_sum > 0.0, "position must keep advancing during turn");
 }

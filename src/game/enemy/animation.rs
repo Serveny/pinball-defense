@@ -10,6 +10,8 @@ use bevy::world_serialization::WorldInstanceReady;
 use std::collections::HashMap;
 use std::f32::consts::{FRAC_PI_2, PI, TAU};
 
+const TURN_SMOOTHING: f32 = 0.1;
+
 pub(super) struct EnemyAnimationPlugin;
 
 impl Plugin for EnemyAnimationPlugin {
@@ -354,7 +356,8 @@ fn motion(previous: Vec3, current: Vec3, heading: f32, dt: f32) -> (f32, f32, f3
     if delta.length_squared() < 1e-12 {
         return (0.0, heading, 0.0);
     }
-    let turn = signed_angle(delta.y.atan2(delta.x) - heading).clamp(-8.0 * dt, 8.0 * dt);
+    let blend = 1.0 - (-dt / TURN_SMOOTHING).exp();
+    let turn = (signed_angle(delta.y.atan2(delta.x) - heading) * blend).clamp(-8.0 * dt, 8.0 * dt);
     (delta.length() / dt, signed_angle(heading + turn), turn / dt)
 }
 
