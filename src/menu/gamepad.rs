@@ -11,6 +11,7 @@ use bevy::ui_widgets::{
 
 pub fn navigation_system(
     gamepads: Query<&Gamepad>,
+    keys: Res<ButtonInput<KeyCode>>,
     q_slider: Query<(), With<Slider>>,
     q_nav: Query<Entity, With<AutoDirectionalNavigation>>,
     mut navigator: AutoDirectionalNavigator,
@@ -44,7 +45,38 @@ pub fn navigation_system(
         }
     }
 
+    let mut slider_step = None;
+    if keys.just_pressed(KeyCode::KeyW) {
+        direction = Some(CompassOctant::North);
+    } else if keys.just_pressed(KeyCode::KeyS) {
+        direction = Some(CompassOctant::South);
+    } else if keys.just_pressed(KeyCode::ArrowUp) {
+        direction = Some(CompassOctant::North);
+    } else if keys.just_pressed(KeyCode::ArrowDown) {
+        direction = Some(CompassOctant::South);
+    } else if keys.just_pressed(KeyCode::KeyA) || keys.just_pressed(KeyCode::ArrowLeft) {
+        if on_slider {
+            slider_step = Some(-1.);
+        } else {
+            direction = Some(CompassOctant::West);
+        }
+    } else if keys.just_pressed(KeyCode::KeyD) || keys.just_pressed(KeyCode::ArrowRight) {
+        if on_slider {
+            slider_step = Some(1.);
+        } else {
+            direction = Some(CompassOctant::East);
+        }
+    }
+
     let Some(dir) = direction else {
+        if let Some(step) = slider_step
+            && let Some(e) = focused
+        {
+            commands.trigger(SetSliderValue {
+                entity: e,
+                change: SliderValueChange::RelativeStep(step),
+            });
+        }
         return;
     };
 
@@ -67,15 +99,15 @@ pub fn navigation_system(
 
 pub fn activate_system(
     gamepads: Query<&Gamepad>,
+    keys: Res<ButtonInput<KeyCode>>,
     focus: Res<InputFocus>,
     q_btn: Query<&MenuButtonData, With<Button>>,
     q_checkbox: Query<(), With<Checkbox>>,
     mut action_ev: MessageWriter<MenuAction>,
     mut commands: Commands,
 ) {
-    let pressed = gamepads
-        .iter()
-        .any(|g| g.just_pressed(GamepadButton::South));
+    let pressed = gamepads.iter().any(|g| g.just_pressed(GamepadButton::South))
+        || keys.just_pressed(KeyCode::Enter);
     if !pressed {
         return;
     }
@@ -89,8 +121,13 @@ pub fn activate_system(
     }
 }
 
-pub fn back_system(gamepads: Query<&Gamepad>, mut action_ev: MessageWriter<MenuAction>) {
-    let pressed = gamepads.iter().any(|g| g.just_pressed(GamepadButton::East));
+pub fn back_system(
+    gamepads: Query<&Gamepad>,
+    keys: Res<ButtonInput<KeyCode>>,
+    mut action_ev: MessageWriter<MenuAction>,
+) {
+    let pressed = gamepads.iter().any(|g| g.just_pressed(GamepadButton::East))
+        || keys.just_pressed(KeyCode::Escape);
     if pressed {
         action_ev.write(MenuAction::Back);
     }
