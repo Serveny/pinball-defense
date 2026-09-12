@@ -71,7 +71,7 @@ fn activate_field(
             Visibility::Inherited,
         ))
         .with_children(|p| {
-            spawn_radial(p, assets, kind.icon(tex), mats, field_id, kind.color(), 0.);
+            spawn_radial(p, assets, Some(kind.icon(tex)), mats, field_id, kind.color(), 0.);
         });
     ui::progress_bar::spawn_transient_with_color(cmds, field_id, 0., kind.color());
 }

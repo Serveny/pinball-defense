@@ -178,15 +178,71 @@ fn tower_sight_sensor_bundle(radius: f32) -> impl Bundle {
     )
 }
 
-fn tower_base_bundle(
-    assets: &PinballDefenseGltfAssets,
-    mats: &mut Assets<StandardMaterial>,
-) -> impl Bundle {
+fn tower_base_bundle(assets: &PinballDefenseGltfAssets) -> impl Bundle + use<> {
     (
         Name::new("Tower Base"),
         Mesh3d(assets.tower_base.clone()),
-        MeshMaterial3d(mats.add(tower_material())),
+        MeshMaterial3d(assets.tower_base_material.clone()),
     )
+}
+
+fn tower_base_brass_bundle(assets: &PinballDefenseGltfAssets) -> impl Bundle + use<> {
+    (
+        Name::new("Tower Base Brass"),
+        Mesh3d(assets.tower_base_brass.clone()),
+        MeshMaterial3d(assets.tower_base_brass_material.clone()),
+    )
+}
+
+fn tower_base_dark_iron_bundle(assets: &PinballDefenseGltfAssets) -> impl Bundle + use<> {
+    (
+        Name::new("Tower Base Dark Iron"),
+        Mesh3d(assets.tower_base_dark_iron.clone()),
+        MeshMaterial3d(assets.tower_base_dark_iron_material.clone()),
+    )
+}
+
+fn tower_base_ivory_bundle(assets: &PinballDefenseGltfAssets) -> impl Bundle + use<> {
+    (
+        Name::new("Tower Base Ivory"),
+        Mesh3d(assets.tower_base_ivory.clone()),
+        MeshMaterial3d(assets.tower_base_ivory_material.clone()),
+    )
+}
+
+const TOWER_BASE_LIFT: f32 = 0.002;
+const TOWER_RADIAL_SINK: f32 = 0.02;
+
+fn spawn_tower_base_meshes(p: &mut ChildSpawnerCommands, assets: &PinballDefenseGltfAssets) {
+    p.spawn((
+        Name::new("Tower Base Meshes"),
+        Transform::from_translation(Vec3::new(0., 0., TOWER_BASE_LIFT)),
+        Visibility::default(),
+    ))
+    .with_children(|p| {
+        p.spawn(tower_base_bundle(assets));
+        p.spawn(tower_base_brass_bundle(assets));
+        p.spawn(tower_base_dark_iron_bundle(assets));
+        p.spawn(tower_base_ivory_bundle(assets));
+    });
+}
+
+fn spawn_tower_radial(
+    p: &mut ChildSpawnerCommands,
+    assets: &PinballDefenseGltfAssets,
+    mats: &mut Assets<StandardMaterial>,
+    tower_id: Entity,
+    color: Color,
+    init_val: f32,
+) {
+    p.spawn((
+        Name::new("Tower Radial Progress"),
+        Transform::from_translation(Vec3::new(0., 0., -TOWER_RADIAL_SINK)),
+        Visibility::default(),
+    ))
+    .with_children(|p| {
+        progress::spawn_radial(p, assets, None, mats, tower_id, color, init_val);
+    });
 }
 
 fn spawn(
@@ -205,13 +261,11 @@ fn spawn(
         .with_children(|p| {
             let tower_id = p.target_entity();
             let color = Color::srgb_u8(115, 27, 7);
-            let bar_trans =
-                Transform::from_xyz(0.034, 0., -0.007).with_scale(Vec3::new(0.5, 0.5, 1.));
-            p.spawn(tower_base_bundle(assets, mats));
+            spawn_tower_base_meshes(p, assets);
             p.spawn(contact_light_bundle(g_sett, color));
             p.spawn(tower_sight_sensor_bundle(sight_radius));
             p.spawn(sight_radius_light(sight_radius));
-            progress::spawn(p, assets, mats, tower_id, bar_trans, color, 0.);
+            spawn_tower_radial(p, assets, mats, tower_id, color, 0.);
             add_to_tower(p);
         })
         .id()
@@ -255,6 +309,7 @@ fn reattach_towers_system(
             Entity,
             &Tower,
             &SightRadius,
+            &Progress,
             Option<&types::gun::GunTower>,
             Option<&types::tesla::TeslaTower>,
             Option<&types::microwave::MicrowaveTower>,
@@ -263,7 +318,7 @@ fn reattach_towers_system(
     >,
 ) {
     let Ok(world) = q_world.single() else { return };
-    for (tower_id, tower, sight, gun, tesla, micro) in q_towers.iter() {
+    for (tower_id, tower, sight, progress, gun, tesla, micro) in q_towers.iter() {
         let sight_radius = sight.0;
         let tower_mat = mats.add(tower_material());
         cmds.entity(tower_id)
@@ -274,10 +329,18 @@ fn reattach_towers_system(
         }
         cmds.entity(world).add_child(tower_id);
         cmds.entity(tower_id).with_children(|p| {
-            p.spawn(tower_base_bundle(&assets, &mut mats));
+            spawn_tower_base_meshes(p, &assets);
             p.spawn(contact_light_bundle(&g_sett, TOWER_CONTACT_COLOR));
             p.spawn(tower_sight_sensor_bundle(sight_radius));
             p.spawn(sight_radius_light(sight_radius));
+            spawn_tower_radial(
+                p,
+                &assets,
+                &mut mats,
+                tower_id,
+                TOWER_CONTACT_COLOR,
+                progress.0,
+            );
             if gun.is_some() {
                 types::gun::build_view(p, tower_mat.clone(), &assets, &g_sett, sight_radius);
             } else if tesla.is_some() {

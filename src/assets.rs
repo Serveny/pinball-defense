@@ -101,6 +101,13 @@ pub struct PinballDefenseGltfAssets {
 
     // Tower
     pub tower_base: Handle<Mesh>,
+    pub tower_base_brass: Handle<Mesh>,
+    pub tower_base_dark_iron: Handle<Mesh>,
+    pub tower_base_ivory: Handle<Mesh>,
+    pub tower_base_material: Handle<StandardMaterial>,
+    pub tower_base_brass_material: Handle<StandardMaterial>,
+    pub tower_base_dark_iron_material: Handle<StandardMaterial>,
+    pub tower_base_ivory_material: Handle<StandardMaterial>,
     pub tower_microwave_top: Handle<Mesh>,
     pub tower_mg_mounting: Handle<Mesh>,
     pub tower_mg_head: Handle<Mesh>,

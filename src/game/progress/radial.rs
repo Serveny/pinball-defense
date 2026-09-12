@@ -23,7 +23,7 @@ const RADIAL_ICON_LIFT: f32 = 0.0068;
 pub fn spawn_radial(
     spawner: &mut ChildSpawnerCommands,
     assets: &PinballDefenseGltfAssets,
-    icon: &Handle<Image>,
+    icon: Option<&Handle<Image>>,
     mats: &mut Assets<StandardMaterial>,
     rel_id: Entity,
     color: Color,
@@ -33,7 +33,9 @@ pub fn spawn_radial(
         .spawn(radial_casing_bundle(assets))
         .with_children(|spawner| {
             spawner.spawn(radial_bar_bundle(assets, mats, color, rel_id, init_val));
-            spawner.spawn(radial_icon_bundle(assets, icon, mats));
+            if let Some(icon) = icon {
+                spawner.spawn(radial_icon_bundle(assets, icon, mats));
+            }
         });
 }
 

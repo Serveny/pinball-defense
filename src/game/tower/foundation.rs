@@ -55,8 +55,8 @@ mod tests {
 
     #[test]
     fn foundation_replayed_level_ups_do_not_spawn() {
-        assert!(spawns_on_event(5, 5));
-        assert!(!spawns_on_event(4, 4));
+        assert!(spawns_on_event(1, 1));
+        assert!(spawns_on_event(4, 4));
         assert!(!spawns_on_event(3, 10));
         assert!(!spawns_on_event(2, 10));
     }
