@@ -77,13 +77,24 @@ fn prepare_models(
     if *prepared {
         return;
     }
+    let normal_ready = prepare_normal_model(&assets, &gltfs, &clips, &mut graphs, &mut models);
+    let tank_ready = prepare_tank_model(&assets, &gltfs, &clips, &mut graphs, &mut models);
+    *prepared = normal_ready && tank_ready;
+}
+
+fn prepare_normal_model(
+    assets: &PinballDefenseAssets,
+    gltfs: &Assets<Gltf>,
+    clips: &Assets<AnimationClip>,
+    graphs: &mut Assets<AnimationGraph>,
+    models: &mut EnemyModels,
+) -> bool {
     let Some(gltf) = gltfs.get(&assets.normal_enemy) else {
-        return;
+        return false;
     };
     if gltf.animations.iter().any(|h| !clips.contains(h)) {
-        return;
+        return false;
     }
-    *prepared = true;
     let config = ModelConfig {
         clips: vec![
             (Clip::Idle, "IC_Idle"),
@@ -100,11 +111,49 @@ fn prepare_models(
         curve_speed: 0.5,
         turn_speed: 1.0,
     };
-    match build_model(gltf, &clips, &mut graphs, config) {
+    match build_model(gltf, clips, graphs, config) {
         Ok(model) => {
             models.0.insert(EnemyKind::Normal, model);
+            true
         }
-        Err(reason) => error!("Cannot prepare normal enemy animations: {reason}"),
+        Err(reason) => {
+            error!("Cannot prepare normal enemy animations: {reason}");
+            false
+        }
+    }
+}
+
+fn prepare_tank_model(
+    assets: &PinballDefenseAssets,
+    gltfs: &Assets<Gltf>,
+    clips: &Assets<AnimationClip>,
+    graphs: &mut Assets<AnimationGraph>,
+    models: &mut EnemyModels,
+) -> bool {
+    let Some(gltf) = gltfs.get(&assets.tank_enemy) else {
+        return false;
+    };
+    if gltf.animations.iter().any(|h| !clips.contains(h)) {
+        return false;
+    }
+    let config = ModelConfig {
+        clips: vec![(Clip::Idle, "BG_Idle"), (Clip::Walk, "BG_Walk")],
+        scale: 1.8,
+        ground_offset: -0.044,
+        orientation: Quat::from_rotation_z(FRAC_PI_2) * Quat::from_rotation_x(FRAC_PI_2),
+        walk_speed: 0.0056,
+        curve_speed: 0.5,
+        turn_speed: 1.0,
+    };
+    match build_model(gltf, clips, graphs, config) {
+        Ok(model) => {
+            models.0.insert(EnemyKind::Tank, model);
+            true
+        }
+        Err(reason) => {
+            error!("Cannot prepare tank enemy animations: {reason}");
+            false
+        }
     }
 }
 

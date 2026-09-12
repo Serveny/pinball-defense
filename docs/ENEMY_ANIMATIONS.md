@@ -1,7 +1,9 @@
 # Enemy Animations
 
-Normal enemies use `assets/models/normal_iron_cage.glb`. Tank and Speeder keep
-their primitive visuals until animated models are configured for them.
+Normal enemies use `assets/models/normal_iron_cage.glb` (clips `IC_*`), tanks
+use `assets/models/boiler_golem.glb` (clips `BG_Walk`, `BG_Idle`; no curve/turn
+clips, those fall back to walking). Speeder keeps its primitive visual until an
+animated model is configured for it.
 
 The controller lives in `src/game/enemy/animation.rs`. It instantiates a GLTF
 world beneath the enemy, waits for `WorldInstanceReady`, and binds the model's
@@ -18,15 +20,10 @@ offset places the feet on the table without moving the actor or health bar.
 
 Walking phase advances from actual distance travelled, using the model's
 reference speed, uniform scale and walk duration. At scale 1.2 the Iron Cage
-reference speed is 0.0432 world units/second. Faster movement advances the same
-cycle faster; slowdown reduces the rate. Zero displacement preserves heading,
-and paused virtual time preserves phase. No root motion is applied.
-
-Left/right curve clips blend according to signed visual yaw speed. All clips
-sample the same normalized phase, including when their durations differ.
-Weights ease over approximately 0.08 seconds. Optional idle/turn clips are
-selected when their corresponding motion is supplied; the current path walker
-turns while moving and does not issue stationary turn commands.
+reference speed is 0.0432 world units/second and the Boiler Golem's is 0.00672
+world units/second (0.0056 authored, 2.5 s cycle). Faster movement advances the
+same cycle faster; slowdown reduces the rate. Zero displacement preserves
+heading, and paused virtual time preserves phase. No root motion is applied.
 
 ## Another Enemy Type
 
