@@ -4,7 +4,7 @@ use super::field::lane_occupied;
 use crate::game::IngameTime;
 use crate::game::audio::SoundEvent;
 use crate::game::ball::{self, PinBall};
-use crate::game::ball_starter::BallSpawn;
+use crate::game::ball_starter::{BallSpawn, BallStarterState};
 use crate::game::cfg::CONFIG;
 use crate::game::enemy::Enemy;
 use crate::prelude::*;
@@ -24,6 +24,7 @@ pub(super) fn on_extra_field_fire_system(
     mut sound_ev: MessageWriter<SoundEvent>,
     ig_time: Res<IngameTime>,
     ball_spawn: Res<BallSpawn>,
+    mut ball_starter_state: ResMut<NextState<BallStarterState>>,
     q_ball: Query<&Transform, With<PinBall>>,
 ) {
     for ExtraFieldFireEvent(kind) in evr.read() {
@@ -41,6 +42,7 @@ pub(super) fn on_extra_field_fire_system(
             } else {
                 let ball_id = ball::spawn(&mut cmds, &mut meshes, &mut materials, ball_spawn.0);
                 cmds.entity(ball_id).insert(BonusBall).remove::<Save>();
+                ball_starter_state.set(BallStarterState::AutoLaunch);
                 sound_ev.write(SoundEvent::ExtraFieldFire);
             }
         }
