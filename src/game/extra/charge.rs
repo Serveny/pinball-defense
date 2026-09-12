@@ -88,4 +88,37 @@ mod tests {
         assert_eq!(charge_amount(8), 0.125);
         assert!(charge_amount(0).is_finite());
     }
+
+    #[test]
+    fn ball_hit_on_extra_field_emits_count_up_event() {
+        #[derive(Resource, Default)]
+        struct Collected(Vec<Entity>);
+
+        fn collect(mut evr: MessageReader<ProgressBarCountUpEvent>, mut col: ResMut<Collected>) {
+            for ev in evr.read() {
+                col.0.push(ev.rel_id());
+            }
+        }
+
+        let mut app = App::new();
+        app.add_message::<ProgressBarCountUpEvent>()
+            .add_message::<CollisionWithBallEvent>()
+            .add_message::<SoundEvent>()
+            .init_resource::<ActiveEffects>()
+            .init_resource::<IngameTime>()
+            .init_resource::<Collected>()
+            .add_systems(Update, (on_charge_system, collect).chain());
+
+        let kind = crate::game::extra::ExtraFieldKind::SlowDown;
+        let field_id = app.world_mut().spawn(ExtraField { kind }).id();
+        let ball_id = app.world_mut().spawn_empty().id();
+
+        app.world_mut()
+            .write_message(CollisionWithBallEvent(ball_id, field_id));
+        app.update();
+
+        let events = &app.world().resource::<Collected>().0;
+        assert_eq!(events.len(), 1);
+        assert_eq!(events[0], field_id);
+    }
 }

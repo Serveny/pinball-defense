@@ -118,11 +118,60 @@ impl ProgressBarResetEvent {
 
 fn bar_full_system(
     mut full_ev: MessageWriter<ProgressBarFullEvent>,
-    q_bar: Query<(&RelEntity, &Progress), Changed<Progress>>,
+    q_bar: Query<
+        (&RelEntity, &Progress),
+        (
+            Changed<Progress>,
+            Or<(With<bar::ProgressBar>, With<RadialProgressBar>)>,
+        ),
+    >,
 ) {
     for (rel_id, bar) in q_bar.iter() {
         if bar.is_full() {
             full_ev.write(ProgressBarFullEvent(rel_id.0));
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[derive(Resource, Default)]
+    struct Collected(Vec<Entity>);
+
+    fn collect_full_events(
+        mut evr: MessageReader<ProgressBarFullEvent>,
+        mut col: ResMut<Collected>,
+    ) {
+        for ProgressBarFullEvent(id) in evr.read() {
+            col.0.push(*id);
+        }
+    }
+
+    #[test]
+    fn bar_full_system_fires_only_for_physical_bars() {
+        let mut app = App::new();
+        app.add_message::<ProgressBarFullEvent>();
+        app.init_resource::<Collected>();
+        app.add_systems(Update, (bar_full_system, collect_full_events).chain());
+
+        let parent = app.world_mut().spawn_empty().id();
+
+        // 3D radial bar
+        app.world_mut().spawn((
+            RelEntity(parent),
+            Progress(1.0),
+            RadialProgressBar::default(),
+        ));
+
+        // Non-physical bar (e.g. UI bar) without ProgressBar or RadialProgressBar
+        app.world_mut().spawn((RelEntity(parent), Progress(1.0)));
+
+        app.update();
+
+        let events = &app.world().resource::<Collected>().0;
+        assert_eq!(events.len(), 1);
+        assert_eq!(events[0], parent);
     }
 }

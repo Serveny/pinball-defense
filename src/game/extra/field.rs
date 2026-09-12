@@ -6,6 +6,7 @@ use crate::game::light::{
     ContactLight, FlashLight, LightOnCollision, contact_light_bundle, disable_flash_light,
 };
 use crate::game::progress::{RadialProgressCasing, spawn_radial};
+use crate::game::ui;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use bevy_tweening::{Tween, TweenAnim, lens::TransformPositionLens};
@@ -72,6 +73,7 @@ fn activate_field(
         .with_children(|p| {
             spawn_radial(p, assets, kind.icon(tex), mats, field_id, kind.color(), 0.);
         });
+    ui::progress_bar::spawn_transient_with_color(cmds, field_id, 0., kind.color());
 }
 
 pub(super) fn button_press_system(
