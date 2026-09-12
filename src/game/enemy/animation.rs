@@ -244,9 +244,9 @@ fn build_model(
 struct ModelAttached;
 
 #[derive(Component)]
-struct EnemyVisual {
+pub(super) struct EnemyVisual {
     owner: Entity,
-    kind: EnemyKind,
+    pub(super) kind: EnemyKind,
     previous_position: Vec3,
     heading: f32,
     phase: f32,
