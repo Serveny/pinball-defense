@@ -49,13 +49,19 @@ pub(super) fn on_extra_field_fire_system(
     }
 }
 
-pub fn ball_damage(effects: &ActiveEffects, now: f32, enemy_max_health: f32) -> f32 {
+pub fn ball_damage(
+    effects: &ActiveEffects,
+    now: f32,
+    enemy_max_health: f32,
+    level: crate::game::level::Level,
+) -> f32 {
+    let base = -CONFIG.ball_enemy_damage - f32::from(level) * CONFIG.ball_damage_per_level;
     if effects.is_active(now, ExtraFieldKind::InstaKill) {
         -enemy_max_health
     } else if effects.is_active(now, ExtraFieldKind::DoubleDamage) {
-        -2. * CONFIG.ball_enemy_damage
+        2. * base
     } else {
-        -CONFIG.ball_enemy_damage
+        base
     }
 }
 
@@ -114,15 +120,26 @@ mod tests {
     #[allow(clippy::float_cmp)]
     fn extra_field_ball_damage_modes() {
         let mut effects = ActiveEffects::default();
-        assert_eq!(ball_damage(&effects, 10., 300.), -CONFIG.ball_enemy_damage);
+        assert_eq!(ball_damage(&effects, 10., 300., 0), -CONFIG.ball_enemy_damage);
         effects.double_damage_until = 5.;
         assert_eq!(
-            ball_damage(&effects, 4.9, 300.),
+            ball_damage(&effects, 4.9, 300., 0),
             -2. * CONFIG.ball_enemy_damage
         );
-        assert_eq!(ball_damage(&effects, 5., 300.), -CONFIG.ball_enemy_damage);
+        assert_eq!(ball_damage(&effects, 5., 300., 0), -CONFIG.ball_enemy_damage);
         effects.insta_kill_until = 20.;
-        assert_eq!(ball_damage(&effects, 15., 300.), -300.);
-        assert_eq!(ball_damage(&effects, 20., 300.), -CONFIG.ball_enemy_damage);
+        assert_eq!(ball_damage(&effects, 15., 300., 0), -300.);
+        assert_eq!(ball_damage(&effects, 20., 300., 0), -CONFIG.ball_enemy_damage);
+    }
+
+    #[test]
+    #[allow(clippy::float_cmp)]
+    fn ball_damage_scales_with_level() {
+        let effects = ActiveEffects::default();
+        let expected = |lvl: u8| {
+            -(CONFIG.ball_enemy_damage + f32::from(lvl) * CONFIG.ball_damage_per_level)
+        };
+        assert_eq!(ball_damage(&effects, 10., 300., 0), expected(0));
+        assert_eq!(ball_damage(&effects, 10., 300., 3), expected(3));
     }
 }
