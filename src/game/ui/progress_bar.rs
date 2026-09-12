@@ -1,5 +1,7 @@
 use super::PosToRelEntity;
+use avian2d::prelude::Collider;
 use crate::game::enemy::Enemy;
+use crate::game::extra::ExtraField;
 use crate::game::health::Health;
 use crate::game::progress::{Progress, ProgressBarCountUpEvent, ProgressBarResetEvent};
 use crate::game::tower::Tower;
@@ -70,8 +72,17 @@ pub fn spawn(cmds: &mut Commands, rel_id: Entity, start_percent: PercentBw0And1)
 /// `TRANSIENT_VISIBLE_SECS` whenever the related entity receives progress
 /// (e.g. the ball hits a tower/foundation).
 pub fn spawn_transient(cmds: &mut Commands, rel_id: Entity, init_val: PercentBw0And1) {
+    spawn_transient_with_color(cmds, rel_id, init_val, PROGRESS_COLOR);
+}
+
+pub fn spawn_transient_with_color(
+    cmds: &mut Commands,
+    rel_id: Entity,
+    init_val: PercentBw0And1,
+    color: Color,
+) {
     cmds.spawn_scene(bsn! {
-        Name::new("Tower Progress UI Bar")
+        Name::new("Progress UI Bar")
         RelEntity({rel_id})
         PosToRelEntity
         TransientProgressUiBar
@@ -91,7 +102,7 @@ pub fn spawn_transient(cmds: &mut Commands, rel_id: Entity, init_val: PercentBw0
              Progress({init_val})
              RelEntity({rel_id})
              Node { width: Val::Percent({init_val * 100.}), height: Val::Percent(100.) }
-             BackgroundColor({PROGRESS_COLOR}))
+             BackgroundColor({color}))
         ]
     })
     .insert(Visibility::Hidden);
@@ -249,19 +260,174 @@ pub(super) fn sync_progress_to_entities(
 pub(super) fn ensure_bars_on_load(
     mut cmds: Commands,
     q_entities: Query<
-        (Entity, Option<&Progress>, Option<&Health>),
-        Or<(With<Tower>, With<TowerFoundation>, With<Enemy>)>,
+        (
+            Entity,
+            Option<&Progress>,
+            Option<&Health>,
+            Option<&ExtraField>,
+        ),
+        Or<(
+            With<Tower>,
+            With<TowerFoundation>,
+            With<Enemy>,
+            (With<ExtraField>, With<Collider>),
+        )>,
     >,
     q_bars: Query<&RelEntity, With<ProgressUiBar>>,
 ) {
-    for (entity, progress, health) in q_entities.iter() {
+    for (entity, progress, health, extra) in q_entities.iter() {
         if q_bars.iter().any(|r| r.0 == entity) {
             continue;
         }
-        if let Some(progress) = progress {
+        if let Some(extra) = extra {
+            spawn_transient_with_color(&mut cmds, entity, 0., extra.kind().color());
+        } else if let Some(progress) = progress {
             spawn_transient(&mut cmds, entity, progress.0);
         } else if let Some(health) = health {
             spawn(&mut cmds, entity, health.fraction());
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::game::extra::ExtraFieldKind;
+    use bevy::ecs::system::RunSystemOnce;
+    use std::time::Duration;
+
+    fn test_app() -> App {
+        let mut app = App::new();
+        app.add_plugins((
+            MinimalPlugins,
+            bevy::asset::AssetPlugin::default(),
+            bevy::scene::ScenePlugin::default(),
+        ));
+        app
+    }
+
+    #[test]
+    fn transient_bar_spawns_with_custom_color_and_hidden() {
+        let mut app = test_app();
+        let entity = app.world_mut().spawn_empty().id();
+        let color = ExtraFieldKind::SlowDown.color();
+
+        let mut cmds = app.world_mut().commands();
+        spawn_transient_with_color(&mut cmds, entity, 0., color);
+        app.update();
+
+        let mut q_bar = app
+            .world_mut()
+            .query::<(&RelEntity, &Visibility, &TransientProgressUiBar)>();
+        let (rel, vis, _) = q_bar
+            .iter(app.world())
+            .find(|(r, _, _)| r.0 == entity)
+            .expect("Transient bar should exist");
+        assert_eq!(rel.0, entity);
+        assert_eq!(*vis, Visibility::Hidden);
+
+        let mut q_fill = app
+            .world_mut()
+            .query::<(&RelEntity, &BackgroundColor, &ProgressUiBar)>();
+        let (fill_rel, bg, _) = q_fill
+            .iter(app.world())
+            .find(|(r, _, _)| r.0 == entity)
+            .expect("ProgressUiBar child should exist");
+        assert_eq!(fill_rel.0, entity);
+        assert_eq!(bg.0, color);
+    }
+
+    #[test]
+    fn transient_bar_shown_on_hit_and_resets_timer() {
+        let mut app = test_app();
+        app.add_message::<ProgressBarCountUpEvent>();
+        app.add_systems(Update, show_on_hit_system);
+
+        let entity = app.world_mut().spawn_empty().id();
+        let mut cmds = app.world_mut().commands();
+        spawn_transient_with_color(&mut cmds, entity, 0., ExtraFieldKind::ExtraBall.color());
+        app.update();
+
+        app.world_mut()
+            .write_message(ProgressBarCountUpEvent::new(entity, 0.25));
+        app.update();
+
+        let mut q_bar = app
+            .world_mut()
+            .query::<(&RelEntity, &Visibility, &TransientProgressUiBar)>();
+        let (_, vis, _) = q_bar
+            .iter(app.world())
+            .find(|(r, _, _)| r.0 == entity)
+            .unwrap();
+        assert_eq!(*vis, Visibility::Visible);
+    }
+
+    #[test]
+    fn transient_bar_hides_after_timeout() {
+        let mut app = test_app();
+
+        let entity = app.world_mut().spawn_empty().id();
+        let mut cmds = app.world_mut().commands();
+        spawn_transient_with_color(&mut cmds, entity, 0., ExtraFieldKind::DoubleDamage.color());
+        app.update();
+
+        let (bar_id, mut vis, _) = app
+            .world_mut()
+            .query::<(Entity, &mut Visibility, &mut TransientProgressUiBar)>()
+            .single_mut(app.world_mut())
+            .unwrap();
+        *vis = Visibility::Visible;
+
+        {
+            let mut time = app.world_mut().resource_mut::<Time>();
+            time.advance_by(Duration::from_secs_f32(TRANSIENT_VISIBLE_SECS));
+        }
+        let _ = app.world_mut().run_system_once(hide_after_timeout_system);
+
+        let vis = app.world().get::<Visibility>(bar_id).unwrap();
+        assert_eq!(*vis, Visibility::Hidden);
+    }
+
+    #[test]
+    fn transient_bar_hidden_and_reset_on_progress_reset_event() {
+        let mut app = test_app();
+        app.add_message::<ProgressBarResetEvent>();
+        app.add_systems(Update, reset_on_upgrade_system);
+
+        let entity = app.world_mut().spawn_empty().id();
+        let mut cmds = app.world_mut().commands();
+        spawn_transient_with_color(&mut cmds, entity, 0.5, ExtraFieldKind::InstaKill.color());
+        app.update();
+
+        for mut vis in app
+            .world_mut()
+            .query::<&mut Visibility>()
+            .iter_mut(app.world_mut())
+        {
+            *vis = Visibility::Visible;
+        }
+
+        app.world_mut()
+            .write_message(ProgressBarResetEvent::new(entity));
+        app.update();
+
+        let mut q_bar = app
+            .world_mut()
+            .query::<(&RelEntity, &Visibility, &TransientProgressUiBar)>();
+        let (_, vis, _) = q_bar
+            .iter(app.world())
+            .find(|(r, _, _)| r.0 == entity)
+            .unwrap();
+        assert_eq!(*vis, Visibility::Hidden);
+
+        let mut q_fill = app
+            .world_mut()
+            .query::<(&RelEntity, &Progress, &ProgressUiBar)>();
+        let (_, progress, fill) = q_fill
+            .iter(app.world())
+            .find(|(r, _, _)| r.0 == entity)
+            .unwrap();
+        assert_eq!(progress.0, 0.);
+        assert!(fill.is_locked);
     }
 }
