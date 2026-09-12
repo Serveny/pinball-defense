@@ -1,5 +1,5 @@
 use super::set_flipper_status;
-use crate::game::ball_starter::SpawnBallEvent;
+use crate::game::ball_starter::{AutoLaunch, SpawnBallEvent};
 use crate::game::{GameState, PauseGameEvent, ResumeGameEvent};
 use crate::game::{
     ball_starter::BallStarterState,
@@ -19,6 +19,7 @@ pub(super) fn on_btn_changed(
     mut pause_ev: MessageWriter<PauseGameEvent>,
     game_state: Res<State<GameState>>,
     ball_starter: Res<State<BallStarterState>>,
+    q_auto_launch: Query<(), With<AutoLaunch>>,
 ) {
     if game_state.is_changed() {
         evr.clear();
@@ -41,7 +42,7 @@ pub(super) fn on_btn_changed(
                 );
                 continue;
             }
-            GamepadButton::South => {
+            GamepadButton::South if q_auto_launch.is_empty() => {
                 if ev.state == ButtonState::Pressed {
                     ball_starter_state.set(BallStarterState::Charge);
                 } else if *ball_starter.get() == BallStarterState::Charge {

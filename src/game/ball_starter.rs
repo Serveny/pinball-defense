@@ -20,6 +20,14 @@ impl Plugin for BallStarterPlugin {
                 (spawn_ball_at_charge, on_charge_started),
             )
             .add_systems(OnEnter(BallStarterState::Fire), on_fire_started)
+            .add_systems(OnEnter(BallStarterState::AutoLaunch), on_enter_auto_launch)
+            .add_systems(
+                Update,
+                (auto_launch_system).run_if(
+                    in_state(BallStarterState::AutoLaunch)
+                        .and_then(in_state(GameState::Ingame)),
+                ),
+            )
             .add_systems(
                 Update,
                 (charge_system).run_if(
@@ -34,6 +42,10 @@ impl Plugin for BallStarterPlugin {
                 Update,
                 fire_system
                     .run_if(in_state(BallStarterState::Fire).and_then(in_state(GameState::Ingame))),
+            )
+            .add_systems(
+                OnExit(BallStarterState::Fire),
+                clear_auto_launch,
             );
     }
 }
@@ -150,6 +162,7 @@ pub enum BallStarterState {
     Idle = 0,
     Charge = -1,
     Fire = 1,
+    AutoLaunch = -2,
 }
 
 fn spawn_ball_at_charge(
@@ -158,6 +171,46 @@ fn spawn_ball_at_charge(
 ) {
     if q_ball.is_empty() {
         spawn_ball_ev.write(SpawnBallEvent);
+    }
+}
+
+#[derive(Component)]
+pub struct AutoLaunch;
+
+fn on_enter_auto_launch(mut sound_ev: MessageWriter<SoundEvent>) {
+    sound_ev.write(SoundEvent::BallStarterCharge);
+}
+
+fn auto_launch_system(
+    mut cmds: Commands,
+    mut q_plate: Query<(&mut Transform, &mut LinearVelocity), With<StarterPlate>>,
+    mut q_spring: Query<&mut Transform, (With<StarterSpring>, Without<StarterPlate>)>,
+    mut state: ResMut<NextState<BallStarterState>>,
+    mut q_starter: Query<Entity, With<BallStarter>>,
+) {
+    let Ok((mut plate, mut velocity)) = q_plate.single_mut() else {
+        return;
+    };
+    let Ok(mut spring) = q_spring.single_mut() else {
+        return;
+    };
+    if plate.translation.x < STARTER_MAX_X {
+        velocity.x = CHARGE_SPEED;
+        update_spring_scale(plate.translation.x, &mut spring.scale);
+        return;
+    }
+    plate.translation.x = STARTER_MAX_X;
+    velocity.x = 0.;
+    update_spring_scale(plate.translation.x, &mut spring.scale);
+    for starter_id in q_starter.iter_mut() {
+        cmds.entity(starter_id).insert(AutoLaunch);
+    }
+    state.set(BallStarterState::Fire);
+}
+
+fn clear_auto_launch(mut cmds: Commands, q_starter: Query<Entity, With<BallStarter>>) {
+    for starter_id in q_starter.iter() {
+        cmds.entity(starter_id).remove::<AutoLaunch>();
     }
 }
 
@@ -244,6 +297,7 @@ fn fire_system(
     mut q_spring: Query<&mut Transform, (With<StarterSpring>, Without<StarterPlate>)>,
     mut state: ResMut<NextState<BallStarterState>>,
     mut leave_ev: MessageWriter<BallStarterFireEndEvent>,
+    auto_launch: Query<(), With<AutoLaunch>>,
 ) {
     let Ok((mut plate, mut velocity)) = q_plate.single_mut() else {
         return;
@@ -258,7 +312,9 @@ fn fire_system(
     update_spring_scale(plate.translation.x, &mut spring.scale);
     if plate.translation.x <= STARTER_MIN_X {
         state.set(BallStarterState::Idle);
-        leave_ev.write(BallStarterFireEndEvent);
+        if auto_launch.iter().next().is_none() {
+            leave_ev.write(BallStarterFireEndEvent);
+        }
     }
 }
 

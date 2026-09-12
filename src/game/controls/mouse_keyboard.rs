@@ -1,5 +1,5 @@
 use super::{KeyboardControls, set_flipper_status};
-use crate::game::ball_starter::{BallStarterState, SpawnBallEvent};
+use crate::game::ball_starter::{AutoLaunch, BallStarterState, SpawnBallEvent};
 use crate::game::camera::CameraState;
 use crate::game::flipper::{FlipperStatus, FlipperType};
 use crate::game::ui::UiState;
@@ -21,7 +21,9 @@ pub(super) fn key_system(
     ui_state: Res<State<UiState>>,
     mut set_ui_state: ResMut<NextState<UiState>>,
     mut cursor_options: Single<&mut CursorOptions, With<PrimaryWindow>>,
+    q_auto_launch: Query<(), With<AutoLaunch>>,
 ) {
+    let starter_locked = !q_auto_launch.is_empty();
     if key.just_pressed(controls.toggle_key_ui) {
         if *ui_state == UiState::None {
             set_ui_state.set(UiState::Controls);
@@ -44,15 +46,15 @@ pub(super) fn key_system(
     }
 
     // Only for testing
-    if key.just_pressed(KeyCode::ControlLeft) {
+    if !starter_locked && key.just_pressed(KeyCode::ControlLeft) {
         spawn_ball_ev.write(SpawnBallEvent);
     }
 
-    if key.just_pressed(controls.charge_ball_starter) {
+    if !starter_locked && key.just_pressed(controls.charge_ball_starter) {
         ball_starter_state.set(BallStarterState::Charge);
     }
 
-    if key.just_released(controls.charge_ball_starter) {
+    if !starter_locked && key.just_released(controls.charge_ball_starter) {
         ball_starter_state.set(BallStarterState::Fire);
     }
 
@@ -80,6 +82,7 @@ pub(super) fn pause_key_system(
     mut menu_state: ResMut<NextState<MenuState>>,
     ball_starter: Res<State<BallStarterState>>,
     controls: Res<KeyboardControls>,
+    q_auto_launch: Query<(), With<AutoLaunch>>,
 ) {
     if key.just_released(controls.flipper_left) {
         set_flipper_status(FlipperType::Left, FlipperStatus::Idle, &mut q_flipper);
@@ -88,6 +91,7 @@ pub(super) fn pause_key_system(
         set_flipper_status(FlipperType::Right, FlipperStatus::Idle, &mut q_flipper);
     }
     if key.just_released(controls.charge_ball_starter)
+        && q_auto_launch.is_empty()
         && *ball_starter.get() == BallStarterState::Charge
     {
         ball_starter_state.set(BallStarterState::Fire);
