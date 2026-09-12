@@ -79,7 +79,8 @@ fn prepare_models(
     }
     let normal_ready = prepare_normal_model(&assets, &gltfs, &clips, &mut graphs, &mut models);
     let tank_ready = prepare_tank_model(&assets, &gltfs, &clips, &mut graphs, &mut models);
-    *prepared = normal_ready && tank_ready;
+    let speeder_ready = prepare_speeder_model(&assets, &gltfs, &clips, &mut graphs, &mut models);
+    *prepared = normal_ready && tank_ready && speeder_ready;
 }
 
 fn prepare_normal_model(
@@ -152,6 +153,40 @@ fn prepare_tank_model(
         }
         Err(reason) => {
             error!("Cannot prepare tank enemy animations: {reason}");
+            false
+        }
+    }
+}
+
+fn prepare_speeder_model(
+    assets: &PinballDefenseAssets,
+    gltfs: &Assets<Gltf>,
+    clips: &Assets<AnimationClip>,
+    graphs: &mut Assets<AnimationGraph>,
+    models: &mut EnemyModels,
+) -> bool {
+    let Some(gltf) = gltfs.get(&assets.speeder_enemy) else {
+        return false;
+    };
+    if gltf.animations.iter().any(|h| !clips.contains(h)) {
+        return false;
+    }
+    let config = ModelConfig {
+        clips: vec![(Clip::Walk, "SP_Roll")],
+        scale: 1.4,
+        ground_offset: -0.044,
+        orientation: Quat::from_rotation_z(PI),
+        walk_speed: 0.026_39,
+        curve_speed: 0.5,
+        turn_speed: 1.0,
+    };
+    match build_model(gltf, clips, graphs, config) {
+        Ok(model) => {
+            models.0.insert(EnemyKind::Speeder, model);
+            true
+        }
+        Err(reason) => {
+            error!("Cannot prepare speeder enemy animations: {reason}");
             false
         }
     }

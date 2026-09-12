@@ -20,6 +20,9 @@ pub struct PinballDefenseAssets {
     #[asset(path = "models/boiler_golem.glb")]
     pub tank_enemy: Handle<Gltf>,
 
+    #[asset(path = "models/speeder_enemy.glb")]
+    pub speeder_enemy: Handle<Gltf>,
+
     // Other
     #[asset(path = "textures/skybox.png")]
     pub skybox: Handle<Image>,

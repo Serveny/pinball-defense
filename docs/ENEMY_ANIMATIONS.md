@@ -2,8 +2,9 @@
 
 Normal enemies use `assets/models/normal_iron_cage.glb` (clips `IC_*`), tanks
 use `assets/models/boiler_golem.glb` (clips `BG_Walk`, `BG_Idle`; no curve/turn
-clips, those fall back to walking). Speeder keeps its primitive visual until an
-animated model is configured for it.
+clips, those fall back to walking). Speeders use
+`assets/models/speeder_enemy.glb` (clip `SP_Roll`, wheel-only roll animation,
+authored Z-up like the Blender scene).
 
 The controller lives in `src/game/enemy/animation.rs`. It instantiates a GLTF
 world beneath the enemy, waits for `WorldInstanceReady`, and binds the model's
