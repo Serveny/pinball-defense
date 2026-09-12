@@ -17,6 +17,7 @@ use moonshine_save::prelude::Save;
 use std::time::Duration;
 
 mod animation;
+mod smoke;
 mod step;
 mod walk;
 
@@ -32,6 +33,11 @@ impl Plugin for EnemyPlugin {
             .add_message::<OnEnemyDespawnEvent>()
             .register_type::<Enemy>()
             .register_type::<step::Step>()
+            .init_resource::<smoke::EnemySmokeAssets>()
+            .add_systems(
+                Update,
+                smoke::spawn_smoke_system.run_if(in_state(GameState::Ingame)),
+            )
             .add_systems(
                 Update,
                 reattach_enemies_system.run_if(in_state(GameState::Ingame)),
