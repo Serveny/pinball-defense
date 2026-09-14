@@ -67,7 +67,7 @@ fn radial_bar_bundle(
             reflectance: 0.5,
             ..default()
         })),
-        Transform::from_rotation(Quat::from_rotation_z(PI * (1. - init_val) + PI + FRAC_PI_2)),
+        Transform::from_rotation(Quat::from_rotation_z(PI * (1. + init_val) + PI + FRAC_PI_2)),
         RadialProgressBar {
             phase: -PI * (1. - init_val),
             ..default()
@@ -120,6 +120,6 @@ pub(super) fn radial_rotation_system(
                 bar.phase += (time.delta_secs() * 0.5).min(delta.abs()) * delta.signum();
             }
         }
-        trans.rotation = Quat::from_rotation_z(-bar.phase + PI + FRAC_PI_2);
+        trans.rotation = Quat::from_rotation_z(bar.phase + PI * 3.5);
     }
 }
