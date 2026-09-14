@@ -75,7 +75,7 @@ fn on_count_up_system(
             if new != progress.0 {
                 progress.0 = new;
                 if let Some(mut bar) = radial {
-                    bar.rewinding = false;
+                    bar.stop_fast_forward();
                 }
             }
         }
@@ -92,7 +92,7 @@ fn reset_on_upgrade_system(
         {
             progress.0 = 0.;
             if let Some(mut bar) = radial {
-                bar.rewinding = true;
+                bar.start_fast_forward();
             }
         }
     }

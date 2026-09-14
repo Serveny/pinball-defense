@@ -26,10 +26,10 @@ pub(super) fn on_charge_system(
 ) {
     for CollisionWithBallEvent(_, id) in evr.read() {
         if let Ok(field) = q_field.get(*id) {
-            let rewinding = q_bar
+            let fast_forwarding = q_bar
                 .iter()
-                .any(|(rel, bar)| rel.0 == *id && bar.is_rewinding());
-            if effects.is_active(**ig_time, field.kind()) || rewinding {
+                .any(|(rel, bar)| rel.0 == *id && bar.is_fast_forwarding());
+            if effects.is_active(**ig_time, field.kind()) || fast_forwarding {
                 continue;
             }
             prog_bar_ev.write(ProgressBarCountUpEvent::new(

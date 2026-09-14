@@ -6,12 +6,20 @@ use std::f32::consts::{FRAC_PI_2, PI};
 #[derive(Component, Default)]
 pub struct RadialProgressBar {
     phase: f32,
-    pub(super) rewinding: bool,
+    fast_forward_target: Option<f32>,
 }
 
 impl RadialProgressBar {
-    pub fn is_rewinding(&self) -> bool {
-        self.rewinding
+    pub fn is_fast_forwarding(&self) -> bool {
+        self.fast_forward_target.is_some()
+    }
+
+    pub(super) fn start_fast_forward(&mut self) {
+        self.fast_forward_target = Some(self.phase + PI);
+    }
+
+    pub(super) fn stop_fast_forward(&mut self) {
+        self.fast_forward_target = None;
     }
 }
 
@@ -103,13 +111,13 @@ pub(super) fn radial_rotation_system(
     time: Res<Time>,
 ) {
     for (mut trans, progress, mut bar) in q_progress.iter_mut() {
-        if bar.rewinding {
-            let remaining = PI * (1. + progress.0) - bar.phase;
+        if let Some(target) = bar.fast_forward_target {
+            let remaining = target - bar.phase;
             if remaining <= RADIAL_TOLERANCE {
-                bar.rewinding = false;
+                bar.fast_forward_target = None;
                 bar.phase = -PI * (1. - progress.0);
             } else {
-                bar.phase += (time.delta_secs() * PI).min(remaining);
+                bar.phase += (time.delta_secs() * 2. * PI).min(remaining);
             }
         } else {
             let target = -PI * (1. - progress.0);
