@@ -1,5 +1,4 @@
 use super::PosToRelEntity;
-use avian2d::prelude::Collider;
 use crate::game::enemy::Enemy;
 use crate::game::extra::ExtraField;
 use crate::game::health::Health;
@@ -7,6 +6,7 @@ use crate::game::progress::{Progress, ProgressBarCountUpEvent, ProgressBarResetE
 use crate::game::tower::Tower;
 use crate::game::tower::foundation::TowerFoundation;
 use crate::utils::{PercentBw0And1, RelEntity};
+use avian2d::prelude::Collider;
 use bevy::color::palettes::css::RED;
 use bevy::prelude::*;
 
@@ -302,7 +302,7 @@ mod tests {
         app.add_plugins((
             MinimalPlugins,
             bevy::asset::AssetPlugin::default(),
-            bevy::scene::ScenePlugin::default(),
+            bevy::scene::ScenePlugin,
         ));
         app
     }

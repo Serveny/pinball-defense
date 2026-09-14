@@ -73,7 +73,7 @@
   - pinball menu selected sound
   - ball rolling sound ✅
 - enemies have color codings, more darker means more life/better enemies ✅
-- ui resize on window resize
+- ui resize on window resize ✅
 - Game over mechanic/screen ✅
 - Controls UI ✅
 - Main menu: ✅
@@ -99,3 +99,20 @@
   - speeder: no collision, very fast, less life points ✅
 - enemy type spawn system ✅
 - Show wave count ingame (same like level counter) ✅
+- Waves: More enemies and smaller gaps between enemies with every wave ✅
+- Some levels unlock double ball damage ✅
+- New foundation only every second level ✅
+- Color of ball changes to extra color if instakill or double damage hit ✅
+- extra ball more rare ✅
+- lost ball more damage ✅
+- Fix: tower hit should only effect ball which hitted the tower, not all balls ✅
+- Fix wave number save ✅
+- design enemies: normal, tank, speeder ✅
+- Extra fields:
+  - Extra-Ball-Field: Hit it and the ball starter will insert new ball ✅
+  - Slow-Down-Field: Hit it and the enemies a slower for a time span ✅
+    - Add freeze effect on enemies ✅
+  - Double-Damage-Field: Hit it and ball will make double damage for a time span ✅
+  - Insta-Kill-Field: Hit it and for a timespan the ball will kill every enemy it hits instantly ✅
+- design extras field (Extra ball, more damage, etc) ✅
+- Ring progress bar (Circle with rotationg half circle as bar fill) ✅
