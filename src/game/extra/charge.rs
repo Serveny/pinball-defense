@@ -1,7 +1,7 @@
-use super::KINDS;
-use super::effects::ActiveEffects;
 use super::ExtraField;
 use super::ExtraFieldFireEvent;
+use super::KINDS;
+use super::effects::ActiveEffects;
 use crate::game::IngameTime;
 use crate::game::audio::SoundEvent;
 use crate::game::ball::CollisionWithBallEvent;

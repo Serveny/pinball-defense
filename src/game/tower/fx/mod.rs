@@ -1,4 +1,4 @@
-use crate::game::tower::types::gun::GunTowerBarrel;
+use crate::game::tower::types::gun::{GunTowerHead, MG_MUZZLE_LOCAL};
 use crate::prelude::*;
 use crate::utils::RelEntity;
 use bevy_hanabi::prelude::*;
@@ -9,8 +9,6 @@ pub(in super::super) mod tesla;
 
 use barrel_smoke::asset as barrel_smoke_asset;
 use muzzle_flash::asset as muzzle_flash_asset;
-
-const MUZZLE_LOCAL: Vec3 = Vec3::new(0., 0.095, 0.0235);
 
 #[derive(Component)]
 pub(in super::super) struct GunFiringEffects;
@@ -36,11 +34,11 @@ impl FromWorld for MuzzleEffectAssets {
 
 pub(in super::super) fn spawn_gun_effects_system(
     muzzle_assets: Res<MuzzleEffectAssets>,
-    q_barrels: Query<(Entity, &RelEntity), (With<GunTowerBarrel>, Without<GunEffectsSpawned>)>,
+    q_heads: Query<(Entity, &RelEntity), (With<GunTowerHead>, Without<GunEffectsSpawned>)>,
     mut cmds: Commands,
 ) {
-    for (barrel_id, rel_id) in q_barrels.iter() {
-        cmds.entity(barrel_id)
+    for (head_id, rel_id) in q_heads.iter() {
+        cmds.entity(head_id)
             .insert(GunEffectsSpawned)
             .with_children(|barrel| {
                 for (name, handle) in [
@@ -50,7 +48,7 @@ pub(in super::super) fn spawn_gun_effects_system(
                     barrel.spawn((
                         Name::new(name),
                         ParticleEffect::new(handle),
-                        Transform::from_translation(MUZZLE_LOCAL),
+                        Transform::from_translation(MG_MUZZLE_LOCAL),
                         GunFiringEffects,
                         RelEntity(rel_id.0),
                     ));

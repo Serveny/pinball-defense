@@ -106,7 +106,9 @@ pub fn activate_system(
     mut action_ev: MessageWriter<MenuAction>,
     mut commands: Commands,
 ) {
-    let gamepad_pressed = gamepads.iter().any(|g| g.just_pressed(GamepadButton::South));
+    let gamepad_pressed = gamepads
+        .iter()
+        .any(|g| g.just_pressed(GamepadButton::South));
     let key_pressed = keys.just_pressed(KeyCode::Enter);
     if !gamepad_pressed && !key_pressed {
         return;

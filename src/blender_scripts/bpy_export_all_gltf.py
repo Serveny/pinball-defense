@@ -3,11 +3,11 @@ from pathlib import Path
 import os
 
 dir_name = Path(__file__).parent.parent
-dir_name = os.path.join(dir_name, "../../assets/models/gltf")
+dir_name = os.path.join(dir_name, "../../assets/models")
 
 print("\n-------------------------------------\n")
 
-file_path = os.path.join(dir_name, "world.gltf")
+file_path = os.path.join(dir_name, "world.glb")
 bpy.ops.export_scene.gltf(
     filepath=file_path,
     use_active_scene=True,

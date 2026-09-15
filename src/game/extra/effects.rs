@@ -120,25 +120,33 @@ mod tests {
     #[allow(clippy::float_cmp)]
     fn extra_field_ball_damage_modes() {
         let mut effects = ActiveEffects::default();
-        assert_eq!(ball_damage(&effects, 10., 300., 0), -CONFIG.ball_enemy_damage);
+        assert_eq!(
+            ball_damage(&effects, 10., 300., 0),
+            -CONFIG.ball_enemy_damage
+        );
         effects.double_damage_until = 5.;
         assert_eq!(
             ball_damage(&effects, 4.9, 300., 0),
             -2. * CONFIG.ball_enemy_damage
         );
-        assert_eq!(ball_damage(&effects, 5., 300., 0), -CONFIG.ball_enemy_damage);
+        assert_eq!(
+            ball_damage(&effects, 5., 300., 0),
+            -CONFIG.ball_enemy_damage
+        );
         effects.insta_kill_until = 20.;
         assert_eq!(ball_damage(&effects, 15., 300., 0), -300.);
-        assert_eq!(ball_damage(&effects, 20., 300., 0), -CONFIG.ball_enemy_damage);
+        assert_eq!(
+            ball_damage(&effects, 20., 300., 0),
+            -CONFIG.ball_enemy_damage
+        );
     }
 
     #[test]
     #[allow(clippy::float_cmp)]
     fn ball_damage_scales_with_level() {
         let effects = ActiveEffects::default();
-        let expected = |lvl: u8| {
-            -(CONFIG.ball_enemy_damage + f32::from(lvl) * CONFIG.ball_damage_per_level)
-        };
+        let expected =
+            |lvl: u8| -(CONFIG.ball_enemy_damage + f32::from(lvl) * CONFIG.ball_damage_per_level);
         assert_eq!(ball_damage(&effects, 10., 300., 0), expected(0));
         assert_eq!(ball_damage(&effects, 10., 300., 3), expected(3));
     }

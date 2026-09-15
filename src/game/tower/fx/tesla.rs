@@ -16,7 +16,7 @@ use bevy_hanabi::{
 };
 
 const IMPACT_SEGMENTS: usize = 12;
-const BOLT_ORIGIN_Z: f32 = 0.078;
+const BOLT_ORIGIN_Z: f32 = 0.157;
 const BOLT_WIDTH: f32 = 0.006;
 const BOLT_JITTER: f32 = 0.04;
 const SPARK_BURST: f32 = 12.;

@@ -6,8 +6,8 @@ mod fx;
 pub use effects::ActiveEffects;
 pub use field::spawn_fields;
 
-use super::{EventState, GameState};
 use super::enemy::recover_speed_system;
+use super::{EventState, GameState};
 use crate::prelude::*;
 use bevy::color::palettes::css::{BLUE, GOLD, ORANGE, RED};
 
@@ -26,7 +26,11 @@ impl Plugin for ExtraFieldPlugin {
             )
             .add_systems(
                 Update,
-                (charge::on_charge_system, charge::on_fire_system, field::button_press_system)
+                (
+                    charge::on_charge_system,
+                    charge::on_fire_system,
+                    field::button_press_system,
+                )
                     .run_if(in_state(EventState::Active)),
             )
             .add_systems(

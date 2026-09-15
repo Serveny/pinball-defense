@@ -20,7 +20,7 @@ use crate::game::world::QueryWorld;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::RelEntity;
-use bevy::color::palettes::css::{BEIGE, ORANGE, RED};
+use bevy::color::palettes::css::{ORANGE, RED};
 use bevy_tweening::lens::TransformPositionLens;
 use bevy_tweening::{Delay, Sequence, Tween, TweenAnim};
 use moonshine_save::prelude::Save;
@@ -76,6 +76,7 @@ impl Plugin for TowerPlugin {
                     speed::afe_slow_down_system,
                     target::aim_first_enemy_system,
                     target::target_pos_by_afe_system,
+                    types::microwave::rotate_dish_to_target_system,
                     types::gun::shoot_animation_system,
                     fx::spawn_gun_effects_system,
                     types::microwave::shot_animation_system,
@@ -271,16 +272,6 @@ fn spawn(
         .id()
 }
 
-fn tower_material() -> StandardMaterial {
-    StandardMaterial {
-        base_color: BEIGE.into(),
-        perceptual_roughness: 0.6,
-        metallic: 0.6,
-        reflectance: 0.1,
-        ..default()
-    }
-}
-
 fn create_tower_spawn_animator(pos: Vec3) -> Sequence {
     let delay = Delay::new(Duration::from_secs(1));
     let tween = Tween::new(
@@ -320,7 +311,6 @@ fn reattach_towers_system(
     let Ok(world) = q_world.single() else { return };
     for (tower_id, tower, sight, progress, gun, tesla, micro) in q_towers.iter() {
         let sight_radius = sight.0;
-        let tower_mat = mats.add(tower_material());
         cmds.entity(tower_id)
             .insert(tower_physics_bundle())
             .insert(Transform::from_translation(tower.pos));
@@ -342,11 +332,17 @@ fn reattach_towers_system(
                 progress.0,
             );
             if gun.is_some() {
-                types::gun::build_view(p, tower_mat.clone(), &assets, &g_sett, sight_radius);
+                types::gun::build_view(p, &assets, &g_sett, sight_radius);
             } else if tesla.is_some() {
-                types::tesla::build_view(p, tower_mat.clone(), &assets, &g_sett, sight_radius);
+                types::tesla::build_view(
+                    p,
+                    types::tesla::tube_material(&mut mats, &assets),
+                    &assets,
+                    &g_sett,
+                    sight_radius,
+                );
             } else if micro.is_some() {
-                types::microwave::build_view(p, tower_mat.clone(), &assets, &g_sett, sight_radius);
+                types::microwave::build_view(p, &assets, &g_sett, sight_radius);
             }
         });
     }

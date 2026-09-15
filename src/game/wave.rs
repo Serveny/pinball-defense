@@ -108,9 +108,9 @@ impl Wave {
     fn prepare_next_wave(&mut self, now: f32) {
         self.number += 1;
         self.next_enemy_spawn_time = (now + TIME_BETWEEN_WAVES).round();
-        self.time_between_enemies =
-            (BASE_TIME_BETWEEN_ENEMIES * 0.97f32.powi(i32::try_from(self.number).unwrap_or(i32::MAX)))
-                .max(MIN_TIME_BETWEEN_ENEMIES);
+        self.time_between_enemies = (BASE_TIME_BETWEEN_ENEMIES
+            * 0.97f32.powi(i32::try_from(self.number).unwrap_or(i32::MAX)))
+        .max(MIN_TIME_BETWEEN_ENEMIES);
         self.roll_wave_kind();
         self.enemies_count = match self.kind {
             EnemyKind::Tank => enemies_per_wave(self.number) / 3,
@@ -184,7 +184,11 @@ fn spawn_kind(wave_kind: EnemyKind, number: usize) -> EnemyKind {
     }
 }
 
-#[allow(clippy::cast_precision_loss, clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+#[allow(
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_truncation
+)]
 fn enemies_per_wave(wave: usize) -> usize {
     (f32::from(u16::try_from(wave).unwrap_or(u16::MAX)).powf(1.25)) as usize
 }

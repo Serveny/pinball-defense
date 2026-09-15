@@ -1,7 +1,7 @@
 use super::{ActiveEffects, ExtraFieldKind};
+use crate::game::IngameTime;
 use crate::game::ball::PinBall;
 use crate::game::enemy::Enemy;
-use crate::game::IngameTime;
 use crate::prelude::*;
 use bevy::math::{Vec3, Vec4};
 use bevy_hanabi::{
@@ -116,7 +116,9 @@ fn snow_asset() -> EffectAsset {
     .init(SetAttributeModifier::new(Attribute::AGE, age))
     .init(SetAttributeModifier::new(Attribute::LIFETIME, lifetime))
     .update(TangentAccelModifier::new(center, z_axis, tang_accel))
-    .update(ConformToSphereModifier::new(center, radius, conf_infl, conf_att, conf_max))
+    .update(ConformToSphereModifier::new(
+        center, radius, conf_infl, conf_att, conf_max,
+    ))
     .update(LinearDragModifier::new(drag))
     .render(round)
     .render(ColorOverLifetimeModifier::new(color))
@@ -141,27 +143,29 @@ pub(super) fn spawn_ball_trails_system(
     q_balls: Query<Entity, (With<PinBall>, Without<FxAttached>)>,
 ) {
     for ball_id in q_balls.iter() {
-        cmds.entity(ball_id).insert(FxAttached).with_children(|ball| {
-            for (name, handle, kind) in [
-                (
-                    "InstaKill Trail",
-                    assets.insta_trail.clone(),
-                    ExtraFieldKind::InstaKill,
-                ),
-                (
-                    "Double Damage Trail",
-                    assets.double_damage_trail.clone(),
-                    ExtraFieldKind::DoubleDamage,
-                ),
-            ] {
-                ball.spawn((
-                    Name::new(name),
-                    ParticleEffect::new(handle),
-                    TrailFx(kind),
-                    Transform::default(),
-                ));
-            }
-        });
+        cmds.entity(ball_id)
+            .insert(FxAttached)
+            .with_children(|ball| {
+                for (name, handle, kind) in [
+                    (
+                        "InstaKill Trail",
+                        assets.insta_trail.clone(),
+                        ExtraFieldKind::InstaKill,
+                    ),
+                    (
+                        "Double Damage Trail",
+                        assets.double_damage_trail.clone(),
+                        ExtraFieldKind::DoubleDamage,
+                    ),
+                ] {
+                    ball.spawn((
+                        Name::new(name),
+                        ParticleEffect::new(handle),
+                        TrailFx(kind),
+                        Transform::default(),
+                    ));
+                }
+            });
     }
 }
 
@@ -171,14 +175,16 @@ pub(super) fn spawn_enemy_snow_system(
     q_enemies: Query<Entity, (With<Enemy>, Without<FxAttached>)>,
 ) {
     for enemy_id in q_enemies.iter() {
-        cmds.entity(enemy_id).insert(FxAttached).with_children(|enemy| {
-            enemy.spawn((
-                Name::new("Freeze Snow"),
-                ParticleEffect::new(assets.snow.clone()),
-                SnowFx,
-                Transform::default(),
-            ));
-        });
+        cmds.entity(enemy_id)
+            .insert(FxAttached)
+            .with_children(|enemy| {
+                enemy.spawn((
+                    Name::new("Freeze Snow"),
+                    ParticleEffect::new(assets.snow.clone()),
+                    SnowFx,
+                    Transform::default(),
+                ));
+            });
     }
 }
 

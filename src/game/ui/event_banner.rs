@@ -76,7 +76,9 @@ impl BannerType {
             BannerType::Upgraded(TowerUpgrade::Damage) => Some("DAMAGE".into()),
             BannerType::Upgraded(TowerUpgrade::Range) => Some("RANGE".into()),
             BannerType::UpgradeReady => Some("HIT THE UPGRADE CARD WITH THE BALL".into()),
-            BannerType::Extra(kind) => Some(format!("EXTRA TRIGGERED\n{}", extra_effect_text(kind))),
+            BannerType::Extra(kind) => {
+                Some(format!("EXTRA TRIGGERED\n{}", extra_effect_text(kind)))
+            }
             _ => None,
         }
     }

@@ -2,7 +2,7 @@ use super::animations::RotateToTarget;
 use super::target::AimFirstEnemy;
 use crate::game::tower::damage::DamageOverTime;
 use crate::game::tower::fx::GunFiringEffects;
-use crate::game::tower::{ShotLight, TowerHead, TowerReady, tower_material};
+use crate::game::tower::{ShotLight, TowerHead, TowerReady};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::RelEntity;
@@ -21,6 +21,9 @@ pub struct GunTowerHead;
 #[derive(Component)]
 pub struct GunTowerBarrel;
 
+pub const MG_BARREL_AXIS_Z: f32 = 0.0496;
+pub const MG_MUZZLE_LOCAL: Vec3 = Vec3::new(0., 0.087, 0.0535);
+
 pub fn spawn(
     pb_world: &mut ChildSpawnerCommands,
     mats: &mut Assets<StandardMaterial>,
@@ -29,7 +32,6 @@ pub fn spawn(
     pos: Vec3,
 ) -> Entity {
     let sight_radius = 0.3;
-    let tower_mat = mats.add(tower_material());
 
     // Tower
     super::spawn(
@@ -45,37 +47,26 @@ pub fn spawn(
             AimFirstEnemy(None),
             DamageOverTime(100.),
         ),
-        |tower| build_view(tower, tower_mat.clone(), assets, g_sett, sight_radius),
+        |tower| build_view(tower, assets, g_sett, sight_radius),
     )
 }
 
 pub(crate) fn build_view(
     tower: &mut ChildSpawnerCommands,
-    tower_mat: Handle<StandardMaterial>,
     assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
     sight_radius: f32,
 ) {
     let rel_id = tower.target_entity();
-    let muzzle_flash_light = |spawner: &mut ChildSpawnerCommands| {
-        spawner.spawn(muzzle_flash_light(g_sett, rel_id, sight_radius));
-    };
-    let mg_barrel = |spawner: &mut ChildSpawnerCommands| {
-        spawner
-            .spawn(barrel(tower_mat.clone(), assets, rel_id))
-            .with_children(muzzle_flash_light);
-    };
-    let mg_head = |spawner: &mut ChildSpawnerCommands| {
-        spawner
-            .spawn(head(tower_mat.clone(), assets, rel_id))
-            .with_children(mg_barrel);
-    };
-    let mg_mounting = |spawner: &mut ChildSpawnerCommands| {
-        spawner
-            .spawn(mounting(tower_mat.clone(), assets, rel_id))
-            .with_children(mg_head);
-    };
-    mg_mounting(tower);
+    tower
+        .spawn(mounting(assets, rel_id))
+        .with_children(|mounting| {
+            mounting.spawn(trim(assets, rel_id));
+            mounting.spawn(head(assets, rel_id)).with_children(|head| {
+                head.spawn(barrels(assets, rel_id));
+                head.spawn(muzzle_flash_light(g_sett, rel_id, sight_radius));
+            });
+        });
 }
 
 #[derive(Component)]
@@ -93,7 +84,7 @@ fn muzzle_flash_light(g_sett: &GraphicsSettings, rel_id: Entity, range: f32) -> 
             outer_angle: 0.8,
             ..default()
         },
-        Transform::from_xyz(0., 0.04, 0.).looking_at(Vec3::new(0.0, 1.0, 0.0), Vec3::Z),
+        Transform::from_translation(MG_MUZZLE_LOCAL).looking_at(MG_MUZZLE_LOCAL + Vec3::Y, Vec3::Z),
         Visibility::Hidden,
         MuzzleFlashLight,
         ShotLight,
@@ -101,51 +92,12 @@ fn muzzle_flash_light(g_sett: &GraphicsSettings, rel_id: Entity, range: f32) -> 
     )
 }
 
-fn barrel(
-    tower_mat: Handle<StandardMaterial>,
-    assets: &PinballDefenseGltfAssets,
-    rel_id: Entity,
-) -> impl Bundle {
-    (
-        Name::new("Barrel"),
-        Mesh3d(assets.tower_mg_barrel.clone()),
-        MeshMaterial3d(tower_mat),
-        Transform::from_xyz(0., 0., 0.),
-        GunTowerBarrel,
-        RelEntity(rel_id),
-    )
-}
-
-fn head(
-    tower_mat: Handle<StandardMaterial>,
-    assets: &PinballDefenseGltfAssets,
-    rel_id: Entity,
-) -> impl Bundle {
-    (
-        Name::new("Head"),
-        Mesh3d(assets.tower_mg_head.clone()),
-        MeshMaterial3d(tower_mat),
-        Transform::from_xyz(0., 0., 0.),
-        GunTowerHead,
-        //RotateToTarget::X,
-        RelEntity(rel_id),
-    )
-}
-
-fn mounting(
-    tower_mat: Handle<StandardMaterial>,
-    assets: &PinballDefenseGltfAssets,
-    rel_id: Entity,
-) -> impl Bundle {
+fn mounting(assets: &PinballDefenseGltfAssets, rel_id: Entity) -> impl Bundle {
     (
         Name::new("Mounting"),
-        Mesh3d(assets.tower_mg_mounting.clone()),
-        MeshMaterial3d(tower_mat.clone()),
-        Transform {
-            translation: Vec3::new(0., 0., 0.023),
-            scale: Vec3::new(0.9, 0.9, 0.9),
-            ..default()
-        },
+        Mesh3d(assets.mg_tower_mounting.clone()),
+        MeshMaterial3d(assets.mg_tower_dark_iron_material.clone()),
+        Transform::from_xyz(0., 0., 0.),
         GunTowerMount,
         RotateToTarget,
         RelEntity(rel_id),
@@ -153,10 +105,42 @@ fn mounting(
     )
 }
 
+fn head(assets: &PinballDefenseGltfAssets, rel_id: Entity) -> impl Bundle {
+    (
+        Name::new("Head"),
+        Mesh3d(assets.mg_tower_head.clone()),
+        MeshMaterial3d(assets.mg_tower_copper_material.clone()),
+        Transform::from_xyz(0., 0., 0.),
+        GunTowerHead,
+        RelEntity(rel_id),
+    )
+}
+
+fn trim(assets: &PinballDefenseGltfAssets, rel_id: Entity) -> impl Bundle {
+    (
+        Name::new("Trim"),
+        Mesh3d(assets.mg_tower_trim.clone()),
+        MeshMaterial3d(assets.mg_tower_brass_material.clone()),
+        Transform::from_xyz(0., 0., 0.),
+        RelEntity(rel_id),
+    )
+}
+
+fn barrels(assets: &PinballDefenseGltfAssets, rel_id: Entity) -> impl Bundle {
+    (
+        Name::new("Barrels"),
+        Mesh3d(assets.mg_tower_barrels.clone()),
+        MeshMaterial3d(assets.mg_tower_steel_material.clone()),
+        Transform::from_xyz(0., 0., MG_BARREL_AXIS_Z),
+        GunTowerBarrel,
+        RelEntity(rel_id),
+    )
+}
+
 pub(in super::super) fn shoot_animation_system(
     time: Res<Time>,
     q_gun_tower: Query<(Entity, &AimFirstEnemy), (With<GunTower>, With<TowerReady>)>,
-    mut q_barrel: Query<(&mut Transform, &RelEntity), With<GunTowerBarrel>>,
+    mut q_barrels: Query<(&mut Transform, &RelEntity), With<GunTowerBarrel>>,
     mut q_muzzle_flash: Query<
         (&mut Visibility, &mut SpotLight, &RelEntity),
         With<MuzzleFlashLight>,
@@ -165,12 +149,11 @@ pub(in super::super) fn shoot_animation_system(
 ) {
     for (tower_id, enemy_id) in q_gun_tower.iter() {
         let firing = enemy_id.0.is_some();
-        if let Some((mut barrel, _)) = get_barrel(&mut q_barrel, tower_id) {
+        if let Some((mut barrels, _)) = get_barrels(&mut q_barrels, tower_id) {
             if firing {
-                let sin = (time.elapsed_secs() * 64.).sin();
-                barrel.translation.y = sin * 0.002;
-            } else if barrel.translation.y != 0. {
-                barrel.translation.y = 0.;
+                barrels.rotate_y(time.delta_secs() * 36.);
+            } else if barrels.rotation != Quat::IDENTITY {
+                barrels.rotation = Quat::IDENTITY;
             }
         }
         if let Some(mut flash) = get_flash(&mut q_muzzle_flash, tower_id) {
@@ -193,12 +176,15 @@ pub(in super::super) fn shoot_animation_system(
     }
 }
 
-fn get_barrel<'a>(
-    q_barrel: &'a mut Query<(&mut Transform, &RelEntity), With<GunTowerBarrel>>,
+fn get_barrels<'a>(
+    q_barrels: &'a mut Query<(&mut Transform, &RelEntity), With<GunTowerBarrel>>,
     tower_id: Entity,
 ) -> Option<(Mut<'a, Transform>, &'a RelEntity)> {
-    q_barrel.iter_mut().find(|(_, rel_id)| rel_id.0 == tower_id)
+    q_barrels
+        .iter_mut()
+        .find(|(_, rel_id)| rel_id.0 == tower_id)
 }
+
 fn get_flash<'a>(
     q_muzzle_flash: &'a mut Query<
         (&mut Visibility, &mut SpotLight, &RelEntity),

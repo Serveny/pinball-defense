@@ -1,4 +1,4 @@
-use super::{animation::EnemyVisual, EnemyKind};
+use super::{EnemyKind, animation::EnemyVisual};
 use crate::prelude::*;
 use bevy::math::{Vec3, Vec4};
 use bevy_hanabi::{
@@ -45,34 +45,30 @@ fn asset() -> EffectAsset {
     size.add_key(0.0, Vec3::splat(0.012));
     size.add_key(1.0, Vec3::splat(0.045));
 
-    EffectAsset::new(
-        CAPACITY,
-        SpawnerSettings::rate(7.0.into()),
-        module,
-    )
-    .with_name("enemy_smoke")
-    .with_simulation_space(SimulationSpace::Global)
-    .with_alpha_mode(AlphaMode::Blend)
-    .init(SetPositionSphereModifier {
-        center,
-        radius,
-        dimension: ShapeDimension::Volume,
-    })
-    .init(SetVelocitySphereModifier {
-        center,
-        speed: spread_speed,
-    })
-    .init(SetAttributeModifier::new(Attribute::VELOCITY, velocity))
-    .init(SetAttributeModifier::new(Attribute::AGE, age))
-    .init(SetAttributeModifier::new(Attribute::LIFETIME, lifetime))
-    .update(accel)
-    .update(LinearDragModifier::new(drag))
-    .render(round)
-    .render(ColorOverLifetimeModifier::new(color))
-    .render(SizeOverLifetimeModifier {
-        gradient: size,
-        screen_space_size: false,
-    })
+    EffectAsset::new(CAPACITY, SpawnerSettings::rate(7.0.into()), module)
+        .with_name("enemy_smoke")
+        .with_simulation_space(SimulationSpace::Global)
+        .with_alpha_mode(AlphaMode::Blend)
+        .init(SetPositionSphereModifier {
+            center,
+            radius,
+            dimension: ShapeDimension::Volume,
+        })
+        .init(SetVelocitySphereModifier {
+            center,
+            speed: spread_speed,
+        })
+        .init(SetAttributeModifier::new(Attribute::VELOCITY, velocity))
+        .init(SetAttributeModifier::new(Attribute::AGE, age))
+        .init(SetAttributeModifier::new(Attribute::LIFETIME, lifetime))
+        .update(accel)
+        .update(LinearDragModifier::new(drag))
+        .render(round)
+        .render(ColorOverLifetimeModifier::new(color))
+        .render(SizeOverLifetimeModifier {
+            gradient: size,
+            screen_space_size: false,
+        })
 }
 
 #[derive(Component)]

@@ -2,14 +2,21 @@ mod bar;
 mod radial;
 
 pub use bar::spawn;
-pub use radial::{RadialProgressCasing, RadialProgressBar, spawn_radial};
+pub use radial::{RadialProgressBar, RadialProgressCasing, spawn_radial};
 
 use super::{EventState, GameState};
 use crate::prelude::*;
 use crate::utils::RelEntity;
 
-pub type QueryProgressBar<'w, 's, 'a> =
-    Query<'w, 's, (&'a RelEntity, &'a mut Progress, Option<&'a mut RadialProgressBar>)>;
+pub type QueryProgressBar<'w, 's, 'a> = Query<
+    'w,
+    's,
+    (
+        &'a RelEntity,
+        &'a mut Progress,
+        Option<&'a mut RadialProgressBar>,
+    ),
+>;
 pub struct ProgressPlugin;
 
 impl Plugin for ProgressPlugin {
@@ -30,8 +37,7 @@ impl Plugin for ProgressPlugin {
             )
             .add_systems(
                 Update,
-                (on_count_up_system, reset_on_upgrade_system)
-                    .run_if(in_state(EventState::Active)),
+                (on_count_up_system, reset_on_upgrade_system).run_if(in_state(EventState::Active)),
             );
     }
 }
@@ -68,8 +74,7 @@ fn on_count_up_system(
     mut q_progress: QueryProgressBar,
 ) {
     for ev in evr.read() {
-        for (_, mut progress, radial) in
-            q_progress.iter_mut().filter(|(p, _, _)| p.0 == ev.rel_id)
+        for (_, mut progress, radial) in q_progress.iter_mut().filter(|(p, _, _)| p.0 == ev.rel_id)
         {
             let new = (progress.0 + ev.amount).clamp(0., 1.);
             if new != progress.0 {

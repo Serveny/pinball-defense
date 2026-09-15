@@ -71,7 +71,15 @@ fn activate_field(
             Visibility::Inherited,
         ))
         .with_children(|p| {
-            spawn_radial(p, assets, Some(kind.icon(tex)), mats, field_id, kind.color(), 0.);
+            spawn_radial(
+                p,
+                assets,
+                Some(kind.icon(tex)),
+                mats,
+                field_id,
+                kind.color(),
+                0.,
+            );
         });
     ui::progress_bar::spawn_transient_with_color(cmds, field_id, 0., kind.color());
 }
@@ -130,8 +138,7 @@ pub(super) fn update_fields_system(
         && let Some(i) = pick_next_inactive(&kinds)
         && let Some(&field_id) = entities.get(i)
     {
-        let Some(kind) = q_field.get(field_id).ok().map(|(_, field, _)| field.kind())
-        else {
+        let Some(kind) = q_field.get(field_id).ok().map(|(_, field, _)| field.kind()) else {
             break;
         };
         if let Some(slot) = kinds.get_mut(i) {
