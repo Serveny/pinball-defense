@@ -1,7 +1,7 @@
 use super::animations::RotateAlways;
 use super::TowerHead;
-use crate::game::tower::damage::{DamageAllTargetsInReach, DamageOverTime};
-use crate::game::tower::target::EnemiesWithinReach;
+use crate::game::tower::damage::DamageOverTime;
+use crate::game::tower::target::{TargetAllInReach, Targets};
 use crate::game::tower::{ShotLight, TowerReady};
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
@@ -40,7 +40,8 @@ pub fn spawn(
         (
             Name::new("Tesla Tower"),
             TeslaTower,
-            DamageAllTargetsInReach,
+            TargetAllInReach,
+            Targets::default(),
             DamageOverTime(33.),
         ),
         |tower| build_view(tower, tube_mat.clone(), assets, g_sett, sight_radius),
@@ -133,12 +134,12 @@ fn shot_flash_light(g_sett: &GraphicsSettings, rel_id: Entity, range: f32, z: f3
 pub(in super::super) fn shot_animation_system(
     time: Res<Time>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    q_tesla: Query<(Entity, &EnemiesWithinReach), (With<TeslaTower>, With<TowerReady>)>,
+    q_tesla: Query<(Entity, &Targets), (With<TeslaTower>, With<TowerReady>)>,
     mut q_shot_flash: Query<(&mut Visibility, &mut PointLight, &RelEntity), With<ShotFlashLight>>,
     mut q_tubes: Query<(&'static MeshMaterial3d<StandardMaterial>, &RelEntity), With<TeslaTubes>>,
 ) {
-    for (tower_id, ewr) in q_tesla.iter() {
-        let firing = !ewr.0.is_empty();
+    for (tower_id, targets) in q_tesla.iter() {
+        let firing = !targets.0.is_empty();
         let Some(mut iflash) = get_flash(&mut q_shot_flash, tower_id) else {
             debug!("No shot flash for tower {tower_id}");
             continue;

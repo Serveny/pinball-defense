@@ -1,5 +1,5 @@
 use super::animations::RotateToTarget;
-use super::target::{AimFirstEnemy, TargetPos};
+use super::target::{AimFirstEnemy, ConeAim, ConeFov, TargetPos};
 use crate::game::tower::speed::SlowDownFactor;
 use crate::game::tower::{ShotLight, TowerHead, TowerReady};
 use crate::prelude::*;
@@ -16,6 +16,7 @@ const MW_EMITTER_LOCAL: Vec3 = Vec3::new(0., 0.10362, 0.09272);
 const MW_DISH_AXIS: Vec3 = Vec3::new(0., 0.9563, 0.2924);
 const MW_DISH_MIN_ELEVATION: f32 = -50_f32.to_radians();
 const MW_DISH_MAX_ELEVATION: f32 = 40_f32.to_radians();
+const MW_CONE_FOV: f32 = 45_f32.to_radians();
 
 pub fn spawn(
     pb_world: &mut ChildSpawnerCommands,
@@ -37,6 +38,7 @@ pub fn spawn(
             MicrowaveTower,
             AimFirstEnemy(None),
             SlowDownFactor(0.5),
+            ConeFov(MW_CONE_FOV),
         ),
         |tower| build_view(tower, assets, g_sett, sight_radius),
     )
@@ -62,6 +64,7 @@ pub(crate) fn build_view(
                 Transform::from_translation(MW_DISH_PIVOT),
                 Visibility::default(),
                 MicrowaveDishPivot,
+                ConeAim(MW_DISH_AXIS),
                 RelEntity(rel_id),
             ))
             .with_children(|pivot| {
@@ -229,20 +232,22 @@ fn dish_pitch(direction: Vec3) -> f32 {
 
 pub(in super::super) fn shot_animation_system(
     time: Res<Time>,
-    q_gun_tower: Query<(Entity, &AimFirstEnemy), (With<MicrowaveTower>, With<TowerReady>)>,
+    q_gun_tower: Query<(Entity, &AimFirstEnemy, &ConeFov), (With<MicrowaveTower>, With<TowerReady>)>,
     mut q_slow_flash: Query<
         (&mut Visibility, &mut SpotLight, &RelEntity),
         With<SlowDownFlashLight>,
     >,
     mut q_core: Query<(&mut Transform, &RelEntity), With<MicrowaveEmitterCore>>,
 ) {
-    for (tower_id, enemy_id) in q_gun_tower.iter() {
+    for (tower_id, enemy_id, fov) in q_gun_tower.iter() {
         let firing = enemy_id.0.is_some();
         if let Some(mut flash) = get_flash(&mut q_slow_flash, tower_id) {
             if firing {
                 let sin = (time.elapsed_secs() * 16.).sin();
                 *flash.0 = Visibility::Inherited;
                 flash.1.intensity = (sin + 1.) * 32.;
+                flash.1.outer_angle = fov.0 / 2.;
+                flash.1.inner_angle = fov.0 / 4.;
             } else if *flash.0 != Visibility::Hidden {
                 *flash.0 = Visibility::Hidden;
             }
@@ -288,10 +293,11 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::float_cmp, clippy::manual_assert_eq)]
     fn pitch_is_clamped() {
         let min = dish_pitch(Vec3::new(0., 0.1, -1.)).clamp(MW_DISH_MIN_ELEVATION, MW_DISH_MAX_ELEVATION);
         let max = dish_pitch(Vec3::new(0., 1., 2.)).clamp(MW_DISH_MIN_ELEVATION, MW_DISH_MAX_ELEVATION);
-        assert_eq!(min, MW_DISH_MIN_ELEVATION);
-        assert_eq!(max, MW_DISH_MAX_ELEVATION);
+        assert!(min == MW_DISH_MIN_ELEVATION);
+        assert!(max == MW_DISH_MAX_ELEVATION);
     }
 }

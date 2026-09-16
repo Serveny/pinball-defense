@@ -1,6 +1,6 @@
-use self::damage::{DamageAllTargetsInReach, DamageOverTime};
+use self::damage::DamageOverTime;
 use self::speed::SlowDownFactor;
-use self::target::{EnemiesWithinReach, SightRadius, TargetPos};
+use self::target::{ConeFov, EnemiesWithinReach, SightRadius, TargetAllInReach, TargetPos, Targets};
 use super::audio::SoundEvent;
 use super::ball::{CollisionWithBallEvent, PinBall};
 use super::cfg::CONFIG;
@@ -51,7 +51,8 @@ impl Plugin for TowerPlugin {
             .register_type::<SightRadius>()
             .register_type::<DamageOverTime>()
             .register_type::<SlowDownFactor>()
-            .register_type::<DamageAllTargetsInReach>()
+            .register_type::<ConeFov>()
+            .register_type::<TargetAllInReach>()
             .register_type::<types::gun::GunTower>()
             .register_type::<types::tesla::TeslaTower>()
             .register_type::<types::microwave::MicrowaveTower>()
@@ -69,12 +70,14 @@ impl Plugin for TowerPlugin {
             .add_systems(
                 Update,
                 (
-                    animations::rotate_always_system,
-                    animations::rotate_to_target_system,
-                    damage::afe_damage_over_time_system,
-                    damage::datir_damage_over_time_system,
-                    speed::afe_slow_down_system,
-                    target::aim_first_enemy_system,
+                animations::rotate_always_system,
+                animations::rotate_to_target_system,
+                target::single_target_selection_system,
+                target::reach_selection_system,
+                target::cone_selection_system,
+                damage::damage_over_time_system,
+                speed::slow_down_system,
+                target::aim_first_enemy_system,
                     target::target_pos_by_afe_system,
                     types::microwave::rotate_dish_to_target_system,
                     types::gun::shoot_animation_system,
@@ -152,6 +155,7 @@ fn tower_bundle(pos: Vec3, sight_radius: f32) -> impl Bundle {
 fn tower_physics_bundle() -> impl Bundle {
     (
         TargetPos(None),
+        Targets::default(),
         EnemiesWithinReach::default(),
         RigidBody::Kinematic,
         Restitution::from(0.65),
@@ -544,7 +548,7 @@ fn update_shot_light_size(q_shot_light: &mut QShotLight, sight_radius: f32, towe
     };
 
     if let Some(mut light) = spot {
-        light.outer_angle = sight_radius;
+        light.range = sight_radius;
     } else if let Some(mut light) = point {
         light.range = sight_radius;
     }
