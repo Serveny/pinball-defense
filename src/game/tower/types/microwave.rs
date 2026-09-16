@@ -217,10 +217,9 @@ pub(in super::super) fn rotate_dish_to_target_system(
         if let Ok(TargetPos(Some(target))) = q_tower.get(rel_id.0) {
             let direction = *target - global.translation();
             if direction != Vec3::ZERO {
-                transform.rotation = Quat::from_rotation_x(dish_pitch(direction).clamp(
-                    MW_DISH_MIN_ELEVATION,
-                    MW_DISH_MAX_ELEVATION,
-                ));
+                transform.rotation = Quat::from_rotation_x(
+                    dish_pitch(direction).clamp(MW_DISH_MIN_ELEVATION, MW_DISH_MAX_ELEVATION),
+                );
             }
         }
     }
@@ -232,7 +231,10 @@ fn dish_pitch(direction: Vec3) -> f32 {
 
 pub(in super::super) fn shot_animation_system(
     time: Res<Time>,
-    q_gun_tower: Query<(Entity, &AimFirstEnemy, &ConeFov), (With<MicrowaveTower>, With<TowerReady>)>,
+    q_gun_tower: Query<
+        (Entity, &AimFirstEnemy, &ConeFov),
+        (With<MicrowaveTower>, With<TowerReady>),
+    >,
     mut q_slow_flash: Query<
         (&mut Visibility, &mut SpotLight, &RelEntity),
         With<SlowDownFlashLight>,
@@ -295,8 +297,10 @@ mod tests {
     #[test]
     #[allow(clippy::float_cmp, clippy::manual_assert_eq)]
     fn pitch_is_clamped() {
-        let min = dish_pitch(Vec3::new(0., 0.1, -1.)).clamp(MW_DISH_MIN_ELEVATION, MW_DISH_MAX_ELEVATION);
-        let max = dish_pitch(Vec3::new(0., 1., 2.)).clamp(MW_DISH_MIN_ELEVATION, MW_DISH_MAX_ELEVATION);
+        let min =
+            dish_pitch(Vec3::new(0., 0.1, -1.)).clamp(MW_DISH_MIN_ELEVATION, MW_DISH_MAX_ELEVATION);
+        let max =
+            dish_pitch(Vec3::new(0., 1., 2.)).clamp(MW_DISH_MIN_ELEVATION, MW_DISH_MAX_ELEVATION);
         assert!(min == MW_DISH_MIN_ELEVATION);
         assert!(max == MW_DISH_MAX_ELEVATION);
     }

@@ -53,6 +53,11 @@
 - Hit towers to fill progress bar, if full -> pinball menu upgrade selection (possible upgrades: more sight range, damage, faster rotate speed, bigger damgage range)
 - every action gives points, collect points to get on a higher level -> unlock more tower types and upgrades
 
+### Extra fields
+
+Hit extra field with ball to get temporal effect.
+- Extra ball extra with another ball every 5 seconds over 30 seconds and no ball loose damage
+
 ### Mobile
 
 - Extra: Gyroscope can control ball movement

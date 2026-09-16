@@ -1,6 +1,8 @@
 use self::damage::DamageOverTime;
 use self::speed::SlowDownFactor;
-use self::target::{ConeFov, EnemiesWithinReach, SightRadius, TargetAllInReach, TargetPos, Targets};
+use self::target::{
+    ConeFov, EnemiesWithinReach, SightRadius, TargetAllInReach, TargetPos, Targets,
+};
 use super::audio::SoundEvent;
 use super::ball::{CollisionWithBallEvent, PinBall};
 use super::cfg::CONFIG;
@@ -70,14 +72,14 @@ impl Plugin for TowerPlugin {
             .add_systems(
                 Update,
                 (
-                animations::rotate_always_system,
-                animations::rotate_to_target_system,
-                target::single_target_selection_system,
-                target::reach_selection_system,
-                target::cone_selection_system,
-                damage::damage_over_time_system,
-                speed::slow_down_system,
-                target::aim_first_enemy_system,
+                    animations::rotate_always_system,
+                    animations::rotate_to_target_system,
+                    target::single_target_selection_system,
+                    target::reach_selection_system,
+                    target::cone_selection_system,
+                    damage::damage_over_time_system,
+                    speed::slow_down_system,
+                    target::aim_first_enemy_system,
                     target::target_pos_by_afe_system,
                     types::microwave::rotate_dish_to_target_system,
                     types::gun::shoot_animation_system,

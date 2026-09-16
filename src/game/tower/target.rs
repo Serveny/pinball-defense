@@ -94,8 +94,9 @@ pub(super) fn cone_selection_system(
         if !active {
             continue;
         }
-        let Some((aim_global, aim, _)) =
-            q_aim_child.iter().find(|(_, _, rel_id)| rel_id.0 == tower_id)
+        let Some((aim_global, aim, _)) = q_aim_child
+            .iter()
+            .find(|(_, _, rel_id)| rel_id.0 == tower_id)
         else {
             continue;
         };
@@ -114,9 +115,7 @@ pub(super) fn cone_selection_system(
 }
 
 pub(super) fn is_in_cone(beam: Vec3, to_enemy: Vec3, half_angle: f32) -> bool {
-    beam != Vec3::ZERO
-        && to_enemy != Vec3::ZERO
-        && beam.angle_between(to_enemy) <= half_angle
+    beam != Vec3::ZERO && to_enemy != Vec3::ZERO && beam.angle_between(to_enemy) <= half_angle
 }
 
 pub(super) fn on_enemy_enter_reach_system(

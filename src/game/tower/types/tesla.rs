@@ -1,5 +1,5 @@
-use super::animations::RotateAlways;
 use super::TowerHead;
+use super::animations::RotateAlways;
 use crate::game::tower::damage::DamageOverTime;
 use crate::game::tower::target::{TargetAllInReach, Targets};
 use crate::game::tower::{ShotLight, TowerReady};
@@ -183,9 +183,6 @@ fn get_tubes<'a>(
         With<TeslaTubes>,
     >,
     tower_id: Entity,
-) -> Option<(
-    &'a MeshMaterial3d<StandardMaterial>,
-    &'a RelEntity,
-)> {
+) -> Option<(&'a MeshMaterial3d<StandardMaterial>, &'a RelEntity)> {
     q_tubes.iter_mut().find(|(_, rel_id)| rel_id.0 == tower_id)
 }
