@@ -102,6 +102,15 @@ pub fn on_menu_action(
                 if settings_state.get() == &SettingsMenuState::None {
                     let target = match menu_state.get() {
                         MenuState::SaveGame => MenuState::PauseMenu,
+                        MenuState::PauseMenu => {
+                            if q_popup.is_empty() {
+                                next_menu_state.set(MenuState::None);
+                                resume_ev.write(ResumeGameEvent);
+                            } else {
+                                confirm_popup::despawn(&mut cmds, &q_popup);
+                            }
+                            continue;
+                        }
                         MenuState::Settings => settings_return.0.clone(),
                         _ => MenuState::MainMenu,
                     };
