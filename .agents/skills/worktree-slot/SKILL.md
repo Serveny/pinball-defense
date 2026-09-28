@@ -21,7 +21,7 @@ Run from anywhere (inside slots included) — the script resolves the main repo 
 
 ## Workflow
 
-1. `claim <task-slug>` — first free slot is reset to `main` (`reset --hard` + `clean -fd`; only task leftovers are discarded, `target/` and ignored files stay) and marked with your slug + timestamp. Slots are created lazily up to 4.
+1. `claim <task-slug>` — first free slot is reset to `main` (`reset --hard` + `clean -fd`; only task leftovers are discarded, `target/` and ignored files stay) and marked with your slug + timestamp. If all slots are busy, a new numbered slot is created.
 2. Do the work in the printed slot path; commit there on branch `slot-N`.
 3. `release <slot>` — only on explicit user request. Refuses unless ALL work in the slot is already in `main`. That means: no uncommitted changes (tracked or untracked) AND no unmerged commits (every `slot-N` commit merged/cherry-picked into `main`). Verify with `git -C <slot> log main..slot-N` — must be empty. Releasing with unmerged commits is a bug, not a valid state: the next `claim` runs `reset --hard main` on the slot, which silently destroys that work.
 
@@ -32,4 +32,4 @@ Run from anywhere (inside slots included) — the script resolves the main repo 
 - If the user asks you to merge or release, do exactly that — no further pushes, rebases, or slot cleanups beyond what was asked.
 - Never delete a slot directory or its `target/`.
 - Never call `git worktree remove` on a slot; `release` never does either.
-- If `claim` fails with "branch already exists" or "no free slot", run `list` and check `git branch --list 'slot-*'` for stale branches (`git branch -D slot-N` when its worktree is gone and its work is merged or abandoned).
+- If `claim` fails with "branch already exists", run `list` and check `git branch --list 'slot-*'` for stale branches (`git branch -D slot-N` when its worktree is gone and its work is merged or abandoned).

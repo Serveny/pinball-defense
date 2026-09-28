@@ -79,6 +79,43 @@ pub(super) fn update_level_hint_system(
 pub struct FloatingPoints {
     world_pos: Vec3,
     timer: Timer,
+    offset: Vec2,
+}
+
+pub(crate) fn spawn_tower_build(
+    cmds: &mut Commands,
+    pos: Vec3,
+    tower_type: crate::game::tower::TowerType,
+    assets: &PinballDefenseAssets,
+) {
+    let name = match tower_type {
+        crate::game::tower::TowerType::Gun => "Gun",
+        crate::game::tower::TowerType::Tesla => "Tesla",
+        crate::game::tower::TowerType::Microwave => "Microwave",
+    };
+    cmds.spawn((
+        Name::new("Tower Build Label"),
+        FloatingPoints {
+            world_pos: pos,
+            timer: Timer::from_seconds(2., TimerMode::Once),
+            offset: Vec2::new(-110., -48.),
+        },
+        Node {
+            position_type: PositionType::Absolute,
+            width: Val::Px(220.),
+            ..default()
+        },
+        Text(format!("New {name} Tower")),
+        TextLayout::justify(Justify::Center),
+        TextFont {
+            font: FontSource::Handle(assets.menu_font.clone()),
+            font_size: FontSize::Px(22.),
+            ..default()
+        },
+        TextColor(Color::WHITE),
+        TextShadow::default(),
+        Pickable::IGNORE,
+    ));
 }
 
 pub(super) fn spawn_system(
@@ -93,6 +130,7 @@ pub(super) fn spawn_system(
             FloatingPoints {
                 world_pos: ev.pos,
                 timer: Timer::from_seconds(FLOAT_DURATION_SECS, TimerMode::Once),
+                offset: Vec2::ZERO,
             },
             Node {
                 position_type: PositionType::Absolute,
@@ -122,8 +160,8 @@ pub(super) fn update_system(
         fp.timer.tick(time.delta());
         let t = fp.timer.fraction();
         let screen = project_3d_to_2d_screen(fp.world_pos, cam_trans, cam);
-        node.left = Val::Px(screen.x);
-        node.top = Val::Px(screen.y - t * RISE_PX);
+        node.left = Val::Px(screen.x + fp.offset.x);
+        node.top = Val::Px(screen.y + fp.offset.y - t * RISE_PX);
         color.0 = color.0.with_alpha(1. - t);
         if fp.timer.just_finished() {
             cmds.entity(id).despawn();
