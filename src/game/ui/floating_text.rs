@@ -1,7 +1,9 @@
 use super::project_3d_to_2d_screen;
 use crate::game::camera::PinballCamera;
 use crate::game::level::PointsEvent;
+use crate::game::tower::TowerType;
 use crate::game::tower::{Tower, TowerUpgradedEvent, level_color};
+use crate::game::unlock::TowerUnlockedEvent;
 use crate::prelude::*;
 use crate::utils::GameColor;
 use bevy::text::{FontSize, FontSource};
@@ -121,30 +123,56 @@ pub(crate) fn spawn_tower_build(
 pub(super) fn spawn_system(
     mut cmds: Commands,
     mut evr: MessageReader<PointsEvent>,
+    mut unlocks: MessageReader<TowerUnlockedEvent>,
     assets: Res<PinballDefenseAssets>,
 ) {
     for ev in evr.read() {
-        let font = FontSource::Handle(assets.menu_font.clone());
-        cmds.spawn((
-            Name::new("Floating Points"),
-            FloatingPoints {
-                world_pos: ev.pos,
-                timer: Timer::from_seconds(FLOAT_DURATION_SECS, TimerMode::Once),
-                offset: Vec2::ZERO,
-            },
-            Node {
-                position_type: PositionType::Absolute,
-                ..default()
-            },
-            Text(format!("+{}", ev.points)),
-            TextFont {
-                font,
-                font_size: FontSize::Px(32.0),
-                ..default()
-            },
-            TextColor(GameColor::GOLD),
-        ));
+        spawn_text(
+            &mut cmds,
+            &assets,
+            ev.pos,
+            format!("+{}", ev.points),
+            GameColor::GOLD,
+            FLOAT_DURATION_SECS,
+        );
     }
+    for TowerUnlockedEvent(kind, pos) in unlocks.read() {
+        let (label, color) = match kind {
+            TowerType::Tesla => ("TESLA TOWER UNLOCKED", Color::srgb_u8(35, 190, 245)),
+            TowerType::Microwave => ("MICROWAVE TOWER UNLOCKED", Color::srgb_u8(245, 110, 90)),
+            TowerType::Gun => continue,
+        };
+        spawn_text(&mut cmds, &assets, *pos, label.into(), color, 2.);
+    }
+}
+
+fn spawn_text(
+    cmds: &mut Commands,
+    assets: &PinballDefenseAssets,
+    pos: Vec3,
+    text: String,
+    color: Color,
+    duration: f32,
+) {
+    cmds.spawn((
+        Name::new("Floating Text"),
+        FloatingPoints {
+            world_pos: pos,
+            timer: Timer::from_seconds(duration, TimerMode::Once),
+            offset: Vec2::ZERO,
+        },
+        Node {
+            position_type: PositionType::Absolute,
+            ..default()
+        },
+        Text(text),
+        TextFont {
+            font: FontSource::Handle(assets.menu_font.clone()),
+            font_size: FontSize::Px(32.),
+            ..default()
+        },
+        TextColor(color),
+    ));
 }
 
 pub(super) fn update_system(
@@ -166,5 +194,28 @@ pub(super) fn update_system(
         if fp.timer.just_finished() {
             cmds.entity(id).despawn();
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn tower_unlock_floats_for_two_seconds() {
+        let mut app = App::new();
+        app.add_message::<PointsEvent>()
+            .add_message::<TowerUnlockedEvent>()
+            .insert_resource(PinballDefenseAssets::default())
+            .add_systems(Update, spawn_system);
+        let pos = Vec3::new(0.45, -0.18, -0.048);
+        app.world_mut()
+            .write_message(TowerUnlockedEvent(TowerType::Tesla, pos));
+        app.update();
+        let mut texts = app.world_mut().query::<(&FloatingPoints, &Text)>();
+        let (floating, text) = texts.single(app.world()).unwrap();
+        assert_eq!(floating.world_pos, pos);
+        assert_eq!(floating.timer.duration(), std::time::Duration::from_secs(2));
+        assert_eq!(text.0, "TESLA TOWER UNLOCKED");
     }
 }

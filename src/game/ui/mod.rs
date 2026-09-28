@@ -75,7 +75,6 @@ impl Plugin for UiPlugin {
                     event_banner::on_extra_fire_system,
                     event_banner::on_wave_started_system,
                     event_banner::on_tower_upgraded_system,
-                    event_banner::on_tower_unlocked_system,
                     event_banner::on_base_hit_system,
                 )
                     .run_if(in_state(GameState::Ingame)),

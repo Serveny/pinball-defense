@@ -44,6 +44,12 @@ pub struct PinballDefenseAssets {
 
     #[asset(path = "textures/extra_fields/instakill.png")]
     pub insta_kill_icon: Handle<Image>,
+
+    #[asset(path = "textures/unlock_fields/tesla_tower.png")]
+    pub tesla_unlock_icon: Handle<Image>,
+
+    #[asset(path = "textures/unlock_fields/microwave_tower.png")]
+    pub microwave_unlock_icon: Handle<Image>,
 }
 
 #[derive(Resource, Reflect, Default)]
