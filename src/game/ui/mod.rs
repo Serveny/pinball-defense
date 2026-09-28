@@ -6,7 +6,7 @@ use crate::utils::RelEntity;
 
 mod controls;
 mod event_banner;
-mod floating_text;
+pub(super) mod floating_text;
 pub mod progress_bar;
 
 #[derive(States, Default, Debug, PartialEq, Eq, Hash, Clone, Copy)]

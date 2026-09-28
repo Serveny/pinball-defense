@@ -23,8 +23,6 @@ slot_dirs() {
   ls -d .worktrees/slot-* 2>/dev/null || true
 }
 
-MAX_SLOTS=4
-
 cmd="${1:-}"; shift || true
 case "$cmd" in
   claim)
@@ -40,17 +38,16 @@ case "$cmd" in
       echo "$d"
       exit 0
     done
-    n=$(slot_dirs | wc -l)
-    if [ "$n" -lt "$MAX_SLOTS" ]; then
-      d=".worktrees/slot-$((n + 1))"
-      echo "creating $d (one-time full rebuild cost)"
-      git worktree add "$d" -b "slot-$((n + 1))" main
-      printf '%s %s\n' "$slug" "$(date -Iseconds)" > "$d/.task"
-      echo "$d"
-      exit 0
-    fi
-    echo "no free slot; run ./slot.sh list" >&2
-    exit 1
+    n=0
+    for d in $(slot_dirs); do
+      number="${d##*-}"
+      if (( number > n )); then n="$number"; fi
+    done
+    d=".worktrees/slot-$((n + 1))"
+    echo "creating $d (one-time full rebuild cost)"
+    git worktree add "$d" -b "slot-$((n + 1))" main
+    printf '%s %s\n' "$slug" "$(date -Iseconds)" > "$d/.task"
+    echo "$d"
     ;;
   release)
     slot="${1:?usage: slot.sh release <slot-path-or-N>}"

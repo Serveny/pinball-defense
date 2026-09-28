@@ -374,6 +374,7 @@ fn on_spawn_tower_system(
     mut points_ev: MessageWriter<PointsEvent>,
     mut sound_ev: MessageWriter<SoundEvent>,
     assets: Res<PinballDefenseGltfAssets>,
+    ui_assets: Res<PinballDefenseAssets>,
     q_pbw: QueryWorld,
     g_sett: Res<GraphicsSettings>,
 ) {
@@ -391,6 +392,7 @@ fn on_spawn_tower_system(
                 };
             });
             ui::progress_bar::spawn_transient(&mut cmds, tower_id, 0.);
+            ui::floating_text::spawn_tower_build(&mut cmds, ev.1, ev.0, &ui_assets);
             points_ev.write(PointsEvent::new(PointsKind::TowerBuild, ev.1));
             sound_ev.write(SoundEvent::TowerBuild);
         }
