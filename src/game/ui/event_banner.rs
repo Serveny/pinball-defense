@@ -1,9 +1,10 @@
 use crate::game::enemy::EnemyKind;
 use crate::game::health::Health;
 use crate::game::level::{Level, LevelUpEvent};
-use crate::game::pinball_menu::{PinballMenu, UpgradeMenuExecuteEvent};
 use crate::game::player_life::LifeBar;
-use crate::game::tower::{TowerType, TowerUpgrade};
+use crate::game::tower::TowerType;
+use crate::game::tower::TowerUpgradedEvent;
+use crate::game::unlock::TowerUnlockedEvent;
 use crate::game::wave::WaveStartedEvent;
 use crate::prelude::*;
 use bevy::color::Hsva;
@@ -49,8 +50,8 @@ pub(super) enum BannerType {
     LevelUp { level: Level },
     Wave,
     SpecialWave(EnemyKind),
-    UpgradeReady,
-    Upgraded(TowerUpgrade),
+    Upgraded,
+    TowerUnlocked(TowerType),
     BaseHit,
     Extra(crate::game::extra::ExtraFieldKind),
 }
@@ -61,8 +62,10 @@ impl BannerType {
             BannerType::LevelUp { .. } => "LEVEL UP".into(),
             BannerType::Wave | BannerType::SpecialWave(EnemyKind::Normal) => format!("WAVE {wave}"),
             BannerType::SpecialWave(_) => "SPECIAL WAVE".into(),
-            BannerType::UpgradeReady => "UPGRADE READY".into(),
-            BannerType::Upgraded(_) => "TOWER UPGRADED".into(),
+            BannerType::Upgraded => "TOWER UPGRADED".into(),
+            BannerType::TowerUnlocked(TowerType::Tesla) => "TESLA UNLOCKED".into(),
+            BannerType::TowerUnlocked(TowerType::Microwave) => "MICROWAVE UNLOCKED".into(),
+            BannerType::TowerUnlocked(TowerType::Gun) => "GUN UNLOCKED".into(),
             BannerType::BaseHit => "BASE UNDER ATTACK".into(),
             BannerType::Extra(kind) => kind.label().into(),
         }
@@ -73,9 +76,8 @@ impl BannerType {
             BannerType::LevelUp { level } => Some(level_up_unlocks(level)),
             BannerType::SpecialWave(EnemyKind::Tank) => Some("ARMORED TANKS INCOMING".into()),
             BannerType::SpecialWave(EnemyKind::Speeder) => Some("SPEEDERS INCOMING".into()),
-            BannerType::Upgraded(TowerUpgrade::Damage) => Some("DAMAGE".into()),
-            BannerType::Upgraded(TowerUpgrade::Range) => Some("RANGE".into()),
-            BannerType::UpgradeReady => Some("HIT THE UPGRADE CARD WITH THE BALL".into()),
+            BannerType::Upgraded => Some("RANGE AND POWER".into()),
+            BannerType::TowerUnlocked(_) => Some("NOW AVAILABLE IN THE BUILD MENU".into()),
             BannerType::Extra(kind) => {
                 Some(format!("EXTRA TRIGGERED\n{}", extra_effect_text(kind)))
             }
@@ -87,11 +89,9 @@ impl BannerType {
         match self {
             BannerType::LevelUp { .. } => 45.,
             BannerType::Wave | BannerType::SpecialWave(EnemyKind::Normal) => 35.,
-            BannerType::SpecialWave(EnemyKind::Tank) => 15.,
+            BannerType::SpecialWave(EnemyKind::Tank) | BannerType::TowerUnlocked(_) => 15.,
             BannerType::SpecialWave(EnemyKind::Speeder) => 285.,
-            BannerType::UpgradeReady => 140.,
-            BannerType::Upgraded(TowerUpgrade::Damage) | BannerType::BaseHit => 0.,
-            BannerType::Upgraded(TowerUpgrade::Range) => 195.,
+            BannerType::Upgraded | BannerType::BaseHit => 0.,
             BannerType::Extra(kind) => extra_hue(kind),
         }
     }
@@ -124,15 +124,10 @@ fn level_up_unlocks(level: Level) -> String {
     if crate::game::tower::foundation::spawns_on_level_up(level) {
         unlocks.push("NEW TOWER FOUNDATION".into());
     }
-    match crate::game::pinball_menu::new_tower_unlock(level) {
-        Some(TowerType::Tesla) => unlocks.push("TESLA TOWER".into()),
-        Some(TowerType::Microwave) => unlocks.push("MICROWAVE TOWER".into()),
-        Some(TowerType::Gun) | None => {}
-    }
-    match crate::game::pinball_menu::new_tower_upgrade_unlock(level) {
-        Some(TowerUpgrade::Range) => unlocks.push("TOWER RANGE UPGRADE".into()),
-        Some(TowerUpgrade::Damage) => unlocks.push("TOWER DAMAGE UPGRADE".into()),
-        None => {}
+    if level == 2 {
+        unlocks.push("TESLA UNLOCK FIELD AVAILABLE".into());
+    } else if level == 3 {
+        unlocks.push("MICROWAVE UNLOCK FIELD AVAILABLE".into());
     }
     format!("\nUnlocks\n{}", unlocks.join("\n"))
 }
@@ -296,29 +291,29 @@ pub(super) fn on_wave_started_system(
     }
 }
 
-pub(super) fn on_upgrade_ready_system(
-    q_menu: Query<(Entity, &PinballMenu), Added<PinballMenu>>,
+pub(super) fn on_tower_upgraded_system(
+    mut evr: MessageReader<TowerUpgradedEvent>,
     mut cmds: Commands,
     assets: Res<PinballDefenseAssets>,
     q_banner: Query<(), With<EventBanner>>,
 ) {
-    if let Some((_, PinballMenu::Upgrade)) = q_menu.iter().next() {
+    for _ in evr.read() {
         let slot = u32::try_from(q_banner.iter().count()).unwrap_or(0);
-        spawn_banner(&mut cmds, BannerType::UpgradeReady, 0, slot, &assets);
+        spawn_banner(&mut cmds, BannerType::Upgraded, 0, slot, &assets);
     }
 }
 
-pub(super) fn on_tower_upgraded_system(
-    mut evr: MessageReader<UpgradeMenuExecuteEvent>,
+pub(super) fn on_tower_unlocked_system(
+    mut evr: MessageReader<TowerUnlockedEvent>,
     mut cmds: Commands,
     assets: Res<PinballDefenseAssets>,
     q_banner: Query<(), With<EventBanner>>,
 ) {
-    for ev in evr.read() {
+    for TowerUnlockedEvent(kind) in evr.read() {
         let slot = u32::try_from(q_banner.iter().count()).unwrap_or(0);
         spawn_banner(
             &mut cmds,
-            BannerType::Upgraded(ev.upgrade),
+            BannerType::TowerUnlocked(*kind),
             0,
             slot,
             &assets,

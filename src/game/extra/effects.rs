@@ -55,7 +55,8 @@ pub fn ball_damage(
     enemy_max_health: f32,
     level: crate::game::level::Level,
 ) -> f32 {
-    let base = -CONFIG.ball_enemy_damage - f32::from(level) * CONFIG.ball_damage_per_level;
+    let base = -CONFIG.ball_enemy_damage
+        - f32::from(u16::try_from(level).unwrap_or(u16::MAX)) * CONFIG.ball_damage_per_level;
     if effects.is_active(now, ExtraFieldKind::InstaKill) {
         -enemy_max_health
     } else if effects.is_active(now, ExtraFieldKind::DoubleDamage) {

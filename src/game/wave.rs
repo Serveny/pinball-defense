@@ -1,6 +1,5 @@
 use super::GameState;
 use super::IngameTime;
-use super::analog_counter::AnalogCounterSetEvent;
 use super::ball_starter::BallStarterFireEndEvent;
 use super::enemy::{Enemy, EnemyKind, SpawnEnemyEvent};
 use crate::prelude::*;
@@ -19,7 +18,7 @@ impl Plugin for WavePlugin {
             .add_systems(OnEnter(GameState::Init), init_resources)
             .add_systems(
                 Update,
-                (start_wave_system, wave_system, update_wave_counter_system)
+                (start_wave_system, wave_system)
                     .chain()
                     .run_if(in_state(GameState::Ingame)),
             );
@@ -30,29 +29,6 @@ impl Plugin for WavePlugin {
 pub struct WaveStartedEvent {
     pub number: usize,
     pub kind: EnemyKind,
-}
-
-#[derive(Resource)]
-pub struct WaveCounterId(pub Entity);
-
-impl Default for WaveCounterId {
-    fn default() -> Self {
-        Self(Entity::from_bits(0))
-    }
-}
-
-fn update_wave_counter_system(
-    wave: Res<Wave>,
-    wave_started_ev: MessageReader<WaveStartedEvent>,
-    mut ac_set_ev: MessageWriter<AnalogCounterSetEvent>,
-    wc_id: Res<WaveCounterId>,
-) {
-    if !wave_started_ev.is_empty() {
-        ac_set_ev.write(AnalogCounterSetEvent::new(
-            wc_id.0,
-            u32::try_from(wave.number).unwrap_or(u32::MAX),
-        ));
-    }
 }
 
 fn init_resources(mut cmds: Commands) {
@@ -88,6 +64,10 @@ impl Default for Wave {
 }
 
 impl Wave {
+    pub fn number(&self) -> usize {
+        self.number
+    }
+
     fn is_time_to_spawn_enemy(&self, now: f32) -> bool {
         now >= self.next_enemy_spawn_time
     }
@@ -107,7 +87,7 @@ impl Wave {
 
     fn prepare_next_wave(&mut self, now: f32) {
         self.number += 1;
-        self.next_enemy_spawn_time = (now + TIME_BETWEEN_WAVES).round();
+        self.next_enemy_spawn_time = now + TIME_BETWEEN_WAVES;
         self.time_between_enemies = (BASE_TIME_BETWEEN_ENEMIES
             * 0.97f32.powi(i32::try_from(self.number).unwrap_or(i32::MAX)))
         .max(MIN_TIME_BETWEEN_ENEMIES);
@@ -124,7 +104,7 @@ impl Wave {
         if self.number > 0 {
             self.started = true;
             self.announce_pending = true;
-            self.next_enemy_spawn_time = (now + TIME_BETWEEN_WAVES).round();
+            self.next_enemy_spawn_time = now + TIME_BETWEEN_WAVES;
         }
     }
 
@@ -193,7 +173,7 @@ fn enemies_per_wave(wave: usize) -> usize {
     (f32::from(u16::try_from(wave).unwrap_or(u16::MAX)).powf(1.25)) as usize
 }
 
-const TIME_BETWEEN_WAVES: f32 = 12.;
+const TIME_BETWEEN_WAVES: f32 = 4.;
 const BASE_TIME_BETWEEN_ENEMIES: f32 = 1.;
 const MIN_TIME_BETWEEN_ENEMIES: f32 = 0.3;
 
@@ -222,10 +202,14 @@ fn wave_system(
 ) {
     let now = **ig_timer;
     let wave = wave.as_mut();
-    if wave.started && wave.is_time_to_spawn_enemy(now) {
-        if wave.is_wave_end() {
+    if wave.started {
+        if wave.is_wave_end()
+            && !wave.announce_pending
+            && wave.is_time_to_spawn_enemy(now)
+            && q_enemy.is_empty()
+        {
             wave.prepare_next_wave(now);
-        } else if wave.announce_pending {
+        } else if wave.is_time_to_spawn_enemy(now) && wave.announce_pending {
             if q_enemy.is_empty() {
                 wave_started_ev.write(WaveStartedEvent {
                     number: wave.number,
@@ -236,7 +220,7 @@ fn wave_system(
             } else {
                 wave.next_enemy_spawn_time = now + 1.;
             }
-        } else {
+        } else if wave.is_time_to_spawn_enemy(now) && !wave.is_wave_end() {
             spawn_enemy_ev.write(wave.next_enemy(now));
         }
     }
@@ -246,6 +230,32 @@ fn wave_system(
 mod tests {
     use super::*;
     use rand::rngs::StdRng;
+
+    #[test]
+    fn next_level_waits_four_seconds_after_last_enemy() {
+        let mut app = App::new();
+        app.add_message::<SpawnEnemyEvent>()
+            .add_message::<WaveStartedEvent>()
+            .insert_resource(IngameTime(10.))
+            .insert_resource(Wave::default())
+            .add_systems(Update, wave_system);
+        {
+            let mut wave = app.world_mut().resource_mut::<Wave>();
+            wave.started = true;
+            wave.number = 1;
+            wave.next_enemy_spawn_time = 11.;
+        }
+        app.update();
+        assert_eq!(app.world().resource::<Wave>().number, 1);
+        app.world_mut().resource_mut::<IngameTime>().0 = 11.;
+        app.update();
+        let wave = app.world().resource::<Wave>();
+        assert_eq!(wave.number, 2);
+        assert!((wave.next_enemy_spawn_time - 15.).abs() < 0.0001);
+        app.world_mut().resource_mut::<IngameTime>().0 = 14.9;
+        app.update();
+        assert!(app.world().resource::<Wave>().announce_pending);
+    }
 
     fn kinds<R: RngExt>(number: usize, cooldown: usize, rng: &mut R) -> EnemyKind {
         decide_wave_kind(number, cooldown, rng).0

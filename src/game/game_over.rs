@@ -54,12 +54,11 @@ fn spawn_stats(
     assets: &PinballDefenseAssets,
     stats: &GameStats,
     points: u32,
-    level: u8,
+    level: u32,
 ) {
-    let rows: [(&str, String); 6] = [
+    let rows: [(&str, String); 5] = [
         ("Score", format!("{points}")),
         ("Level", format!("{level}")),
-        ("Wave", format!("{}", stats.wave_number)),
         ("Damage Dealt", format!("{:.0}", stats.damage_dealt)),
         ("Towers Built", format!("{}", stats.towers_built)),
         ("Upgrades", format!("{}", stats.upgrades_performed)),

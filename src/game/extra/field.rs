@@ -79,6 +79,7 @@ fn activate_field(
                 field_id,
                 progress::UPGRADE_PROGRESS_COLOR,
                 0.,
+                None,
             );
         });
     ui::progress_bar::spawn_transient(cmds, field_id, 0.);
@@ -128,7 +129,7 @@ pub(super) fn update_fields_system(
     if !level.is_changed() {
         return;
     }
-    let target = (u32::from(level.level()) / 4).min(4) as usize;
+    let target = (level.level() / 4).min(4) as usize;
     let mut kinds: Vec<Option<ExtraFieldKind>> = q_field
         .iter()
         .map(|(_, field, active)| active.then_some(field.kind()))

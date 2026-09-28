@@ -30,6 +30,7 @@ use save::SavePlugin;
 use stats::StatsPlugin;
 use std::f32::consts::PI;
 use tower::TowerPlugin;
+use unlock::UnlockPlugin;
 use wave::WavePlugin;
 
 mod analog_counter;
@@ -55,6 +56,7 @@ mod save;
 mod stats;
 mod tower;
 mod ui;
+mod unlock;
 mod wave;
 mod world;
 
@@ -108,6 +110,7 @@ impl Plugin for GamePlugin {
                 BallStarterPlugin,
                 extra::ExtraFieldPlugin,
                 self::ui::UiPlugin,
+                UnlockPlugin,
             ))
             .add_systems(
                 OnEnter(GameState::Init),

@@ -8,7 +8,6 @@ use super::pinball_menu::pinball_menu_glass;
 use super::player_life::spawn_life_bar;
 use super::road::spawn_road;
 use super::tower::foundation;
-use super::wave::WaveCounterId;
 use crate::assets::PinballDefenseGltfAssets;
 use crate::generated::world_1::colliders;
 use crate::prelude::*;
@@ -27,7 +26,6 @@ pub fn spawn_pinball_world(
     mut cmds: Commands,
     mut mats: ResMut<Assets<StandardMaterial>>,
     gltf_assets: Res<PinballDefenseGltfAssets>,
-    tex_assets: Res<PinballDefenseAssets>,
     g_sett: Res<GraphicsSettings>,
 ) {
     let assets = gltf_assets.as_ref();
@@ -95,19 +93,6 @@ pub fn spawn_pinball_world(
             &assets.level_sign_material,
         );
         p.commands_mut().insert_resource(LevelCounterId(lc));
-        let wave_sign_mat = mats.add(StandardMaterial {
-            base_color_texture: Some(tex_assets.mini_sign_wave.clone()),
-            perceptual_roughness: 0.2,
-            ..default()
-        });
-        let wc = analog_counter::spawn_2_digit(
-            p,
-            assets,
-            Transform::from_xyz(0.98, 0.48, 0.01),
-            None,
-            &wave_sign_mat,
-        );
-        p.commands_mut().insert_resource(WaveCounterId(wc));
         let level_lamp_pos = Vec3::new(1., 0.31, 0.06);
         spawn_lamp(
             p,

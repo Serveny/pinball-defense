@@ -2,6 +2,7 @@ use super::{
     EventState, GameState,
     analog_counter::AnalogCounterSetEvent,
     light::{FlashLight, LevelUpLamp},
+    wave::Wave,
 };
 use crate::prelude::*;
 use std::time::Duration;
@@ -83,7 +84,7 @@ fn on_add_points_system(mut evr: MessageReader<PointsEvent>, mut points: ResMut<
 }
 
 pub type Points = u32;
-pub type Level = u8;
+pub type Level = u32;
 
 #[derive(Component, Clone, Copy)]
 pub struct BallCollisionPoints(pub Points);
@@ -96,23 +97,11 @@ pub struct PointHub(pub Points);
 #[reflect(Resource)]
 pub struct LevelHub {
     level: Level,
-    points_level_up: Points,
 }
 
 impl LevelHub {
-    fn is_level_up(&self, points: Points) -> bool {
-        points >= self.points_level_up
-    }
-
-    fn level_up(&mut self) -> Level {
-        self.level += 1;
-        let factor = Points::from(self.level) * 10;
-        self.points_level_up = factor.pow(2) + factor * 200;
-        self.level
-    }
-
     pub fn foundation_hit_progress(&self) -> f32 {
-        1. / (f32::from(self.level) * 3.)
+        1. / (f32::from(u16::try_from(self.level).unwrap_or(u16::MAX)) * 3.)
     }
 
     pub fn level(&self) -> Level {
@@ -126,10 +115,11 @@ pub struct LevelUpEvent(pub Level);
 fn level_up_system(
     mut lvl_up_ev: MessageWriter<LevelUpEvent>,
     mut level: ResMut<LevelHub>,
-    points: Res<PointHub>,
+    wave: Res<Wave>,
 ) {
-    if points.is_changed() && level.is_level_up(points.0) {
-        let new_level = level.level_up();
+    let new_level = Level::try_from(wave.number()).unwrap_or(Level::MAX);
+    if level.level != new_level {
+        level.level = new_level;
         lvl_up_ev.write(LevelUpEvent(new_level));
         log!("🥳 Level up: {new_level}!");
     }
@@ -169,7 +159,7 @@ fn update_level_counter_system(
     lc_id: Res<LevelCounterId>,
 ) {
     if level.is_changed() {
-        ac_set_ev.write(AnalogCounterSetEvent::new(lc_id.0, u32::from(level.level)));
+        ac_set_ev.write(AnalogCounterSetEvent::new(lc_id.0, level.level));
     }
 }
 

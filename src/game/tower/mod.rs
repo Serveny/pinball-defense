@@ -8,15 +8,16 @@ use super::ball::{CollisionWithBallEvent, PinBall};
 use super::cfg::CONFIG;
 use super::events::collision::GameLayer;
 use super::events::tween_completed::AfterTween;
-use super::level::{BallCollisionPoints, Level, PointsEvent, PointsKind};
+use super::level::{BallCollisionPoints, PointsEvent, PointsKind};
 use super::light::{
     FlashLight, LightOnCollision, SightRadiusLight, contact_light_bundle, sight_radius_light,
 };
-use super::pinball_menu::{PinballMenuTrigger, UpgradeMenuExecuteEvent};
-use super::progress::{self, Progress, ProgressBarCountUpEvent, ProgressBarResetEvent};
+use super::progress::{
+    self, Progress, ProgressBarCountUpEvent, ProgressBarFullEvent, ProgressBarResetEvent,
+    RadialProgressCasing,
+};
 use super::ui;
 use super::{EventState, GameState};
-use crate::game::analog_counter::AnalogCounterSetEvent;
 use crate::game::light::disable_flash_light;
 use crate::game::world::QueryWorld;
 use crate::prelude::*;
@@ -43,8 +44,7 @@ pub struct TowerPlugin;
 impl Plugin for TowerPlugin {
     fn build(&self, app: &mut App) {
         app.add_message::<SpawnTowerEvent>()
-            .add_message::<DamageUpgradeEvent>()
-            .add_message::<RangeUpgradeEvent>()
+            .add_message::<TowerUpgradedEvent>()
             .init_resource::<fx::MuzzleEffectAssets>()
             .init_resource::<fx::tesla::TeslaEffectAssets>()
             .register_type::<Tower>()
@@ -98,8 +98,6 @@ impl Plugin for TowerPlugin {
                     on_ball_kick_system,
                     on_spawn_tower_system,
                     on_upgrade_system,
-                    on_damage_upgrade_system,
-                    on_range_upgrade_system,
                     foundation::on_spawn_system,
                     foundation::on_despawn_system,
                     foundation::on_progress_system,
@@ -133,19 +131,13 @@ pub struct TowerHead;
 #[reflect(Component)]
 pub struct TowerReady;
 
-#[derive(Component, Clone, Copy, Debug, Hash, PartialEq, Eq)]
-pub enum TowerUpgrade {
-    Damage,
-    Range,
-}
-
 const TOWER_CONTACT_COLOR: Color = Color::srgb_u8(115, 27, 7);
 
 fn tower_bundle(pos: Vec3, sight_radius: f32) -> impl Bundle {
     (
         spatial_from_pos(tower_start_pos(pos)),
         Tower::new(pos),
-        TowerLevel(0),
+        TowerLevel(1),
         SightRadius(sight_radius),
         Progress(0.),
         tower_physics_bundle(),
@@ -165,7 +157,6 @@ fn tower_physics_bundle() -> impl Bundle {
         Collider::circle(0.06),
         CollisionLayers::new(GameLayer::Tower, GameLayer::Ball),
         BallCollisionPoints(20),
-        PinballMenuTrigger::Upgrade,
         LightOnCollision,
     )
 }
@@ -241,6 +232,7 @@ fn spawn_tower_radial(
     tower_id: Entity,
     color: Color,
     init_val: f32,
+    level: u8,
 ) {
     p.spawn((
         Name::new("Tower Radial Progress"),
@@ -248,7 +240,16 @@ fn spawn_tower_radial(
         Visibility::default(),
     ))
     .with_children(|p| {
-        progress::spawn_radial(p, assets, None, mats, tower_id, color, init_val);
+        progress::spawn_radial(
+            p,
+            assets,
+            None,
+            mats,
+            tower_id,
+            color,
+            init_val,
+            Some(level_color(level)),
+        );
     });
 }
 
@@ -278,6 +279,7 @@ fn spawn(
                 tower_id,
                 progress::UPGRADE_PROGRESS_COLOR,
                 0.,
+                1,
             );
             add_to_tower(p);
         })
@@ -313,6 +315,7 @@ fn reattach_towers_system(
             &Tower,
             &SightRadius,
             &Progress,
+            &TowerLevel,
             Option<&types::gun::GunTower>,
             Option<&types::tesla::TeslaTower>,
             Option<&types::microwave::MicrowaveTower>,
@@ -321,7 +324,7 @@ fn reattach_towers_system(
     >,
 ) {
     let Ok(world) = q_world.single() else { return };
-    for (tower_id, tower, sight, progress, gun, tesla, micro) in q_towers.iter() {
+    for (tower_id, tower, sight, progress, level, gun, tesla, micro) in q_towers.iter() {
         let sight_radius = sight.0;
         cmds.entity(tower_id)
             .insert(tower_physics_bundle())
@@ -342,6 +345,7 @@ fn reattach_towers_system(
                 tower_id,
                 progress::UPGRADE_PROGRESS_COLOR,
                 progress.0,
+                level.0,
             );
             if gun.is_some() {
                 types::gun::build_view(p, &assets, &g_sett, sight_radius);
@@ -397,11 +401,11 @@ fn on_progress_system(
     mut prog_bar_ev: MessageWriter<ProgressBarCountUpEvent>,
     mut evr: MessageReader<CollisionWithBallEvent>,
     mut sound_ev: MessageWriter<SoundEvent>,
-    q_tower: Query<Entity, With<Tower>>,
+    q_tower: Query<&TowerLevel, With<Tower>>,
 ) {
     evr.read().for_each(|CollisionWithBallEvent(_, id)| {
         // *flag != CollisionEventFlags::SENSOR &&
-        if q_tower.contains(*id) {
+        if q_tower.get(*id).is_ok_and(|level| level.0 < 5) {
             prog_bar_ev.write(ProgressBarCountUpEvent::new(*id, CONFIG.tower_hit_progress));
             sound_ev.write(SoundEvent::TowerHit);
         }
@@ -429,63 +433,97 @@ fn on_ball_kick_system(
 
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
-struct TowerLevel(Level);
+struct TowerLevel(u8);
 
-impl SoundEvent {
-    fn upgrade_sound(upgrade: TowerUpgrade) -> Self {
-        match upgrade {
-            TowerUpgrade::Damage => Self::TowerUpgradeDamage,
-            TowerUpgrade::Range => Self::TowerUpgradeRange,
-        }
+#[derive(Message)]
+pub struct TowerUpgradedEvent(pub Entity, pub u8);
+
+pub fn level_color(level: u8) -> Color {
+    match level {
+        1 => Color::srgb_u8(80, 180, 255),
+        2 => Color::srgb_u8(65, 230, 130),
+        3 => Color::srgb_u8(255, 215, 65),
+        4 => Color::srgb_u8(230, 100, 255),
+        _ => Color::srgb_u8(255, 100, 80),
     }
+}
+
+fn upgraded_radius(radius: f32, current_level: u8) -> f32 {
+    radius * (1. + f32::from(current_level) * 0.25) / (1. + f32::from(current_level - 1) * 0.25)
 }
 
 fn on_upgrade_system(
     mut cmds: Commands,
-    mut evr: MessageReader<UpgradeMenuExecuteEvent>,
+    mut evr: MessageReader<ProgressBarFullEvent>,
     mut q_light: Query<(Entity, &ChildOf, &mut Visibility), With<FlashLight>>,
     mut points_ev: MessageWriter<PointsEvent>,
     mut reset_ev: MessageWriter<ProgressBarResetEvent>,
-    mut q_tower: Query<(&mut TowerLevel, &Transform)>,
-    mut ac_set_ev: MessageWriter<AnalogCounterSetEvent>,
-    mut range_upgrade_ev: MessageWriter<RangeUpgradeEvent>,
-    mut damage_upgrade_ev: MessageWriter<DamageUpgradeEvent>,
+    mut upgraded_ev: MessageWriter<TowerUpgradedEvent>,
+    mut q_tower: Query<
+        (
+            &mut TowerLevel,
+            &mut SightRadius,
+            Option<&mut DamageOverTime>,
+            Option<&mut SlowDownFactor>,
+            Option<&mut ConeFov>,
+            &Transform,
+        ),
+        With<Tower>,
+    >,
+    mut q_coll: Query<(&mut Collider, &ChildOf), With<TowerSightSensor>>,
+    mut q_sr_light: Query<(&mut SpotLight, &ChildOf), With<SightRadiusLight>>,
+    mut q_shot_light: QShotLight,
+    mut q_casing: Query<
+        (&RelEntity, &mut MeshMaterial3d<StandardMaterial>),
+        With<RadialProgressCasing>,
+    >,
+    mut mats: ResMut<Assets<StandardMaterial>>,
     mut sound_ev: MessageWriter<SoundEvent>,
 ) {
-    for ev in evr.read() {
-        let Ok((mut tower_level, tower_tf)) = q_tower.get_mut(ev.tower_id) else {
+    for ProgressBarFullEvent(tower_id) in evr.read() {
+        let Ok((mut level, mut sight, damage, slowdown, cone, tower_tf)) =
+            q_tower.get_mut(*tower_id)
+        else {
             continue;
         };
-        tower_level.0 += 1;
-        disable_flash_light(&mut cmds, &mut q_light, ev.tower_id);
-        ac_set_ev.write(AnalogCounterSetEvent::new(
-            ev.tower_id,
-            u32::from(tower_level.0),
-        ));
+        if level.0 >= 5 {
+            continue;
+        }
+        sight.0 = upgraded_radius(sight.0, level.0);
+        level.0 += 1;
+        if let Some(mut damage) = damage {
+            damage.0 *= CONFIG.damage_upgrade_factor;
+        }
+        if let Some(mut slowdown) = slowdown {
+            slowdown.0 = 0.5 - f32::from(level.0 - 1) * 0.05;
+        }
+        if let Some(mut cone) = cone {
+            cone.0 = (45. + f32::from(level.0 - 1) * 11.25).to_radians();
+        }
+        update_collider_size(&mut q_coll, sight.0, *tower_id);
+        update_sight_radius_light_size(&mut q_sr_light, sight.0, *tower_id);
+        update_shot_light_size(&mut q_shot_light, sight.0, *tower_id);
+        let color = level_color(level.0);
+        for (rel, mut material) in &mut q_casing {
+            if rel.0 == *tower_id {
+                material.0 = mats.add(StandardMaterial {
+                    base_color: color,
+                    emissive: color.to_linear() * 4.,
+                    ..default()
+                });
+            }
+        }
+        disable_flash_light(&mut cmds, &mut q_light, *tower_id);
         points_ev.write(PointsEvent::new(
             PointsKind::TowerUpgrade,
             tower_tf.translation,
         ));
-        reset_ev.write(ProgressBarResetEvent::new(ev.tower_id));
-        match ev.upgrade {
-            TowerUpgrade::Damage => {
-                damage_upgrade_ev.write(DamageUpgradeEvent(ev.tower_id));
-            }
-            TowerUpgrade::Range => {
-                range_upgrade_ev.write(RangeUpgradeEvent(ev.tower_id));
-            }
-        }
-        sound_ev.write(SoundEvent::upgrade_sound(ev.upgrade));
-        log!(
-            "🐱 Upgrade tower {:?} to level {:?}",
-            ev.tower_id,
-            tower_level.0
-        );
+        reset_ev.write(ProgressBarResetEvent::new(*tower_id));
+        upgraded_ev.write(TowerUpgradedEvent(*tower_id, level.0));
+        sound_ev.write(SoundEvent::TowerUpgradeRange);
+        log!("🐱 Upgrade tower {tower_id:?} to level {}", level.0);
     }
 }
-
-#[derive(Message)]
-struct RangeUpgradeEvent(Entity);
 
 type QShotLight<'w, 's, 'a> = Query<
     'w,
@@ -498,36 +536,19 @@ type QShotLight<'w, 's, 'a> = Query<
     (With<ShotLight>, Without<SightRadiusLight>),
 >;
 
-fn on_range_upgrade_system(
-    mut evr: MessageReader<RangeUpgradeEvent>,
-    mut q_tower: Query<(Entity, &mut SightRadius), With<Tower>>,
-    mut q_coll: Query<(&mut Transform, &ChildOf), With<TowerSightSensor>>,
-    mut q_sr_light: Query<(&mut SpotLight, &ChildOf), With<SightRadiusLight>>,
-    mut q_shot_light: QShotLight,
-) {
-    for ev in evr.read() {
-        if let Ok((tower_id, mut sight_radius)) = q_tower.get_mut(ev.0) {
-            sight_radius.0 += CONFIG.range_upgade_factor;
-            update_collider_size(&mut q_coll, CONFIG.range_upgade_factor, tower_id);
-            update_sight_radius_light_size(&mut q_sr_light, sight_radius.0, tower_id);
-            update_shot_light_size(&mut q_shot_light, sight_radius.0, tower_id);
-        }
-    }
-}
-
 fn update_collider_size(
-    q_coll: &mut Query<(&mut Transform, &ChildOf), With<TowerSightSensor>>,
-    upgrade_factor: f32,
+    q_coll: &mut Query<(&mut Collider, &ChildOf), With<TowerSightSensor>>,
+    radius: f32,
     tower_id: Entity,
 ) {
-    let Some((mut transform, _)) = q_coll
+    let Some((mut collider, _)) = q_coll
         .iter_mut()
         .find(|(_, child_of)| child_of.parent() == tower_id)
     else {
         debug!("No tower sight sensor for tower {tower_id}");
         return;
     };
-    transform.scale += upgrade_factor;
+    *collider = Collider::circle(radius);
 }
 
 fn update_sight_radius_light_size(
@@ -562,24 +583,18 @@ fn update_shot_light_size(q_shot_light: &mut QShotLight, sight_radius: f32, towe
     }
 }
 
-#[derive(Message)]
-struct DamageUpgradeEvent(Entity);
+#[derive(Component)]
+struct ShotLight;
 
-fn on_damage_upgrade_system(
-    mut evr: MessageReader<DamageUpgradeEvent>,
-    mut q_tower: Query<(Option<&mut DamageOverTime>, Option<&mut SlowDownFactor>), With<Tower>>,
-) {
-    for ev in evr.read() {
-        if let Ok((dmg_over_time, slow_down_factor)) = q_tower.get_mut(ev.0) {
-            if let Some(mut dmg_over_time) = dmg_over_time {
-                dmg_over_time.0 *= CONFIG.damage_upgrade_factor;
-            }
-            if let Some(mut slow_down_factor) = slow_down_factor {
-                slow_down_factor.0 *= CONFIG.slow_down_upgrade_factor;
-            }
+#[cfg(test)]
+mod upgrade_tests {
+    use super::*;
+
+    #[test]
+    fn four_upgrades_double_each_tower_range() {
+        for base in [0.15, 0.3] {
+            let final_radius = (1..5).fold(base, upgraded_radius);
+            assert!((final_radius - 2. * base).abs() < 0.0001);
         }
     }
 }
-
-#[derive(Component)]
-struct ShotLight;
