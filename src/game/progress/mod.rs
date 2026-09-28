@@ -8,6 +8,18 @@ use super::{EventState, GameState};
 use crate::prelude::*;
 use crate::utils::RelEntity;
 
+pub const ENEMY_HEALTH_COLOR: Color = Color::srgb_u8(235, 55, 55);
+pub const UPGRADE_PROGRESS_COLOR: Color = Color::srgb_u8(255, 150, 35);
+pub const PLAYER_HEALTH_COLOR: Color = Color::srgb_u8(90, 220, 80);
+
+fn neon_material(color: Color) -> StandardMaterial {
+    StandardMaterial {
+        base_color: color,
+        emissive: color.to_linear() * 4.,
+        ..default()
+    }
+}
+
 pub type QueryProgressBar<'w, 's, 'a> = Query<
     'w,
     's,
@@ -141,6 +153,27 @@ fn bar_full_system(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn physical_bar_colors_emit_light() {
+        for color in [
+            ENEMY_HEALTH_COLOR,
+            UPGRADE_PROGRESS_COLOR,
+            PLAYER_HEALTH_COLOR,
+        ] {
+            let material = neon_material(color);
+            assert_eq!(material.base_color, color);
+            assert_eq!(material.emissive, color.to_linear() * 4.);
+            assert!(
+                material
+                    .emissive
+                    .red
+                    .max(material.emissive.green)
+                    .max(material.emissive.blue)
+                    > 1.
+            );
+        }
+    }
 
     #[derive(Resource, Default)]
     struct Collected(Vec<Entity>);

@@ -2,12 +2,14 @@ use super::PosToRelEntity;
 use crate::game::enemy::Enemy;
 use crate::game::extra::ExtraField;
 use crate::game::health::Health;
-use crate::game::progress::{Progress, ProgressBarCountUpEvent, ProgressBarResetEvent};
+use crate::game::progress::{
+    ENEMY_HEALTH_COLOR, Progress, ProgressBarCountUpEvent, ProgressBarResetEvent,
+    UPGRADE_PROGRESS_COLOR,
+};
 use crate::game::tower::Tower;
 use crate::game::tower::foundation::TowerFoundation;
 use crate::utils::{PercentBw0And1, RelEntity};
 use avian2d::prelude::Collider;
-use bevy::color::palettes::css::RED;
 use bevy::prelude::*;
 
 #[derive(Component, Clone, Default)]
@@ -18,10 +20,6 @@ pub struct ProgressUiBar {
     // the bar is shown again (and the fill-up animation is displayed).
     is_locked: bool,
 }
-
-// Enemy health bars count down in RED. Tower/base progress counts up, so it
-// gets a distinct color to communicate "progress" rather than "damage".
-const PROGRESS_COLOR: Color = Color::srgb_u8(70, 200, 120);
 
 /// How long a transient progress bar stays visible after the last hit.
 const TRANSIENT_VISIBLE_SECS: f32 = 2.;
@@ -63,7 +61,7 @@ pub fn spawn(cmds: &mut Commands, rel_id: Entity, start_percent: PercentBw0And1)
              Progress({start_percent})
              RelEntity({rel_id})
              Node { width: Val::Percent({start_percent * 100.}), height: Val::Percent(100.) }
-             BackgroundColor({RED}))
+             BackgroundColor({ENEMY_HEALTH_COLOR}))
         ]
     });
 }
@@ -72,15 +70,6 @@ pub fn spawn(cmds: &mut Commands, rel_id: Entity, start_percent: PercentBw0And1)
 /// `TRANSIENT_VISIBLE_SECS` whenever the related entity receives progress
 /// (e.g. the ball hits a tower/foundation).
 pub fn spawn_transient(cmds: &mut Commands, rel_id: Entity, init_val: PercentBw0And1) {
-    spawn_transient_with_color(cmds, rel_id, init_val, PROGRESS_COLOR);
-}
-
-pub fn spawn_transient_with_color(
-    cmds: &mut Commands,
-    rel_id: Entity,
-    init_val: PercentBw0And1,
-    color: Color,
-) {
     cmds.spawn_scene(bsn! {
         Name::new("Progress UI Bar")
         RelEntity({rel_id})
@@ -102,7 +91,7 @@ pub fn spawn_transient_with_color(
              Progress({init_val})
              RelEntity({rel_id})
              Node { width: Val::Percent({init_val * 100.}), height: Val::Percent(100.) }
-             BackgroundColor({color}))
+             BackgroundColor({UPGRADE_PROGRESS_COLOR}))
         ]
     })
     .insert(Visibility::Hidden);
@@ -279,8 +268,8 @@ pub(super) fn ensure_bars_on_load(
         if q_bars.iter().any(|r| r.0 == entity) {
             continue;
         }
-        if let Some(extra) = extra {
-            spawn_transient_with_color(&mut cmds, entity, 0., extra.kind().color());
+        if extra.is_some() {
+            spawn_transient(&mut cmds, entity, 0.);
         } else if let Some(progress) = progress {
             spawn_transient(&mut cmds, entity, progress.0);
         } else if let Some(health) = health {
@@ -293,7 +282,6 @@ pub(super) fn ensure_bars_on_load(
 mod tests {
     #![allow(clippy::float_cmp)]
     use super::*;
-    use crate::game::extra::ExtraFieldKind;
     use bevy::ecs::system::RunSystemOnce;
     use std::time::Duration;
 
@@ -308,13 +296,11 @@ mod tests {
     }
 
     #[test]
-    fn transient_bar_spawns_with_custom_color_and_hidden() {
+    fn transient_bar_spawns_orange_and_hidden() {
         let mut app = test_app();
         let entity = app.world_mut().spawn_empty().id();
-        let color = ExtraFieldKind::SlowDown.color();
-
         let mut cmds = app.world_mut().commands();
-        spawn_transient_with_color(&mut cmds, entity, 0., color);
+        spawn_transient(&mut cmds, entity, 0.);
         app.update();
 
         let mut q_bar = app
@@ -335,7 +321,24 @@ mod tests {
             .find(|(r, _, _)| r.0 == entity)
             .expect("ProgressUiBar child should exist");
         assert_eq!(fill_rel.0, entity);
-        assert_eq!(bg.0, color);
+        assert_eq!(bg.0, UPGRADE_PROGRESS_COLOR);
+    }
+
+    #[test]
+    fn enemy_health_bar_spawns_red() {
+        let mut app = test_app();
+        let entity = app.world_mut().spawn_empty().id();
+        spawn(&mut app.world_mut().commands(), entity, 1.);
+        app.update();
+
+        let mut q_fill = app
+            .world_mut()
+            .query::<(&RelEntity, &BackgroundColor, &ProgressUiBar)>();
+        let (_, bg, _) = q_fill
+            .iter(app.world())
+            .find(|(r, _, _)| r.0 == entity)
+            .unwrap();
+        assert_eq!(bg.0, ENEMY_HEALTH_COLOR);
     }
 
     #[test]
@@ -346,7 +349,7 @@ mod tests {
 
         let entity = app.world_mut().spawn_empty().id();
         let mut cmds = app.world_mut().commands();
-        spawn_transient_with_color(&mut cmds, entity, 0., ExtraFieldKind::ExtraBall.color());
+        spawn_transient(&mut cmds, entity, 0.);
         app.update();
 
         app.world_mut()
@@ -369,7 +372,7 @@ mod tests {
 
         let entity = app.world_mut().spawn_empty().id();
         let mut cmds = app.world_mut().commands();
-        spawn_transient_with_color(&mut cmds, entity, 0., ExtraFieldKind::DoubleDamage.color());
+        spawn_transient(&mut cmds, entity, 0.);
         app.update();
 
         let (bar_id, mut vis, _) = app
@@ -397,7 +400,7 @@ mod tests {
 
         let entity = app.world_mut().spawn_empty().id();
         let mut cmds = app.world_mut().commands();
-        spawn_transient_with_color(&mut cmds, entity, 0.5, ExtraFieldKind::InstaKill.color());
+        spawn_transient(&mut cmds, entity, 0.5);
         app.update();
 
         for mut vis in app

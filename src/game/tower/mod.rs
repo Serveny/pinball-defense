@@ -267,12 +267,18 @@ fn spawn(
         .insert(tower_type_bundle)
         .with_children(|p| {
             let tower_id = p.target_entity();
-            let color = Color::srgb_u8(115, 27, 7);
             spawn_tower_base_meshes(p, assets);
-            p.spawn(contact_light_bundle(g_sett, color));
+            p.spawn(contact_light_bundle(g_sett, TOWER_CONTACT_COLOR));
             p.spawn(tower_sight_sensor_bundle(sight_radius));
             p.spawn(sight_radius_light(sight_radius));
-            spawn_tower_radial(p, assets, mats, tower_id, color, 0.);
+            spawn_tower_radial(
+                p,
+                assets,
+                mats,
+                tower_id,
+                progress::UPGRADE_PROGRESS_COLOR,
+                0.,
+            );
             add_to_tower(p);
         })
         .id()
@@ -334,7 +340,7 @@ fn reattach_towers_system(
                 &assets,
                 &mut mats,
                 tower_id,
-                TOWER_CONTACT_COLOR,
+                progress::UPGRADE_PROGRESS_COLOR,
                 progress.0,
             );
             if gun.is_some() {

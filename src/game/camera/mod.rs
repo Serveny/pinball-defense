@@ -61,7 +61,7 @@ fn spawn(
         Camera3d::default(),
         Tonemapping::TonyMcMapface,
         Bloom {
-            intensity: g_setting.bloom_intensity,
+            intensity: g_setting.bloom_intensity(),
             ..default()
         },
         //UiCameraConfig { show_ui: false },

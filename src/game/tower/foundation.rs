@@ -138,7 +138,15 @@ fn spawn_foundation_children(
     p.spawn(lid_top(assets));
     p.spawn(lid_bottom(assets)).with_children(|p| {
         let bar_trans = Transform::from_translation(Vec3::new(-0.06, 0., 0.));
-        progress::spawn(p, assets, mats, rel_id, bar_trans, color, 0.);
+        progress::spawn(
+            p,
+            assets,
+            mats,
+            rel_id,
+            bar_trans,
+            progress::UPGRADE_PROGRESS_COLOR,
+            0.,
+        );
     });
 }
 

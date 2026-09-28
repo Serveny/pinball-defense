@@ -215,14 +215,14 @@ pub fn on_changed_graphics_settings(
             .for_each(|mut light| light.shadow_maps_enabled = g_sett.is_shadows);
 
         if let Ok((id, hdr)) = q_cam.single() {
-            if g_sett.is_hdr && hdr.is_none() {
+            if (g_sett.is_hdr || g_sett.is_bloom) && hdr.is_none() {
                 cmds.entity(id).insert(Hdr);
-            } else if !g_sett.is_hdr && hdr.is_some() {
+            } else if !g_sett.is_hdr && !g_sett.is_bloom && hdr.is_some() {
                 cmds.entity(id).remove::<Hdr>();
             }
         }
         q_bloom
             .iter_mut()
-            .for_each(|mut bloom_sett| bloom_sett.intensity = g_sett.bloom_intensity);
+            .for_each(|mut bloom_sett| bloom_sett.intensity = g_sett.bloom_intensity());
     }
 }

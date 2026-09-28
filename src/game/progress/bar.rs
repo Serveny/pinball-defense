@@ -1,7 +1,6 @@
-use super::Progress;
+use super::{Progress, neon_material};
 use crate::prelude::*;
 use crate::utils::RelEntity;
-use bevy::color::palettes::css::ANTIQUE_WHITE;
 
 #[derive(Component, Default)]
 pub struct ProgressBar {
@@ -21,7 +20,7 @@ pub fn spawn(
         .spawn(frame_bundle(assets, mats, transform))
         .with_children(|spawner| {
             spawner.spawn(bar_bundle(assets, mats, init_val, rel_id, color));
-            spawner.spawn(background_bundle(assets, mats, ANTIQUE_WHITE.into()));
+            spawner.spawn(background_bundle(assets, mats, Color::srgb_u8(20, 24, 30)));
         });
 }
 
@@ -54,13 +53,7 @@ fn bar_bundle(
     (
         Name::new("Progress Bar"),
         Mesh3d(assets.progress_bar.clone()),
-        MeshMaterial3d(mats.add(StandardMaterial {
-            base_color: color,
-            perceptual_roughness: 0.4,
-            metallic: 0.6,
-            reflectance: 0.5,
-            ..default()
-        })),
+        MeshMaterial3d(mats.add(neon_material(color))),
         Transform {
             translation: Vec3::new(0.003, -0.034, 0.003),
             scale: Vec3::new(1., init_val, 1.),

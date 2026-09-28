@@ -1,4 +1,4 @@
-use super::Progress;
+use super::{Progress, neon_material};
 use crate::prelude::*;
 use crate::utils::RelEntity;
 use std::f32::consts::{FRAC_PI_2, PI};
@@ -68,13 +68,7 @@ fn radial_bar_bundle(
     (
         Name::new("Radial Progress Bar"),
         Mesh3d(assets.radial_progress_bar.clone()),
-        MeshMaterial3d(mats.add(StandardMaterial {
-            base_color: color,
-            perceptual_roughness: 0.4,
-            metallic: 0.6,
-            reflectance: 0.5,
-            ..default()
-        })),
+        MeshMaterial3d(mats.add(neon_material(color))),
         Transform::from_rotation(Quat::from_rotation_z(PI * (1. + init_val) + PI + FRAC_PI_2)),
         RadialProgressBar {
             phase: -PI * (1. - init_val),

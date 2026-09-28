@@ -52,14 +52,13 @@ pub fn spawn_life_bar(
             Visibility::Inherited,
         ))
         .with_children(|spawner| {
-            let color = Color::srgb_u8(156, 217, 26);
             super::progress::spawn(
                 spawner,
                 assets,
                 materials,
                 spawner.target_entity(),
                 Transform::default(),
-                color,
+                super::progress::PLAYER_HEALTH_COLOR,
                 1.,
             );
         });
@@ -76,14 +75,13 @@ fn reattach_life_bar_system(
     for (life_bar_id, health) in q_life_bars.iter() {
         cmds.entity(world).add_child(life_bar_id);
         cmds.entity(life_bar_id).with_children(|spawner| {
-            let color = Color::srgb_u8(156, 217, 26);
             super::progress::spawn(
                 spawner,
                 &assets,
                 &mut mats,
                 life_bar_id,
                 Transform::default(),
-                color,
+                super::progress::PLAYER_HEALTH_COLOR,
                 health.fraction(),
             );
         });

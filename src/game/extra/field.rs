@@ -5,7 +5,7 @@ use crate::game::level::{BallCollisionPoints, LevelHub};
 use crate::game::light::{
     ContactLight, FlashLight, LightOnCollision, contact_light_bundle, disable_flash_light,
 };
-use crate::game::progress::{RadialProgressCasing, spawn_radial};
+use crate::game::progress::{self, RadialProgressCasing, spawn_radial};
 use crate::game::ui;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
@@ -77,11 +77,11 @@ fn activate_field(
                 Some(kind.icon(tex)),
                 mats,
                 field_id,
-                kind.color(),
+                progress::UPGRADE_PROGRESS_COLOR,
                 0.,
             );
         });
-    ui::progress_bar::spawn_transient_with_color(cmds, field_id, 0., kind.color());
+    ui::progress_bar::spawn_transient(cmds, field_id, 0.);
 }
 
 pub(super) fn button_press_system(
