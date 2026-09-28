@@ -2,7 +2,7 @@ use super::{
     EventState, GameState,
     analog_counter::AnalogCounterSetEvent,
     light::{FlashLight, LevelUpLamp},
-    wave::Wave,
+    wave::{Wave, WaveStartedEvent},
 };
 use crate::prelude::*;
 use std::time::Duration;
@@ -169,11 +169,12 @@ struct LevelUpAnimation(Timer);
 fn on_level_up_lamp(
     mut cmds: Commands,
     mut q_lvl_up_lamp: Query<(Entity, &mut Visibility), With<LevelUpLamp>>,
-    level_up_ev: MessageReader<LevelUpEvent>,
+    mut wave_started_ev: MessageReader<WaveStartedEvent>,
 ) {
-    if !level_up_ev.is_empty()
-        && let Ok((lamp_id, mut visi)) = q_lvl_up_lamp.single_mut()
-    {
+    for WaveStartedEvent { .. } in wave_started_ev.read() {
+        let Ok((lamp_id, mut visi)) = q_lvl_up_lamp.single_mut() else {
+            return;
+        };
         *visi = Visibility::Inherited;
         cmds.entity(lamp_id)
             .insert(FlashLight)
