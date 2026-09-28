@@ -20,7 +20,7 @@ pub fn spawn(
         .spawn(frame_bundle(assets, mats, transform))
         .with_children(|spawner| {
             spawner.spawn(bar_bundle(assets, mats, init_val, rel_id, color));
-            spawner.spawn(background_bundle(assets, mats, Color::srgb_u8(20, 24, 30)));
+            spawner.spawn(background_bundle(assets, mats));
         });
 }
 
@@ -68,15 +68,13 @@ fn bar_bundle(
 fn background_bundle(
     assets: &PinballDefenseGltfAssets,
     mats: &mut Assets<StandardMaterial>,
-    color: Color,
 ) -> impl Bundle {
     (
         Name::new("Progress Bar Background"),
         Mesh3d(assets.progress_bar.clone()),
         MeshMaterial3d(mats.add(StandardMaterial {
-            base_color: color,
+            base_color: Color::WHITE,
             perceptual_roughness: 0.2,
-            metallic: 0.6,
             reflectance: 0.1,
             ..default()
         })),
