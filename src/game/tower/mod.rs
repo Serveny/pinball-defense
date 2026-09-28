@@ -14,7 +14,7 @@ use super::light::{
 };
 use super::progress::{
     self, Progress, ProgressBarCountUpEvent, ProgressBarFullEvent, ProgressBarResetEvent,
-    RadialProgressCasing,
+    RadialProgressGlow,
 };
 use super::ui;
 use super::{EventState, GameState};
@@ -473,9 +473,9 @@ fn on_upgrade_system(
     mut q_coll: Query<(&mut Collider, &ChildOf), With<TowerSightSensor>>,
     mut q_sr_light: Query<(&mut SpotLight, &ChildOf), With<SightRadiusLight>>,
     mut q_shot_light: QShotLight,
-    mut q_casing: Query<
+    mut q_glow: Query<
         (&RelEntity, &mut MeshMaterial3d<StandardMaterial>),
-        With<RadialProgressCasing>,
+        With<RadialProgressGlow>,
     >,
     mut mats: ResMut<Assets<StandardMaterial>>,
     mut sound_ev: MessageWriter<SoundEvent>,
@@ -504,7 +504,7 @@ fn on_upgrade_system(
         update_sight_radius_light_size(&mut q_sr_light, sight.0, *tower_id);
         update_shot_light_size(&mut q_shot_light, sight.0, *tower_id);
         let color = level_color(level.0);
-        for (rel, mut material) in &mut q_casing {
+        for (rel, mut material) in &mut q_glow {
             if rel.0 == *tower_id {
                 material.0 = mats.add(StandardMaterial {
                     base_color: color,

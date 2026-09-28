@@ -2,7 +2,7 @@ mod bar;
 mod radial;
 
 pub use bar::spawn;
-pub use radial::{RadialProgressBar, RadialProgressCasing, spawn_radial};
+pub use radial::{RadialProgressBar, RadialProgressCasing, RadialProgressGlow, spawn_radial};
 
 use super::{EventState, GameState};
 use crate::prelude::*;
