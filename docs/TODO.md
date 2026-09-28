@@ -9,7 +9,6 @@
 - combo counter: extra points until ball falls into end, the longer the streak, the higher the amount of extra points per second
 - (test that, not shure if good) ball collides with enemies until enemy has no life left
 - Performance Profiling feature
-- Fix hanging ball physics sometimes when hitting a tower
 - Rolling ball visual effect
 - towers get darker texture color, the higher they are upgraded
 - Fix ui progress bars pixel position (Green bar too small, white pixels at top)
@@ -17,11 +16,9 @@
 - Game over menu: Pause game -> Activate free cam, update UI
 - Fix ball can't get out of starter
 - Fix extra ball starter
-- Glowing 3D progress bars
-- Consistent bar coloring
-  - Red 🟥: Enemy health
-  - Orange 🟧: Upgrade progress
-  - Green 🟩: Player health
+- Show date and highscore on loading/save mask
+- Change double damage to double progress extra (for tower upgrades)
+- Reduce ball damage 
 
 ## Audio
 

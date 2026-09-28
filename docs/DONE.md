@@ -115,4 +115,10 @@
   - Double-Damage-Field: Hit it and ball will make double damage for a time span ✅
   - Insta-Kill-Field: Hit it and for a timespan the ball will kill every enemy it hits instantly ✅
 - design extras field (Extra ball, more damage, etc) ✅
+- Fix hanging ball physics sometimes when hitting a tower ✅
 - Ring progress bar (Circle with rotationg half circle as bar fill) ✅
+- Glowing 3D progress bars ✅
+- Consistent bar coloring ✅
+  - Red 🟥: Enemy health 
+  - Orange 🟧: Upgrade progress 
+  - Green 🟩: Player health
