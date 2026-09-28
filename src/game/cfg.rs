@@ -1,8 +1,6 @@
 pub const CONFIG: PinballDefenseConfig = PinballDefenseConfig {
     tower_hit_progress: 1. / 15.,
     damage_upgrade_factor: 1.2,
-    range_upgade_factor: 0.01,
-    slow_down_upgrade_factor: 0.98,
     tower_kick_velocity: 2.,
     ball_enemy_damage: 200.,
     ball_damage_per_level: 200.,
@@ -11,8 +9,6 @@ pub const CONFIG: PinballDefenseConfig = PinballDefenseConfig {
 pub struct PinballDefenseConfig {
     pub tower_hit_progress: f32,
     pub damage_upgrade_factor: f32,
-    pub range_upgade_factor: f32,
-    pub slow_down_upgrade_factor: f32,
     pub tower_kick_velocity: f32,
     pub ball_enemy_damage: f32,
     pub ball_damage_per_level: f32,

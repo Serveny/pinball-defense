@@ -1,4 +1,5 @@
 use crate::game::level::{LevelHub, PointHub};
+use crate::game::unlock::TowerUnlocks;
 use crate::game::wave::Wave;
 use crate::prelude::*;
 use moonshine_save::prelude::*;
@@ -9,6 +10,7 @@ pub fn save_world(path: impl Into<PathBuf>) -> SaveWorld {
         .include_resource::<PointHub>()
         .include_resource::<LevelHub>()
         .include_resource::<Wave>()
+        .include_resource::<TowerUnlocks>()
         .exclude_component::<Mesh3d>()
         .exclude_component::<MeshMaterial3d<StandardMaterial>>()
         .exclude_component::<Name>()

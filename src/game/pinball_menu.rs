@@ -1,8 +1,8 @@
 use super::ball::{CollisionWithBallEvent, PinBall};
 use super::events::collision::GameLayer;
-use super::level::{Level, LevelHub, LevelUpEvent};
 use super::progress::ProgressBarFullEvent;
-use super::tower::{SpawnTowerEvent, TowerType, TowerUpgrade};
+use super::tower::{SpawnTowerEvent, TowerType};
+use super::unlock::TowerUnlocks;
 use super::world::QueryWorld;
 use super::{EventState, GameState};
 use crate::game::audio::SoundEvent;
@@ -20,9 +20,7 @@ impl Plugin for PinballMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_message::<PinballMenuEvent>()
             .add_message::<TowerMenuExecuteEvent>()
-            .add_message::<UpgradeMenuExecuteEvent>()
             .add_message::<PinballMenuOnSetSelectedEvent>()
-            .add_systems(OnEnter(GameState::Init), init_resources)
             .add_systems(
                 Update,
                 (spawn_system, de_activate_system, selected_system)
@@ -30,13 +28,7 @@ impl Plugin for PinballMenuPlugin {
             )
             .add_systems(
                 Update,
-                (
-                    on_menu_event_system,
-                    on_execute_system,
-                    on_ready_system,
-                    on_unlock_system,
-                    restore_unlocks_system,
-                )
+                (on_menu_event_system, on_execute_system, on_ready_system)
                     .run_if(in_state(EventState::Active)),
             );
     }
@@ -55,7 +47,6 @@ pub enum PinballMenuEvent {
 #[derive(Component, Debug, Clone, Copy)]
 pub enum PinballMenuTrigger {
     Tower,
-    Upgrade,
 }
 
 #[derive(Message, Clone, Copy)]
@@ -72,24 +63,7 @@ impl TowerMenuExecuteEvent {
 #[derive(Message, Clone, Copy)]
 pub struct PinballMenuOnSetSelectedEvent(pub Entity);
 
-#[derive(Message, Clone, Copy)]
-pub struct UpgradeMenuExecuteEvent {
-    pub tower_id: Entity,
-    pub upgrade: TowerUpgrade,
-}
-
-impl UpgradeMenuExecuteEvent {
-    pub fn new(tower_id: Entity, upgrade: TowerUpgrade) -> Self {
-        Self { tower_id, upgrade }
-    }
-}
-
 // --- Private Area ---
-
-fn init_resources(mut cmds: Commands) {
-    cmds.insert_resource(UnlockedTowers::default());
-    cmds.insert_resource(UnlockedUpgrades::default());
-}
 
 #[derive(Component, Debug, Clone, Copy, Default)]
 enum PinballMenuStatus {
@@ -135,8 +109,7 @@ fn spawn_system(
     q_pb_menu: Query<&PinballMenu>,
     g_sett: Res<GraphicsSettings>,
     q_selected: Query<&PinballMenuTrigger, With<PinballMenuSelected>>,
-    unlocked_towers: Res<UnlockedTowers>,
-    unlocked_tower_upgrades: Res<UnlockedUpgrades>,
+    unlocked_towers: Res<TowerUnlocks>,
 ) {
     if q_pb_menu.is_empty()
         && let Ok(trigger) = q_selected.single()
@@ -147,9 +120,6 @@ fn spawn_system(
                 PinballMenuTrigger::Tower => {
                     spawn_tower_menu(p, &assets, &g_sett, &unlocked_towers, MENU_POS);
                 }
-                PinballMenuTrigger::Upgrade => {
-                    spawn_upgrade_menu(p, &assets, &g_sett, &unlocked_tower_upgrades, MENU_POS);
-                }
             });
             sound_ev.write(SoundEvent::PbMenuFadeIn);
         }
@@ -159,20 +129,20 @@ fn spawn_system(
 #[derive(Component, Debug, Clone, Copy, PartialEq)]
 pub enum PinballMenu {
     Tower,
-    Upgrade,
 }
 
 fn spawn_tower_menu(
     spawner: &mut ChildSpawnerCommands,
     assets: &PinballDefenseGltfAssets,
     g_sett: &GraphicsSettings,
-    unlocked_towers: &UnlockedTowers,
+    unlocked_towers: &TowerUnlocks,
     pos: Vec3,
 ) {
     spawner.spawn(menu(pos)).with_children(|spawner| {
-        let mut angles = CardAngles::new(u8::try_from(unlocked_towers.0.len()).unwrap_or(u8::MAX));
-        for tower in &unlocked_towers.0 {
-            spawn_menu_element(*tower, spawner, assets, g_sett, angles.next(), 0.1);
+        let mut angles =
+            CardAngles::new(u8::try_from(unlocked_towers.available().count()).unwrap_or(u8::MAX));
+        for tower in unlocked_towers.available() {
+            spawn_menu_element(tower, spawner, assets, g_sett, angles.next(), 0.1);
         }
     });
 }
@@ -182,31 +152,6 @@ fn menu(pos: Vec3) -> impl Bundle {
         Name::new("Pinball Tower Menu"),
         spatial_from_pos(pos),
         PinballMenu::Tower,
-        PinballMenuStatus::Disabled,
-    )
-}
-
-fn spawn_upgrade_menu(
-    spawner: &mut ChildSpawnerCommands,
-    assets: &PinballDefenseGltfAssets,
-    g_sett: &GraphicsSettings,
-    unlocked_tower_upgrades: &UnlockedUpgrades,
-    pos: Vec3,
-) {
-    spawner.spawn(menu_element(pos)).with_children(|spawner| {
-        let mut angles =
-            CardAngles::new(u8::try_from(unlocked_tower_upgrades.0.len()).unwrap_or(u8::MAX));
-        for tower_upgrade in &unlocked_tower_upgrades.0 {
-            spawn_menu_element(*tower_upgrade, spawner, assets, g_sett, angles.next(), 0.1);
-        }
-    });
-}
-
-fn menu_element(pos: Vec3) -> impl Bundle {
-    (
-        Name::new("Pinball Upgrade Menu"),
-        spatial_from_pos(pos),
-        PinballMenu::Upgrade,
         PinballMenuStatus::Disabled,
     )
 }
@@ -410,19 +355,14 @@ fn despawn_animation(angle: f32, duration: Duration) -> Sequence {
     wait.then(rotate)
 }
 
-type QueryUpgradeMenuEls<'w, 's, 'a> =
-    Query<'w, 's, (Entity, &'a TowerUpgrade), (With<PinballMenuElement>, Without<TowerType>)>;
-
 fn on_execute_system(
     mut cmds: Commands,
     mut evr: MessageReader<CollisionWithBallEvent>,
     mut on_tower_el_selected: MessageWriter<TowerMenuExecuteEvent>,
-    mut on_upgrade_el_selected: MessageWriter<UpgradeMenuExecuteEvent>,
     mut pb_menu_ev: MessageWriter<PinballMenuEvent>,
     mut spawn_tower_ev: MessageWriter<SpawnTowerEvent>,
     q_pb_menu: Query<&PinballMenu>,
     q_tower_menu_els: Query<(Entity, &TowerType), With<PinballMenuElement>>,
-    q_upgrade_menu_els: QueryUpgradeMenuEls,
     q_selected: Query<(Entity, &Transform), With<PinballMenuSelected>>,
 ) {
     for CollisionWithBallEvent(_, id) in evr.read() {
@@ -446,22 +386,6 @@ fn on_execute_system(
                             *tower_type,
                             Vec3::new(pos.x, pos.y, -0.025),
                         ));
-                    }
-                    true
-                } else {
-                    false
-                }
-            }
-            PinballMenu::Upgrade => {
-                if let Some((_, upgrade)) =
-                    q_upgrade_menu_els.iter().find(|(el_id, _)| *el_id == *id)
-                {
-                    if let Ok((tower_id, _)) = q_selected.single() {
-                        // Deselect
-                        cmds.entity(tower_id).remove::<PinballMenuSelected>();
-
-                        on_upgrade_el_selected
-                            .write(UpgradeMenuExecuteEvent::new(tower_id, *upgrade));
                     }
                     true
                 } else {
@@ -521,12 +445,10 @@ fn selected_system(
     mut on_sel_ev: MessageWriter<PinballMenuOnSetSelectedEvent>,
     q_ready: Query<(Entity, &PinballMenuTrigger), With<PinballMenuReady>>,
     q_selected: Query<Entity, With<PinballMenuSelected>>,
-    unlocked_towers: Res<UnlockedTowers>,
-    unlocked_tower_upgrades: Res<UnlockedUpgrades>,
 ) {
     if q_selected.is_empty() {
         for (ready_id, trigger) in q_ready.iter() {
-            if is_unlock_available(*trigger, &unlocked_towers, &unlocked_tower_upgrades) {
+            if matches!(trigger, PinballMenuTrigger::Tower) {
                 set_selected(&mut cmds, ready_id);
                 on_sel_ev.write(PinballMenuOnSetSelectedEvent(ready_id));
                 return;
@@ -535,96 +457,10 @@ fn selected_system(
     }
 }
 
-fn is_unlock_available(
-    trigger: PinballMenuTrigger,
-    unlocked_towers: &UnlockedTowers,
-    unlocked_tower_upgrades: &UnlockedUpgrades,
-) -> bool {
-    match trigger {
-        PinballMenuTrigger::Tower => !unlocked_towers.0.is_empty(),
-        PinballMenuTrigger::Upgrade => !unlocked_tower_upgrades.0.is_empty(),
-    }
-}
-
 fn set_selected(cmds: &mut Commands, ref_id: Entity) {
     cmds.entity(ref_id)
         .remove::<PinballMenuReady>()
         .insert(PinballMenuSelected);
-}
-
-#[derive(Resource)]
-struct UnlockedTowers(Vec<TowerType>);
-
-impl Default for UnlockedTowers {
-    fn default() -> Self {
-        Self(vec![TowerType::Gun])
-    }
-}
-
-#[derive(Resource, Default)]
-struct UnlockedUpgrades(Vec<TowerUpgrade>);
-
-fn on_unlock_system(
-    mut evr: MessageReader<LevelUpEvent>,
-    mut towers: ResMut<UnlockedTowers>,
-    mut upgrades: ResMut<UnlockedUpgrades>,
-) {
-    for ev in evr.read() {
-        if let Some(tower_type) = new_tower_unlock(ev.0)
-            && !towers.0.contains(&tower_type)
-        {
-            towers.0.push(tower_type);
-        }
-        if let Some(tower_upgrade) = new_tower_upgrade_unlock(ev.0)
-            && !upgrades.0.contains(&tower_upgrade)
-        {
-            upgrades.0.push(tower_upgrade);
-        }
-    }
-}
-
-fn restore_unlocks_system(
-    mut cmds: Commands,
-    level: Res<LevelHub>,
-    mut evr: MessageReader<LevelUpEvent>,
-    mut towers: ResMut<UnlockedTowers>,
-    mut upgrades: ResMut<UnlockedUpgrades>,
-) {
-    if !level.is_changed() || evr.read().next().is_some() {
-        return;
-    }
-    let previous = towers.0.clone();
-    towers.0 = std::iter::once(TowerType::Gun)
-        .chain((1..=level.level()).filter_map(new_tower_unlock))
-        .collect();
-    upgrades.0 = (1..=level.level())
-        .filter_map(new_tower_upgrade_unlock)
-        .collect();
-    for lvl in 1..=level.level() {
-        if let Some(tower_type) = new_tower_unlock(lvl)
-            && !previous.contains(&tower_type)
-        {
-            cmds.write_message(LevelUpEvent(lvl));
-        }
-    }
-}
-
-pub(crate) fn new_tower_unlock(level: Level) -> Option<TowerType> {
-    let locked_types = [TowerType::Tesla, TowerType::Microwave];
-    let unlock_level = |idx: usize| Level::try_from(idx + 2).unwrap_or(Level::MAX);
-    locked_types
-        .into_iter()
-        .enumerate()
-        .find(|(idx, _)| unlock_level(*idx) == level)
-        .map(|(_, tower_type)| tower_type)
-}
-
-pub(crate) fn new_tower_upgrade_unlock(level: Level) -> Option<TowerUpgrade> {
-    match level {
-        4 => Some(TowerUpgrade::Range),
-        6 => Some(TowerUpgrade::Damage),
-        _ => None,
-    }
 }
 
 trait GetMaterial {
@@ -643,18 +479,6 @@ impl GetMaterial for TowerType {
             TowerType::Gun => assets.pinball_menu_element_gun_material.clone(),
             TowerType::Tesla => assets.pinball_menu_element_tesla_material.clone(),
             TowerType::Microwave => assets.pinball_menu_element_microwave_material.clone(),
-        }
-    }
-}
-
-impl GetMaterial for TowerUpgrade {
-    fn get_menu_element_material(
-        &self,
-        assets: &PinballDefenseGltfAssets,
-    ) -> Handle<StandardMaterial> {
-        match *self {
-            TowerUpgrade::Damage => assets.pinball_menu_element_damage_upgrade_mat.clone(),
-            TowerUpgrade::Range => assets.pinball_menu_element_range_upgrade_mat.clone(),
         }
     }
 }

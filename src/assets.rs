@@ -73,8 +73,6 @@ pub struct PinballDefenseGltfAssets {
     pub pinball_menu_element_gun_material: Handle<StandardMaterial>,
     pub pinball_menu_element_tesla_material: Handle<StandardMaterial>,
     pub pinball_menu_element_microwave_material: Handle<StandardMaterial>,
-    pub pinball_menu_element_damage_upgrade_mat: Handle<StandardMaterial>,
-    pub pinball_menu_element_range_upgrade_mat: Handle<StandardMaterial>,
 
     // Pinball Plate
     pub world_1: Handle<Mesh>,
@@ -182,7 +180,6 @@ pub struct PinballDefenseAudioAssets {
     pub enemy_reach_end: Handle<AudioSource>,
     pub tower_build: Handle<AudioSource>,
     pub tower_upgrade_range: Handle<AudioSource>,
-    pub tower_upgrade_damage: Handle<AudioSource>,
     pub ball_hits_foundation: Handles<AudioSource>,
     pub ball_hits_wall: Handles<AudioSource>,
     pub ball_rolling: Handle<AudioSource>,

@@ -1,8 +1,6 @@
 use super::enemy::Enemy;
 use super::health::ChangeHealthEvent;
-use super::pinball_menu::UpgradeMenuExecuteEvent;
-use super::tower::SpawnTowerEvent;
-use super::wave::WaveStartedEvent;
+use super::tower::{SpawnTowerEvent, TowerUpgradedEvent};
 use super::{EventState, GameState};
 use crate::prelude::*;
 
@@ -23,7 +21,6 @@ pub struct GameStats {
     pub damage_dealt: f32,
     pub towers_built: u32,
     pub upgrades_performed: u32,
-    pub wave_number: usize,
 }
 
 fn init_stats(mut cmds: Commands) {
@@ -35,8 +32,7 @@ fn track_stats_system(
     mut stats: ResMut<GameStats>,
     mut health_evr: MessageReader<ChangeHealthEvent>,
     mut tower_evr: MessageReader<SpawnTowerEvent>,
-    mut upgrade_evr: MessageReader<UpgradeMenuExecuteEvent>,
-    mut wave_evr: MessageReader<WaveStartedEvent>,
+    mut upgrade_evr: MessageReader<TowerUpgradedEvent>,
     q_enemy: Query<(), With<Enemy>>,
 ) {
     for ev in health_evr.read() {
@@ -46,5 +42,4 @@ fn track_stats_system(
     }
     stats.towers_built += tower_evr.read().count() as u32;
     stats.upgrades_performed += upgrade_evr.read().count() as u32;
-    stats.wave_number += wave_evr.read().count();
 }

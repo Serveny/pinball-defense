@@ -36,9 +36,14 @@ pub fn spawn_radial(
     rel_id: Entity,
     color: Color,
     init_val: f32,
+    casing_color: Option<Color>,
 ) {
     spawner
-        .spawn(radial_casing_bundle(assets))
+        .spawn(radial_casing_bundle(
+            assets,
+            rel_id,
+            casing_color.map(|color| mats.add(neon_material(color))),
+        ))
         .with_children(|spawner| {
             spawner.spawn(radial_bar_bundle(assets, mats, color, rel_id, init_val));
             if let Some(icon) = icon {
@@ -47,13 +52,18 @@ pub fn spawn_radial(
         });
 }
 
-fn radial_casing_bundle(assets: &PinballDefenseGltfAssets) -> impl Bundle {
+fn radial_casing_bundle(
+    assets: &PinballDefenseGltfAssets,
+    rel_id: Entity,
+    material: Option<Handle<StandardMaterial>>,
+) -> impl Bundle {
     (
         Name::new("Radial Progress Casing"),
         Mesh3d(assets.radial_progress_casing.clone()),
-        MeshMaterial3d(assets.foundation_lid_material.clone()),
+        MeshMaterial3d(material.unwrap_or_else(|| assets.foundation_lid_material.clone())),
         Transform::from_rotation(Quat::from_rotation_z(FRAC_PI_2)),
         RadialProgressCasing,
+        RelEntity(rel_id),
         Visibility::default(),
     )
 }

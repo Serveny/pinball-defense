@@ -47,7 +47,6 @@ pub enum SoundEvent {
     EnemyReachEnd,
     TowerBuild,
     TowerUpgradeRange,
-    TowerUpgradeDamage,
     CounterTick,
     BallStarterCharge,
     BallStarterFire,
@@ -64,7 +63,7 @@ impl SoundEvent {
             BallHitsEnd, BallHitsEnemy, BallHitsFoundation, BallHitsWall, BallSpawn,
             BallStarterCharge, BallStarterFire, CounterTick, EnemyReachEnd, ExtraFieldFire,
             ExtraFieldHit, FlipperPress, FlipperRelease, PbMenuActive, PbMenuFadeIn, PbMenuFadeOut,
-            TowerBuild, TowerHit, TowerUpgradeDamage, TowerUpgradeRange,
+            TowerBuild, TowerHit, TowerUpgradeRange,
         };
         let handle = match *self {
             BallSpawn => SoundHandle::Single(&assets.ball_release),
@@ -80,7 +79,6 @@ impl SoundEvent {
             EnemyReachEnd => SoundHandle::Single(&assets.enemy_reach_end),
             TowerBuild => SoundHandle::Single(&assets.tower_build),
             TowerUpgradeRange => SoundHandle::Single(&assets.tower_upgrade_range),
-            TowerUpgradeDamage => SoundHandle::Single(&assets.tower_upgrade_damage),
             CounterTick => SoundHandle::Various(&assets.analog_counter_tick),
             BallStarterCharge => SoundHandle::Single(&assets.ball_starter_charge),
             BallStarterFire => SoundHandle::Single(&assets.ball_starter_fire),
