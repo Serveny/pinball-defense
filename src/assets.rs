@@ -40,7 +40,7 @@ pub struct PinballDefenseAssets {
     pub slow_down_icon: Handle<Image>,
 
     #[asset(path = "textures/extra_fields/double_damage.png")]
-    pub double_damage_icon: Handle<Image>,
+    pub double_upgrade_points_icon: Handle<Image>,
 
     #[asset(path = "textures/extra_fields/instakill.png")]
     pub insta_kill_icon: Handle<Image>,

@@ -17,7 +17,7 @@ const ORANGE_TRAIL: Vec4 = Vec4::new(3., 1.3, 0.2, 1.);
 #[derive(Resource)]
 pub(super) struct ExtraFxAssets {
     insta_trail: Handle<EffectAsset>,
-    double_damage_trail: Handle<EffectAsset>,
+    double_upgrade_points_trail: Handle<EffectAsset>,
     snow: Handle<EffectAsset>,
 }
 
@@ -26,7 +26,8 @@ impl FromWorld for ExtraFxAssets {
         let mut effects = world.resource_mut::<Assets<EffectAsset>>();
         Self {
             insta_trail: effects.add(trail_asset("ball_insta_kill_trail", RED_TRAIL)),
-            double_damage_trail: effects.add(trail_asset("ball_double_damage_trail", ORANGE_TRAIL)),
+            double_upgrade_points_trail: effects
+                .add(trail_asset("ball_double_upgrade_points_trail", ORANGE_TRAIL)),
             snow: effects.add(snow_asset()),
         }
     }
@@ -153,9 +154,9 @@ pub(super) fn spawn_ball_trails_system(
                         ExtraFieldKind::InstaKill,
                     ),
                     (
-                        "Double Damage Trail",
-                        assets.double_damage_trail.clone(),
-                        ExtraFieldKind::DoubleDamage,
+                        "Double Upgrade Points Trail",
+                        assets.double_upgrade_points_trail.clone(),
+                        ExtraFieldKind::DoubleUpgradePoints,
                     ),
                 ] {
                     ball.spawn((
@@ -196,12 +197,12 @@ pub(super) fn toggle_fx_system(
 ) {
     let now = **ig_time;
     let insta = effects.is_active(now, ExtraFieldKind::InstaKill);
-    let double = effects.is_active(now, ExtraFieldKind::DoubleDamage);
+    let double = effects.is_active(now, ExtraFieldKind::DoubleUpgradePoints);
     let frozen = effects.is_active(now, ExtraFieldKind::SlowDown);
     for (mut spawner, trail) in q_trails.iter_mut() {
         let active = match trail.0 {
             ExtraFieldKind::InstaKill => insta,
-            ExtraFieldKind::DoubleDamage => double && !insta,
+            ExtraFieldKind::DoubleUpgradePoints => double && !insta,
             _ => false,
         };
         if spawner.active != active {

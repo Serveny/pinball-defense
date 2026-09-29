@@ -34,7 +34,7 @@ pub(super) fn on_charge_system(
             }
             prog_bar_ev.write(ProgressBarCountUpEvent::new(
                 *id,
-                charge_amount(field.kind().hits_needed()),
+                effects.progress_amount(**ig_time, charge_amount(field.kind().hits_needed())),
             ));
             sound_ev.write(SoundEvent::ExtraFieldHit);
         }

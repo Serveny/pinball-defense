@@ -404,11 +404,16 @@ fn on_progress_system(
     mut evr: MessageReader<CollisionWithBallEvent>,
     mut sound_ev: MessageWriter<SoundEvent>,
     q_tower: Query<&TowerLevel, With<Tower>>,
+    effects: Res<crate::game::extra::ActiveEffects>,
+    ig_time: Res<crate::game::IngameTime>,
 ) {
     evr.read().for_each(|CollisionWithBallEvent(_, id)| {
         // *flag != CollisionEventFlags::SENSOR &&
         if q_tower.get(*id).is_ok_and(|level| level.0 < 5) {
-            prog_bar_ev.write(ProgressBarCountUpEvent::new(*id, CONFIG.tower_hit_progress));
+            prog_bar_ev.write(ProgressBarCountUpEvent::new(
+                *id,
+                effects.progress_amount(**ig_time, CONFIG.tower_hit_progress),
+            ));
             sound_ev.write(SoundEvent::TowerHit);
         }
     });

@@ -163,7 +163,7 @@ pub(super) fn effect_flash_system(
 ) {
     for (i, kind) in [
         ExtraFieldKind::SlowDown,
-        ExtraFieldKind::DoubleDamage,
+        ExtraFieldKind::DoubleUpgradePoints,
         ExtraFieldKind::InstaKill,
     ]
     .into_iter()
@@ -207,7 +207,7 @@ mod tests {
         let kinds = [
             Some(ExtraFieldKind::ExtraBall),
             Some(ExtraFieldKind::SlowDown),
-            Some(ExtraFieldKind::DoubleDamage),
+            Some(ExtraFieldKind::DoubleUpgradePoints),
             Some(ExtraFieldKind::InstaKill),
         ];
         assert_eq!(pick_next_inactive(&kinds), None);

@@ -311,11 +311,16 @@ pub(super) fn on_progress_system(
     mut evr: MessageReader<CollisionWithBallEvent>,
     mut sound_ev: MessageWriter<SoundEvent>,
     q_tower_foundation: Query<&TowerFoundation, With<TowerFoundation>>,
+    effects: Res<crate::game::extra::ActiveEffects>,
+    ig_time: Res<crate::game::IngameTime>,
 ) {
     for CollisionWithBallEvent(_, id) in evr.read() {
         // if *flag == CollisionEventFlags::SENSOR {
         if let Ok(foundation) = q_tower_foundation.get(*id) {
-            prog_bar_ev.write(ProgressBarCountUpEvent::new(*id, foundation.hit_progress));
+            prog_bar_ev.write(ProgressBarCountUpEvent::new(
+                *id,
+                effects.progress_amount(**ig_time, foundation.hit_progress),
+            ));
             sound_ev.write(SoundEvent::BallHitsFoundation);
         }
     }

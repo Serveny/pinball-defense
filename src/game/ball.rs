@@ -115,7 +115,7 @@ fn ball_tint_system(
 ) {
     let color = if effects.is_active(**ig_time, ExtraFieldKind::InstaKill) {
         RED.into()
-    } else if effects.is_active(**ig_time, ExtraFieldKind::DoubleDamage) {
+    } else if effects.is_active(**ig_time, ExtraFieldKind::DoubleUpgradePoints) {
         ORANGE.into()
     } else {
         GOLD.into()

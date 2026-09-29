@@ -66,12 +66,12 @@ fn init_resources(mut cmds: Commands) {
 pub enum ExtraFieldKind {
     ExtraBall,
     SlowDown,
-    DoubleDamage,
+    DoubleUpgradePoints,
     InstaKill,
 }
 
 pub const SLOW_DOWN_HITS: u32 = 4;
-pub const DOUBLE_DAMAGE_HITS: u32 = 8;
+pub const DOUBLE_UPGRADE_POINTS_HITS: u32 = 8;
 pub const EXTRA_BALL_HITS: u32 = 12;
 pub const INSTA_KILL_HITS: u32 = 16;
 
@@ -80,7 +80,7 @@ impl ExtraFieldKind {
         match self {
             Self::ExtraBall => GOLD.into(),
             Self::SlowDown => BLUE.into(),
-            Self::DoubleDamage => ORANGE.into(),
+            Self::DoubleUpgradePoints => ORANGE.into(),
             Self::InstaKill => RED.into(),
         }
     }
@@ -89,7 +89,7 @@ impl ExtraFieldKind {
         match self {
             Self::ExtraBall => EXTRA_BALL_HITS,
             Self::SlowDown => SLOW_DOWN_HITS,
-            Self::DoubleDamage => DOUBLE_DAMAGE_HITS,
+            Self::DoubleUpgradePoints => DOUBLE_UPGRADE_POINTS_HITS,
             Self::InstaKill => INSTA_KILL_HITS,
         }
     }
@@ -98,7 +98,7 @@ impl ExtraFieldKind {
         match self {
             Self::ExtraBall => "EXTRA BALL FIELD",
             Self::SlowDown => "SLOW-DOWN FIELD",
-            Self::DoubleDamage => "DOUBLE-DAMAGE FIELD",
+            Self::DoubleUpgradePoints => "DOUBLE UPGRADE POINTS FIELD",
             Self::InstaKill => "INSTA-KILL FIELD",
         }
     }
@@ -107,7 +107,7 @@ impl ExtraFieldKind {
         match self {
             Self::ExtraBall => &tex.extra_ball_icon,
             Self::SlowDown => &tex.slow_down_icon,
-            Self::DoubleDamage => &tex.double_damage_icon,
+            Self::DoubleUpgradePoints => &tex.double_upgrade_points_icon,
             Self::InstaKill => &tex.insta_kill_icon,
         }
     }
@@ -133,6 +133,6 @@ pub struct ExtraFieldUnlockEvent(pub ExtraFieldKind);
 const KINDS: [ExtraFieldKind; 4] = [
     ExtraFieldKind::ExtraBall,
     ExtraFieldKind::SlowDown,
-    ExtraFieldKind::DoubleDamage,
+    ExtraFieldKind::DoubleUpgradePoints,
     ExtraFieldKind::InstaKill,
 ];

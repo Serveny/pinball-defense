@@ -30,7 +30,9 @@ pub(super) fn on_extra_field_fire_system(
     for ExtraFieldFireEvent(kind) in evr.read() {
         match kind {
             ExtraFieldKind::SlowDown => effects.slow_until = **ig_time + EFFECT_SECS,
-            ExtraFieldKind::DoubleDamage => effects.double_damage_until = **ig_time + EFFECT_SECS,
+            ExtraFieldKind::DoubleUpgradePoints => {
+                effects.double_upgrade_points_until = **ig_time + EFFECT_SECS;
+            }
             ExtraFieldKind::InstaKill => effects.insta_kill_until = **ig_time + EFFECT_SECS,
             ExtraFieldKind::ExtraBall => effects.extra_ball_until = **ig_time + EFFECT_SECS,
         }
@@ -62,8 +64,6 @@ pub fn ball_damage(
     let base = -enemy_max_health * fraction;
     if effects.is_active(now, ExtraFieldKind::InstaKill) {
         -enemy_max_health
-    } else if effects.is_active(now, ExtraFieldKind::DoubleDamage) {
-        2. * base
     } else {
         base
     }
@@ -86,7 +86,7 @@ pub(super) fn slow_reapply_system(
 #[allow(clippy::struct_field_names)]
 pub struct ActiveEffects {
     pub slow_until: f32,
-    pub double_damage_until: f32,
+    pub double_upgrade_points_until: f32,
     pub insta_kill_until: f32,
     pub extra_ball_until: f32,
 }
@@ -95,9 +95,17 @@ impl ActiveEffects {
     pub fn is_active(&self, now: f32, which: ExtraFieldKind) -> bool {
         match which {
             ExtraFieldKind::SlowDown => now < self.slow_until,
-            ExtraFieldKind::DoubleDamage => now < self.double_damage_until,
+            ExtraFieldKind::DoubleUpgradePoints => now < self.double_upgrade_points_until,
             ExtraFieldKind::InstaKill => now < self.insta_kill_until,
             ExtraFieldKind::ExtraBall => now < self.extra_ball_until,
+        }
+    }
+
+    pub fn progress_amount(&self, now: f32, amount: f32) -> f32 {
+        if self.is_active(now, ExtraFieldKind::DoubleUpgradePoints) {
+            2. * amount
+        } else {
+            amount
         }
     }
 }
@@ -131,12 +139,21 @@ mod tests {
                     .min(CONFIG.ball_damage_fraction_max))
         };
         assert_eq!(ball_damage(&effects, 10., 300., 0), base(0, 300.));
-        effects.double_damage_until = 5.;
-        assert_eq!(ball_damage(&effects, 4.9, 300., 0), 2. * base(0, 300.));
-        assert_eq!(ball_damage(&effects, 5., 300., 0), base(0, 300.));
+        effects.double_upgrade_points_until = 5.;
+        assert_eq!(ball_damage(&effects, 4.9, 300., 0), base(0, 300.));
         effects.insta_kill_until = 20.;
         assert_eq!(ball_damage(&effects, 15., 300., 0), -300.);
         assert_eq!(ball_damage(&effects, 20., 300., 0), base(0, 300.));
+    }
+
+    #[test]
+    #[allow(clippy::float_cmp)]
+    fn double_upgrade_points_doubles_progress_amount() {
+        let mut effects = ActiveEffects::default();
+        assert_eq!(effects.progress_amount(4.9, 0.1), 0.1);
+        effects.double_upgrade_points_until = 5.;
+        assert_eq!(effects.progress_amount(4.9, 0.1), 0.2);
+        assert_eq!(effects.progress_amount(5., 0.1), 0.1);
     }
 
     #[test]

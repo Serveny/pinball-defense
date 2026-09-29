@@ -93,7 +93,7 @@ fn extra_hue(kind: crate::game::extra::ExtraFieldKind) -> f32 {
     match kind {
         crate::game::extra::ExtraFieldKind::ExtraBall => 50.,
         crate::game::extra::ExtraFieldKind::SlowDown => 210.,
-        crate::game::extra::ExtraFieldKind::DoubleDamage => 30.,
+        crate::game::extra::ExtraFieldKind::DoubleUpgradePoints => 30.,
         crate::game::extra::ExtraFieldKind::InstaKill => 0.,
     }
 }
@@ -102,7 +102,9 @@ fn extra_effect_text(kind: crate::game::extra::ExtraFieldKind) -> String {
     match kind {
         crate::game::extra::ExtraFieldKind::ExtraBall => "BONUS BALL SPAWNED".into(),
         crate::game::extra::ExtraFieldKind::SlowDown => "ENEMIES SLOWED FOR 5s".into(),
-        crate::game::extra::ExtraFieldKind::DoubleDamage => "DOUBLE DAMAGE FOR 5s".into(),
+        crate::game::extra::ExtraFieldKind::DoubleUpgradePoints => {
+            "DOUBLE UPGRADE POINTS FOR 5s".into()
+        }
         crate::game::extra::ExtraFieldKind::InstaKill => "INSTA-KILL FOR 5s".into(),
     }
 }
