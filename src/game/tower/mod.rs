@@ -23,7 +23,6 @@ use crate::game::world::QueryWorld;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::RelEntity;
-use bevy::color::Hsla;
 use bevy::color::palettes::css::{ORANGE, RED};
 use bevy_tweening::lens::TransformPositionLens;
 use bevy_tweening::{Delay, Sequence, Tween, TweenAnim};
@@ -410,7 +409,10 @@ fn on_progress_system(
 ) {
     evr.read().for_each(|CollisionWithBallEvent(_, id)| {
         // *flag != CollisionEventFlags::SENSOR &&
-        if q_tower.get(*id).is_ok_and(|level| level.0 < MAX_TOWER_LEVEL) {
+        if q_tower
+            .get(*id)
+            .is_ok_and(|level| level.0 < MAX_TOWER_LEVEL)
+        {
             prog_bar_ev.write(ProgressBarCountUpEvent::new(
                 *id,
                 effects.progress_amount(**ig_time, CONFIG.tower_hit_progress),
@@ -448,16 +450,26 @@ pub struct TowerUpgradedEvent(pub Entity, pub u8);
 
 pub const MAX_TOWER_LEVEL: u8 = 10;
 
+pub(crate) fn level_numeral(level: u8) -> &'static str {
+    ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"]
+        .get(usize::from(level.saturating_sub(1)))
+        .copied()
+        .unwrap_or("X")
+}
+
 pub fn level_color(level: u8) -> Color {
-    let clamped = level.clamp(1, MAX_TOWER_LEVEL);
-    let t = f32::from(clamped - 1) / f32::from(MAX_TOWER_LEVEL - 1);
-    Hsla {
-        hue: 250. - t * 260.,
-        saturation: 1.,
-        lightness: 0.72 - t * 0.42,
-        alpha: 1.,
+    match level.clamp(1, MAX_TOWER_LEVEL) {
+        1 => Color::srgb_u8(0, 235, 255),
+        2 => Color::srgb_u8(235, 205, 25),
+        3 => Color::srgb_u8(255, 75, 220),
+        4 => Color::srgb_u8(45, 160, 60),
+        5 => Color::srgb_u8(30, 125, 245),
+        6 => Color::srgb_u8(195, 80, 5),
+        7 => Color::srgb_u8(155, 50, 225),
+        8 => Color::srgb_u8(195, 25, 40),
+        9 => Color::srgb_u8(0, 105, 100),
+        _ => Color::srgb_u8(45, 40, 160),
     }
-    .into()
 }
 
 fn upgraded_radius(radius: f32, current_level: u8) -> f32 {
@@ -518,11 +530,7 @@ fn on_upgrade_system(
         let color = level_color(level.0);
         for (rel, mut material) in &mut q_glow {
             if rel.0 == *tower_id {
-                material.0 = mats.add(StandardMaterial {
-                    base_color: color,
-                    emissive: color.to_linear() * 4.,
-                    ..default()
-                });
+                material.0 = mats.add(progress::level_glow_material(color));
             }
         }
         disable_flash_light(&mut cmds, &mut q_light, *tower_id);
@@ -611,14 +619,25 @@ mod upgrade_tests {
     }
 
     #[test]
-    fn level_colors_get_darker_each_level() {
+    fn level_colors_get_darker_and_have_distinct_neighboring_hues() {
         let colors: Vec<_> = (1..=MAX_TOWER_LEVEL).map(level_color).collect();
         for w in colors.windows(2) {
-            let prev: Hsla = w[0].into();
-            let next: Hsla = w[1].into();
+            let luminance = |color: Color| {
+                let linear = color.to_linear();
+                0.2126 * linear.red + 0.7152 * linear.green + 0.0722 * linear.blue
+            };
             assert!(
-                prev.lightness - next.lightness > 0.001,
-                "level color did not get darker: {prev:?} -> {next:?}"
+                luminance(w[0]) > luminance(w[1]),
+                "level color did not get darker: {:?} -> {:?}",
+                w[0],
+                w[1]
+            );
+            let prev: bevy::color::Hsva = w[0].into();
+            let next: bevy::color::Hsva = w[1].into();
+            let hue_gap = (prev.hue - next.hue).abs();
+            assert!(
+                hue_gap.min(360. - hue_gap) >= 60.,
+                "neighboring level hues are too similar: {prev:?} -> {next:?}"
             );
         }
     }

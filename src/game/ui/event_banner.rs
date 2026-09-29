@@ -2,7 +2,7 @@ use crate::game::enemy::EnemyKind;
 use crate::game::health::Health;
 use crate::game::level::{Level, LevelUpEvent};
 use crate::game::player_life::LifeBar;
-use crate::game::tower::TowerUpgradedEvent;
+use crate::game::tower::{TowerUpgradedEvent, level_numeral};
 use crate::game::wave::WaveStartedEvent;
 use crate::prelude::*;
 use bevy::color::Hsva;
@@ -59,7 +59,7 @@ impl BannerType {
             BannerType::LevelUp { .. } => "LEVEL UP".into(),
             BannerType::Wave | BannerType::SpecialWave(EnemyKind::Normal) => format!("WAVE {wave}"),
             BannerType::SpecialWave(_) => "SPECIAL WAVE".into(),
-            BannerType::Upgraded(level) => format!("TOWER LEVEL {level}"),
+            BannerType::Upgraded(level) => format!("TOWER LEVEL {}", level_numeral(level)),
             BannerType::BaseHit => "BASE UNDER ATTACK".into(),
             BannerType::Extra(kind) => kind.label().into(),
         }
