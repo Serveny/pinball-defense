@@ -91,6 +91,7 @@ impl Plugin for MenuPlugin {
                     tools::sliders::update_thumb_position,
                     tools::sliders::update_thumb_style,
                     tools::checkbox::update_mark_visibility,
+                    tools::checkbox::sync_from_settings,
                     tools::scrollbar::update_visibility,
                     confirm_popup::restrict_navigation,
                 )

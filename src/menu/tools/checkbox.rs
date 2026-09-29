@@ -7,12 +7,16 @@ use crate::utils::reflect::set_field;
 use bevy::ecs::observer::On;
 use bevy::input_focus::tab_navigation::TabIndex;
 use bevy::picking::hover::Hovered;
+use bevy::reflect::structs::Struct;
 use bevy::ui::Checked;
 use bevy::ui::auto_directional_navigation::AutoDirectionalNavigation;
 use bevy::ui_widgets::{Checkbox, ValueChange, checkbox_self_update};
 
 #[derive(Component, Clone, Default)]
 pub struct CheckboxMark;
+
+#[derive(Component, Clone, Copy, Deref)]
+pub struct CheckboxField(pub usize);
 
 pub fn scene(prop_i: usize) -> impl Scene {
     bsn! {
@@ -63,6 +67,7 @@ pub fn scene(prop_i: usize) -> impl Scene {
 pub fn spawn(p: &mut ChildSpawnerCommands, prop_i: usize, init_val: bool) {
     let mut entity = p.spawn_empty();
     entity.apply_scene(scene(prop_i));
+    entity.insert(CheckboxField(prop_i));
     if init_val {
         entity.insert(Checked);
     }
@@ -82,6 +87,43 @@ pub fn update_mark_visibility(
         for child in children.iter_descendants(checkbox_ent) {
             if let Ok(mut visi) = marks.get_mut(child) {
                 *visi = target;
+            }
+        }
+    }
+}
+
+pub fn sync_from_settings(
+    g_sett: Res<GraphicsSettings>,
+    s_sett: Res<SoundSettings>,
+    menu_state: Res<State<SettingsMenuState>>,
+    mut cmds: Commands,
+    q_checkboxes: Query<(Entity, &CheckboxField, Has<Checked>), With<Checkbox>>,
+) {
+    let changed = g_sett.is_changed() || s_sett.is_changed();
+    let active = matches!(
+        **menu_state,
+        SettingsMenuState::Graphics | SettingsMenuState::Sound
+    );
+    if !changed || !active {
+        return;
+    }
+    for (ent, CheckboxField(prop_i), checked) in q_checkboxes.iter() {
+        let source: &dyn Struct = if **menu_state == SettingsMenuState::Sound {
+            &*s_sett
+        } else {
+            &*g_sett
+        };
+        let Some(field) = source.field_at(*prop_i).and_then(|f| f.try_as_reflect()) else {
+            continue;
+        };
+        let Some(val) = crate::utils::reflect::cast::<bool>(field) else {
+            continue;
+        };
+        if val != checked {
+            if val {
+                cmds.entity(ent).insert(Checked);
+            } else {
+                cmds.entity(ent).remove::<Checked>();
             }
         }
     }

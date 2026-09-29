@@ -6,6 +6,7 @@ use bevy::camera::Hdr;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 #[cfg(debug_assertions)]
 use bevy::input::common_conditions::input_toggle_active;
+use bevy::window::{MonitorSelection, PrimaryWindow, Window, WindowMode};
 pub use bevy_asset_loader::prelude::*;
 use bevy_framepace::Limiter;
 #[cfg(debug_assertions)]
@@ -75,7 +76,8 @@ fn main() {
         PhysicsPlugins::default(),
     ))
     .init_state::<AppState>()
-    .add_systems(Startup, set_framerate);
+    .add_systems(Startup, set_framerate)
+    .add_systems(Update, toggle_fullscreen);
 
     add_pysics_settings(&mut app);
 
@@ -103,6 +105,65 @@ fn main() {
 
 fn set_framerate(mut settings: ResMut<bevy_framepace::FramepaceSettings>) {
     settings.limiter = Limiter::from_framerate(f64::from(MAX_FRAME_RATE));
+}
+
+fn toggle_fullscreen(
+    keys: Res<ButtonInput<KeyCode>>,
+    mut g_sett: ResMut<GraphicsSettings>,
+    mut q_window: Query<&mut Window, With<PrimaryWindow>>,
+) {
+    if keys.just_pressed(KeyCode::F11)
+        && let Ok(mut window) = q_window.single_mut()
+    {
+        g_sett.is_fullscreen = !matches!(
+            window.mode,
+            WindowMode::Fullscreen(..) | WindowMode::BorderlessFullscreen(..)
+        );
+        window.mode = if g_sett.is_fullscreen {
+            WindowMode::BorderlessFullscreen(MonitorSelection::Current)
+        } else {
+            WindowMode::Windowed
+        };
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn f11_keeps_window_and_graphics_settings_in_sync() {
+        let mut app = App::new();
+        app.insert_resource(GraphicsSettings::low())
+            .add_systems(Update, toggle_fullscreen);
+        let window = app
+            .world_mut()
+            .spawn((Window::default(), PrimaryWindow))
+            .id();
+
+        for (press_f11, fullscreen) in [(true, true), (false, true), (true, false)] {
+            let mut keys = ButtonInput::<KeyCode>::default();
+            if press_f11 {
+                keys.press(KeyCode::F11);
+            }
+            app.insert_resource(keys);
+            app.update();
+
+            assert_eq!(
+                app.world().resource::<GraphicsSettings>().is_fullscreen,
+                fullscreen
+            );
+            let mode = app.world().get::<Window>(window).unwrap().mode;
+            assert_eq!(
+                mode,
+                if fullscreen {
+                    WindowMode::BorderlessFullscreen(MonitorSelection::Current)
+                } else {
+                    WindowMode::Windowed
+                }
+            );
+        }
+    }
 }
 
 fn add_pysics_settings(app: &mut App) {
