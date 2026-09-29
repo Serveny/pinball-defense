@@ -103,7 +103,7 @@ impl Wave {
     fn sync_to_loaded_state(&mut self, now: f32) {
         if self.number > 0 {
             self.started = true;
-            self.announce_pending = true;
+            self.announce_pending = self.enemies_count > 0;
             self.next_enemy_spawn_time = now + TIME_BETWEEN_WAVES;
         }
     }
@@ -275,6 +275,30 @@ mod tests {
                 "wave {wave} must grow"
             );
         }
+    }
+
+    #[test]
+    fn loaded_fully_spawned_wave_announces_next_wave_without_underflow() {
+        let mut app = App::new();
+        app.add_message::<SpawnEnemyEvent>()
+            .add_message::<WaveStartedEvent>()
+            .insert_resource(IngameTime(10.))
+            .insert_resource(Wave::default())
+            .add_systems(Update, wave_system);
+        {
+            let mut wave = app.world_mut().resource_mut::<Wave>();
+            wave.number = 5;
+            wave.enemies_count = 0;
+            wave.sync_to_loaded_state(10.);
+        }
+        let wave = app.world().resource::<Wave>();
+        assert!(wave.started);
+        assert!(!wave.announce_pending);
+        for t in [14., 15.] {
+            app.world_mut().resource_mut::<IngameTime>().0 = t;
+            app.update();
+        }
+        assert_eq!(app.world().resource::<Wave>().number, 6);
     }
 
     #[test]
