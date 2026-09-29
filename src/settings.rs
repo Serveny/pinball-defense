@@ -1,10 +1,12 @@
 use crate::prelude::*;
 
 #[derive(Resource, Reflect, Default)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct GraphicsSettings {
     pub is_shadows: bool,
     pub is_hdr: bool,
     pub is_bloom: bool,
+    pub is_fullscreen: bool,
 }
 
 pub const BLOOM_INTENSITY: f32 = 0.1;
@@ -20,6 +22,7 @@ impl GraphicsSettings {
             is_shadows: false,
             is_hdr: true,
             is_bloom: true,
+            is_fullscreen: false,
         }
     }
 
@@ -29,6 +32,7 @@ impl GraphicsSettings {
             is_shadows: true,
             is_hdr: true,
             is_bloom: true,
+            is_fullscreen: false,
         }
     }
 }
