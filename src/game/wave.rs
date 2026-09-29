@@ -131,7 +131,7 @@ fn decide_wave_kind<R: RngExt>(
     rng: &mut R,
 ) -> (EnemyKind, bool) {
     let tank_ready = number >= 10;
-    let speeder_ready = number >= 20;
+    let speeder_ready = number >= 10;
     if (tank_ready || speeder_ready)
         && special_cooldown >= SPECIAL_COOLDOWN
         && rng.random_bool(0.25)
@@ -150,7 +150,7 @@ fn spawn_kind(wave_kind: EnemyKind, number: usize) -> EnemyKind {
         return wave_kind;
     }
     let tank_unlocked = number >= 10;
-    let speeder_unlocked = number >= 20;
+    let speeder_unlocked = number >= 10;
     if !tank_unlocked && !speeder_unlocked {
         return EnemyKind::Normal;
     }
@@ -282,7 +282,7 @@ mod tests {
         let mut rng = StdRng::seed_from_u64(42);
         assert_eq!(kinds(9, 50, &mut rng), EnemyKind::Normal);
         assert_eq!(kinds(1, 50, &mut rng), EnemyKind::Normal);
-        assert_ne!(kinds(19, 50, &mut rng), EnemyKind::Speeder);
+        assert_ne!(kinds(9, 50, &mut rng), EnemyKind::Speeder);
     }
 
     #[test]
@@ -295,10 +295,10 @@ mod tests {
     }
 
     #[test]
-    fn no_speeder_special_before_twenty() {
+    fn no_speeder_special_before_ten() {
         let mut rng = StdRng::seed_from_u64(7);
         for _ in 0..200 {
-            let (kind, special) = decide_wave_kind(15, 50, &mut rng);
+            let (kind, special) = decide_wave_kind(9, 50, &mut rng);
             assert!(!(special && kind == EnemyKind::Speeder));
         }
     }
@@ -322,7 +322,7 @@ mod tests {
             }
         }
         for _ in 0..200 {
-            assert_ne!(spawn_kind(EnemyKind::Normal, 12), EnemyKind::Speeder);
+            assert_ne!(spawn_kind(EnemyKind::Normal, 9), EnemyKind::Speeder);
             assert_eq!(spawn_kind(EnemyKind::Tank, 5), EnemyKind::Tank);
             assert_eq!(spawn_kind(EnemyKind::Speeder, 5), EnemyKind::Speeder);
         }
