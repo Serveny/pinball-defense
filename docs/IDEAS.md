@@ -7,6 +7,7 @@
 - the enemies walk from top to bottom on a predefined path with concrete texture
 - around the way are predefined places for towers
 - Different tower types, which have much advantages when the right types are built near each other
+- (BIG Maybe (or another game mode): You can win the game getting to specific level, after that you can play the next level, which is down the road and every enemy you got, must go through your towers of the first level and they come damaged into the second level)
 
 #### Tower Types
 
@@ -79,6 +80,10 @@ The table is the Steampunk city with homes in the canalisation and tunnels paint
 #### Enemies
 
 Note on modeling: To keep the 3D models simple and easy to create, the enslaved victims are mostly encased in crude, blocky mechanical suits or cages. We don't need to model organic human bodies, just the rusty, industrial metal shells that trap them.
+
+##### More enemy type ideas
+
+- Enemy which get faster or slower depending on his life bar
 
 ##### Normal: The "Iron Cage"
 - **Lore**: A poor civilian trapped inside a heavy, boxy iron container on crude mechanical legs or tracks. The brain chip controls the cage's movement.

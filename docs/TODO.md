@@ -10,7 +10,6 @@
 - (test that, not shure if good) ball collides with enemies until enemy has no life left
 - Performance Profiling feature
 - Rolling ball visual effect
-- towers get darker texture color, the higher they are upgraded
 - Fix ui progress bars pixel position (Green bar too small, white pixels at top)
 - Show particle effects on hit (enemy, tower, foundation, extra)
 - Game over menu: Pause game -> Activate free cam, update UI
