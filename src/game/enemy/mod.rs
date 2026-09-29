@@ -17,6 +17,7 @@ use moonshine_save::prelude::Save;
 use std::time::Duration;
 
 mod animation;
+mod explosion;
 mod smoke;
 mod step;
 mod walk;
@@ -34,9 +35,14 @@ impl Plugin for EnemyPlugin {
             .register_type::<Enemy>()
             .register_type::<step::Step>()
             .init_resource::<smoke::EnemySmokeAssets>()
+            .init_resource::<explosion::ExplosionAssets>()
             .add_systems(
                 Update,
-                smoke::spawn_smoke_system.run_if(in_state(GameState::Ingame)),
+                (
+                    smoke::spawn_smoke_system,
+                    explosion::despawn_explosion_system,
+                )
+                    .run_if(in_state(GameState::Ingame)),
             )
             .add_systems(
                 Update,
@@ -338,11 +344,13 @@ fn on_health_empty_system(
     mut evr: MessageReader<HealthEmptyEvent>,
     mut despawn_ev: MessageWriter<OnEnemyDespawnEvent>,
     mut points_ev: MessageWriter<PointsEvent>,
-    q_enemy: Query<(&Transform, Entity), With<Enemy>>,
+    explosion_assets: Res<explosion::ExplosionAssets>,
+    q_enemy: Query<(&Transform, &Enemy)>,
 ) {
     for ev in evr.read() {
-        if let Ok((tf, _)) = q_enemy.get(ev.0) {
+        if let Ok((tf, enemy)) = q_enemy.get(ev.0) {
             let pos = tf.translation;
+            explosion::spawn_explosion(&mut cmds, &explosion_assets, pos, enemy.kind());
             cmds.entity(ev.0).try_despawn();
             despawn_ev.write(OnEnemyDespawnEvent(ev.0));
             points_ev.write(PointsEvent::new(PointsKind::EnemyDied, pos));
