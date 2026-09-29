@@ -48,9 +48,8 @@ pub fn spawn(cmds: &mut Commands, rel_id: Entity, start_percent: PercentBw0And1)
         Node {
             width: Val::Percent(3.),
             height: Val::Percent(1.5),
-            border: UiRect::all(Val::Percent(0.1)),
-            padding: UiRect::all(Val::Px(0.)),
             position_type: PositionType::Absolute,
+            border: UiRect::all(Val::Px(1.)),
             // Pos bar on middle top of rel entity
             margin: UiRect::new(Val::Percent(-1.5), Val::DEFAULT, Val::Percent(-1.5), Val::DEFAULT),
         }
@@ -78,9 +77,8 @@ pub fn spawn_transient(cmds: &mut Commands, rel_id: Entity, init_val: PercentBw0
         Node {
             width: Val::Percent(3.),
             height: Val::Percent(1.5),
-            border: UiRect::all(Val::Percent(0.1)),
-            padding: UiRect::all(Val::Px(0.)),
             position_type: PositionType::Absolute,
+            border: UiRect::all(Val::Px(1.)),
             // Pos bar on middle top of rel entity
             margin: UiRect::new(Val::Percent(-1.5), Val::DEFAULT, Val::Percent(-1.5), Val::DEFAULT),
         }
