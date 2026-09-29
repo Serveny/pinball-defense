@@ -13,6 +13,7 @@ use bevy::reflect::structs::Struct;
 use bevy::text::{FontSize, FontSourceTemplate};
 use bevy::ui::auto_directional_navigation::AutoDirectionalNavigation;
 use bevy::ui_widgets::ScrollArea;
+use bevy::window::{MonitorSelection, WindowMode};
 use std::any::TypeId;
 
 #[derive(States, Clone, Eq, PartialEq, Debug, Hash, Default)]
@@ -205,8 +206,19 @@ pub fn on_changed_graphics_settings(
     mut q_spot: Query<&mut SpotLight>,
     mut q_point: Query<&mut PointLight>,
     mut q_bloom: Query<&mut Bloom>,
+    mut q_window: Query<&mut Window, With<bevy::window::PrimaryWindow>>,
 ) {
     if g_sett.is_changed() {
+        if let Ok(mut window) = q_window.single_mut() {
+            let mode = if g_sett.is_fullscreen {
+                WindowMode::BorderlessFullscreen(MonitorSelection::Current)
+            } else {
+                WindowMode::Windowed
+            };
+            if window.mode != mode {
+                window.mode = mode;
+            }
+        }
         q_point
             .iter_mut()
             .for_each(|mut light| light.shadow_maps_enabled = g_sett.is_shadows);
