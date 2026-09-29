@@ -20,6 +20,14 @@ fn neon_material(color: Color) -> StandardMaterial {
     }
 }
 
+pub(crate) fn level_glow_material(color: Color) -> StandardMaterial {
+    StandardMaterial {
+        base_color: color,
+        emissive: color.to_linear(),
+        ..default()
+    }
+}
+
 pub type QueryProgressBar<'w, 's, 'a> = Query<
     'w,
     's,

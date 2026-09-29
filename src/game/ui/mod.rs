@@ -55,12 +55,6 @@ impl Plugin for UiPlugin {
                     (floating_text::spawn_system, floating_text::update_system)
                         .chain()
                         .run_if(in_state(GameState::Ingame)),
-                    (
-                        floating_text::spawn_level_hint_system,
-                        floating_text::update_level_hint_system,
-                    )
-                        .chain()
-                        .run_if(in_state(GameState::Ingame)),
                     event_banner::banner_update_system.run_if(in_state(GameState::Ingame)),
                     toggle_ingame_ui_visibility,
                     controls::switch_input_kind_system.run_if(in_state(UiState::Controls)),
@@ -90,7 +84,6 @@ fn clean_up(
     q_bars: Query<Entity, With<PosToRelEntity>>,
     q_floating: Query<Entity, With<floating_text::FloatingPoints>>,
     q_banners: Query<Entity, With<event_banner::EventBanner>>,
-    q_hints: Query<Entity, With<floating_text::TowerLevelHint>>,
 ) {
     ui_state.set(UiState::None);
     for bar_id in q_bars.iter() {
@@ -101,9 +94,6 @@ fn clean_up(
     }
     for banner_id in q_banners.iter() {
         cmds.entity(banner_id).despawn();
-    }
-    for hint_id in q_hints.iter() {
-        cmds.entity(hint_id).despawn();
     }
 }
 

@@ -409,7 +409,10 @@ fn on_progress_system(
 ) {
     evr.read().for_each(|CollisionWithBallEvent(_, id)| {
         // *flag != CollisionEventFlags::SENSOR &&
-        if q_tower.get(*id).is_ok_and(|level| level.0 < 5) {
+        if q_tower
+            .get(*id)
+            .is_ok_and(|level| level.0 < MAX_TOWER_LEVEL)
+        {
             prog_bar_ev.write(ProgressBarCountUpEvent::new(
                 *id,
                 effects.progress_amount(**ig_time, CONFIG.tower_hit_progress),
@@ -445,18 +448,32 @@ struct TowerLevel(u8);
 #[derive(Message)]
 pub struct TowerUpgradedEvent(pub Entity, pub u8);
 
+pub const MAX_TOWER_LEVEL: u8 = 10;
+
+pub(crate) fn level_numeral(level: u8) -> &'static str {
+    ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"]
+        .get(usize::from(level.saturating_sub(1)))
+        .copied()
+        .unwrap_or("X")
+}
+
 pub fn level_color(level: u8) -> Color {
-    match level {
-        1 => Color::srgb_u8(80, 180, 255),
-        2 => Color::srgb_u8(65, 230, 130),
-        3 => Color::srgb_u8(255, 215, 65),
-        4 => Color::srgb_u8(230, 100, 255),
-        _ => Color::srgb_u8(255, 100, 80),
+    match level.clamp(1, MAX_TOWER_LEVEL) {
+        1 => Color::srgb_u8(0, 235, 255),
+        2 => Color::srgb_u8(235, 205, 25),
+        3 => Color::srgb_u8(255, 75, 220),
+        4 => Color::srgb_u8(45, 160, 60),
+        5 => Color::srgb_u8(30, 125, 245),
+        6 => Color::srgb_u8(195, 80, 5),
+        7 => Color::srgb_u8(155, 50, 225),
+        8 => Color::srgb_u8(195, 25, 40),
+        9 => Color::srgb_u8(0, 105, 100),
+        _ => Color::srgb_u8(45, 40, 160),
     }
 }
 
 fn upgraded_radius(radius: f32, current_level: u8) -> f32 {
-    radius * (1. + f32::from(current_level) * 0.25) / (1. + f32::from(current_level - 1) * 0.25)
+    radius * (1. + f32::from(current_level) / 9.) / (1. + f32::from(current_level - 1) / 9.)
 }
 
 fn on_upgrade_system(
@@ -493,7 +510,7 @@ fn on_upgrade_system(
         else {
             continue;
         };
-        if level.0 >= 5 {
+        if level.0 >= MAX_TOWER_LEVEL {
             continue;
         }
         sight.0 = upgraded_radius(sight.0, level.0);
@@ -502,10 +519,10 @@ fn on_upgrade_system(
             damage.0 *= CONFIG.damage_upgrade_factor;
         }
         if let Some(mut slowdown) = slowdown {
-            slowdown.0 = 0.5 - f32::from(level.0 - 1) * 0.05;
+            slowdown.0 = 0.5 - f32::from(level.0 - 1) * 0.022_222_223;
         }
         if let Some(mut cone) = cone {
-            cone.0 = (45. + f32::from(level.0 - 1) * 11.25).to_radians();
+            cone.0 = (45. + f32::from(level.0 - 1) * 5.).to_radians();
         }
         update_collider_size(&mut q_coll, sight.0, *tower_id);
         update_sight_radius_light_size(&mut q_sr_light, sight.0, *tower_id);
@@ -513,11 +530,7 @@ fn on_upgrade_system(
         let color = level_color(level.0);
         for (rel, mut material) in &mut q_glow {
             if rel.0 == *tower_id {
-                material.0 = mats.add(StandardMaterial {
-                    base_color: color,
-                    emissive: color.to_linear() * 4.,
-                    ..default()
-                });
+                material.0 = mats.add(progress::level_glow_material(color));
             }
         }
         disable_flash_light(&mut cmds, &mut q_light, *tower_id);
@@ -598,10 +611,34 @@ mod upgrade_tests {
     use super::*;
 
     #[test]
-    fn four_upgrades_double_each_tower_range() {
+    fn nine_upgrades_double_each_tower_range() {
         for base in [0.15, 0.3] {
-            let final_radius = (1..5).fold(base, upgraded_radius);
+            let final_radius = (1..MAX_TOWER_LEVEL).fold(base, upgraded_radius);
             assert!((final_radius - 2. * base).abs() < 0.0001);
+        }
+    }
+
+    #[test]
+    fn level_colors_get_darker_and_have_distinct_neighboring_hues() {
+        let colors: Vec<_> = (1..=MAX_TOWER_LEVEL).map(level_color).collect();
+        for w in colors.windows(2) {
+            let luminance = |color: Color| {
+                let linear = color.to_linear();
+                0.2126 * linear.red + 0.7152 * linear.green + 0.0722 * linear.blue
+            };
+            assert!(
+                luminance(w[0]) > luminance(w[1]),
+                "level color did not get darker: {:?} -> {:?}",
+                w[0],
+                w[1]
+            );
+            let prev: bevy::color::Hsva = w[0].into();
+            let next: bevy::color::Hsva = w[1].into();
+            let hue_gap = (prev.hue - next.hue).abs();
+            assert!(
+                hue_gap.min(360. - hue_gap) >= 60.,
+                "neighboring level hues are too similar: {prev:?} -> {next:?}"
+            );
         }
     }
 }

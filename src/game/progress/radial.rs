@@ -1,4 +1,4 @@
-use super::{Progress, neon_material};
+use super::{Progress, level_glow_material, neon_material};
 use crate::prelude::*;
 use crate::utils::RelEntity;
 use std::f32::consts::{FRAC_PI_2, PI};
@@ -48,7 +48,7 @@ pub fn spawn_radial(
                 spawner.spawn((
                     Name::new("Radial Progress Glow"),
                     Mesh3d(assets.radial_progress_casing.clone()),
-                    MeshMaterial3d(mats.add(neon_material(color))),
+                    MeshMaterial3d(mats.add(level_glow_material(color))),
                     Transform::from_xyz(0., 0., -0.001).with_scale(Vec3::new(1.045, 1.045, 1.)),
                     RadialProgressGlow,
                     RelEntity(rel_id),
@@ -193,7 +193,7 @@ mod tests {
                 .get(&material.0)
                 .unwrap()
                 .emissive,
-            Color::srgb_u8(80, 180, 255).to_linear() * 4.
+            Color::srgb_u8(80, 180, 255).to_linear()
         );
     }
 }
