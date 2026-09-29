@@ -48,7 +48,7 @@ pub(super) enum BannerType {
     LevelUp { level: Level },
     Wave,
     SpecialWave(EnemyKind),
-    Upgraded,
+    Upgraded(u8),
     BaseHit,
     Extra(crate::game::extra::ExtraFieldKind),
 }
@@ -59,7 +59,7 @@ impl BannerType {
             BannerType::LevelUp { .. } => "LEVEL UP".into(),
             BannerType::Wave | BannerType::SpecialWave(EnemyKind::Normal) => format!("WAVE {wave}"),
             BannerType::SpecialWave(_) => "SPECIAL WAVE".into(),
-            BannerType::Upgraded => "TOWER UPGRADED".into(),
+            BannerType::Upgraded(level) => format!("TOWER LEVEL {level}"),
             BannerType::BaseHit => "BASE UNDER ATTACK".into(),
             BannerType::Extra(kind) => kind.label().into(),
         }
@@ -70,7 +70,6 @@ impl BannerType {
             BannerType::LevelUp { level } => Some(level_up_unlocks(level)),
             BannerType::SpecialWave(EnemyKind::Tank) => Some("ARMORED TANKS INCOMING".into()),
             BannerType::SpecialWave(EnemyKind::Speeder) => Some("SPEEDERS INCOMING".into()),
-            BannerType::Upgraded => Some("RANGE AND POWER".into()),
             BannerType::Extra(kind) => {
                 Some(format!("EXTRA TRIGGERED\n{}", extra_effect_text(kind)))
             }
@@ -84,7 +83,7 @@ impl BannerType {
             BannerType::Wave | BannerType::SpecialWave(EnemyKind::Normal) => 35.,
             BannerType::SpecialWave(EnemyKind::Tank) => 15.,
             BannerType::SpecialWave(EnemyKind::Speeder) => 285.,
-            BannerType::Upgraded | BannerType::BaseHit => 0.,
+            BannerType::Upgraded(_) | BannerType::BaseHit => 0.,
             BannerType::Extra(kind) => extra_hue(kind),
         }
     }
@@ -290,9 +289,15 @@ pub(super) fn on_tower_upgraded_system(
     assets: Res<PinballDefenseAssets>,
     q_banner: Query<(), With<EventBanner>>,
 ) {
-    for _ in evr.read() {
+    for TowerUpgradedEvent(_, level) in evr.read() {
         let slot = u32::try_from(q_banner.iter().count()).unwrap_or(0);
-        spawn_banner(&mut cmds, BannerType::Upgraded, 0, slot, &assets);
+        spawn_banner(
+            &mut cmds,
+            BannerType::Upgraded(*level),
+            0,
+            slot,
+            &assets,
+        );
     }
 }
 
