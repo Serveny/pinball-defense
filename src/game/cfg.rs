@@ -1,6 +1,6 @@
 pub const CONFIG: PinballDefenseConfig = PinballDefenseConfig {
     tower_hit_progress: 1. / 15.,
-    damage_upgrade_factor: 1.2,
+    damage_upgrade_factor: 1.0844,
     tower_kick_velocity: 2.,
     ball_damage_fraction: 0.3,
     ball_damage_fraction_per_level: 0.05,

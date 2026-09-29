@@ -23,6 +23,7 @@ use crate::game::world::QueryWorld;
 use crate::prelude::*;
 use crate::settings::GraphicsSettings;
 use crate::utils::RelEntity;
+use bevy::color::Hsla;
 use bevy::color::palettes::css::{ORANGE, RED};
 use bevy_tweening::lens::TransformPositionLens;
 use bevy_tweening::{Delay, Sequence, Tween, TweenAnim};
@@ -409,7 +410,7 @@ fn on_progress_system(
 ) {
     evr.read().for_each(|CollisionWithBallEvent(_, id)| {
         // *flag != CollisionEventFlags::SENSOR &&
-        if q_tower.get(*id).is_ok_and(|level| level.0 < 5) {
+        if q_tower.get(*id).is_ok_and(|level| level.0 < MAX_TOWER_LEVEL) {
             prog_bar_ev.write(ProgressBarCountUpEvent::new(
                 *id,
                 effects.progress_amount(**ig_time, CONFIG.tower_hit_progress),
@@ -445,18 +446,22 @@ struct TowerLevel(u8);
 #[derive(Message)]
 pub struct TowerUpgradedEvent(pub Entity, pub u8);
 
+pub const MAX_TOWER_LEVEL: u8 = 10;
+
 pub fn level_color(level: u8) -> Color {
-    match level {
-        1 => Color::srgb_u8(80, 180, 255),
-        2 => Color::srgb_u8(65, 230, 130),
-        3 => Color::srgb_u8(255, 215, 65),
-        4 => Color::srgb_u8(230, 100, 255),
-        _ => Color::srgb_u8(255, 100, 80),
+    let clamped = level.clamp(1, MAX_TOWER_LEVEL);
+    let t = f32::from(clamped - 1) / f32::from(MAX_TOWER_LEVEL - 1);
+    Hsla {
+        hue: 250. - t * 260.,
+        saturation: 1.,
+        lightness: 0.72 - t * 0.42,
+        alpha: 1.,
     }
+    .into()
 }
 
 fn upgraded_radius(radius: f32, current_level: u8) -> f32 {
-    radius * (1. + f32::from(current_level) * 0.25) / (1. + f32::from(current_level - 1) * 0.25)
+    radius * (1. + f32::from(current_level) / 9.) / (1. + f32::from(current_level - 1) / 9.)
 }
 
 fn on_upgrade_system(
@@ -493,7 +498,7 @@ fn on_upgrade_system(
         else {
             continue;
         };
-        if level.0 >= 5 {
+        if level.0 >= MAX_TOWER_LEVEL {
             continue;
         }
         sight.0 = upgraded_radius(sight.0, level.0);
@@ -502,10 +507,10 @@ fn on_upgrade_system(
             damage.0 *= CONFIG.damage_upgrade_factor;
         }
         if let Some(mut slowdown) = slowdown {
-            slowdown.0 = 0.5 - f32::from(level.0 - 1) * 0.05;
+            slowdown.0 = 0.5 - f32::from(level.0 - 1) * 0.022_222_223;
         }
         if let Some(mut cone) = cone {
-            cone.0 = (45. + f32::from(level.0 - 1) * 11.25).to_radians();
+            cone.0 = (45. + f32::from(level.0 - 1) * 5.).to_radians();
         }
         update_collider_size(&mut q_coll, sight.0, *tower_id);
         update_sight_radius_light_size(&mut q_sr_light, sight.0, *tower_id);
@@ -598,10 +603,23 @@ mod upgrade_tests {
     use super::*;
 
     #[test]
-    fn four_upgrades_double_each_tower_range() {
+    fn nine_upgrades_double_each_tower_range() {
         for base in [0.15, 0.3] {
-            let final_radius = (1..5).fold(base, upgraded_radius);
+            let final_radius = (1..MAX_TOWER_LEVEL).fold(base, upgraded_radius);
             assert!((final_radius - 2. * base).abs() < 0.0001);
+        }
+    }
+
+    #[test]
+    fn level_colors_get_darker_each_level() {
+        let colors: Vec<_> = (1..=MAX_TOWER_LEVEL).map(level_color).collect();
+        for w in colors.windows(2) {
+            let prev: Hsla = w[0].into();
+            let next: Hsla = w[1].into();
+            assert!(
+                prev.lightness - next.lightness > 0.001,
+                "level color did not get darker: {prev:?} -> {next:?}"
+            );
         }
     }
 }
