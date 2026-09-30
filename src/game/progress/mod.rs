@@ -10,6 +10,7 @@ use crate::utils::RelEntity;
 
 pub const ENEMY_HEALTH_COLOR: Color = Color::srgb_u8(235, 55, 55);
 pub const UPGRADE_PROGRESS_COLOR: Color = Color::srgb_u8(255, 150, 35);
+pub const EXTRA_FIELD_PROGRESS_COLOR: Color = Color::srgb_u8(50, 200, 230);
 pub const PLAYER_HEALTH_COLOR: Color = Color::srgb_u8(90, 220, 80);
 
 fn neon_material(color: Color) -> StandardMaterial {
@@ -167,6 +168,7 @@ mod tests {
         for color in [
             ENEMY_HEALTH_COLOR,
             UPGRADE_PROGRESS_COLOR,
+            EXTRA_FIELD_PROGRESS_COLOR,
             PLAYER_HEALTH_COLOR,
         ] {
             let material = neon_material(color);

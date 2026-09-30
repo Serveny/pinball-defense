@@ -3,8 +3,8 @@ use crate::game::enemy::Enemy;
 use crate::game::extra::ExtraField;
 use crate::game::health::Health;
 use crate::game::progress::{
-    ENEMY_HEALTH_COLOR, Progress, ProgressBarCountUpEvent, ProgressBarResetEvent,
-    UPGRADE_PROGRESS_COLOR,
+    ENEMY_HEALTH_COLOR, EXTRA_FIELD_PROGRESS_COLOR, Progress, ProgressBarCountUpEvent,
+    ProgressBarResetEvent, UPGRADE_PROGRESS_COLOR,
 };
 use crate::game::tower::Tower;
 use crate::game::tower::foundation::TowerFoundation;
@@ -68,7 +68,12 @@ pub fn spawn(cmds: &mut Commands, rel_id: Entity, start_percent: PercentBw0And1)
 /// Hidden UI progress bar for a tower/base. It appears for
 /// `TRANSIENT_VISIBLE_SECS` whenever the related entity receives progress
 /// (e.g. the ball hits a tower/foundation).
-pub fn spawn_transient(cmds: &mut Commands, rel_id: Entity, init_val: PercentBw0And1) {
+pub fn spawn_transient(
+    cmds: &mut Commands,
+    rel_id: Entity,
+    init_val: PercentBw0And1,
+    color: Color,
+) {
     cmds.spawn_scene(bsn! {
         Name::new("Progress UI Bar")
         RelEntity({rel_id})
@@ -89,7 +94,7 @@ pub fn spawn_transient(cmds: &mut Commands, rel_id: Entity, init_val: PercentBw0
              Progress({init_val})
              RelEntity({rel_id})
              Node { width: Val::Percent({init_val * 100.}), height: Val::Percent(100.) }
-             BackgroundColor({UPGRADE_PROGRESS_COLOR}))
+             BackgroundColor({color}))
         ]
     })
     .insert(Visibility::Hidden);
@@ -267,9 +272,9 @@ pub(super) fn ensure_bars_on_load(
             continue;
         }
         if extra.is_some() {
-            spawn_transient(&mut cmds, entity, 0.);
+            spawn_transient(&mut cmds, entity, 0., EXTRA_FIELD_PROGRESS_COLOR);
         } else if let Some(progress) = progress {
-            spawn_transient(&mut cmds, entity, progress.0);
+            spawn_transient(&mut cmds, entity, progress.0, UPGRADE_PROGRESS_COLOR);
         } else if let Some(health) = health {
             spawn(&mut cmds, entity, health.fraction());
         }
@@ -298,7 +303,7 @@ mod tests {
         let mut app = test_app();
         let entity = app.world_mut().spawn_empty().id();
         let mut cmds = app.world_mut().commands();
-        spawn_transient(&mut cmds, entity, 0.);
+        spawn_transient(&mut cmds, entity, 0., UPGRADE_PROGRESS_COLOR);
         app.update();
 
         let mut q_bar = app
@@ -347,7 +352,7 @@ mod tests {
 
         let entity = app.world_mut().spawn_empty().id();
         let mut cmds = app.world_mut().commands();
-        spawn_transient(&mut cmds, entity, 0.);
+        spawn_transient(&mut cmds, entity, 0., UPGRADE_PROGRESS_COLOR);
         app.update();
 
         app.world_mut()
@@ -370,7 +375,7 @@ mod tests {
 
         let entity = app.world_mut().spawn_empty().id();
         let mut cmds = app.world_mut().commands();
-        spawn_transient(&mut cmds, entity, 0.);
+        spawn_transient(&mut cmds, entity, 0., UPGRADE_PROGRESS_COLOR);
         app.update();
 
         let (bar_id, mut vis, _) = app
@@ -398,7 +403,7 @@ mod tests {
 
         let entity = app.world_mut().spawn_empty().id();
         let mut cmds = app.world_mut().commands();
-        spawn_transient(&mut cmds, entity, 0.5);
+        spawn_transient(&mut cmds, entity, 0.5, UPGRADE_PROGRESS_COLOR);
         app.update();
 
         for mut vis in app

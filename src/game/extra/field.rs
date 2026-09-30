@@ -77,12 +77,12 @@ fn activate_field(
                 Some(kind.icon(tex)),
                 mats,
                 field_id,
-                progress::UPGRADE_PROGRESS_COLOR,
+                progress::EXTRA_FIELD_PROGRESS_COLOR,
                 0.,
                 None,
             );
         });
-    ui::progress_bar::spawn_transient(cmds, field_id, 0.);
+    ui::progress_bar::spawn_transient(cmds, field_id, 0., progress::EXTRA_FIELD_PROGRESS_COLOR);
 }
 
 pub(super) fn button_press_system(

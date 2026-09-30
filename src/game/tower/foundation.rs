@@ -91,7 +91,12 @@ pub(super) fn on_spawn_system(
                     let hit_progress = level.foundation_hit_progress();
                     foundation_id = spawn(p, &mut mats, &assets, &g_sett, pos, hit_progress);
                 });
-                ui::progress_bar::spawn_transient(&mut cmds, foundation_id, 0.);
+                ui::progress_bar::spawn_transient(
+                    &mut cmds,
+                    foundation_id,
+                    0.,
+                    progress::UPGRADE_PROGRESS_COLOR,
+                );
             }
         }
     }
