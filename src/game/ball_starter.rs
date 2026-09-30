@@ -13,7 +13,7 @@ impl Plugin for BallStarterPlugin {
             .add_message::<SpawnBallEvent>()
             .add_message::<BallStarterChargeStartedEvent>()
             .add_message::<BallStarterFireEndEvent>()
-            .init_resource::<AutoLaunchDelay>()
+            .init_resource::<AutoLaunchHold>()
             .add_systems(Startup, setup)
             .add_systems(OnEnter(BallStarterState::Idle), on_enter_idle)
             .add_systems(
@@ -145,7 +145,7 @@ const PLATE_SIZE: Vec2 = Vec2::new(0.2, 0.085);
 const STARTER_MIN_X: f32 = -0.107;
 const STARTER_MAX_X: f32 = 0.;
 const CHARGE_SPEED: f32 = 0.24;
-const AUTO_LAUNCH_DELAY_SECS: f32 = 2.;
+const AUTO_LAUNCH_HOLD_SECS: f32 = 2.;
 const FIRE_SPEED_MIN: f32 = -0.9;
 const FIRE_SPEED_MAX: f32 = -2.1;
 const SPRING_SCALE_X_MIN: f32 = 0.35;
@@ -176,20 +176,20 @@ fn spawn_ball_at_charge(
 pub struct AutoLaunch;
 
 #[derive(Resource)]
-struct AutoLaunchDelay(Timer);
+struct AutoLaunchHold(Timer);
 
-impl FromWorld for AutoLaunchDelay {
+impl FromWorld for AutoLaunchHold {
     fn from_world(_: &mut World) -> Self {
-        Self(Timer::from_seconds(AUTO_LAUNCH_DELAY_SECS, TimerMode::Once))
+        Self(Timer::from_seconds(AUTO_LAUNCH_HOLD_SECS, TimerMode::Once))
     }
 }
 
 fn on_enter_auto_launch(
     mut cmds: Commands,
-    mut delay: ResMut<AutoLaunchDelay>,
+    mut hold: ResMut<AutoLaunchHold>,
     q_starter: Query<Entity, With<BallStarter>>,
 ) {
-    delay.0.reset();
+    hold.0.reset();
     for starter_id in q_starter.iter() {
         cmds.entity(starter_id).insert(AutoLaunch);
     }
@@ -201,7 +201,7 @@ fn auto_launch_system(
     mut q_plate: Query<(&mut Transform, &mut LinearVelocity), With<StarterPlate>>,
     mut q_spring: Query<&mut Transform, (With<StarterSpring>, Without<StarterPlate>)>,
     mut state: ResMut<NextState<BallStarterState>>,
-    mut delay: ResMut<AutoLaunchDelay>,
+    mut hold: ResMut<AutoLaunchHold>,
     time: Res<Time>,
 ) {
     let Ok((mut plate, mut velocity)) = q_plate.single_mut() else {
@@ -211,11 +211,6 @@ fn auto_launch_system(
         return;
     };
     plate.translation.x = plate.translation.x.clamp(STARTER_MIN_X, STARTER_MAX_X);
-    delay.0.tick(time.delta());
-    if !delay.0.is_finished() {
-        velocity.x = 0.;
-        return;
-    }
     if !*charged {
         *charged = true;
         sound_ev.write(SoundEvent::BallStarterCharge);
@@ -228,6 +223,9 @@ fn auto_launch_system(
     plate.translation.x = STARTER_MAX_X;
     velocity.x = 0.;
     update_spring_scale(plate.translation.x, &mut spring.scale);
+    if !hold.0.tick(time.delta()).is_finished() {
+        return;
+    }
     *charged = false;
     state.set(BallStarterState::Fire);
 }
@@ -351,4 +349,81 @@ fn on_fire_started(
         velocity.x = fire_speed_by_pull(pull_factor);
     }
     sound_ev.write(SoundEvent::BallStarterFire);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use bevy::ecs::system::RunSystemOnce;
+    use std::time::Duration;
+
+    #[test]
+    #[allow(clippy::float_cmp, clippy::unwrap_used)]
+    fn auto_launch_holds_for_two_seconds_after_full_charge_on_each_launch() {
+        let mut app = App::new();
+        app.init_resource::<Time>()
+            .init_resource::<AutoLaunchHold>()
+            .init_resource::<NextState<BallStarterState>>()
+            .add_message::<SoundEvent>()
+            .add_systems(Update, auto_launch_system);
+        let plate = app
+            .world_mut()
+            .spawn((
+                StarterPlate,
+                Transform::default(),
+                LinearVelocity::default(),
+            ))
+            .id();
+        app.world_mut().spawn((StarterSpring, Transform::default()));
+        app.world_mut().spawn(BallStarter);
+
+        for _ in 0..2 {
+            *app.world_mut()
+                .resource_mut::<NextState<BallStarterState>>() = NextState::Unchanged;
+            app.world_mut()
+                .get_mut::<Transform>(plate)
+                .unwrap()
+                .translation
+                .x = STARTER_MIN_X;
+            app.world_mut()
+                .run_system_once(on_enter_auto_launch)
+                .unwrap();
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(Duration::from_secs(3));
+            app.update();
+            assert_eq!(
+                app.world().get::<LinearVelocity>(plate).unwrap().x,
+                CHARGE_SPEED
+            );
+            assert_eq!(
+                app.world().resource::<AutoLaunchHold>().0.elapsed(),
+                Duration::ZERO
+            );
+
+            app.world_mut()
+                .get_mut::<Transform>(plate)
+                .unwrap()
+                .translation
+                .x = STARTER_MAX_X;
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(Duration::from_millis(1999));
+            app.update();
+            assert_eq!(app.world().get::<LinearVelocity>(plate).unwrap().x, 0.);
+            assert!(matches!(
+                app.world().resource::<NextState<BallStarterState>>(),
+                NextState::Unchanged
+            ));
+
+            app.world_mut()
+                .resource_mut::<Time>()
+                .advance_by(Duration::from_millis(1));
+            app.update();
+            assert!(matches!(
+                app.world().resource::<NextState<BallStarterState>>(),
+                NextState::Pending(BallStarterState::Fire)
+            ));
+        }
+    }
 }
