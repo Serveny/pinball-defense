@@ -47,6 +47,7 @@ impl Plugin for TowerPlugin {
             .add_message::<TowerUpgradedEvent>()
             .init_resource::<fx::MuzzleEffectAssets>()
             .init_resource::<fx::tesla::TeslaEffectAssets>()
+            .init_resource::<fx::microwave::MicrowaveEffectAssets>()
             .register_type::<Tower>()
             .register_type::<TowerLevel>()
             .register_type::<TowerReady>()
@@ -67,6 +68,16 @@ impl Plugin for TowerPlugin {
                     foundation::cleanup_build_marks_system,
                 )
                     .chain()
+                    .run_if(in_state(GameState::Ingame)),
+            )
+            .add_systems(
+                Update,
+                (
+                    fx::microwave::attach_effects_system,
+                    fx::microwave::update_effects_system,
+                )
+                    .chain()
+                    .after(target::cone_selection_system)
                     .run_if(in_state(GameState::Ingame)),
             )
             .add_systems(

@@ -1,5 +1,5 @@
 use super::animations::RotateToTarget;
-use super::target::{AimFirstEnemy, ConeAim, ConeFov, TargetPos};
+use super::target::{AimFirstEnemy, ConeAim, ConeFov, TargetPos, Targets};
 use crate::game::tower::speed::SlowDownFactor;
 use crate::game::tower::{ShotLight, TowerHead, TowerReady};
 use crate::prelude::*;
@@ -11,8 +11,8 @@ use bevy::color::palettes::css::ORANGE_RED;
 #[reflect(Component)]
 pub struct MicrowaveTower;
 
-const MW_DISH_PIVOT: Vec3 = Vec3::new(0., 0.07573, 0.08419);
-const MW_EMITTER_LOCAL: Vec3 = Vec3::new(0., 0.10362, 0.09272);
+pub(in super::super) const MW_DISH_PIVOT: Vec3 = Vec3::new(0., 0.07573, 0.08419);
+pub(in super::super) const MW_EMITTER_LOCAL: Vec3 = Vec3::new(0., 0.10362, 0.09272);
 const MW_DISH_AXIS: Vec3 = Vec3::new(0., 0.9563, 0.2924);
 const MW_DISH_MIN_ELEVATION: f32 = -50_f32.to_radians();
 const MW_DISH_MAX_ELEVATION: f32 = 40_f32.to_radians();
@@ -70,7 +70,6 @@ pub(crate) fn build_view(
             .with_children(|pivot| {
                 pivot.spawn(dish(assets, rel_id));
                 pivot.spawn(dish_rim(assets, rel_id));
-                pivot.spawn(emitter_core(assets, rel_id));
                 pivot.spawn(slow_down_flash_light(g_sett, rel_id, sight_radius));
             });
     });
@@ -172,20 +171,6 @@ fn dish_rim(assets: &PinballDefenseGltfAssets, rel_id: Entity) -> impl Bundle {
 pub(in super::super) struct MicrowaveDishPivot;
 
 #[derive(Component)]
-pub struct MicrowaveEmitterCore;
-
-fn emitter_core(assets: &PinballDefenseGltfAssets, rel_id: Entity) -> impl Bundle {
-    (
-        Name::new("Emitter Core"),
-        Mesh3d(assets.mw_emitter_core.clone()),
-        MeshMaterial3d(assets.microwave_emitter_glow_material.clone()),
-        Transform::from_translation(MW_EMITTER_LOCAL - MW_DISH_PIVOT),
-        MicrowaveEmitterCore,
-        RelEntity(rel_id),
-    )
-}
-
-#[derive(Component)]
 pub struct SlowDownFlashLight;
 
 fn slow_down_flash_light(g_sett: &GraphicsSettings, rel_id: Entity, range: f32) -> impl Bundle {
@@ -231,18 +216,14 @@ fn dish_pitch(direction: Vec3) -> f32 {
 
 pub(in super::super) fn shot_animation_system(
     time: Res<Time>,
-    q_gun_tower: Query<
-        (Entity, &AimFirstEnemy, &ConeFov),
-        (With<MicrowaveTower>, With<TowerReady>),
-    >,
+    q_gun_tower: Query<(Entity, &Targets, &ConeFov), (With<MicrowaveTower>, With<TowerReady>)>,
     mut q_slow_flash: Query<
         (&mut Visibility, &mut SpotLight, &RelEntity),
         With<SlowDownFlashLight>,
     >,
-    mut q_core: Query<(&mut Transform, &RelEntity), With<MicrowaveEmitterCore>>,
 ) {
-    for (tower_id, enemy_id, fov) in q_gun_tower.iter() {
-        let firing = enemy_id.0.is_some();
+    for (tower_id, targets, fov) in q_gun_tower.iter() {
+        let firing = !targets.0.is_empty();
         if let Some(mut flash) = get_flash(&mut q_slow_flash, tower_id) {
             if firing {
                 let sin = (time.elapsed_secs() * 16.).sin();
@@ -252,14 +233,6 @@ pub(in super::super) fn shot_animation_system(
                 flash.1.inner_angle = fov.0 / 4.;
             } else if *flash.0 != Visibility::Hidden {
                 *flash.0 = Visibility::Hidden;
-            }
-        }
-        if let Some((mut core, _)) = get_core(&mut q_core, tower_id) {
-            if firing {
-                let pulse = 1. + 0.3 * (time.elapsed_secs() * 16.).sin();
-                core.scale = Vec3::splat(pulse);
-            } else if core.scale != Vec3::ONE {
-                core.scale = Vec3::ONE;
             }
         }
     }
@@ -275,13 +248,6 @@ fn get_flash<'a>(
     q_muzzle_flash
         .iter_mut()
         .find(|(_, _, rel_id)| rel_id.0 == tower_id)
-}
-
-fn get_core<'a>(
-    q_core: &'a mut Query<(&mut Transform, &RelEntity), With<MicrowaveEmitterCore>>,
-    tower_id: Entity,
-) -> Option<(Mut<'a, Transform>, &'a RelEntity)> {
-    q_core.iter_mut().find(|(_, rel_id)| rel_id.0 == tower_id)
 }
 
 #[cfg(test)]
