@@ -1,0 +1,58 @@
+(
+ resources: {
+  "pinball_defense::game::level::LevelHub": (level: 11),
+  "pinball_defense::game::level::PointHub": (17390),
+  "pinball_defense::game::unlock::TowerUnlocks": (tesla: true, microwave: true),
+  "pinball_defense::game::wave::Wave": (number: 11, enemies_count: 0, next_enemy_spawn_time: 999999.0, time_between_enemies: 1.0, started: true, kind: Normal, special_cooldown: 21, announce_pending: false),
+ },
+ entities: {
+  1: (components: {
+   "bevy_camera::visibility::Visibility": Inherited,
+   "bevy_transform::components::transform::Transform": (translation: (0.11, 0.17, -0.025), rotation: (0.0, 0.0, 0.0, 1.0), scale: (1.0, 1.0, 1.0)),
+   "pinball_defense::game::progress::Progress": (0.0),
+   "pinball_defense::game::tower::Tower": (pos: (0.11, 0.17, -0.025)),
+   "pinball_defense::game::tower::TowerLevel": (1),
+   "pinball_defense::game::tower::TowerReady": (),
+   "pinball_defense::game::tower::speed::SlowDownFactor": (0.5),
+   "pinball_defense::game::tower::target::ConeFov": (0.7853982),
+   "pinball_defense::game::tower::target::SightRadius": (0.3),
+   "pinball_defense::game::tower::types::microwave::MicrowaveTower": (),
+  }),
+  2: (components: {
+   "bevy_camera::visibility::Visibility": Inherited,
+   "bevy_transform::components::transform::Transform": (translation: (-0.3, -0.17, -0.025), rotation: (0.0, 0.0, 0.0, 1.0), scale: (1.0, 1.0, 1.0)),
+   "pinball_defense::game::progress::Progress": (0.0),
+   "pinball_defense::game::tower::Tower": (pos: (-0.3, -0.17, -0.025)),
+   "pinball_defense::game::tower::TowerLevel": (10),
+   "pinball_defense::game::tower::TowerReady": (),
+   "pinball_defense::game::tower::speed::SlowDownFactor": (0.3),
+   "pinball_defense::game::tower::target::ConeFov": (1.5707963),
+   "pinball_defense::game::tower::target::SightRadius": (0.6),
+   "pinball_defense::game::tower::types::microwave::MicrowaveTower": (),
+  }),
+  3: (components: {
+   "bevy_camera::visibility::Visibility": Inherited,
+   "bevy_transform::components::transform::Transform": (translation: (0.11, 0.4, 0.002), rotation: (0.0, 0.0, 0.0, 1.0), scale: (1.0, 1.0, 1.0)),
+   "pinball_defense::game::enemy::Enemy": (step: (i_road_point: 7, direction: (0.0, 1.0, 0.0), distance_to_walk: 100.0, distance_walked: 0.0), kind: Normal, speed: 0.0, current_speed: 0.0, wave: 11),
+   "pinball_defense::game::health::Health": (current: 650.0, max: 650.0),
+  }),
+  4: (components: {
+   "bevy_camera::visibility::Visibility": Inherited,
+   "bevy_transform::components::transform::Transform": (translation: (-0.3, 0.3, 0.002), rotation: (0.0, 0.0, 0.0, 1.0), scale: (1.0, 1.0, 1.0)),
+   "pinball_defense::game::enemy::Enemy": (step: (i_road_point: 7, direction: (0.0, 1.0, 0.0), distance_to_walk: 100.0, distance_walked: 0.0), kind: Tank, speed: 0.0, current_speed: 0.0, wave: 11),
+   "pinball_defense::game::health::Health": (current: 650.0, max: 650.0),
+  }),
+  5: (components: {
+   "bevy_camera::visibility::Visibility": Inherited,
+   "bevy_transform::components::transform::Transform": (translation: (-0.1, 0.2, 0.002), rotation: (0.0, 0.0, 0.0, 1.0), scale: (1.0, 1.0, 1.0)),
+   "pinball_defense::game::enemy::Enemy": (step: (i_road_point: 7, direction: (0.0, 1.0, 0.0), distance_to_walk: 100.0, distance_walked: 0.0), kind: Speeder, speed: 0.0, current_speed: 0.0, wave: 11),
+   "pinball_defense::game::health::Health": (current: 650.0, max: 650.0),
+  }),
+  6: (components: {
+   "bevy_camera::visibility::Visibility": Inherited,
+   "bevy_transform::components::transform::Transform": (translation: (0.4, 0.3, 0.002), rotation: (0.0, 0.0, 0.0, 1.0), scale: (1.0, 1.0, 1.0)),
+   "pinball_defense::game::enemy::Enemy": (step: (i_road_point: 7, direction: (0.0, 1.0, 0.0), distance_to_walk: 100.0, distance_walked: 0.0), kind: Normal, speed: 0.0, current_speed: 0.0, wave: 11),
+   "pinball_defense::game::health::Health": (current: 650.0, max: 650.0),
+  }),
+ },
+)

@@ -4,6 +4,7 @@ use crate::utils::RelEntity;
 use bevy_hanabi::prelude::*;
 
 mod barrel_smoke;
+pub(in super::super) mod microwave;
 mod muzzle_flash;
 pub(in super::super) mod tesla;
 

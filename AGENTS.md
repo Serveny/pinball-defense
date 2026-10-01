@@ -17,6 +17,7 @@ Pinball-Defense is a hybrid **Pinball + Tower Defense** game.
 - For any Blender task, connect via the project MCP server `blender` (stdio → `blender-mcp` → TCP → Blender add-on on port 9876). Blender must be running with the MCP add-on enabled; if no tools answer, ask the user to start the add-on before falling back to headless `blender --background --python` scripts.
 - Run: `cargo run`
 - Lint: `cargo clippy`
+- For in-game previews and visual/gameplay verification, load the `playtest` skill (`.agents/skills/playtest/SKILL.md`). It uses reproducible savegame scenes, GPU logs and screenshots; a Microwave example is included.
 - Re-export assets: run Blender scripts in `src/blender_scripts` (e.g. `bpy_export_all_gltf.py`, `bpy_export_mesh_as_polyline.py`)
 - If asked for worktrees, use slots under `.worktrees`, load the `worktree-slot` skill (`.agents/skills/worktree-slot/SKILL.md`) and use `.agents/skills/worktree-slot/slot.sh` (claim/release/list).
 
