@@ -1,35 +1,44 @@
 ---
 name: worktree-slot
-description: Persistent worktree slots for this repo. Use whenever starting any coding task — claim a slot under .worktrees via .agents/skills/worktree-slot/slot.sh, work there, commit on slot-N. Never merge into main and never release on your own — merging is the user's decision. Slots keep target/ warm (no full Rust rebuilds).
+description: Use for coding tasks in this repo. Claim a persistent worktree slot with a feature-named branch, preserving its Cargo build cache. Commit there; merge or release only when the user requests it.
 ---
 
-# Slot system — persistent worktrees
+# Persistent worktree slots
 
-For ANY coding task: claim a slot, work there, commit on `slot-N`, then STOP and report. Never work in the main checkout, never delete a slot.
+Work in `.worktrees/slot-N`, with a new branch for each task, defaulting to `feat/<task-slug>`. The directory stays fixed so its `target/` and ignored files survive reuse. Cargo can reuse compatible build artifacts; dependency, toolchain, profile or compiler-flag changes can still require rebuilds. Each slot has its own cache and checkout, so additional slots cost disk space and begin with a cold cache.
 
-Slots persist so `target/` stays warm — a fresh worktree or deleted slot costs a full Rust rebuild (2–6 GB Bevy target). Only `.task` markers and code state change between tasks; `target/` survives.
+There is no slot limit or configuration. `claim` reuses a free slot or creates another if all are occupied. The user controls how many tasks run concurrently. Slot management uses Bash, Git and standard Linux tools; Python is only used by the maintenance tests.
+
+## Workflow
+
+1. Before editing, claim a slot using a short feature slug. For follow-up work on an existing task, run `list` and continue in its occupied slot instead of claiming another one.
+
+   ```bash
+   slot_path=$(.agents/skills/worktree-slot/slot.sh claim microwave-effects)
+   cd "$slot_path"
+   ```
+
+   `claim` prints one absolute path to stdout and diagnostics to stderr. It creates `feat/microwave-effects` from **local** `main`. For a different branch name, use `claim microwave-effects fix/microwave-effects`. Existing branch names are refused, never overwritten. Reusing a slot requires a clean worktree and integrated commits; a missing `.task` marker alone does not make it safe.
+
+2. Do the work and commit on the feature branch. Report the branch, slot path, changes and validation. Keep the slot occupied for review and follow-up work.
+
+3. Merge or release only when explicitly requested by the user. `release` requires no uncommitted changes (including untracked files) and all work integrated into `main`. It accepts reachable commits or cherry-picked patches compared with whitespace preserved (`git patch-id --verbatim`). Squash merges, empty commits and unique merge commits can fail this conservative check; inspect the history and report the blocker rather than deleting markers or forcing a reset. Release detaches the slot at `main`, removes `.task`, and preserves the feature branch and build cache.
 
 ## Commands
 
 ```bash
-.agents/skills/worktree-slot/slot.sh claim <task-slug>   # prints the slot path, e.g. .worktrees/slot-1; do all work there
-.agents/skills/worktree-slot/slot.sh release <slot>      # accepts N, slot-N, or full path
+.agents/skills/worktree-slot/slot.sh claim <task-slug> [branch]
+.agents/skills/worktree-slot/slot.sh release <slot>
 .agents/skills/worktree-slot/slot.sh list
 ```
 
-Run from anywhere (inside slots included) — the script resolves the main repo root itself.
+`release` accepts a slot number, `slot-N`, an absolute slot path, or `.worktrees/slot-N` relative to the main checkout. The script resolves its repository from its own location; invoking it by absolute path also works from outside the repository.
 
-## Workflow
+## Constraints
 
-1. `claim <task-slug>` — first free slot is reset to `main` (`reset --hard` + `clean -fd`; only task leftovers are discarded, `target/` and ignored files stay) and marked with your slug + timestamp. If all slots are busy, a new numbered slot is created.
-2. Do the work in the printed slot path; commit there on branch `slot-N`.
-3. `release <slot>` — only on explicit user request. Refuses unless ALL work in the slot is already in `main`. That means: no uncommitted changes (tracked or untracked) AND no unmerged commits (every `slot-N` commit merged/cherry-picked into `main`). Verify with `git -C <slot> log main..slot-N` — must be empty. Releasing with unmerged commits is a bug, not a valid state: the next `claim` runs `reset --hard main` on the slot, which silently destroys that work.
+- Never edit, commit, merge or push in the main checkout without the user's explicit instruction. Never release a slot unprompted. Perform only the requested merge/release actions; do not add pushes or branch cleanup.
+- Never delete a slot directory, its `target/`, or a feature branch to make a claim succeed. Never run `git worktree remove` on a slot.
+- If claim refuses a dirty or unintegrated free slot, preserve its work and report the problem. Do not use `reset --hard`, `clean`, or delete `.task` to bypass checks.
+- Ignored files persist, including saves and local runtime state. Check them when they affect a test or preview; they are not automatically synchronized with the main checkout.
 
-## Rules
-
-- **Merging into `main` is the user's job.** Never run `git merge`, `git cherry-pick`, commit, or push on `main` yourself, and never release a slot unprompted. Your deliverable is the `slot-N` branch; release only when the user explicitly asks for it (and the work is merged).
-- Release is safe only when the slot is fully clean and fully merged. Never release with any unmerged commit or any uncommitted change left in the slot.
-- If the user asks you to merge or release, do exactly that — no further pushes, rebases, or slot cleanups beyond what was asked.
-- Never delete a slot directory or its `target/`.
-- Never call `git worktree remove` on a slot; `release` never does either.
-- If `claim` fails with "branch already exists", run `list` and check `git branch --list 'slot-*'` for stale branches (`git branch -D slot-N` when its worktree is gone and its work is merged or abandoned).
+When changing the script, run `python3 .agents/skills/worktree-slot/tests/test_slot.py`; it exercises the lifecycle in temporary Git repositories without touching real slots.
