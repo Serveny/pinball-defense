@@ -7,9 +7,9 @@ use crate::prelude::*;
 use bevy_hanabi::{
     AccelModifier, AlphaMode, Attribute, ColorOverLifetimeModifier, EffectAsset, EffectSimulation,
     EffectSpawner, Gradient, LinearDragModifier, Module, OrientMode, OrientModifier,
-    ParticleEffect, SetAttributeModifier, SetPositionSphereModifier, SetVelocitySphereModifier,
-    ShapeDimension, SimulationCondition, SimulationSpace, SizeOverLifetimeModifier,
-    SpawnerSettings,
+    ParticleEffect, ScreenSpaceSizeModifier, SetAttributeModifier, SetPositionSphereModifier,
+    SetVelocityCircleModifier, ShapeDimension, SimulationCondition, SimulationSpace,
+    SizeOverLifetimeModifier, SpawnerSettings,
 };
 
 pub(super) struct HitFxPlugin;
@@ -39,7 +39,7 @@ struct HitFxAssets {
     enemy: Handle<EffectAsset>,
 }
 
-const PARTICLE_LIFETIME: f32 = 0.26;
+const PARTICLE_LIFETIME: f32 = 0.45;
 
 impl FromWorld for HitFxAssets {
     fn from_world(world: &mut World) -> Self {
@@ -54,35 +54,38 @@ impl FromWorld for HitFxAssets {
 fn hit_asset(tower: bool) -> EffectAsset {
     let mut module = Module::default();
     let center = module.lit(Vec3::ZERO);
-    let radius = module.lit(0.002);
-    let speed = module.lit(if tower { 0.24 } else { 0.16 });
+    let radius = module.lit(0.006);
+    let axis = module.lit(Vec3::Z);
+    let speed = module.lit(if tower { 0.45 } else { 0.32 });
     let age = module.lit(0.);
     let lifetime = module.lit(PARTICLE_LIFETIME);
-    let drag = module.lit(4.);
-    let accel = AccelModifier::constant(&mut module, -Vec3::Z * 0.25);
+    let drag = module.lit(3.);
+    let accel = AccelModifier::constant(&mut module, Vec3::Z * 0.08);
 
     let mut color = Gradient::new();
     let tint = if tower {
-        Vec4::new(0.48, 0.88, 0.55, 0.8)
+        Vec4::new(0.05, 0.55, 0.2, 1.)
     } else {
-        Vec4::new(1.35, 0.46, 0.28, 0.75)
+        Vec4::new(1.2, 0.14, 0.05, 1.)
     };
-    color.add_key(0., tint);
-    color.add_key(0.35, tint * Vec4::new(0.8, 0.8, 0.8, 0.7));
+    color.add_key(0., tint * Vec4::new(2., 2., 2., 1.));
+    color.add_key(0.15, tint);
+    color.add_key(0.65, tint * Vec4::new(0.8, 0.8, 0.8, 0.8));
     color.add_key(1., Vec4::ZERO);
 
     let mut size = Gradient::new();
     let initial_size = if tower {
-        Vec3::new(0.018, 0.003, 1.)
+        Vec3::new(36., 8., 1.)
     } else {
-        Vec3::new(0.007, 0.007, 1.)
+        Vec3::new(16., 16., 1.)
     };
     size.add_key(0., initial_size);
+    size.add_key(0.3, initial_size);
     size.add_key(1., initial_size * Vec3::new(0.3, 0.3, 1.));
 
     EffectAsset::new(
-        16,
-        SpawnerSettings::once(if tower { 8.0 } else { 6.0 }.into()),
+        32,
+        SpawnerSettings::once(if tower { 14.0 } else { 12.0 }.into()),
         module,
     )
     .with_name(if tower { "tower_hit" } else { "enemy_hit" })
@@ -94,17 +97,27 @@ fn hit_asset(tower: bool) -> EffectAsset {
         radius,
         dimension: ShapeDimension::Volume,
     })
-    .init(SetVelocitySphereModifier { center, speed })
+    .init(SetVelocityCircleModifier {
+        center,
+        axis,
+        speed,
+    })
     .init(SetAttributeModifier::new(Attribute::AGE, age))
     .init(SetAttributeModifier::new(Attribute::LIFETIME, lifetime))
     .update(LinearDragModifier::new(drag))
     .update(accel)
-    .render(OrientModifier::new(OrientMode::AlongVelocity))
+    .render(OrientModifier::new(if tower {
+        OrientMode::AlongVelocity
+    } else {
+        OrientMode::ParallelCameraDepthPlane
+    }))
     .render(ColorOverLifetimeModifier::new(color))
     .render(SizeOverLifetimeModifier {
         gradient: size,
         screen_space_size: false,
     })
+    // Hanabi 0.19 ignores the screen_space_size field; apply pixel scaling explicitly.
+    .render(ScreenSpaceSizeModifier)
 }
 
 #[derive(Component)]
@@ -126,7 +139,8 @@ fn spawn_hit_fx_system(
             .xy()
             .try_normalize()
             .unwrap_or(Vec2::X);
-        let contact = ball.translation - outward.extend(0.) * BALL_RADIUS + Vec3::Z * 0.004;
+        let contact =
+            ball.translation - outward.extend(0.) * BALL_RADIUS + Vec3::Z * (BALL_RADIUS + 0.025);
         let (name, effect) = if is_enemy {
             ("Enemy Hit", assets.enemy.clone())
         } else {
@@ -217,12 +231,12 @@ mod tests {
         assert!(app.world().get::<HitFx>(entity).is_some());
         app.world_mut()
             .resource_mut::<Time<EffectSimulation>>()
-            .advance_by(std::time::Duration::from_secs_f32(0.2));
+            .advance_by(std::time::Duration::from_secs_f32(0.3));
         app.update();
         assert!(app.world().get::<HitFx>(entity).is_some());
         app.world_mut()
             .resource_mut::<Time<EffectSimulation>>()
-            .advance_by(std::time::Duration::from_secs_f32(0.2));
+            .advance_by(std::time::Duration::from_secs_f32(0.3));
         app.update();
         assert!(app.world().get::<HitFx>(entity).is_none());
     }
@@ -247,7 +261,7 @@ mod tests {
 
         let ball = app
             .world_mut()
-            .spawn((PinBall, Transform::from_xyz(0.08, 0., 0.02)))
+            .spawn((PinBall, Transform::from_xyz(0.08, 0., -0.02)))
             .id();
         let tower = app
             .world_mut()
@@ -292,7 +306,7 @@ mod tests {
                     &assets.enemy
                 }
             );
-            assert!(position.distance(Vec3::new(0.06, 0., 0.024)) < 0.0001);
+            assert!(position.distance(Vec3::new(0.06, 0., 0.025)) < 0.0001);
             assert!(!saved);
         }
         assert!(effects.iter().any(|effect| effect.0 == "Tower Hit"));
