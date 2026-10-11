@@ -4,8 +4,6 @@ use avian2d::PhysicsPlugins;
 #[cfg(debug_assertions)]
 use bevy::camera::Hdr;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
-#[cfg(debug_assertions)]
-use bevy::input::common_conditions::input_toggle_active;
 use bevy::window::{MonitorSelection, PrimaryWindow, Window, WindowMode};
 pub use bevy_asset_loader::prelude::*;
 use bevy_framepace::Limiter;
@@ -131,6 +129,48 @@ fn toggle_fullscreen(
 mod tests {
     use super::*;
 
+    #[cfg(debug_assertions)]
+    #[test]
+    fn f12_toggles_debug_rendering_once_per_press() {
+        let mut app = App::new();
+        let mut config_store = GizmoConfigStore::default();
+        config_store.insert(
+            GizmoConfig {
+                enabled: false,
+                ..default()
+            },
+            PhysicsGizmos::default(),
+        );
+        app.insert_resource(config_store)
+            .init_resource::<ButtonInput<KeyCode>>()
+            .add_systems(Update, toggle_debug_visibility);
+
+        for (press_f12, visible) in [
+            (false, false),
+            (true, true),
+            (false, true),
+            (true, false),
+            (true, true),
+        ] {
+            let mut keys = app.world_mut().resource_mut::<ButtonInput<KeyCode>>();
+            keys.clear();
+            if press_f12 {
+                keys.release(KeyCode::F12);
+                keys.press(KeyCode::F12);
+            }
+            app.update();
+
+            assert_eq!(
+                app.world()
+                    .resource::<GizmoConfigStore>()
+                    .config::<PhysicsGizmos>()
+                    .0
+                    .enabled,
+                visible
+            );
+        }
+    }
+
     #[test]
     fn f11_keeps_window_and_graphics_settings_in_sync() {
         let mut app = App::new();
@@ -175,10 +215,31 @@ fn add_pysics_settings(app: &mut App) {
 fn add_debug_plugins(app: &mut App) {
     app.add_plugins((
         EguiPlugin::default(),
-        WorldInspectorPlugin::new().run_if(input_toggle_active(false, KeyCode::F12)),
+        WorldInspectorPlugin::new().run_if(|config_store: Res<GizmoConfigStore>| {
+            config_store.config::<PhysicsGizmos>().0.enabled
+        }),
         PhysicsDebugPlugin,
     ))
+    .insert_gizmo_config(
+        PhysicsGizmos::default(),
+        GizmoConfig {
+            enabled: false,
+            ..default()
+        },
+    )
+    .add_systems(Update, toggle_debug_visibility)
     .add_systems(OnEnter(AppState::Game), spawn_egui_overlay_camera);
+}
+
+#[cfg(debug_assertions)]
+fn toggle_debug_visibility(
+    keys: Res<ButtonInput<KeyCode>>,
+    mut config_store: ResMut<GizmoConfigStore>,
+) {
+    if keys.just_pressed(KeyCode::F12) {
+        let (config, _) = config_store.config_mut::<PhysicsGizmos>();
+        config.enabled = !config.enabled;
+    }
 }
 
 #[cfg(debug_assertions)]
