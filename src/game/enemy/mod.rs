@@ -339,7 +339,7 @@ fn freeze_tint_system(
 #[derive(Message)]
 pub struct OnEnemyDespawnEvent(pub Entity);
 
-fn on_health_empty_system(
+pub(super) fn on_health_empty_system(
     mut cmds: Commands,
     mut evr: MessageReader<HealthEmptyEvent>,
     mut despawn_ev: MessageWriter<OnEnemyDespawnEvent>,

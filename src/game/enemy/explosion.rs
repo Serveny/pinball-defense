@@ -11,7 +11,7 @@ use bevy_hanabi::{
 const DESPAWN_SECS: f32 = 1.5;
 
 #[derive(Resource)]
-pub(super) struct ExplosionAssets {
+pub(in super::super) struct ExplosionAssets {
     normal: Handle<EffectAsset>,
     tank: Handle<EffectAsset>,
     speeder_burst: Handle<EffectAsset>,

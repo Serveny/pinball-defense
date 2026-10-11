@@ -21,6 +21,8 @@ use std::ops::Range;
 
 pub struct BallPlugin;
 
+pub(super) const BALL_RADIUS: f32 = 0.02;
+
 impl Plugin for BallPlugin {
     fn build(&self, app: &mut App) {
         app.add_message::<OnBallDespawnEvent>()
@@ -75,7 +77,7 @@ fn ball_view_bundle(
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
 ) -> impl Bundle {
-    let radius = 0.02;
+    let radius = BALL_RADIUS;
     (
         Mesh3d(meshes.add(Mesh::from(Sphere { radius }))),
         MeshMaterial3d(materials.add(StandardMaterial {
@@ -209,7 +211,7 @@ fn on_ball_despawn_system(
 #[derive(Message, Debug)]
 pub struct CollisionWithBallEvent(pub Entity, pub Entity);
 
-fn on_collision_with_ball_system(
+pub(super) fn on_collision_with_ball_system(
     mut coll_ev: MessageReader<CollisionStart>,
     mut coll_with_ball_ev: MessageWriter<CollisionWithBallEvent>,
     mut points_ev: MessageWriter<PointsEvent>,
@@ -249,7 +251,7 @@ fn on_wall_collision_system(
 
 const ENEMY_OVERLAP_RADIUS: f32 = 0.03;
 
-fn enemy_ball_overlap_system(
+pub(super) fn enemy_ball_overlap_system(
     mut prev_overlapping: Local<HashMap<Entity, HashSet<Entity>>>,
     q_ball: Query<(Entity, &Transform), With<PinBall>>,
     q_enemy: Query<(&Transform, &Collider, Entity), With<Enemy>>,

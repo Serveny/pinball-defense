@@ -46,6 +46,7 @@ mod extra;
 mod flipper;
 mod game_over;
 mod health;
+mod hit_fx;
 mod level;
 mod light;
 mod pinball_menu;
@@ -104,6 +105,7 @@ impl Plugin for GamePlugin {
             ))
             .add_plugins((
                 HealthPlugin,
+                hit_fx::HitFxPlugin,
                 PlayerLifePlugin,
                 LightPlugin,
                 FlipperPlugin,
