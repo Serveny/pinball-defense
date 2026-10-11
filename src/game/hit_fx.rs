@@ -5,10 +5,10 @@ use super::{GameState, ball, enemy};
 use crate::AppState;
 use crate::prelude::*;
 use bevy_hanabi::{
-    AccelModifier, AlphaMode, Attribute, ColorOverLifetimeModifier, EffectAsset, EffectSimulation,
-    EffectSpawner, Gradient, LinearDragModifier, Module, OrientMode, OrientModifier,
-    ParticleEffect, ScreenSpaceSizeModifier, SetAttributeModifier, SetPositionSphereModifier,
-    SetVelocityCircleModifier, ShapeDimension, SimulationCondition, SimulationSpace,
+    AccelModifier, AlphaMode, Attribute, ColorOverLifetimeModifier, EffectAsset, EffectProperties,
+    EffectSimulation, EffectSpawner, Gradient, LinearDragModifier, Module, OrientMode,
+    OrientModifier, ParticleEffect, ScreenSpaceSizeModifier, SetAttributeModifier,
+    SetPositionSphereModifier, ShapeDimension, SimulationCondition, SimulationSpace,
     SizeOverLifetimeModifier, SpawnerSettings,
 };
 
@@ -54,9 +54,19 @@ impl FromWorld for HitFxAssets {
 fn hit_asset(tower: bool) -> EffectAsset {
     let mut module = Module::default();
     let center = module.lit(Vec3::ZERO);
-    let radius = module.lit(0.006);
-    let axis = module.lit(Vec3::Z);
-    let speed = module.lit(if tower { 0.45 } else { 0.32 });
+    let radius = module.lit(0.002);
+    let min_angle = module.lit(-std::f32::consts::FRAC_PI_2);
+    let max_angle = module.lit(std::f32::consts::FRAC_PI_2);
+    let spread = module.uniform(min_angle, max_angle);
+    let hit_angle = module.add_property("hit_angle", 0_f32.into());
+    let hit_angle = module.prop(hit_angle);
+    let angle = module.add(hit_angle, spread);
+    let x = module.cos(angle);
+    let y = module.sin(angle);
+    let z = module.lit(0.);
+    let direction = module.vec3(x, y, z);
+    let speed = module.lit(if tower { 0.45 / 3. } else { 0.32 / 3. });
+    let velocity = module.mul(direction, speed);
     let age = module.lit(0.);
     let lifetime = module.lit(PARTICLE_LIFETIME);
     let drag = module.lit(3.);
@@ -75,9 +85,9 @@ fn hit_asset(tower: bool) -> EffectAsset {
 
     let mut size = Gradient::new();
     let initial_size = if tower {
-        Vec3::new(36., 8., 1.)
+        Vec3::new(12., 8. / 3., 1.)
     } else {
-        Vec3::new(16., 16., 1.)
+        Vec3::new(16. / 3., 16. / 3., 1.)
     };
     size.add_key(0., initial_size);
     size.add_key(0.3, initial_size);
@@ -97,11 +107,7 @@ fn hit_asset(tower: bool) -> EffectAsset {
         radius,
         dimension: ShapeDimension::Volume,
     })
-    .init(SetVelocityCircleModifier {
-        center,
-        axis,
-        speed,
-    })
+    .init(SetAttributeModifier::new(Attribute::VELOCITY, velocity))
     .init(SetAttributeModifier::new(Attribute::AGE, age))
     .init(SetAttributeModifier::new(Attribute::LIFETIME, lifetime))
     .update(LinearDragModifier::new(drag))
@@ -150,6 +156,8 @@ fn spawn_hit_fx_system(
             Name::new(name),
             ParticleEffect::new(effect),
             Transform::from_translation(contact),
+            EffectProperties::default()
+                .with_properties([("hit_angle".to_owned(), outward.y.atan2(outward.x).into())]),
             HitFx(Timer::from_seconds(
                 PARTICLE_LIFETIME + 0.05,
                 TimerMode::Once,
@@ -183,13 +191,66 @@ fn clear_hit_fx_system(mut cmds: Commands, effects: Query<Entity, With<HitFx>>) 
 mod tests {
     use super::super::enemy::EnemyKind;
     use super::*;
-    use bevy_hanabi::EffectShaderSources;
+    use bevy_hanabi::{EffectShaderSources, ScalarValue, Value};
     use moonshine_save::prelude::Save;
 
     #[test]
     fn hit_assets_generate_shaders() {
         for tower in [false, true] {
             assert!(EffectShaderSources::generate(&hit_asset(tower), None, 0).is_ok());
+        }
+    }
+
+    #[test]
+    fn hit_fan_faces_the_ball_side_of_the_target() {
+        let mut app = App::new();
+        app.add_plugins(MinimalPlugins)
+            .init_resource::<Assets<EffectAsset>>()
+            .init_resource::<HitFxAssets>()
+            .add_message::<CollisionWithBallEvent>()
+            .add_systems(Update, spawn_hit_fx_system);
+        let target_position = Vec3::new(0.7, 0.9, 0.);
+        let target = app
+            .world_mut()
+            .spawn((
+                Tower::new(target_position),
+                Transform::from_translation(target_position),
+            ))
+            .id();
+        for (side, expected_angle) in [
+            (Vec2::X, 0.),
+            (Vec2::NEG_X, std::f32::consts::PI),
+            (Vec2::Y, std::f32::consts::FRAC_PI_2),
+            (Vec2::NEG_Y, -std::f32::consts::FRAC_PI_2),
+            (Vec2::ONE.normalize(), std::f32::consts::FRAC_PI_4),
+            (Vec2::ZERO, 0.),
+        ] {
+            let ball = app
+                .world_mut()
+                .spawn((
+                    PinBall,
+                    Transform::from_translation(target_position + (side * 0.08).extend(-0.02)),
+                ))
+                .id();
+            app.world_mut()
+                .write_message(CollisionWithBallEvent(ball, target));
+            app.update();
+            let effects: Vec<_> = app
+                .world_mut()
+                .query_filtered::<(Entity, &EffectProperties), With<HitFx>>()
+                .iter(app.world())
+                .map(|(entity, properties)| (entity, properties.get_stored("hit_angle")))
+                .collect();
+            assert_eq!(effects.len(), 1);
+            for (entity, angle) in effects {
+                assert!(matches!(
+                    angle,
+                    Some(Value::Scalar(ScalarValue::Float(angle)))
+                        if (angle - expected_angle).abs() < 0.00001
+                ));
+                app.world_mut().despawn(entity);
+            }
+            app.world_mut().despawn(ball);
         }
     }
 
