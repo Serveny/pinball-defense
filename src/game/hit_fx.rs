@@ -63,29 +63,50 @@ fn hit_asset(tower: bool) -> EffectAsset {
     let angle = module.add(hit_angle, spread);
     let x = module.cos(angle);
     let y = module.sin(angle);
-    let z = module.lit(0.);
+    let z = if tower {
+        let min = module.lit(0.15);
+        let max = module.lit(0.65);
+        module.uniform(min, max)
+    } else {
+        module.lit(0.)
+    };
     let direction = module.vec3(x, y, z);
-    let speed = module.lit(if tower { 0.45 / 3. } else { 0.32 / 3. });
+    let speed = if tower {
+        let min = module.lit(0.35);
+        let max = module.lit(0.85);
+        module.uniform(min, max)
+    } else {
+        module.lit(0.32 / 3.)
+    };
     let velocity = module.mul(direction, speed);
     let age = module.lit(0.);
-    let lifetime = module.lit(PARTICLE_LIFETIME);
-    let drag = module.lit(3.);
-    let accel = AccelModifier::constant(&mut module, Vec3::Z * 0.08);
+    let max_lifetime = module.lit(PARTICLE_LIFETIME);
+    let lifetime = if tower {
+        let min = module.lit(0.18);
+        module.uniform(min, max_lifetime)
+    } else {
+        max_lifetime
+    };
+    let drag = module.lit(if tower { 1.5 } else { 3. });
+    let accel = AccelModifier::constant(&mut module, Vec3::Z * if tower { -1.8 } else { 0.08 });
 
     let mut color = Gradient::new();
-    let tint = if tower {
-        Vec4::new(0.05, 0.55, 0.2, 1.)
+    if tower {
+        color.add_key(0., Vec4::new(4., 3.6, 2.6, 1.));
+        color.add_key(0.15, Vec4::new(3., 1.8, 0.5, 1.));
+        color.add_key(0.65, Vec4::new(1.5, 0.35, 0.04, 0.9));
+        color.add_key(1., Vec4::ZERO);
     } else {
-        Vec4::new(1.2, 0.14, 0.05, 1.)
-    };
-    color.add_key(0., tint * Vec4::new(2., 2., 2., 1.));
-    color.add_key(0.15, tint);
-    color.add_key(0.65, tint * Vec4::new(0.8, 0.8, 0.8, 0.8));
-    color.add_key(1., Vec4::ZERO);
+        let tint = Vec4::new(1.2, 0.14, 0.05, 1.);
+        color.add_key(0., tint * Vec4::new(2., 2., 2., 1.));
+        color.add_key(0.15, tint);
+        color.add_key(0.65, tint * Vec4::new(0.8, 0.8, 0.8, 0.8));
+        color.add_key(1., Vec4::ZERO);
+    }
 
     let mut size = Gradient::new();
     let initial_size = if tower {
-        Vec3::new(12., 8. / 3., 1.)
+        Vec3::new(10., 1.5, 1.)
     } else {
         Vec3::new(16. / 3., 16. / 3., 1.)
     };
@@ -95,7 +116,7 @@ fn hit_asset(tower: bool) -> EffectAsset {
 
     EffectAsset::new(
         32,
-        SpawnerSettings::once(if tower { 14.0 } else { 12.0 }.into()),
+        SpawnerSettings::once(if tower { 22.0 } else { 12.0 }.into()),
         module,
     )
     .with_name(if tower { "tower_hit" } else { "enemy_hit" })
@@ -145,8 +166,8 @@ fn spawn_hit_fx_system(
             .xy()
             .try_normalize()
             .unwrap_or(Vec2::X);
-        let contact =
-            ball.translation - outward.extend(0.) * BALL_RADIUS + Vec3::Z * (BALL_RADIUS + 0.025);
+        let contact = ball.translation - outward.extend(0.) * BALL_RADIUS
+            + Vec3::Z * (BALL_RADIUS + if is_enemy { 0.025 } else { 0. });
         let (name, effect) = if is_enemy {
             ("Enemy Hit", assets.enemy.clone())
         } else {
@@ -237,17 +258,27 @@ mod tests {
             app.update();
             let effects: Vec<_> = app
                 .world_mut()
-                .query_filtered::<(Entity, &EffectProperties), With<HitFx>>()
+                .query_filtered::<(Entity, &EffectProperties, &Transform), With<HitFx>>()
                 .iter(app.world())
-                .map(|(entity, properties)| (entity, properties.get_stored("hit_angle")))
+                .map(|(entity, properties, transform)| {
+                    (
+                        entity,
+                        properties.get_stored("hit_angle"),
+                        transform.translation,
+                    )
+                })
                 .collect();
             assert_eq!(effects.len(), 1);
-            for (entity, angle) in effects {
+            for (entity, angle, contact) in effects {
                 assert!(matches!(
                     angle,
                     Some(Value::Scalar(ScalarValue::Float(angle)))
                         if (angle - expected_angle).abs() < 0.00001
                 ));
+                let normal = side.try_normalize().unwrap_or(Vec2::X);
+                let expected_contact =
+                    target_position + (side * 0.08).extend(0.) - normal.extend(0.) * BALL_RADIUS;
+                assert!(contact.distance(expected_contact) < 0.00001);
                 app.world_mut().despawn(entity);
             }
             app.world_mut().despawn(ball);
@@ -367,7 +398,8 @@ mod tests {
                     &assets.enemy
                 }
             );
-            assert!(position.distance(Vec3::new(0.06, 0., 0.025)) < 0.0001);
+            let height = if name == "Tower Hit" { 0. } else { 0.025 };
+            assert!(position.distance(Vec3::new(0.06, 0., height)) < 0.0001);
             assert!(!saved);
         }
         assert!(effects.iter().any(|effect| effect.0 == "Tower Hit"));
