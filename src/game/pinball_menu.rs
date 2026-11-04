@@ -139,8 +139,7 @@ fn spawn_tower_menu(
     pos: Vec3,
 ) {
     spawner.spawn(menu(pos)).with_children(|spawner| {
-        let mut angles =
-            CardAngles::new(u8::try_from(unlocked_towers.available().count()).unwrap_or(u8::MAX));
+        let mut angles = CardAngles::new(unlocked_towers.available().count() as u8);
         for tower in unlocked_towers.available() {
             spawn_menu_element(tower, spawner, assets, g_sett, angles.next(), 0.1);
         }

@@ -358,7 +358,7 @@ mod tests {
     use std::time::Duration;
 
     #[test]
-    #[allow(clippy::float_cmp, clippy::unwrap_used)]
+    #[allow(clippy::unwrap_used)]
     fn auto_launch_holds_for_two_seconds_after_full_charge_on_each_launch() {
         let mut app = App::new();
         app.init_resource::<Time>()

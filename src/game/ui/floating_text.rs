@@ -18,39 +18,55 @@ pub struct FloatingPoints {
     offset: Vec2,
 }
 
-pub(crate) fn spawn_tower_build(
-    cmds: &mut Commands,
-    pos: Vec3,
-    tower_type: crate::game::tower::TowerType,
-    assets: &PinballDefenseAssets,
-) {
-    let name = match tower_type {
-        crate::game::tower::TowerType::Gun => "Gun",
-        crate::game::tower::TowerType::Tesla => "Tesla",
-        crate::game::tower::TowerType::Microwave => "Microwave",
-    };
-    cmds.spawn((
-        Name::new("Tower Build Label"),
-        FloatingPoints {
-            world_pos: pos,
-            timer: Timer::from_seconds(2., TimerMode::Once),
-            offset: Vec2::new(-110., -48.),
-        },
-        Node {
-            position_type: PositionType::Absolute,
-            width: Val::Px(220.),
-            ..default()
-        },
-        Text(format!("New {name} Tower")),
+impl FloatingPoints {
+    fn new(world_pos: Vec3, secs: f32, offset: Vec2) -> Self {
+        Self {
+            world_pos,
+            timer: Timer::from_seconds(secs, TimerMode::Once),
+            offset,
+        }
+    }
+}
+
+fn label(assets: &PinballDefenseAssets, text: String, size: f32, color: Color) -> impl Bundle {
+    (
+        Text(text),
         TextLayout::justify(Justify::Center),
         TextFont {
             font: FontSource::Handle(assets.menu_font.clone()),
-            font_size: FontSize::Px(22.),
+            font_size: FontSize::Px(size),
             ..default()
         },
-        TextColor(Color::WHITE),
-        TextShadow::default(),
+        TextColor(color),
         Pickable::IGNORE,
+    )
+}
+
+fn absolute_node(width: Val) -> Node {
+    Node {
+        position_type: PositionType::Absolute,
+        width,
+        ..default()
+    }
+}
+
+pub(crate) fn spawn_tower_build(
+    cmds: &mut Commands,
+    pos: Vec3,
+    tower_type: TowerType,
+    assets: &PinballDefenseAssets,
+) {
+    let name = match tower_type {
+        TowerType::Gun => "Gun",
+        TowerType::Tesla => "Tesla",
+        TowerType::Microwave => "Microwave",
+    };
+    cmds.spawn((
+        Name::new("Tower Build Label"),
+        FloatingPoints::new(pos, 2., Vec2::new(-110., -48.)),
+        absolute_node(Val::Px(220.)),
+        label(assets, format!("New {name} Tower"), 22., Color::WHITE),
+        TextShadow::default(),
     ));
 }
 
@@ -73,12 +89,12 @@ pub(super) fn spawn_system(
         );
     }
     for TowerUnlockedEvent(kind, pos) in unlocks.read() {
-        let (label, color) = match kind {
+        let (text, color) = match kind {
             TowerType::Tesla => ("TESLA TOWER UNLOCKED", Color::srgb_u8(35, 190, 245)),
             TowerType::Microwave => ("MICROWAVE TOWER UNLOCKED", Color::srgb_u8(245, 110, 90)),
             TowerType::Gun => continue,
         };
-        spawn_text(&mut cmds, &assets, *pos, label.into(), color, 2.);
+        spawn_text(&mut cmds, &assets, *pos, text.into(), color, 2.);
     }
     for TowerUpgradedEvent(tower, level) in upgrades.read() {
         let Ok(transform) = towers.get(*tower) else {
@@ -86,27 +102,15 @@ pub(super) fn spawn_system(
         };
         cmds.spawn((
             Name::new("Tower Level Hint"),
-            FloatingPoints {
-                world_pos: transform.translation(),
-                timer: Timer::from_seconds(FLOAT_DURATION_SECS * 2., TimerMode::Once),
-                offset: Vec2::new(-48., -56.),
-            },
-            Node {
-                position_type: PositionType::Absolute,
-                width: Val::Px(96.),
-                ..default()
-            },
-            Text(level_numeral(*level).into()),
-            TextLayout::justify(Justify::Center),
-            TextFont {
-                font: FontSource::Handle(assets.menu_font.clone()),
-                font_size: FontSize::Px(27.),
-                ..default()
-            },
-            TextColor(Color::WHITE),
+            FloatingPoints::new(
+                transform.translation(),
+                FLOAT_DURATION_SECS * 2.,
+                Vec2::new(-48., -56.),
+            ),
+            absolute_node(Val::Px(96.)),
+            label(&assets, level_numeral(*level).into(), 27., Color::WHITE),
             TextShadow::default(),
             GlobalZIndex(2),
-            Pickable::IGNORE,
         ));
     }
 }
@@ -121,22 +125,9 @@ fn spawn_text(
 ) {
     cmds.spawn((
         Name::new("Floating Text"),
-        FloatingPoints {
-            world_pos: pos,
-            timer: Timer::from_seconds(duration, TimerMode::Once),
-            offset: Vec2::ZERO,
-        },
-        Node {
-            position_type: PositionType::Absolute,
-            ..default()
-        },
-        Text(text),
-        TextFont {
-            font: FontSource::Handle(assets.menu_font.clone()),
-            font_size: FontSize::Px(32.),
-            ..default()
-        },
-        TextColor(color),
+        FloatingPoints::new(pos, duration, Vec2::ZERO),
+        absolute_node(Val::Auto),
+        label(assets, text, 32., color),
     ));
 }
 

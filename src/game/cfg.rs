@@ -5,6 +5,13 @@ pub const CONFIG: PinballDefenseConfig = PinballDefenseConfig {
     ball_damage_fraction: 0.3,
     ball_damage_fraction_per_level: 0.05,
     ball_damage_fraction_max: 0.5,
+    microwave_slowdown_base: 0.5,
+    microwave_slowdown_per_level: 0.022_222_223,
+    cone_fov_base_deg: 45.,
+    cone_fov_per_level_deg: 5.,
+    enemy_interval_decay_per_wave: 0.97,
+    enemies_per_wave_exponent: 1.25,
+    tank_wave_enemy_divisor: 3,
 };
 
 pub struct PinballDefenseConfig {
@@ -14,4 +21,11 @@ pub struct PinballDefenseConfig {
     pub ball_damage_fraction: f32,
     pub ball_damage_fraction_per_level: f32,
     pub ball_damage_fraction_max: f32,
+    pub microwave_slowdown_base: f32,
+    pub microwave_slowdown_per_level: f32,
+    pub cone_fov_base_deg: f32,
+    pub cone_fov_per_level_deg: f32,
+    pub enemy_interval_decay_per_wave: f32,
+    pub enemies_per_wave_exponent: f32,
+    pub tank_wave_enemy_divisor: usize,
 }

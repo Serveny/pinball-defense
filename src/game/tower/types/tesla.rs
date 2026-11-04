@@ -21,30 +21,14 @@ pub struct TeslaTower;
 #[derive(Component)]
 pub struct TeslaTubes;
 
-pub fn spawn(
-    pb_world: &mut ChildSpawnerCommands,
-    mats: &mut Assets<StandardMaterial>,
-    assets: &PinballDefenseGltfAssets,
-    g_sett: &GraphicsSettings,
-    pos: Vec3,
-) -> Entity {
-    let sight_radius = 0.15;
-    let tube_mat = tube_material(mats, assets);
-    super::spawn(
-        pb_world,
-        mats,
-        assets,
-        g_sett,
-        pos,
-        sight_radius,
-        (
-            Name::new("Tesla Tower"),
-            TeslaTower,
-            TargetAllInReach,
-            Targets::default(),
-            DamageOverTime(33.),
-        ),
-        |tower| build_view(tower, tube_mat.clone(), assets, g_sett, sight_radius),
+pub const SIGHT_RADIUS: f32 = 0.15;
+
+pub fn bundle() -> impl Bundle {
+    (
+        Name::new("Tesla Tower"),
+        TeslaTower,
+        TargetAllInReach,
+        DamageOverTime(33.),
     )
 }
 

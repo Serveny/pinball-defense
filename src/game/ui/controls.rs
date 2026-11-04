@@ -6,12 +6,11 @@ use crate::game::controls::InputKind;
 use crate::game::flipper::FlipperType;
 use crate::prelude::*;
 use crate::utils::GameColor;
-use bevy::prelude::default;
-use bevy::text::FontSize;
+use bevy::text::{FontSize, FontSourceTemplate};
 use bevy::window::WindowResized;
 use std::time::Duration;
 
-#[derive(Component)]
+#[derive(Component, Clone, Default)]
 pub struct ControlsUi;
 
 const HIDE_DELAY_SECS: f32 = 7.;
@@ -20,7 +19,6 @@ const FADE_DURATION_SECS: f32 = 2.;
 #[derive(Resource)]
 pub struct ControlsUiFade {
     timer: Timer,
-    started: bool,
 }
 
 impl Default for ControlsUiFade {
@@ -30,19 +28,12 @@ impl Default for ControlsUiFade {
                 Duration::from_secs_f32(HIDE_DELAY_SECS + FADE_DURATION_SECS),
                 TimerMode::Once,
             ),
-            started: false,
         }
     }
 }
 
 impl ControlsUiFade {
     pub fn reset(&mut self) {
-        self.started = false;
-        self.timer.reset();
-    }
-
-    fn start(&mut self) {
-        self.started = true;
         self.timer.reset();
     }
 
@@ -61,78 +52,29 @@ impl ControlsUiFade {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Clone, Default)]
 pub(super) struct FadeableColor(Color);
 
-pub fn spawn(mut cmd: Commands, ctl: Res<KeyboardControls>, ass: Res<PinballDefenseAssets>) {
+pub fn spawn(mut cmds: Commands, ctl: Res<KeyboardControls>, assets: Res<PinballDefenseAssets>) {
     use FieldPos::{Invisible, TopLeft, TopRight};
-    let cmd = &mut cmd;
-    spawn_key(
-        cmd,
-        KeyId::Key(ctl.flipper_left),
-        &ass,
-        Invisible,
-        "Flipper Left",
-    );
-    spawn_key(
-        cmd,
-        KeyId::Key(ctl.flipper_right),
-        &ass,
-        Invisible,
-        "Flipper Right",
-    );
-    spawn_key(
-        cmd,
-        KeyId::Key(ctl.charge_ball_starter),
-        &ass,
-        Invisible,
-        "Start",
-    );
-    spawn_key(cmd, KeyId::Key(ctl.menu), &ass, TopLeft, "Menu");
-    spawn_key(cmd, KeyId::Key(ctl.pause), &ass, TopRight(0), "Pause");
-    spawn_key(
-        cmd,
-        KeyId::Key(ctl.toggle_key_ui),
-        &ass,
-        TopRight(1),
-        "Toggle Keys UI",
-    );
-
-    spawn_key(
-        cmd,
-        KeyId::Button(GamepadButton::LeftTrigger),
-        &ass,
-        Invisible,
-        "Flipper Left",
-    );
-    spawn_key(
-        cmd,
-        KeyId::Button(GamepadButton::RightTrigger),
-        &ass,
-        Invisible,
-        "Flipper Right",
-    );
-    spawn_key(
-        cmd,
-        KeyId::Button(GamepadButton::East),
-        &ass,
-        Invisible,
-        "Start",
-    );
-    spawn_key(
-        cmd,
-        KeyId::Button(GamepadButton::Start),
-        &ass,
-        TopLeft,
-        "Menu",
-    );
-    spawn_key(
-        cmd,
-        KeyId::Button(GamepadButton::Start),
-        &ass,
-        TopRight(0),
-        "Pause",
-    );
+    use GamepadButton::{East, LeftTrigger, RightTrigger, Start};
+    let keys = [
+        (KeyId::Key(ctl.flipper_left), Invisible, "Flipper Left"),
+        (KeyId::Key(ctl.flipper_right), Invisible, "Flipper Right"),
+        (KeyId::Key(ctl.charge_ball_starter), Invisible, "Start"),
+        (KeyId::Key(ctl.menu), TopLeft, "Menu"),
+        (KeyId::Key(ctl.pause), TopRight(0), "Pause"),
+        (KeyId::Key(ctl.toggle_key_ui), TopRight(1), "Toggle Keys UI"),
+        (KeyId::Button(LeftTrigger), Invisible, "Flipper Left"),
+        (KeyId::Button(RightTrigger), Invisible, "Flipper Right"),
+        (KeyId::Button(East), Invisible, "Start"),
+        (KeyId::Button(Start), TopLeft, "Menu"),
+        (KeyId::Button(Start), TopRight(0), "Pause"),
+    ];
+    for (key, pos, text) in keys {
+        cmds.spawn_scene(key_scene(key, &assets, pos, text))
+            .insert(UiKey(key));
+    }
 }
 
 pub fn despawn(mut cmds: Commands, q_ui: Query<Entity, With<ControlsUi>>) {
@@ -260,77 +202,55 @@ impl KeyId {
     }
 }
 
-fn spawn_key(
-    p: &mut Commands,
-    key: KeyId,
-    assets: &PinballDefenseAssets,
-    pos: FieldPos,
-    text: &str,
-) {
-    p.spawn((Name::new("UI Key"), field_node(pos), UiKey(key), ControlsUi))
-        .with_children(|p| {
-            p.spawn((
-                Text(format!("{text} ")),
-                TextFont {
-                    font: assets.menu_font.clone().into(),
-                    font_size: FontSize::Px(40.0),
-                    ..default()
-                },
-                TextColor(GameColor::WHITE),
-                FadeableColor(GameColor::WHITE),
-            ));
-            p.spawn((
-                Node {
-                    width: Val::Auto,
-                    height: Val::Px(FIELD_HEIGHT_PX),
-                    border: UiRect::all(Val::Px(4.0)),
-                    padding: UiRect::new(Val::Px(4.), Val::Px(8.), Val::Px(0.), Val::Px(4.)),
-                    ..default()
-                },
-                BorderColor::from(GameColor::WHITE),
-                BackgroundColor(Color::NONE),
-                FadeableColor(GameColor::WHITE),
-            ))
-            .with_children(|p| {
-                p.spawn((
-                    Text(key.label()),
-                    TextFont {
-                        font: assets.menu_font.clone().into(),
-                        font_size: FontSize::Px(32.0),
-                        ..default()
-                    },
-                    TextColor(GameColor::WHITE),
-                    FadeableColor(GameColor::WHITE),
-                ));
-            });
-        });
+fn key_scene(key: KeyId, assets: &PinballDefenseAssets, pos: FieldPos, text: &str) -> impl Scene {
+    let font = || FontSourceTemplate::Handle(assets.menu_font.clone().into());
+    let (font_text, font_label) = (font(), font());
+    let text = format!("{text} ");
+    let label = key.label();
+    let (top, left, right) = field_offsets(pos);
+    bsn! {
+        Name::new("UI Key")
+        ControlsUi
+        Node {
+            position_type: PositionType::Absolute,
+            height: Val::Px(FIELD_HEIGHT_PX),
+            top: {top},
+            left: {left},
+            right: {right},
+        }
+        Children [
+            Text({text})
+            TextFont { font: {font_text}, font_size: FontSize::Px(40.) }
+            TextColor({GameColor::WHITE})
+            FadeableColor({GameColor::WHITE})
+            --
+            Node {
+                height: Val::Px(FIELD_HEIGHT_PX),
+                border: UiRect::all(Val::Px(4.)),
+                padding: UiRect::new(Val::Px(4.), Val::Px(8.), Val::Px(0.), Val::Px(4.)),
+            }
+            BorderColor::from(GameColor::WHITE)
+            FadeableColor({GameColor::WHITE})
+            Children [
+                Text({label})
+                TextFont { font: {font_label}, font_size: FontSize::Px(32.) }
+                TextColor({GameColor::WHITE})
+                FadeableColor({GameColor::WHITE})
+            ]
+        ]
+    }
 }
 
-fn field_node(pos: FieldPos) -> Node {
-    let mut style = Node {
-        position_type: PositionType::Absolute,
-        width: Val::Auto,
-        height: Val::Px(FIELD_HEIGHT_PX),
-        //display: Display::Flex,
-        //flex_direction: FlexDirection::Column,
-        //align_content: AlignContent::Center,
-        ..default()
-    };
+fn field_offsets(pos: FieldPos) -> (Val, Val, Val) {
     match pos {
-        FieldPos::TopLeft => {
-            style.top = Val::Px(10.);
-            style.left = Val::Px(10.);
-        }
-        FieldPos::TopRight(pos) => {
-            style.top = Val::Px(10. + f32::from(pos) * (FIELD_HEIGHT_PX + 5.));
-            style.right = Val::Px(10.);
-        }
-        FieldPos::Invisible => {
-            style.top = Val::Percent(100.);
-            style.left = Val::Percent(100.);
-        }
+        FieldPos::TopLeft => (Val::Px(10.), Val::Px(10.), Val::Auto),
+        FieldPos::TopRight(i) => (
+            Val::Px(10. + f32::from(i) * (FIELD_HEIGHT_PX + 5.)),
+            Val::Auto,
+            Val::Px(10.),
+        ),
+        FieldPos::Invisible => (Val::Percent(100.), Val::Percent(100.), Val::Auto),
     }
-    style
 }
 
 pub(super) fn on_resize_system(
@@ -376,12 +296,6 @@ pub(super) fn auto_hide_system(
     time: Res<Time>,
     mut set_ui_state: ResMut<NextState<crate::game::ui::UiState>>,
 ) {
-    if !fade.started {
-        fade.start();
-    }
-    if !fade.started {
-        return;
-    }
     fade.timer.tick(time.delta());
     let alpha = fade.alpha();
     for (base, mut color) in q_fadeable.iter_mut() {

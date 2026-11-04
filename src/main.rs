@@ -72,7 +72,7 @@ fn main() {
     .init_state::<AppState>()
     .add_systems(Update, toggle_fullscreen);
 
-    add_pysics_settings(&mut app);
+    add_physics_settings(&mut app);
 
     // Only show debug data in debug mode
     #[cfg(debug_assertions)]
@@ -114,6 +114,57 @@ fn toggle_fullscreen(
             WindowMode::Windowed
         };
     }
+}
+
+fn add_physics_settings(app: &mut App) {
+    app.insert_resource(Gravity(Vec2::X * 2.))
+        .insert_resource(Time::<Fixed>::from_hz(128.));
+}
+
+#[cfg(debug_assertions)]
+fn add_debug_plugins(app: &mut App) {
+    app.add_plugins((
+        EguiPlugin::default(),
+        WorldInspectorPlugin::new().run_if(|config_store: Res<GizmoConfigStore>| {
+            config_store.config::<PhysicsGizmos>().0.enabled
+        }),
+        PhysicsDebugPlugin,
+    ))
+    .insert_gizmo_config(
+        PhysicsGizmos::default(),
+        GizmoConfig {
+            enabled: false,
+            ..default()
+        },
+    )
+    .add_systems(Update, toggle_debug_visibility)
+    .add_systems(OnEnter(AppState::Game), spawn_egui_overlay_camera);
+}
+
+#[cfg(debug_assertions)]
+fn toggle_debug_visibility(
+    keys: Res<ButtonInput<KeyCode>>,
+    mut config_store: ResMut<GizmoConfigStore>,
+) {
+    if keys.just_pressed(KeyCode::F12) {
+        let (config, _) = config_store.config_mut::<PhysicsGizmos>();
+        config.enabled = !config.enabled;
+    }
+}
+
+#[cfg(debug_assertions)]
+fn spawn_egui_overlay_camera(mut cmds: Commands) {
+    cmds.spawn((
+        Name::new("Egui Overlay Camera"),
+        Camera2d,
+        Camera {
+            order: 100,
+            clear_color: ClearColorConfig::None,
+            ..default()
+        },
+        Hdr,
+        PrimaryEguiContext,
+    ));
 }
 
 #[cfg(test)]
@@ -195,55 +246,4 @@ mod tests {
             );
         }
     }
-}
-
-fn add_pysics_settings(app: &mut App) {
-    app.insert_resource(Gravity(Vec2::X * 2.))
-        .insert_resource(Time::<Fixed>::from_hz(128.));
-}
-
-#[cfg(debug_assertions)]
-fn add_debug_plugins(app: &mut App) {
-    app.add_plugins((
-        EguiPlugin::default(),
-        WorldInspectorPlugin::new().run_if(|config_store: Res<GizmoConfigStore>| {
-            config_store.config::<PhysicsGizmos>().0.enabled
-        }),
-        PhysicsDebugPlugin,
-    ))
-    .insert_gizmo_config(
-        PhysicsGizmos::default(),
-        GizmoConfig {
-            enabled: false,
-            ..default()
-        },
-    )
-    .add_systems(Update, toggle_debug_visibility)
-    .add_systems(OnEnter(AppState::Game), spawn_egui_overlay_camera);
-}
-
-#[cfg(debug_assertions)]
-fn toggle_debug_visibility(
-    keys: Res<ButtonInput<KeyCode>>,
-    mut config_store: ResMut<GizmoConfigStore>,
-) {
-    if keys.just_pressed(KeyCode::F12) {
-        let (config, _) = config_store.config_mut::<PhysicsGizmos>();
-        config.enabled = !config.enabled;
-    }
-}
-
-#[cfg(debug_assertions)]
-fn spawn_egui_overlay_camera(mut cmds: Commands) {
-    cmds.spawn((
-        Name::new("Egui Overlay Camera"),
-        Camera2d,
-        Camera {
-            order: 100,
-            clear_color: ClearColorConfig::None,
-            ..default()
-        },
-        Hdr,
-        PrimaryEguiContext,
-    ));
 }

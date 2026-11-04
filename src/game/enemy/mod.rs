@@ -177,20 +177,14 @@ fn on_spawn_system(
 pub struct LastDamager(pub Option<Entity>);
 
 fn enemy_color(wave: usize) -> Color {
-    let t = (wave_sat(wave) / 100.).min(1.);
+    let t = (wave as f32 / 100.).min(1.);
     let hue = 30. + (220. - 30.) * t;
     let lightness = 0.6 - 0.55 * t;
     Color::hsl(hue, 0.9, lightness)
 }
 
-#[allow(clippy::cast_precision_loss)]
-fn wave_sat(wave: usize) -> f32 {
-    f32::from(u16::try_from(wave).unwrap_or(u16::MAX))
-}
-
-#[allow(clippy::cast_precision_loss)]
 fn difficulty_sat(wave: usize) -> f32 {
-    let w = f32::from(u16::try_from(wave).unwrap_or(u16::MAX));
+    let w = wave as f32;
     w + 0.15 * (w - 18.).max(0.).powf(1.8)
 }
 

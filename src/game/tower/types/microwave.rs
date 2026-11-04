@@ -1,5 +1,6 @@
 use super::animations::RotateToTarget;
-use super::target::{AimFirstEnemy, ConeAim, ConeFov, TargetPos, Targets};
+use super::target::{ConeAim, ConeFov, TargetPos, Targets};
+use crate::game::cfg::CONFIG;
 use crate::game::tower::speed::SlowDownFactor;
 use crate::game::tower::{ShotLight, TowerHead, TowerReady};
 use crate::prelude::*;
@@ -18,29 +19,14 @@ const MW_DISH_MIN_ELEVATION: f32 = -50_f32.to_radians();
 const MW_DISH_MAX_ELEVATION: f32 = 40_f32.to_radians();
 const MW_CONE_FOV: f32 = 45_f32.to_radians();
 
-pub fn spawn(
-    pb_world: &mut ChildSpawnerCommands,
-    mats: &mut Assets<StandardMaterial>,
-    assets: &PinballDefenseGltfAssets,
-    g_sett: &GraphicsSettings,
-    pos: Vec3,
-) -> Entity {
-    let sight_radius = 0.3;
-    super::spawn(
-        pb_world,
-        mats,
-        assets,
-        g_sett,
-        pos,
-        sight_radius,
-        (
-            Name::new("Microwave Tower"),
-            MicrowaveTower,
-            AimFirstEnemy(None),
-            SlowDownFactor(0.5),
-            ConeFov(MW_CONE_FOV),
-        ),
-        |tower| build_view(tower, assets, g_sett, sight_radius),
+pub const SIGHT_RADIUS: f32 = 0.3;
+
+pub fn bundle() -> impl Bundle {
+    (
+        Name::new("Microwave Tower"),
+        MicrowaveTower,
+        SlowDownFactor(CONFIG.microwave_slowdown_base),
+        ConeFov(MW_CONE_FOV),
     )
 }
 
@@ -261,7 +247,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::float_cmp, clippy::manual_assert_eq)]
     fn pitch_is_clamped() {
         let min =
             dish_pitch(Vec3::new(0., 0.1, -1.)).clamp(MW_DISH_MIN_ELEVATION, MW_DISH_MAX_ELEVATION);

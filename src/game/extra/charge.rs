@@ -12,7 +12,7 @@ use crate::prelude::*;
 use crate::utils::RelEntity;
 
 fn charge_amount(hits_needed: u32) -> f32 {
-    1. / f32::from(u8::try_from(hits_needed.max(1)).unwrap_or(u8::MAX))
+    1. / hits_needed.max(1) as f32
 }
 
 pub(super) fn on_charge_system(
@@ -81,7 +81,6 @@ mod tests {
     use super::*;
 
     #[test]
-    #[allow(clippy::float_cmp)]
     fn extra_field_charge_amount_is_inverse_of_hits() {
         assert_eq!(charge_amount(2), 0.5);
         assert_eq!(charge_amount(4), 0.25);

@@ -58,8 +58,7 @@ pub fn ball_damage(
     level: crate::game::level::Level,
 ) -> f32 {
     let fraction = (CONFIG.ball_damage_fraction
-        + f32::from(u16::try_from(level).unwrap_or(u16::MAX))
-            * CONFIG.ball_damage_fraction_per_level)
+        + level as f32 * CONFIG.ball_damage_fraction_per_level)
         .min(CONFIG.ball_damage_fraction_max);
     let base = -enemy_max_health * fraction;
     if effects.is_active(now, ExtraFieldKind::InstaKill) {
@@ -83,7 +82,6 @@ pub(super) fn slow_reapply_system(
 }
 
 #[derive(Resource, Default)]
-#[allow(clippy::struct_field_names)]
 pub struct ActiveEffects {
     pub slow_until: f32,
     pub double_upgrade_points_until: f32,
@@ -129,7 +127,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::float_cmp)]
     fn extra_field_ball_damage_modes() {
         let mut effects = ActiveEffects::default();
         let base = |lvl: u8, max: f32| {
@@ -147,7 +144,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::float_cmp)]
     fn double_upgrade_points_doubles_progress_amount() {
         let mut effects = ActiveEffects::default();
         assert_eq!(effects.progress_amount(4.9, 0.1), 0.1);
@@ -157,7 +153,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::float_cmp)]
     fn ball_damage_scales_with_level_and_caps() {
         let effects = ActiveEffects::default();
         let expected = |lvl: u8| {

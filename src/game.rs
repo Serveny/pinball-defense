@@ -131,7 +131,10 @@ impl Plugin for GamePlugin {
                 save_and_exit_system.run_if(in_state(GameState::Ingame)),
             )
             .add_systems(OnEnter(AppState::Game), init_game)
-            .add_systems(OnExit(AppState::Game), clean_up_on_exit_game)
+            .add_systems(
+                OnExit(AppState::Game),
+                (despawn_game_system, reset_game_state),
+            )
             .add_systems(
                 OnEnter(GameState::GameOver),
                 (game_over::spawn, pause_on_game_over),
@@ -149,7 +152,7 @@ impl Plugin for GamePlugin {
                 )
                     .run_if(in_state(GameState::GameOver)),
             )
-            .add_systems(OnExit(GameState::GameOver), reset);
+            .add_systems(OnExit(GameState::GameOver), despawn_game_system);
     }
 }
 
@@ -171,15 +174,11 @@ fn save_and_exit_system(
 
 fn start_game(
     mut cmds: Commands,
-    game_state: Res<State<GameState>>,
     mut next_game_state: ResMut<NextState<GameState>>,
     mut ev_state: ResMut<NextState<EventState>>,
     mut ui_state: ResMut<NextState<UiState>>,
 ) {
-    let fresh_start = game_state.get() != &GameState::Pause;
-    if fresh_start {
-        cmds.insert_resource(IngameTime::default());
-    }
+    cmds.insert_resource(IngameTime::default());
     next_game_state.set(GameState::Ingame);
     ev_state.set(EventState::Active);
     ui_state.set(UiState::Controls);
@@ -259,45 +258,31 @@ fn pause_on_game_over(
     pause_times(&mut physics_time, &mut virtual_time);
 }
 
-fn reset(
+type QGameRoots<'w, 's> = Query<
+    'w,
+    's,
+    Entity,
+    Or<(
+        With<GameOverScreen>,
+        With<PinBall>,
+        With<PinballWorld>,
+        With<Camera>,
+        With<DirectionalLight>,
+    )>,
+>;
+
+fn despawn_game_system(
     mut cmds: Commands,
     mut physics_time: ResMut<Time<Physics>>,
     mut virtual_time: ResMut<Time<Virtual>>,
-    q_game_over_screen: Query<
-        Entity,
-        Or<(
-            With<GameOverScreen>,
-            With<PinBall>,
-            With<PinballWorld>,
-            With<Camera>,
-            With<DirectionalLight>,
-        )>,
-    >,
+    q_game: QGameRoots,
 ) {
-    q_game_over_screen
-        .iter()
-        .for_each(|entity| cmds.entity(entity).despawn());
+    for entity in &q_game {
+        cmds.entity(entity).despawn();
+    }
     resume_times(&mut physics_time, &mut virtual_time);
 }
 
-fn clean_up_on_exit_game(
-    mut cmds: Commands,
-    mut game_state: ResMut<NextState<GameState>>,
-    mut physics_time: ResMut<Time<Physics>>,
-    mut virtual_time: ResMut<Time<Virtual>>,
-    q_game: Query<
-        Entity,
-        Or<(
-            With<PinBall>,
-            With<PinballWorld>,
-            With<Camera>,
-            With<DirectionalLight>,
-        )>,
-    >,
-) {
+fn reset_game_state(mut game_state: ResMut<NextState<GameState>>) {
     game_state.set(GameState::None);
-    resume_times(&mut physics_time, &mut virtual_time);
-    for entity in q_game.iter() {
-        cmds.entity(entity).despawn();
-    }
 }

@@ -62,7 +62,6 @@ impl Digit {
         -rotation_to_add
     }
 
-    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     fn is_on_number(&self) -> Option<u8> {
         let num_rot = self.current_rot.rem_euclid(NUMBER_ROT);
         if !(ROT_TOLERANCE..=ROT_TOLERANCE_MAX).contains(&num_rot) {
@@ -93,8 +92,7 @@ fn on_set_system(
         if let Some((counter_id, _)) = q_counter.iter().find(|(_, rel_id)| rel_id.0 == ev.rel_id) {
             for (i, number) in ev.number.digits().rev().enumerate() {
                 if let Some((mut digit, _)) = q_digit.iter_mut().find(|(digit_comp, child_of)| {
-                    child_of.parent() == counter_id
-                        && digit_comp.position == u8::try_from(i).unwrap_or(u8::MAX)
+                    child_of.parent() == counter_id && digit_comp.position == i as u8
                 }) {
                     digit.set_number(number);
                 } else {

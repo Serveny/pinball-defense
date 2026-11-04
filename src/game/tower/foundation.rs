@@ -66,10 +66,7 @@ pub(super) fn on_spawn_system(
     mut cmds: Commands,
     mut evr: MessageReader<LevelUpEvent>,
     mut q_mark: Query<(Entity, &mut FoundationBuildMark, &Transform)>,
-    mut mats: ResMut<Assets<StandardMaterial>>,
-    assets: Res<PinballDefenseGltfAssets>,
     q_pb_word: Query<Entity, With<PinballWorld>>,
-    g_sett: Res<GraphicsSettings>,
     level: Res<LevelHub>,
 ) {
     for LevelUpEvent(new_level) in evr.read() {
@@ -86,11 +83,15 @@ pub(super) fn on_spawn_system(
 
             // Spawn foundation
             if let Ok(world_id) = q_pb_word.single() {
-                let mut foundation_id = Entity::PLACEHOLDER;
-                cmds.entity(world_id).with_children(|p| {
-                    let hit_progress = level.foundation_hit_progress();
-                    foundation_id = spawn(p, &mut mats, &assets, &g_sett, pos, hit_progress);
-                });
+                let foundation_id = cmds
+                    .spawn((
+                        ChildOf(world_id),
+                        Transform::from_translation(pos),
+                        TowerFoundation::new(level.foundation_hit_progress()),
+                        Progress(0.),
+                        TweenAnim::new(spawn_animation(pos)),
+                    ))
+                    .id();
                 ui::progress_bar::spawn_transient(
                     &mut cmds,
                     foundation_id,
@@ -100,20 +101,6 @@ pub(super) fn on_spawn_system(
             }
         }
     }
-}
-
-fn spawn(
-    spawner: &mut ChildSpawnerCommands,
-    mats: &mut Assets<StandardMaterial>,
-    assets: &PinballDefenseGltfAssets,
-    g_sett: &GraphicsSettings,
-    pos: Vec3,
-    hit_progress: f32,
-) -> Entity {
-    spawner
-        .spawn(ring(assets, pos, hit_progress))
-        .with_children(|p| spawn_foundation_children(p, assets, mats, g_sett))
-        .id()
 }
 
 fn foundation_view_bundle(assets: &PinballDefenseGltfAssets) -> impl Bundle {
@@ -155,16 +142,6 @@ fn spawn_foundation_children(
     });
 }
 
-fn ring(assets: &PinballDefenseGltfAssets, pos: Vec3, hit_progress: f32) -> impl Bundle {
-    (
-        foundation_view_bundle(assets),
-        Transform::from_translation(pos),
-        TowerFoundation::new(hit_progress),
-        Progress(0.),
-        TweenAnim::new(spawn_animation(pos)),
-    )
-}
-
 pub(super) fn reattach_foundations_system(
     mut cmds: Commands,
     assets: Res<PinballDefenseGltfAssets>,
@@ -176,9 +153,7 @@ pub(super) fn reattach_foundations_system(
     let Ok(world) = q_world.single() else { return };
     for foundation_id in q_foundations.iter() {
         cmds.entity(foundation_id)
-            .insert(foundation_view_bundle(&assets));
-        cmds.entity(world).add_child(foundation_id);
-        cmds.entity(foundation_id)
+            .insert((ChildOf(world), foundation_view_bundle(&assets)))
             .with_children(|p| spawn_foundation_children(p, &assets, &mut mats, &g_sett));
     }
 }

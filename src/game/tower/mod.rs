@@ -147,14 +147,14 @@ pub struct TowerReady;
 
 const TOWER_CONTACT_COLOR: Color = Color::srgb_u8(115, 27, 7);
 
-fn tower_bundle(pos: Vec3, sight_radius: f32) -> impl Bundle {
+fn tower_bundle(world: Entity, pos: Vec3, sight_radius: f32) -> impl Bundle {
     (
+        ChildOf(world),
         spatial_from_pos(tower_start_pos(pos)),
         Tower::new(pos),
         TowerLevel(1),
         SightRadius(sight_radius),
         Progress(0.),
-        tower_physics_bundle(),
         TweenAnim::new(create_tower_spawn_animator(pos)),
         AfterTween::ActivateTower,
     )
@@ -267,39 +267,6 @@ fn spawn_tower_radial(
     });
 }
 
-fn spawn(
-    pb_world: &mut ChildSpawnerCommands,
-    mats: &mut Assets<StandardMaterial>,
-    assets: &PinballDefenseGltfAssets,
-    g_sett: &GraphicsSettings,
-    pos: Vec3,
-    sight_radius: f32,
-    tower_type_bundle: impl Bundle,
-    add_to_tower: impl Fn(&mut ChildSpawnerCommands),
-) -> Entity {
-    pb_world
-        .spawn(tower_bundle(pos, sight_radius))
-        .insert(tower_type_bundle)
-        .with_children(|p| {
-            let tower_id = p.target_entity();
-            spawn_tower_base_meshes(p, assets);
-            p.spawn(contact_light_bundle(g_sett, TOWER_CONTACT_COLOR));
-            p.spawn(tower_sight_sensor_bundle(sight_radius));
-            p.spawn(sight_radius_light(sight_radius));
-            spawn_tower_radial(
-                p,
-                assets,
-                mats,
-                tower_id,
-                progress::UPGRADE_PROGRESS_COLOR,
-                0.,
-                1,
-            );
-            add_to_tower(p);
-        })
-        .id()
-}
-
 fn create_tower_spawn_animator(pos: Vec3) -> Sequence {
     let delay = Delay::new(Duration::from_secs(1));
     let tween = Tween::new(
@@ -330,24 +297,26 @@ fn reattach_towers_system(
             &SightRadius,
             &Progress,
             &TowerLevel,
-            Option<&types::gun::GunTower>,
-            Option<&types::tesla::TeslaTower>,
-            Option<&types::microwave::MicrowaveTower>,
+            Has<TweenAnim>,
+            Has<types::gun::GunTower>,
+            Has<types::tesla::TeslaTower>,
+            Has<types::microwave::MicrowaveTower>,
         ),
-        (With<Tower>, Without<Collider>),
+        Without<Collider>,
     >,
 ) {
     let Ok(world) = q_world.single() else { return };
-    for (tower_id, tower, sight, progress, level, gun, tesla, micro) in q_towers.iter() {
+    for (tower_id, tower, sight, progress, level, spawning, gun, tesla, micro) in q_towers.iter() {
         let sight_radius = sight.0;
-        cmds.entity(tower_id)
-            .insert(tower_physics_bundle())
-            .insert(Transform::from_translation(tower.pos));
-        if gun.is_some() || micro.is_some() {
-            cmds.entity(tower_id).insert(target::AimFirstEnemy(None));
+        let mut tower_cmds = cmds.entity(tower_id);
+        tower_cmds.insert(tower_physics_bundle());
+        if !spawning {
+            tower_cmds.insert((ChildOf(world), Transform::from_translation(tower.pos)));
         }
-        cmds.entity(world).add_child(tower_id);
-        cmds.entity(tower_id).with_children(|p| {
+        if gun || micro {
+            tower_cmds.insert(target::AimFirstEnemy(None));
+        }
+        tower_cmds.with_children(|p| {
             spawn_tower_base_meshes(p, &assets);
             p.spawn(contact_light_bundle(&g_sett, TOWER_CONTACT_COLOR));
             p.spawn(tower_sight_sensor_bundle(sight_radius));
@@ -361,18 +330,18 @@ fn reattach_towers_system(
                 progress.0,
                 level.0,
             );
-            if gun.is_some() {
-                types::gun::build_view(p, &assets, &g_sett, sight_radius);
-            } else if tesla.is_some() {
-                types::tesla::build_view(
+            if gun {
+                gun::build_view(p, &assets, &g_sett, sight_radius);
+            } else if tesla {
+                tesla::build_view(
                     p,
-                    types::tesla::tube_material(&mut mats, &assets),
+                    tesla::tube_material(&mut mats, &assets),
                     &assets,
                     &g_sett,
                     sight_radius,
                 );
-            } else if micro.is_some() {
-                types::microwave::build_view(p, &assets, &g_sett, sight_radius);
+            } else if micro {
+                microwave::build_view(p, &assets, &g_sett, sight_radius);
             }
         });
     }
@@ -384,37 +353,37 @@ pub struct SpawnTowerEvent(pub TowerType, pub Vec3);
 fn on_spawn_tower_system(
     mut cmds: Commands,
     mut evr: MessageReader<SpawnTowerEvent>,
-    mut mats: ResMut<Assets<StandardMaterial>>,
     mut points_ev: MessageWriter<PointsEvent>,
     mut sound_ev: MessageWriter<SoundEvent>,
-    assets: Res<PinballDefenseGltfAssets>,
     ui_assets: Res<PinballDefenseAssets>,
     q_pbw: QueryWorld,
-    g_sett: Res<GraphicsSettings>,
 ) {
-    for ev in evr.read() {
-        if let Ok(world) = q_pbw.single() {
-            let mut tower_id = Entity::PLACEHOLDER;
-            cmds.entity(world).with_children(|spawner| {
-                let pos = ev.1;
-                tower_id = match ev.0 {
-                    TowerType::Gun => gun::spawn(spawner, &mut mats, &assets, &g_sett, pos),
-                    TowerType::Tesla => tesla::spawn(spawner, &mut mats, &assets, &g_sett, pos),
-                    TowerType::Microwave => {
-                        microwave::spawn(spawner, &mut mats, &assets, &g_sett, pos)
-                    }
-                };
-            });
-            ui::progress_bar::spawn_transient(
-                &mut cmds,
-                tower_id,
-                0.,
-                progress::UPGRADE_PROGRESS_COLOR,
-            );
-            ui::floating_text::spawn_tower_build(&mut cmds, ev.1, ev.0, &ui_assets);
-            points_ev.write(PointsEvent::new(PointsKind::TowerBuild, ev.1));
-            sound_ev.write(SoundEvent::TowerBuild);
+    let Ok(world) = q_pbw.single() else { return };
+    for SpawnTowerEvent(kind, pos) in evr.read() {
+        let pos = *pos;
+        let tower_id = match kind {
+            TowerType::Gun => {
+                cmds.spawn((tower_bundle(world, pos, gun::SIGHT_RADIUS), gun::bundle()))
+            }
+            TowerType::Tesla => cmds.spawn((
+                tower_bundle(world, pos, tesla::SIGHT_RADIUS),
+                tesla::bundle(),
+            )),
+            TowerType::Microwave => cmds.spawn((
+                tower_bundle(world, pos, microwave::SIGHT_RADIUS),
+                microwave::bundle(),
+            )),
         }
+        .id();
+        ui::progress_bar::spawn_transient(
+            &mut cmds,
+            tower_id,
+            0.,
+            progress::UPGRADE_PROGRESS_COLOR,
+        );
+        ui::floating_text::spawn_tower_build(&mut cmds, pos, *kind, &ui_assets);
+        points_ev.write(PointsEvent::new(PointsKind::TowerBuild, pos));
+        sound_ev.write(SoundEvent::TowerBuild);
     }
 }
 
@@ -492,7 +461,8 @@ pub fn level_color(level: u8) -> Color {
 }
 
 fn upgraded_radius(radius: f32, current_level: u8) -> f32 {
-    radius * (1. + f32::from(current_level) / 9.) / (1. + f32::from(current_level - 1) / 9.)
+    radius * (1. + f32::from(current_level) / 9.)
+        / (1. + f32::from(current_level.saturating_sub(1)) / 9.)
 }
 
 fn on_upgrade_system(
@@ -538,10 +508,13 @@ fn on_upgrade_system(
             damage.0 *= CONFIG.damage_upgrade_factor;
         }
         if let Some(mut slowdown) = slowdown {
-            slowdown.0 = 0.5 - f32::from(level.0 - 1) * 0.022_222_223;
+            slowdown.0 = CONFIG.microwave_slowdown_base
+                - f32::from(level.0 - 1) * CONFIG.microwave_slowdown_per_level;
         }
         if let Some(mut cone) = cone {
-            cone.0 = (45. + f32::from(level.0 - 1) * 5.).to_radians();
+            cone.0 = (CONFIG.cone_fov_base_deg
+                + f32::from(level.0 - 1) * CONFIG.cone_fov_per_level_deg)
+                .to_radians();
         }
         update_collider_size(&mut q_coll, sight.0, *tower_id);
         update_sight_radius_light_size(&mut q_sr_light, sight.0, *tower_id);

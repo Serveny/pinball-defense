@@ -101,7 +101,7 @@ pub struct LevelHub {
 
 impl LevelHub {
     pub fn foundation_hit_progress(&self) -> f32 {
-        1. / (f32::from(u16::try_from(self.level).unwrap_or(u16::MAX)) * 3.)
+        1. / (self.level as f32 * 3.)
     }
 
     pub fn level(&self) -> Level {

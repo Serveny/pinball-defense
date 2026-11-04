@@ -6,6 +6,7 @@ use crate::game::tower::{TowerUpgradedEvent, level_numeral};
 use crate::game::wave::WaveStartedEvent;
 use crate::prelude::*;
 use bevy::color::Hsva;
+use bevy::text::{FontSize, FontSourceTemplate};
 use bevy::ui::{BackgroundGradient, BoxShadow, ColorStop, Gradient, LinearGradient};
 
 const BANNER_SECS: f32 = 2.;
@@ -21,7 +22,6 @@ const BASE_HIT_THRESHOLD: f32 = 0.3;
 #[derive(Component)]
 pub(super) struct EventBanner {
     timer: Timer,
-    slot: u32,
 }
 
 impl EventBanner {
@@ -32,7 +32,6 @@ impl EventBanner {
         };
         Self {
             timer: Timer::from_seconds(secs, TimerMode::Once),
-            slot: 0,
         }
     }
 }
@@ -148,34 +147,45 @@ fn banner_background(hue: f32, alpha: f32) -> BackgroundGradient {
     ]))])
 }
 
-fn spawn_banner(
-    cmds: &mut Commands,
-    kind: BannerType,
-    wave: usize,
-    _slot: u32,
-    assets: &PinballDefenseAssets,
-) {
+fn banner_text(text: String, size: f32, color: Color, font: Handle<Font>) -> impl Scene {
+    let font = FontSourceTemplate::Handle(font.into());
+    bsn! {
+        Text({text})
+        TextLayout::justify(Justify::Center)
+        TextFont { font: {font}, font_size: FontSize::Px({size}) }
+        TextColor({color})
+        TextShadow
+    }
+}
+
+fn spawn_banner(cmds: &mut Commands, kind: BannerType, wave: usize, assets: &PinballDefenseAssets) {
     let hue = kind.hue();
-    cmds.spawn((
-        Name::new("Event Banner"),
-        EventBanner::new(kind),
-        BannerKind(kind),
+    let font = assets.menu_font.clone();
+    let title = banner_text(kind.title(wave), 36., hue_shifted(hue, 1.), font.clone());
+    let subtitle = kind
+        .subtitle()
+        .map(|sub| banner_text(sub, 16., Color::from(Hsva::new(hue, 0.3, 1., 1.)), font));
+    cmds.spawn_scene(bsn! {
+        Name::new("Event Banner")
         Node {
             position_type: PositionType::Absolute,
             top: Val::Px(TOP_MARGIN_PX),
             left: Val::Percent(30.),
             width: Val::Percent(40.),
-            height: Val::Auto,
             flex_direction: FlexDirection::Column,
             align_items: AlignItems::Center,
             row_gap: Val::Px(2.),
             border: UiRect::all(Val::Px(1.)),
             border_radius: BorderRadius::all(Val::Px(8.)),
             padding: UiRect::new(Val::Px(6.), Val::Px(18.), Val::Px(8.), Val::Px(8.)),
-            ..default()
-        },
+        }
+        GlobalZIndex(5)
+        Children [ @title ]
+    })
+    .insert((
+        EventBanner::new(kind),
+        BannerKind(kind),
         banner_background(hue, 1.),
-        UiTransform::from_scale(Vec2::splat(1.)),
         Pickable::IGNORE,
         BoxShadow::new(
             hue_shifted(hue, 0.35),
@@ -184,32 +194,10 @@ fn spawn_banner(
             Val::Px(10.),
             Val::Px(18.),
         ),
-        GlobalZIndex(5),
     ))
     .with_children(|p| {
-        p.spawn((
-            Text(kind.title(wave)),
-            TextLayout::justify(Justify::Center),
-            TextFont {
-                font: assets.menu_font.clone().into(),
-                font_size: FontSize::Px(36.),
-                ..default()
-            },
-            TextColor(hue_shifted(hue, 1.)),
-            TextShadow::default(),
-        ));
-        if let Some(sub) = kind.subtitle() {
-            p.spawn((
-                Text(sub),
-                TextLayout::justify(Justify::Center),
-                TextFont {
-                    font: assets.menu_font.clone().into(),
-                    font_size: FontSize::Px(16.),
-                    ..default()
-                },
-                TextColor(Color::from(Hsva::new(hue, 0.3, 1., 1.))),
-                TextShadow::default(),
-            ));
+        if let Some(subtitle) = subtitle {
+            p.spawn_empty().apply_scene(subtitle);
         }
         p.spawn((
             BannerLine,
@@ -228,42 +216,37 @@ pub(super) fn on_level_up_system(
     mut evr: MessageReader<LevelUpEvent>,
     mut cmds: Commands,
     assets: Res<PinballDefenseAssets>,
-    q_banner: Query<(), With<EventBanner>>,
 ) {
     for ev in evr.read() {
         if ev.0 < 2 {
             continue;
         }
-        let slot = u32::try_from(q_banner.iter().count()).unwrap_or(0);
-        spawn_banner(
-            &mut cmds,
-            BannerType::LevelUp { level: ev.0 },
-            0,
-            slot,
-            &assets,
-        );
+        spawn_banner(&mut cmds, BannerType::LevelUp { level: ev.0 }, 0, &assets);
     }
 }
 
 pub(super) fn on_extra_field_unlock_system(
     mut evr: MessageReader<crate::game::extra::ExtraFieldUnlockEvent>,
-    mut q_banner: Query<&mut Text, With<BannerKind>>,
-    q_banner_kind: Query<&BannerKind>,
+    q_banner: Query<(&BannerKind, &Children)>,
+    mut q_text: Query<&mut Text>,
 ) {
     for crate::game::extra::ExtraFieldUnlockEvent(kind) in evr.read() {
         let line = extra_field_unlock_line(*kind);
-        for (mut text, banner_kind) in q_banner.iter_mut().zip(q_banner_kind.iter()) {
+        for (banner_kind, children) in &q_banner {
             let BannerType::LevelUp { .. } = banner_kind.0 else {
                 continue;
             };
-            if text.to_string().contains(&line) {
-                continue;
-            }
-            let existing = text.to_string();
-            if existing.contains("Unlocks") {
-                text.0 = format!("{existing}{line}\n");
-            } else {
-                text.0 = format!("{existing}\nUnlocks\n{line}\n");
+            for &child in children {
+                let Ok(mut text) = q_text.get_mut(child) else {
+                    continue;
+                };
+                if !text.0.contains("Unlocks") || text.0.contains(&line) {
+                    continue;
+                }
+                if !text.0.ends_with('\n') {
+                    text.0.push('\n');
+                }
+                text.0.push_str(&line);
             }
         }
     }
@@ -273,15 +256,13 @@ pub(super) fn on_wave_started_system(
     mut evr: MessageReader<WaveStartedEvent>,
     mut cmds: Commands,
     assets: Res<PinballDefenseAssets>,
-    q_banner: Query<(), With<EventBanner>>,
 ) {
     for ev in evr.read() {
         let kind = match ev.kind {
             EnemyKind::Normal => BannerType::Wave,
             other => BannerType::SpecialWave(other),
         };
-        let slot = u32::try_from(q_banner.iter().count()).unwrap_or(0);
-        spawn_banner(&mut cmds, kind, ev.number, slot, &assets);
+        spawn_banner(&mut cmds, kind, ev.number, &assets);
     }
 }
 
@@ -289,11 +270,9 @@ pub(super) fn on_tower_upgraded_system(
     mut evr: MessageReader<TowerUpgradedEvent>,
     mut cmds: Commands,
     assets: Res<PinballDefenseAssets>,
-    q_banner: Query<(), With<EventBanner>>,
 ) {
     for TowerUpgradedEvent(_, level) in evr.read() {
-        let slot = u32::try_from(q_banner.iter().count()).unwrap_or(0);
-        spawn_banner(&mut cmds, BannerType::Upgraded(*level), 0, slot, &assets);
+        spawn_banner(&mut cmds, BannerType::Upgraded(*level), 0, &assets);
     }
 }
 
@@ -301,11 +280,9 @@ pub(super) fn on_extra_fire_system(
     mut evr: MessageReader<crate::game::extra::ExtraFieldFireEvent>,
     mut cmds: Commands,
     assets: Res<PinballDefenseAssets>,
-    q_banner: Query<(), With<EventBanner>>,
 ) {
     for crate::game::extra::ExtraFieldFireEvent(kind) in evr.read() {
-        let slot = u32::try_from(q_banner.iter().count()).unwrap_or(0);
-        spawn_banner(&mut cmds, BannerType::Extra(*kind), 0, slot, &assets);
+        spawn_banner(&mut cmds, BannerType::Extra(*kind), 0, &assets);
     }
 }
 
@@ -322,7 +299,7 @@ pub(super) fn on_base_hit_system(
             *warned = false;
         } else if fraction <= BASE_HIT_THRESHOLD && !*warned && q_banner.is_empty() {
             *warned = true;
-            spawn_banner(&mut cmds, BannerType::BaseHit, 0, 0, &assets);
+            spawn_banner(&mut cmds, BannerType::BaseHit, 0, &assets);
         }
     }
 }
@@ -349,7 +326,7 @@ pub(super) fn banner_update_system(
     mut q_line_gradient: Query<(&ChildOf, &mut BackgroundGradient), With<BannerLine>>,
     mut q_text: Query<(&ChildOf, &mut TextColor)>,
 ) {
-    let mut order: Vec<(u32, Entity, f32, f32, f32)> = Vec::new();
+    let mut order: Vec<(f32, Entity, f32, f32)> = Vec::new();
     for (id, mut banner, _node, mut transform, computed, kind, mut glow) in q_banner.iter_mut() {
         banner.timer.tick(time.delta());
         if banner.timer.is_finished() {
@@ -370,7 +347,7 @@ pub(super) fn banner_update_system(
         };
 
         let hue = kind.0.hue() + t * 60.;
-        order.push((banner.slot, id, computed.unrounded_size.y, slide, alpha));
+        order.push((t, id, computed.unrounded_size.y, slide));
         if let Ok(mut gradient) = q_root_gradient.get_mut(id) {
             *gradient = banner_background(hue, alpha);
         }
@@ -391,9 +368,9 @@ pub(super) fn banner_update_system(
         transform.scale = Vec2::splat(scale);
     }
 
-    order.sort_by_key(|(slot, ..)| *slot);
+    order.sort_by(|a, b| b.0.total_cmp(&a.0));
     let mut next_top = TOP_MARGIN_PX;
-    for (_slot, id, height, slide, _alpha) in order {
+    for (_, id, height, slide) in order {
         let top = (next_top - slide).min(MAX_TOP_PX);
         next_top = top + slide + height + GAP_PX;
         if let Ok((_, _, mut node, _, _, _, _)) = q_banner.get_mut(id) {

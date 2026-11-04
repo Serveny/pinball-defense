@@ -36,32 +36,15 @@ pub(crate) struct GameOverDelay(Option<f32>);
 #[require(Save)]
 pub struct LifeBar;
 
-pub fn spawn_life_bar(
-    spawner: &mut ChildSpawnerCommands,
-    assets: &PinballDefenseGltfAssets,
-    materials: &mut Assets<StandardMaterial>,
-    trans: Transform,
-) {
-    spawner
-        .spawn((
-            Name::new("Life Bar"),
-            trans,
-            LifeBar,
-            Health::new(100.),
-            HealthRecovery::new(4., 6.),
-            Visibility::Inherited,
-        ))
-        .with_children(|spawner| {
-            super::progress::spawn(
-                spawner,
-                assets,
-                materials,
-                spawner.target_entity(),
-                Transform::default(),
-                super::progress::PLAYER_HEALTH_COLOR,
-                1.,
-            );
-        });
+pub fn spawn_life_bar(spawner: &mut ChildSpawnerCommands, trans: Transform) {
+    spawner.spawn((
+        Name::new("Life Bar"),
+        trans,
+        LifeBar,
+        Health::new(100.),
+        HealthRecovery::new(4., 6.),
+        Visibility::Inherited,
+    ));
 }
 
 fn reattach_life_bar_system(
@@ -73,18 +56,19 @@ fn reattach_life_bar_system(
 ) {
     let Ok(world) = q_world.single() else { return };
     for (life_bar_id, health) in q_life_bars.iter() {
-        cmds.entity(world).add_child(life_bar_id);
-        cmds.entity(life_bar_id).with_children(|spawner| {
-            super::progress::spawn(
-                spawner,
-                &assets,
-                &mut mats,
-                life_bar_id,
-                Transform::default(),
-                super::progress::PLAYER_HEALTH_COLOR,
-                health.fraction(),
-            );
-        });
+        cmds.entity(life_bar_id)
+            .insert(ChildOf(world))
+            .with_children(|spawner| {
+                super::progress::spawn(
+                    spawner,
+                    &assets,
+                    &mut mats,
+                    life_bar_id,
+                    Transform::default(),
+                    super::progress::PLAYER_HEALTH_COLOR,
+                    health.fraction(),
+                );
+            });
     }
 }
 

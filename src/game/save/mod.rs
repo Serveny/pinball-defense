@@ -37,7 +37,9 @@ fn apply_pending_load(mut cmds: Commands, pending: Option<Res<PendingLoad>>) {
 }
 
 pub fn save_game(cmds: &mut Commands, path: impl Into<PathBuf>) {
-    let _ = std::fs::create_dir_all(SAVE_DIR);
+    if let Err(err) = std::fs::create_dir_all(SAVE_DIR) {
+        warn!("😭 Could not create save directory {SAVE_DIR}: {err}");
+    }
     cmds.trigger_save(save_world(path));
 }
 

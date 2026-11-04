@@ -235,7 +235,6 @@ pub(super) fn reset_on_upgrade_system(
     }
 }
 
-#[allow(clippy::float_cmp)]
 pub(super) fn sync_progress_to_entities(
     q_bars: Query<(&RelEntity, &Progress), With<ProgressUiBar>>,
     mut q_entities: Query<&mut Progress, Without<ProgressUiBar>>,
@@ -283,7 +282,6 @@ pub(super) fn ensure_bars_on_load(
 
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::float_cmp)]
     use super::*;
     use bevy::ecs::system::RunSystemOnce;
     use std::time::Duration;

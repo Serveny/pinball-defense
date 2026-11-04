@@ -89,7 +89,6 @@ impl ProgressBarCountUpEvent {
     }
 }
 
-#[allow(clippy::float_cmp)]
 fn on_count_up_system(
     mut evr: MessageReader<ProgressBarCountUpEvent>,
     mut q_progress: QueryProgressBar,

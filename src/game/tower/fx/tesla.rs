@@ -166,7 +166,7 @@ fn bolt_mesh() -> Mesh {
     let mut indices = Vec::with_capacity((MAX_BRANCHES + 1) * IMPACT_SEGMENTS * 36);
     for path in 0..=MAX_BRANCHES {
         for seg in 0..IMPACT_SEGMENTS {
-            let row = u16::try_from(path * PATH_VERTICES + seg * 8).unwrap_or(u16::MAX);
+            let row = (path * PATH_VERTICES + seg * 8) as u16;
             for col in [0, 1, 2, 4, 5, 6] {
                 let base = row + col;
                 indices.extend([base, base + 8, base + 1, base + 1, base + 8, base + 9]);
@@ -199,7 +199,6 @@ pub(in super::super) struct TeslaImpactSmoke;
 #[derive(Component)]
 pub(in super::super) struct TeslaImpactFlash;
 
-#[allow(clippy::cast_precision_loss)]
 fn hash01(x: f32) -> f32 {
     (x.sin() * 43_758.547).fract().abs()
 }
@@ -305,7 +304,6 @@ fn write_bolt_path(positions: &mut [[f32; 3]], start: Vec3, end: Vec3, width: f3
     let up = side.cross(dir);
     let jitter = BOLT_JITTER.min(delta.length() * 0.18);
     for (seg, strip) in positions.as_chunks_mut::<8>().0.iter_mut().enumerate() {
-        #[allow(clippy::cast_precision_loss)]
         let t = seg as f32 / IMPACT_SEGMENTS as f32;
         let envelope = (t * (1. - t) * 4.).sqrt();
         let jag_side = (hash01(t * 87.72 + seed) - 0.5) * jitter * envelope;
@@ -351,6 +349,112 @@ fn update_bolt_positions(
     }
 }
 
+pub(in super::super) fn update_arcs_system(
+    time: Res<Time>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut q_bolts: Query<
+        (
+            Entity,
+            &RelEntity,
+            &GlobalTransform,
+            &Mesh3d,
+            &mut Visibility,
+        ),
+        With<TeslaBolt>,
+    >,
+    q_towers: Query<&EnemiesWithinReach, (With<TeslaTower>, With<TowerReady>)>,
+    q_targets: Query<&GlobalTransform, With<Enemy>>,
+    mut q_sparks: Query<
+        (
+            &mut Transform,
+            &mut EffectSpawner,
+            &ChildOf,
+            &TeslaImpactSlot,
+        ),
+        (
+            With<TeslaImpactSparks>,
+            Without<TeslaImpactSmoke>,
+            Without<TeslaImpactFlash>,
+        ),
+    >,
+    mut q_smoke: Query<
+        (
+            &mut Transform,
+            &mut EffectSpawner,
+            &ChildOf,
+            &TeslaImpactSlot,
+        ),
+        (With<TeslaImpactSmoke>, Without<TeslaImpactFlash>),
+    >,
+    mut q_flash: Query<
+        (&mut Transform, &mut PointLight, &ChildOf, &TeslaImpactSlot),
+        With<TeslaImpactFlash>,
+    >,
+) {
+    let pulse = (time.elapsed().as_millis() / 120) as usize;
+    let frame = (time.elapsed_secs() * 18.).floor();
+    for (bolt_id, rel_id, bolt_gtf, mesh_handle, mut vis) in q_bolts.iter_mut() {
+        let world_to_bolt = bolt_gtf.affine().inverse();
+        let candidates = q_towers
+            .get(rel_id.0)
+            .map(|reach| {
+                reach
+                    .0
+                    .iter()
+                    .filter_map(|id| {
+                        q_targets
+                            .get(*id)
+                            .ok()
+                            .map(|gtf| (*id, world_to_bolt.transform_point3(gtf.translation())))
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+        let targets = select_arc_targets(candidates, pulse);
+        *vis = if targets.iter().any(Option::is_some) {
+            Visibility::Inherited
+        } else {
+            Visibility::Hidden
+        };
+        if let Some(mut mesh) = meshes.get_mut(&mesh_handle.0)
+            && let Ok(VertexAttributeValues::Float32x3(pos)) =
+                mesh.try_attribute_mut(Mesh::ATTRIBUTE_POSITION)
+        {
+            update_bolt_positions(
+                pos,
+                &targets,
+                frame + bolt_gtf.translation().length() * 137.,
+            );
+        }
+        for (mut tf, mut spawner, child_of, slot) in q_sparks.iter_mut() {
+            if child_of.parent() == bolt_id {
+                let point = targets.get(slot.0).copied().flatten();
+                tf.translation = point.unwrap_or_default();
+                spawner.active = point.is_some();
+            }
+        }
+        for (mut tf, mut spawner, child_of, slot) in q_smoke.iter_mut() {
+            if child_of.parent() == bolt_id {
+                let point = targets.get(slot.0).copied().flatten();
+                tf.translation = point.unwrap_or_default();
+                spawner.active = point.is_some();
+            }
+        }
+        for (mut tf, mut light, child_of, slot) in q_flash.iter_mut() {
+            if child_of.parent() == bolt_id {
+                let point = targets.get(slot.0).copied().flatten();
+                tf.translation = point.unwrap_or_default();
+                let sin = (time.elapsed_secs() * 48.).sin();
+                light.intensity = if point.is_some() {
+                    (sin + 1.) * 160.
+                } else {
+                    0.
+                };
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -361,7 +465,7 @@ mod tests {
         let Indices::U16(indices) = mesh.indices().unwrap() else {
             panic!("expected u16 indices");
         };
-        for triangle in indices.chunks_exact(3) {
+        for triangle in indices.as_chunks::<3>().0 {
             let path = usize::from(triangle.first().copied().unwrap()) / PATH_VERTICES;
             assert!(triangle.iter().all(|i| {
                 usize::from(*i) < PATH_VERTICES * (MAX_BRANCHES + 1)
@@ -384,7 +488,9 @@ mod tests {
         let center =
             |strip: &[[f32; 3]]| strip.iter().map(|p| Vec3::from_array(*p)).sum::<Vec3>() / 8.;
         for (path, target) in positions
-            .chunks_exact(PATH_VERTICES)
+            .as_chunks::<PATH_VERTICES>()
+            .0
+            .iter()
             .zip(std::iter::once(Some(junction)).chain(targets))
         {
             assert!(center(path.get(..8).unwrap()).abs_diff_eq(
@@ -507,111 +613,5 @@ mod tests {
                 .single(app.world())
                 .is_ok()
         );
-    }
-}
-
-pub(in super::super) fn update_arcs_system(
-    time: Res<Time>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut q_bolts: Query<
-        (
-            Entity,
-            &RelEntity,
-            &GlobalTransform,
-            &Mesh3d,
-            &mut Visibility,
-        ),
-        With<TeslaBolt>,
-    >,
-    q_towers: Query<&EnemiesWithinReach, (With<TeslaTower>, With<TowerReady>)>,
-    q_targets: Query<&GlobalTransform, With<Enemy>>,
-    mut q_sparks: Query<
-        (
-            &mut Transform,
-            &mut EffectSpawner,
-            &ChildOf,
-            &TeslaImpactSlot,
-        ),
-        (
-            With<TeslaImpactSparks>,
-            Without<TeslaImpactSmoke>,
-            Without<TeslaImpactFlash>,
-        ),
-    >,
-    mut q_smoke: Query<
-        (
-            &mut Transform,
-            &mut EffectSpawner,
-            &ChildOf,
-            &TeslaImpactSlot,
-        ),
-        (With<TeslaImpactSmoke>, Without<TeslaImpactFlash>),
-    >,
-    mut q_flash: Query<
-        (&mut Transform, &mut PointLight, &ChildOf, &TeslaImpactSlot),
-        With<TeslaImpactFlash>,
-    >,
-) {
-    let pulse = usize::try_from(time.elapsed().as_millis() / 120).unwrap_or(0);
-    let frame = (time.elapsed_secs() * 18.).floor();
-    for (bolt_id, rel_id, bolt_gtf, mesh_handle, mut vis) in q_bolts.iter_mut() {
-        let world_to_bolt = bolt_gtf.affine().inverse();
-        let candidates = q_towers
-            .get(rel_id.0)
-            .map(|reach| {
-                reach
-                    .0
-                    .iter()
-                    .filter_map(|id| {
-                        q_targets
-                            .get(*id)
-                            .ok()
-                            .map(|gtf| (*id, world_to_bolt.transform_point3(gtf.translation())))
-                    })
-                    .collect()
-            })
-            .unwrap_or_default();
-        let targets = select_arc_targets(candidates, pulse);
-        *vis = if targets.iter().any(Option::is_some) {
-            Visibility::Inherited
-        } else {
-            Visibility::Hidden
-        };
-        if let Some(mut mesh) = meshes.get_mut(&mesh_handle.0)
-            && let Ok(VertexAttributeValues::Float32x3(pos)) =
-                mesh.try_attribute_mut(Mesh::ATTRIBUTE_POSITION)
-        {
-            update_bolt_positions(
-                pos,
-                &targets,
-                frame + bolt_gtf.translation().length() * 137.,
-            );
-        }
-        for (mut tf, mut spawner, child_of, slot) in q_sparks.iter_mut() {
-            if child_of.parent() == bolt_id {
-                let point = targets.get(slot.0).copied().flatten();
-                tf.translation = point.unwrap_or_default();
-                spawner.active = point.is_some();
-            }
-        }
-        for (mut tf, mut spawner, child_of, slot) in q_smoke.iter_mut() {
-            if child_of.parent() == bolt_id {
-                let point = targets.get(slot.0).copied().flatten();
-                tf.translation = point.unwrap_or_default();
-                spawner.active = point.is_some();
-            }
-        }
-        for (mut tf, mut light, child_of, slot) in q_flash.iter_mut() {
-            if child_of.parent() == bolt_id {
-                let point = targets.get(slot.0).copied().flatten();
-                tf.translation = point.unwrap_or_default();
-                let sin = (time.elapsed_secs() * 48.).sin();
-                light.intensity = if point.is_some() {
-                    (sin + 1.) * 160.
-                } else {
-                    0.
-                };
-            }
-        }
     }
 }

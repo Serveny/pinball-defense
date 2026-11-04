@@ -25,7 +25,7 @@ Pinball-Defense is a hybrid **Pinball + Tower Defense** game.
 
 - Do not add comments, unless if critical context/intent is genuinely lost without it; never explain what code already reveals.
 - **Rely on documentation**: Do not read the code of the dependencies in first place, only if something documented is not working or no answer is found in the documentation
-- **Save/load**: When adding elements to entities (visuals, components), consider how they behave on save/load. Savegames only persist logical entities (`Save`-marked components); child entities (meshes, bars, lights) are re-attached by the `reattach_*_system`s on load. Any newly added child must be spawned there too, not just in the fresh-spawn path.
+- **Save/load**: When adding elements to entities (visuals, components), consider how they behave on save/load. Savegames only persist logical entities (`Save`-marked components); child entities (meshes, bars, lights) are re-attached by the `reattach_*_system`s on load. Towers, foundations and the life bar spawn only the logical entity; their reattach system builds all children for fresh spawns and loads alike, so add new children there. Enemies and the ball share a `*_view_bundle` between both paths.
 
 ## Tips
 

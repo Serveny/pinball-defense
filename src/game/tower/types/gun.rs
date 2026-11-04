@@ -24,31 +24,10 @@ pub struct GunTowerBarrel;
 pub const MG_BARREL_AXIS_Z: f32 = 0.0496;
 pub const MG_MUZZLE_LOCAL: Vec3 = Vec3::new(0., 0.087, 0.0535);
 
-pub fn spawn(
-    pb_world: &mut ChildSpawnerCommands,
-    mats: &mut Assets<StandardMaterial>,
-    assets: &PinballDefenseGltfAssets,
-    g_sett: &GraphicsSettings,
-    pos: Vec3,
-) -> Entity {
-    let sight_radius = 0.3;
+pub const SIGHT_RADIUS: f32 = 0.3;
 
-    // Tower
-    super::spawn(
-        pb_world,
-        mats,
-        assets,
-        g_sett,
-        pos,
-        sight_radius,
-        (
-            Name::new(" Gun Tower"),
-            GunTower,
-            AimFirstEnemy(None),
-            DamageOverTime(100.),
-        ),
-        |tower| build_view(tower, assets, g_sett, sight_radius),
-    )
+pub fn bundle() -> impl Bundle {
+    (Name::new("Gun Tower"), GunTower, DamageOverTime(100.))
 }
 
 pub(crate) fn build_view(

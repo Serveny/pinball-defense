@@ -46,7 +46,6 @@ impl FromWorld for MicrowaveEffectAssets {
     }
 }
 
-#[allow(clippy::too_many_lines)]
 fn wave_asset(resonance: bool) -> EffectAsset {
     let w = ExprWriter::new();
     let range = w.add_property("range", 0.3_f32.into());
@@ -61,7 +60,6 @@ fn wave_asset(resonance: bool) -> EffectAsset {
     } else {
         WAVE_SAMPLES
     };
-    #[allow(clippy::cast_precision_loss)]
     let angle_step = TAU / if resonance { samples as f32 } else { 64. };
     let angle = (w.attr(Attribute::PARTICLE_COUNTER) % w.lit(if resonance { samples } else { 64 }))
         .cast(ScalarType::Float)
@@ -138,7 +136,6 @@ fn wave_asset(resonance: bool) -> EffectAsset {
     color.add_key(0., Vec4::new(2.4, 0.65, 0.12, 0.));
     color.add_key(0.12, Vec4::new(2.4, 0.9, 0.2, 0.65));
     color.add_key(1., Vec4::new(0.8, 0.2, 0.5, 0.));
-    #[allow(clippy::cast_precision_loss)]
     let count = samples as f32;
     EffectAsset::new(
         samples * 8,

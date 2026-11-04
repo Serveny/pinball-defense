@@ -81,7 +81,7 @@ pub fn spawn_pinball_world(
             scale: Vec3::new(4., 4., 4.),
             ..default()
         };
-        spawn_life_bar(p, assets, &mut mats, life_bar_trans);
+        spawn_life_bar(p, life_bar_trans);
         p.spawn(pinball_menu_glass(assets, &mut mats));
         let pc = analog_counter::spawn_10_digit(p, assets, Vec3::new(0.98, -0.563_958, 0.01), None);
         p.commands_mut().insert_resource(PointCounterId(pc));
