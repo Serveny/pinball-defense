@@ -19,13 +19,12 @@ Pinball-Defense is a hybrid **Pinball + Tower Defense** game.
 - Lint: `cargo clippy`
 - For in-game previews and visual/gameplay verification, load the `playtest` skill (`.agents/skills/playtest/SKILL.md`). It uses reproducible savegame scenes, GPU logs and screenshots; a Microwave example is included.
 - Re-export assets: run Blender scripts in `src/blender_scripts` (e.g. `bpy_export_all_gltf.py`, `bpy_export_mesh_as_polyline.py`)
-- If asked for worktrees, use slots under `.worktrees`, load the `worktree-slot` skill (`.agents/skills/worktree-slot/SKILL.md`) and use `.agents/skills/worktree-slot/slot.sh` (claim/release/list).
+- Use worktree slots
 
 ## Rules
 
 - Do not add comments, unless if critical context/intent is genuinely lost without it; never explain what code already reveals.
 - **Rely on documentation**: Do not read the code of the dependencies in first place, only if something documented is not working or no answer is found in the documentation
-- query graphify for codebase questions
 - **Save/load**: When adding elements to entities (visuals, components), consider how they behave on save/load. Savegames only persist logical entities (`Save`-marked components); child entities (meshes, bars, lights) are re-attached by the `reattach_*_system`s on load. Any newly added child must be spawned there too, not just in the fresh-spawn path.
 
 ## Tips
@@ -33,13 +32,6 @@ Pinball-Defense is a hybrid **Pinball + Tower Defense** game.
 - Cut big tasks into many small ones and use parallel sub agents if possible
 - You are working with cutting edge technology with many changes. Always check the documentation and internet for current best practice
 - cargo builds can take time, set timeouts to 612000 ms
-
-## graphify
-
-Knowledge graph at `graphify-out/graph.json` (project root, full project: `src/`, `assets/`, docs).
-
-- For codebase questions, query the graph first: `graphify query "…"`, `graphify path "A" "B"`, `graphify explain "X"` — before reading source.
-- After code changes, run `graphify update src` (AST-only, free).
 
 ## BSN (Bevy Scene Notation) — Bevy 0.20
 
