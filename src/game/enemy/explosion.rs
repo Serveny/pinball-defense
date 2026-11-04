@@ -175,10 +175,7 @@ mod tests {
 
     #[test]
     fn explosion_assets_generate_shader() {
-        for asset in [
-            burst_asset("t", 32., 0.12, 0.35),
-            trail_asset(),
-        ] {
+        for asset in [burst_asset("t", 32., 0.12, 0.35), trail_asset()] {
             assert!(bevy_hanabi::EffectShaderSources::generate(&asset, None, 0).is_ok());
         }
     }

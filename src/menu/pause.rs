@@ -16,14 +16,15 @@ pub fn layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
         BackgroundColor({GameColor::BACKGROUND})
         MenuLayout
         Children [
-            (headline("Pause", 80.0, &assets)),
-            (Node {
+            @headline("Pause", 80.0, &assets)
+            --
+            Node {
                 display: Display::Flex,
                 flex_direction: FlexDirection::Column,
                 padding: UiRect::horizontal(Val::Percent(5.)),
              }
              Children [
-                 (Node {
+                  Node {
                      display: Display::Flex,
                      flex_direction: FlexDirection::Column,
                      align_items: AlignItems::Center,
@@ -32,12 +33,15 @@ pub fn layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
                      flex_grow: 1.0,
                   }
                   Children [
-                     (menu_btn::scene(MenuAction::Continue, ButtonStyle::Primary, &assets, UiRect::bottom(Val::Px(10.)))),
-                     (menu_btn::scene(MenuAction::SaveGame, ButtonStyle::Primary, &assets, UiRect::default())),
-                     (menu_btn::scene(MenuAction::Settings, ButtonStyle::Primary, &assets, UiRect::default())),
-                  ]),
-                 (menu_btn::scene(MenuAction::BackToMainMenu, ButtonStyle::Secondary, &assets, UiRect::bottom(Val::Px(20.))))
-             ])
+                     @menu_btn::scene(MenuAction::Continue, ButtonStyle::Primary, &assets, UiRect::bottom(Val::Px(10.)))
+                     --
+                     @menu_btn::scene(MenuAction::SaveGame, ButtonStyle::Primary, &assets, UiRect::default())
+                     --
+                     @menu_btn::scene(MenuAction::Settings, ButtonStyle::Primary, &assets, UiRect::default())
+                  ]
+                  --
+                  @menu_btn::scene(MenuAction::BackToMainMenu, ButtonStyle::Secondary, &assets, UiRect::bottom(Val::Px(20.)))
+             ]
         ]
     });
 }

@@ -12,7 +12,7 @@ use crate::game::ball::CollisionWithBallEvent;
 use crate::game::world::QueryWorld;
 use crate::generated::world_1::road_points::ROAD_POINTS;
 use crate::prelude::*;
-use bevy::math::primitives::{Cone, Cylinder, Sphere};
+use bevy::shape::{Cone, Cylinder, Sphere};
 use moonshine_save::prelude::Save;
 use std::time::Duration;
 

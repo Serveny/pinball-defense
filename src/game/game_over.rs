@@ -87,12 +87,13 @@ fn spawn_stats(
                         column_gap: Val::Px(60.0),
                     }
                     Children [
-                        (Text({label})
-                         TextFont { font: {label_font}, font_size: FontSize::Px(30.0) }
-                         TextColor(GameColor::GRAY)),
-                        (Text({value})
-                         TextFont { font: {value_font}, font_size: FontSize::Px(30.0) }
-                         TextColor(GameColor::WHITE))
+                        Text({label})
+                        TextFont { font: {label_font}, font_size: FontSize::Px(30.0) }
+                        TextColor(GameColor::GRAY)
+                        --
+                        Text({value})
+                        TextFont { font: {value_font}, font_size: FontSize::Px(30.0) }
+                        TextColor(GameColor::WHITE)
                     ]
                 });
             }

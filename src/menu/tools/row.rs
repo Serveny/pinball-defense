@@ -28,13 +28,13 @@ pub fn spawn(
         BorderColor::from(GameColor::GRAY)
         BackgroundColor(GameColor::BACKGROUND)
         Children [
-            (Node {}
-             Children [
-                 (Text({text})
-                  TextFont { font: {font}, font_size: FontSize::Px(40.0) }
-                  TextColor({row_text_color(true)})
-                  Node { margin: UiRect::all(Val::Auto) })
-             ])
+            Node {}
+            Children [
+                Text({text})
+                TextFont { font: {font}, font_size: FontSize::Px(40.0) }
+                TextColor({row_text_color(true)})
+                Node { margin: UiRect::all(Val::Auto) }
+             ]
         ]
     });
     row.with_children(|p| {

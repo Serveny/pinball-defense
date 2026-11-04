@@ -4,6 +4,7 @@ use crate::utils::GameColor;
 use bevy::color::palettes::css::GRAY;
 use bevy::text::{FontSize, FontSourceTemplate};
 use bevy::ui::auto_directional_navigation::AutoDirectionalNavigation;
+use bevy::ui_widgets::Button;
 
 #[derive(Component, Clone, Default)]
 pub struct Keybox;
@@ -31,9 +32,9 @@ pub fn scene(assets: &PinballDefenseAssets, prop_i: usize, init_val: KeyCode) ->
         PropIndex({prop_i})
         Active
         Children [
-            (Text({format!("{init_val:?}").replace("Key", "")})
-             TextFont { font: {font}, font_size: FontSize::Px(32.0) }
-             TextColor({GameColor::WHITE}))
+            Text({format!("{init_val:?}").replace("Key", "")})
+            TextFont { font: {font}, font_size: FontSize::Px(32.0) }
+            TextColor({GameColor::WHITE})
         ]
     }
 }

@@ -12,6 +12,7 @@ use bevy::post_process::bloom::Bloom;
 use bevy::reflect::structs::Struct;
 use bevy::text::{FontSize, FontSourceTemplate};
 use bevy::ui::auto_directional_navigation::AutoDirectionalNavigation;
+use bevy::ui_widgets::Button;
 use bevy::ui_widgets::ScrollArea;
 use bevy::window::{MonitorSelection, WindowMode};
 use std::any::TypeId;
@@ -40,9 +41,9 @@ fn header(p: &mut ChildSpawnerCommands, assets: &PinballDefenseAssets, text: &st
         }
         BorderColor::from(GameColor::GOLD)
         Children [
-            (Text({text})
-             TextFont { font: {font}, font_size: FontSize::Px(40.0) }
-             TextColor({GameColor::GOLD}))
+            Text({text})
+            TextFont { font: {font}, font_size: FontSize::Px(40.0) }
+            TextColor({GameColor::GOLD})
         ]
     });
 }
@@ -78,9 +79,9 @@ fn controller_label(p: &mut ChildSpawnerCommands, assets: &PinballDefenseAssets,
         BorderColor::from(GameColor::GOLD)
         BackgroundColor(Color::NONE)
         Children [
-            (Text({text})
-             TextFont { font: {font}, font_size: FontSize::Px(32.0) }
-             TextColor({GameColor::WHITE}))
+            Text({text})
+            TextFont { font: {font}, font_size: FontSize::Px(32.0) }
+            TextColor({GameColor::WHITE})
         ]
     });
 }

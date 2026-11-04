@@ -55,23 +55,24 @@ pub fn scene(prop_i: usize, init_val: f32) -> impl Scene {
             }
         })
         Children [
-            (Name::new("Slider Track")
-             Node {
-                 height: Val::Px(10.),
-                 width: Val::Percent(100.),
-                 border_radius: BorderRadius::all(Val::Px(5.)),
-             }
-             BackgroundColor(GameColor::GRAY)),
-            (Name::new("Slider Thumb Track")
-             Node {
-                 position_type: PositionType::Absolute,
-                 left: Val::Px(0.),
-                 right: Val::Px({THUMB_SIZE}),
-                 top: Val::Px(0.),
-                 bottom: Val::Px(0.),
+            Name::new("Slider Track")
+            Node {
+                height: Val::Px(10.),
+                width: Val::Percent(100.),
+                border_radius: BorderRadius::all(Val::Px(5.)),
+            }
+            BackgroundColor(GameColor::GRAY)
+            --
+            Name::new("Slider Thumb Track")
+            Node {
+                position_type: PositionType::Absolute,
+                left: Val::Px(0.),
+                right: Val::Px({THUMB_SIZE}),
+                top: Val::Px(0.),
+                bottom: Val::Px(0.),
              }
              Children [
-                 (Name::new("Slider Thumb")
+                  Name::new("Slider Thumb")
                   SliderThumb
                   Node {
                       position_type: PositionType::Absolute,
@@ -85,8 +86,8 @@ pub fn scene(prop_i: usize, init_val: f32) -> impl Scene {
                       border_radius: BorderRadius::MAX,
                   }
                   BorderColor::from(GameColor::GOLD)
-                  BackgroundColor(GameColor::WHITE))
-             ])
+                  BackgroundColor(GameColor::WHITE)
+             ]
         ]
     }
 }

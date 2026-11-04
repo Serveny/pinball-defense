@@ -11,6 +11,7 @@ use crate::utils::GameColor;
 use bevy::render::render_resource::{Extent3d, TextureDimension, TextureFormat};
 use bevy::text::{FontSize, FontSourceTemplate};
 use bevy::ui::auto_directional_navigation::AutoDirectionalNavigation;
+use bevy::ui_widgets::Button;
 use bevy::ui_widgets::ScrollArea;
 use std::path::Path;
 
@@ -111,16 +112,18 @@ fn nav_menu(assets: &PinballDefenseAssets, title: &str) -> impl Scene {
         BackgroundColor({GameColor::BACKGROUND})
         MenuLayout
         Children [
-            ({headline}),
-            (Node {
+            @headline
+            --
+            Node {
                 display: Display::Flex,
                 flex_direction: FlexDirection::Column,
                 padding: UiRect::horizontal(Val::Percent(5.)),
              }
              Children [
-                 (Node { flex_grow: 1.0 }),
-                 ({back_btn})
-             ])
+                 Node { flex_grow: 1.0 }
+                 --
+                 @back_btn
+             ]
         ]
     }
 }
@@ -167,9 +170,9 @@ fn empty_message(text: &str, assets: &PinballDefenseAssets) -> impl Scene {
             padding: UiRect::horizontal(Val::Px(20.)),
         }
         Children [
-            (Text({text})
-             TextFont { font: {font}, font_size: FontSize::Px(40.0) }
-             TextColor(GameColor::GRAY))
+            Text({text})
+            TextFont { font: {font}, font_size: FontSize::Px(40.0) }
+            TextColor(GameColor::GRAY)
         ]
     }
 }
@@ -204,15 +207,16 @@ fn save_entry(
         BorderColor::from(color)
         BackgroundColor(Color::NONE)
         Children [
-            (Node {
+            Node {
                 width: Val::Px(110.),
                 height: Val::Px(55.),
                 flex_shrink: 0.0,
-             }
-             ImageNode { image: {thumb} }),
-            (Text({label})
-             TextFont { font: {font}, font_size: FontSize::Px(40.0) }
-             TextColor(color))
+            }
+            ImageNode { image: {thumb} }
+            --
+            Text({label})
+            TextFont { font: {font}, font_size: FontSize::Px(40.0) }
+            TextColor(color)
         ]
     }
 }

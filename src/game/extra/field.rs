@@ -109,7 +109,7 @@ pub(super) fn button_press_system(
 
 fn release_tween() -> Tween {
     Tween::new(
-        bevy::math::curve::EaseFunction::QuadraticOut,
+        bevy::curve::EaseFunction::QuadraticOut,
         BUTTON_RELEASE_SECS,
         TransformPositionLens {
             start: Vec3::new(0., 0., -BUTTON_PRESS_DEPTH),

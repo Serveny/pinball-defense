@@ -293,13 +293,7 @@ pub(super) fn on_tower_upgraded_system(
 ) {
     for TowerUpgradedEvent(_, level) in evr.read() {
         let slot = u32::try_from(q_banner.iter().count()).unwrap_or(0);
-        spawn_banner(
-            &mut cmds,
-            BannerType::Upgraded(*level),
-            0,
-            slot,
-            &assets,
-        );
+        spawn_banner(&mut cmds, BannerType::Upgraded(*level), 0, slot, &assets);
     }
 }
 
