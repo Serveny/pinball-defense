@@ -22,18 +22,17 @@ codegen-units = 1
 log = []
 
 [dependencies]
-bevy = { version = "0.19.1", features = ["dynamic_linking"] }
-bevy-inspector-egui = "0.37.0"
-bevy_asset_loader = "0.27.0"
-avian2d = { version = "0.7.0" }
-bevy_window_title_diagnostics = "0.19.0"
-bevy_tweening = "0.16.0"
+bevy = { version = "0.20.1", features = ["dynamic_linking"] }
+bevy-inspector-egui = "0.38.0"
+bevy_asset_loader = "0.28.0"
+avian2d = { version = "0.8.0" }
+bevy_window_title_diagnostics = "0.20.0"
+bevy_tweening = "0.17.0"
 digits_iterator = "0.1.0"
-bevy_framepace = "0.22.0"
-rand = { version = "0.10.2", features = ["thread_rng"] }
-moonshine-save = "0.7.0"
+rand = { version = "0.10.3", features = ["thread_rng"] }
+moonshine-save = "0.8.0"
 image = { version = "0.25", default-features = false, features = ["png"] }
-bevy_hanabi = { version = "0.19.0", default-features = false, features = ["3d"] }
+bevy_hanabi = { version = "0.20.0", default-features = false, features = ["3d"] }
 #bevy_debug_grid = "0.1"
 
 [lints.clippy]

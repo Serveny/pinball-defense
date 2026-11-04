@@ -14,8 +14,8 @@ use super::world::WorldFrame;
 use crate::game::IngameTime;
 use crate::prelude::*;
 use bevy::color::palettes::css::{GOLD, ORANGE, RED};
-use bevy::math::primitives::Sphere;
 use bevy::platform::collections::{HashMap, HashSet};
+use bevy::shape::Sphere;
 use moonshine_save::prelude::Save;
 use std::ops::Range;
 
@@ -88,7 +88,11 @@ fn ball_view_bundle(
             ..default()
         })),
         RigidBody::Dynamic,
-        SweptCcd::LINEAR.include_dynamic(false),
+        SweptCcd {
+            filter: CcdFilter::ALL,
+            mode: SweepMode::Linear,
+            ..default()
+        },
         MaxLinearSpeed(MAX_BALL_SPEED),
         SleepingDisabled,
         Collider::circle(radius),

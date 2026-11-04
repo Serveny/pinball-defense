@@ -26,7 +26,7 @@ pub fn spawn(cmds: &mut Commands, assets: &PinballDefenseAssets) {
         BackgroundColor(Color::srgba_u8(0, 0, 0, 160))
         ConfirmPopup
         Children [
-            (Node {
+            Node {
                 display: Display::Flex,
                 flex_direction: FlexDirection::Column,
                 width: Val::Px(600.),
@@ -38,19 +38,21 @@ pub fn spawn(cmds: &mut Commands, assets: &PinballDefenseAssets) {
              BorderColor::from(GameColor::GOLD)
              BackgroundColor(Color::srgb_u8(23, 24, 26))
              Children [
-                 (Node {
+                  Node {
                      width: Val::Percent(100.),
                      justify_content: JustifyContent::Center,
                      align_items: AlignItems::Center,
                   }
                   Children [
-                     (Text({msg})
+                      Text({msg})
                       TextFont { font: {font}, font_size: FontSize::Px(24.0) }
-                      TextColor({GameColor::WHITE}))
-                  ]),
-                 (menu_btn::scene(MenuAction::ConfirmBackToMainMenu, ButtonStyle::Primary, assets, UiRect::default())),
-                 (menu_btn::scene(MenuAction::CancelBackToMainMenu, ButtonStyle::Secondary, assets, UiRect::default())),
-             ])
+                      TextColor({GameColor::WHITE})
+                  ]
+                  --
+                  @menu_btn::scene(MenuAction::ConfirmBackToMainMenu, ButtonStyle::Primary, assets, UiRect::default())
+                  --
+                  @menu_btn::scene(MenuAction::CancelBackToMainMenu, ButtonStyle::Secondary, assets, UiRect::default())
+             ]
         ]
     });
 }

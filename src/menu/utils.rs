@@ -11,9 +11,9 @@ pub fn headline(text: &str, font_size: f32, assets: &PinballDefenseAssets) -> im
             align_items: AlignItems::Center,
         }
         Children [
-            (Text({text})
-             TextFont { font: {font}, font_size: FontSize::Px({font_size}) }
-             TextColor(Color::srgb_u8(255, 254, 236)))
+            Text({text})
+            TextFont { font: {font}, font_size: FontSize::Px({font_size}) }
+            TextColor(Color::srgb_u8(255, 254, 236))
         ]
     }
 }

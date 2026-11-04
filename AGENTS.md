@@ -41,6 +41,6 @@ Knowledge graph at `graphify-out/graph.json` (project root, full project: `src/`
 - For codebase questions, query the graph first: `graphify query "…"`, `graphify path "A" "B"`, `graphify explain "X"` — before reading source.
 - After code changes, run `graphify update src` (AST-only, free).
 
-## BSN (Bevy Scene Notation) — Bevy 0.19
+## BSN (Bevy Scene Notation) — Bevy 0.20
 
 For any UI work, entity spawning, or `bsn!` macro usage, load the `bsn` skill (`.agents/skills/bsn/SKILL.md`) — it holds the full syntax and spawning-API reference.

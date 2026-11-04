@@ -34,10 +34,10 @@ fn spawn_layout(mut cmds: Commands) {
         }
         LoadingLayout
         Children [
-            (Text("Loading...")
-             TextFont { font_size: FontSize::Px(100.0) }
-             TextColor({Color::WHITE})
-             Node { width: Val::Percent(100.), height: Val::Percent(100.), justify_content: JustifyContent::Center })
+            Text("Loading...")
+            TextFont { font_size: FontSize::Px(100.0) }
+            TextColor({Color::WHITE})
+            Node { width: Val::Percent(100.), height: Val::Percent(100.), justify_content: JustifyContent::Center }
         ]
     });
 }

@@ -26,8 +26,10 @@ impl FromWorld for ExtraFxAssets {
         let mut effects = world.resource_mut::<Assets<EffectAsset>>();
         Self {
             insta_trail: effects.add(trail_asset("ball_insta_kill_trail", RED_TRAIL)),
-            double_upgrade_points_trail: effects
-                .add(trail_asset("ball_double_upgrade_points_trail", ORANGE_TRAIL)),
+            double_upgrade_points_trail: effects.add(trail_asset(
+                "ball_double_upgrade_points_trail",
+                ORANGE_TRAIL,
+            )),
             snow: effects.add(snow_asset()),
         }
     }

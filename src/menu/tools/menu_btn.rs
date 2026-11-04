@@ -2,8 +2,11 @@ use super::super::actions::MenuAction;
 use crate::prelude::*;
 use crate::utils::GameColor;
 use bevy::input_focus::InputFocus;
+use bevy::picking::hover::Hovered;
 use bevy::text::{FontSize, FontSourceTemplate};
+use bevy::ui::Pressed;
 use bevy::ui::auto_directional_navigation::AutoDirectionalNavigation;
+use bevy::ui_widgets::Button;
 
 #[derive(Component, Clone, Default)]
 pub struct MenuButton;
@@ -45,6 +48,7 @@ pub fn scene(
         MenuButton
         MenuButtonData { action: {action}, style: {style} }
         AutoDirectionalNavigation
+        Hovered::default()
         Node {
             width: Val::Percent(100.),
             height: Val::Px(65.),
@@ -56,45 +60,37 @@ pub fn scene(
         BorderColor::from(color)
         BackgroundColor(Color::NONE)
         Children [
-            (Text({label})
-             TextFont { font: {font}, font_size: FontSize::Px(40.0) }
-             TextColor(color))
+            Text({label})
+            TextFont { font: {font}, font_size: FontSize::Px(40.0) }
+            TextColor(color)
         ]
     }
 }
 
 pub fn system(
     mut interaction_query: Query<
-        (&Interaction, &MenuButtonData),
-        (Changed<Interaction>, With<Button>, With<MenuButton>),
+        &MenuButtonData,
+        (Changed<Pressed>, With<Button>, With<MenuButton>),
     >,
     mut action_ev: MessageWriter<MenuAction>,
 ) {
-    for (interaction, data) in &mut interaction_query {
-        if *interaction == Interaction::Pressed {
-            action_ev.write(data.action.clone());
-        }
+    for data in &mut interaction_query {
+        action_ev.write(data.action.clone());
     }
 }
 
 pub fn focus_system(
     focus: Res<InputFocus>,
     mut q_btn: Query<
-        (
-            &MenuButtonData,
-            &mut BorderColor,
-            Entity,
-            Option<&Interaction>,
-        ),
+        (&MenuButtonData, &mut BorderColor, Entity, Option<&Hovered>),
         (With<Button>, With<MenuButton>),
     >,
     children: Query<&Children>,
     mut text_query: Query<&mut TextColor>,
 ) {
     let focused = focus.get();
-    for (data, mut border_color, entity, interaction) in &mut q_btn {
-        let hovered = interaction.is_some_and(|i| *i == Interaction::Hovered);
-        let target = if focused == Some(entity) || hovered {
+    for (data, mut border_color, entity, hovered) in &mut q_btn {
+        let target = if focused == Some(entity) || hovered.is_some_and(|h| h.0) {
             GameColor::WHITE
         } else {
             data.style.resting_color()

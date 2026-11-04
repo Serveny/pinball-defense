@@ -46,8 +46,6 @@ pub fn save_world(path: impl Into<PathBuf>) -> SaveWorld {
         .exclude_component::<avian2d::collision::collider::EnlargedAabb>()
         .exclude_component::<avian2d::dynamics::integrator::VelocityIntegrationData>()
         .exclude_component::<avian2d::dynamics::rigid_body::forces::AccumulatedLocalAcceleration>()
-        .exclude_component::<avian2d::dynamics::solver::solver_body::SolverBody>()
-        .exclude_component::<avian2d::dynamics::solver::solver_body::SolverBodyInertia>()
         .exclude_component::<avian2d::physics_transform::PreSolveDeltaPosition>()
         .exclude_component::<avian2d::physics_transform::PreSolveDeltaRotation>()
         .exclude_component::<ChildOf>()

@@ -22,12 +22,12 @@ pub fn spawn(cmds: &mut Commands, target: Entity) {
             min_thumb_length: {WIDTH},
         }
         Children [
-            (ScrollbarThumb {
+            ScrollbarThumb {
                 border_radius: BorderRadius::all(Val::Px(WIDTH / 2.)),
                 border: UiRect::all(Val::Px(1.)),
             }
-             BackgroundColor(GameColor::GOLD)
-             BorderColor::all(GameColor::GRAY))
+            BackgroundColor(GameColor::GOLD)
+            BorderColor::all(GameColor::GRAY)
         ]
     });
 }

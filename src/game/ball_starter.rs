@@ -146,8 +146,8 @@ const STARTER_MIN_X: f32 = -0.107;
 const STARTER_MAX_X: f32 = 0.;
 const CHARGE_SPEED: f32 = 0.24;
 const AUTO_LAUNCH_HOLD_SECS: f32 = 2.;
-const FIRE_SPEED_MIN: f32 = -0.9;
-const FIRE_SPEED_MAX: f32 = -2.1;
+const FIRE_SPEED_MIN: f32 = -1.5;
+const FIRE_SPEED_MAX: f32 = -3.5;
 const SPRING_SCALE_X_MIN: f32 = 0.35;
 
 #[derive(Component)]

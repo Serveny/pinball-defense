@@ -56,11 +56,11 @@ pub fn spawn(cmds: &mut Commands, rel_id: Entity, start_percent: PercentBw0And1)
         BorderColor::from(Color::BLACK)
         BackgroundColor({Color::WHITE})
         Children [
-            (ProgressUiBar
-             Progress({start_percent})
-             RelEntity({rel_id})
-             Node { width: Val::Percent({start_percent * 100.}), height: Val::Percent(100.) }
-             BackgroundColor({ENEMY_HEALTH_COLOR}))
+            ProgressUiBar
+            Progress({start_percent})
+            RelEntity({rel_id})
+            Node { width: Val::Percent({start_percent * 100.}), height: Val::Percent(100.) }
+            BackgroundColor({ENEMY_HEALTH_COLOR})
         ]
     });
 }
@@ -90,11 +90,11 @@ pub fn spawn_transient(
         BorderColor::from(Color::BLACK)
         BackgroundColor({Color::WHITE})
         Children [
-            (ProgressUiBar
-             Progress({init_val})
-             RelEntity({rel_id})
-             Node { width: Val::Percent({init_val * 100.}), height: Val::Percent(100.) }
-             BackgroundColor({color}))
+            ProgressUiBar
+            Progress({init_val})
+            RelEntity({rel_id})
+            Node { width: Val::Percent({init_val * 100.}), height: Val::Percent(100.) }
+            BackgroundColor({color})
         ]
     })
     .insert(Visibility::Hidden);

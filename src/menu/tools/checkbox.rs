@@ -52,14 +52,14 @@ pub fn scene(prop_i: usize) -> impl Scene {
             }
         })
         Children [
-            (Name::new("Checkbox Mark")
-             Node {
-                 width: Val::Px(20.),
-                 height: Val::Px(20.),
-                 margin: UiRect::all(Val::Auto),
-             }
-             BackgroundColor(GameColor::GOLD)
-             CheckboxMark)
+            Name::new("Checkbox Mark")
+            Node {
+                width: Val::Px(20.),
+                height: Val::Px(20.),
+                margin: UiRect::all(Val::Auto),
+            }
+            BackgroundColor(GameColor::GOLD)
+            CheckboxMark
         ]
     }
 }

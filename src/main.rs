@@ -6,7 +6,6 @@ use bevy::camera::Hdr;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::window::{MonitorSelection, PrimaryWindow, Window, WindowMode};
 pub use bevy_asset_loader::prelude::*;
-use bevy_framepace::Limiter;
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::bevy_egui::{EguiPlugin, PrimaryEguiContext};
 #[cfg(debug_assertions)]
@@ -43,8 +42,6 @@ pub struct CliArgs {
     pub save: Option<PathBuf>,
 }
 
-const MAX_FRAME_RATE: f32 = 144.;
-
 fn parse_cli_args() -> CliArgs {
     let mut args = CliArgs::default();
     let mut iter = std::env::args().skip(1);
@@ -66,7 +63,6 @@ fn main() {
             unapproved_path_mode: bevy::asset::UnapprovedPathMode::Allow,
             ..default()
         }),
-        bevy_framepace::FramepacePlugin,
         bevy_hanabi::prelude::HanabiPlugin,
         FrameTimeDiagnosticsPlugin::default(),
         TweeningPlugin,
@@ -74,7 +70,6 @@ fn main() {
         PhysicsPlugins::default(),
     ))
     .init_state::<AppState>()
-    .add_systems(Startup, set_framerate)
     .add_systems(Update, toggle_fullscreen);
 
     add_pysics_settings(&mut app);
@@ -99,10 +94,6 @@ fn main() {
     app.insert_resource(parse_cli_args());
     app.add_plugins((LoadingScreenPlugin, GamePlugin, MenuPlugin))
         .run();
-}
-
-fn set_framerate(mut settings: ResMut<bevy_framepace::FramepaceSettings>) {
-    settings.limiter = Limiter::from_framerate(f64::from(MAX_FRAME_RATE));
 }
 
 fn toggle_fullscreen(

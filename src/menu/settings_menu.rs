@@ -16,28 +16,32 @@ pub fn layout(mut cmds: Commands, assets: Res<PinballDefenseAssets>) {
         BackgroundColor({GameColor::BACKGROUND})
         MenuLayout
         Children [
-            (headline("Settings", 36.0, &assets)),
-            (Node {
+            @headline("Settings", 36.0, &assets)
+            --
+            Node {
                 display: Display::Flex,
                 flex_direction: FlexDirection::Column,
                 padding: UiRect::horizontal(Val::Percent(5.)),
              }
              Children [
-                 (Node {
-                     display: Display::Flex,
-                     flex_direction: FlexDirection::Column,
-                     align_items: AlignItems::Center,
-                     justify_content: JustifyContent::Center,
-                     row_gap: Val::Percent(5.),
-                     flex_grow: 1.0,
+                  Node {
+                      display: Display::Flex,
+                      flex_direction: FlexDirection::Column,
+                      align_items: AlignItems::Center,
+                      justify_content: JustifyContent::Center,
+                      row_gap: Val::Percent(5.),
+                      flex_grow: 1.0,
                   }
                   Children [
-                     (menu_btn::scene(MenuAction::Controls, ButtonStyle::Primary, &assets, UiRect::bottom(Val::Px(10.)))),
-                     (menu_btn::scene(MenuAction::Graphics, ButtonStyle::Primary, &assets, UiRect::default())),
-                     (menu_btn::scene(MenuAction::Sound, ButtonStyle::Primary, &assets, UiRect::default())),
-                  ]),
-                 (menu_btn::scene(MenuAction::Back, ButtonStyle::Secondary, &assets, UiRect::bottom(Val::Px(20.))))
-             ])
+                      @menu_btn::scene(MenuAction::Controls, ButtonStyle::Primary, &assets, UiRect::bottom(Val::Px(10.)))
+                      --
+                      @menu_btn::scene(MenuAction::Graphics, ButtonStyle::Primary, &assets, UiRect::default())
+                      --
+                      @menu_btn::scene(MenuAction::Sound, ButtonStyle::Primary, &assets, UiRect::default())
+                  ]
+                  --
+                  @menu_btn::scene(MenuAction::Back, ButtonStyle::Secondary, &assets, UiRect::bottom(Val::Px(20.)))
+             ]
         ]
     });
 }
