@@ -48,6 +48,7 @@ pub fn scene(
         MenuButton
         MenuButtonData { action: {action}, style: {style} }
         AutoDirectionalNavigation
+        Hovered::default()
         Node {
             width: Val::Percent(100.),
             height: Val::Px(65.),
@@ -89,7 +90,7 @@ pub fn focus_system(
 ) {
     let focused = focus.get();
     for (data, mut border_color, entity, hovered) in &mut q_btn {
-        let target = if focused == Some(entity) || hovered.is_some() {
+        let target = if focused == Some(entity) || hovered.is_some_and(|h| h.0) {
             GameColor::WHITE
         } else {
             data.style.resting_color()

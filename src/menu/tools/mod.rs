@@ -38,7 +38,7 @@ pub fn hover_focus_system(
     mut last_hovered: Local<Option<Entity>>,
     mut focus: ResMut<InputFocus>,
 ) {
-    let hovered = q_hovered.iter().find(|(_, h)| h.is_some()).map(|(e, _)| e);
+    let hovered = q_hovered.iter().find(|(_, h)| h.is_some_and(|h| h.0)).map(|(e, _)| e);
     if hovered != *last_hovered {
         *last_hovered = hovered;
         if let Some(target) = hovered {
